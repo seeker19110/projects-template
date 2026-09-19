@@ -1,6 +1,6 @@
 # ADR-0008: 5 tầng SDLC là lớp từ vựng/bản đồ trên 9 cổng + 3 tầng điều phối — không tạo 5 agent cố định
 
-- **Trạng thái:** Đề xuất (chờ người dùng duyệt)
+- **Trạng thái:** Đã chấp nhận (người dùng duyệt 2026-09-19)
 - **Ngày:** 2026-09-19
 
 ## Bối cảnh

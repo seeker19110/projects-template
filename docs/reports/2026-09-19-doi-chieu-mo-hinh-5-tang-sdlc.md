@@ -66,7 +66,7 @@ lý do ở cột 4 (mâu thuẫn luật). Kết quả: **2/13 hạng mục lấy
 ## Danh sách thực sự lấy
 
 1. `docs/framework/standard-delivery.md` §3b — bản đồ 5 tầng SDLC ↔ cổng ↔ lệnh/agent ↔ artifact ↔ cổng máy ↔ fail quay về đâu (+ luật quy lỗi trước lần sửa thứ 2).
-2. `docs/adr/0008-*.md` — chốt "5 tầng là lớp từ vựng/bản đồ trên 9 cổng + 3 tầng điều phối; không tạo 5 agent cố định" — **trạng thái Đề xuất, chờ người dùng duyệt**.
+2. `docs/adr/0008-*.md` — chốt "5 tầng là lớp từ vựng/bản đồ trên 9 cổng + 3 tầng điều phối; không tạo 5 agent cố định" — người dùng đã duyệt 2026-09-19 (Đã chấp nhận).
 
 ## Đính chính giữa chừng (giữ nguyên)
 
