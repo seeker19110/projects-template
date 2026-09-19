@@ -6,7 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR #146 đã merge): 5 thực hành lấy từ đối chiếu dự án
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): làm rõ CLAUDE.md §8 mục (5) — không bắt buộc PR
+  riêng để sync `PROGRESS.md`.** Sau khi PR #146/#147 (đối chiếu `donghanh`) cần tới 2 PR liên tiếp
+  chỉ để sync `PROGRESS.md`, người dùng yêu cầu gộp bước này vào PR việc kế tiếp thay vì tách riêng
+  — thêm một câu làm rõ vào CLAUDE.md §8 mục (5): "ngay" nghĩa là trước khi mở/merge PR kế tiếp,
+  không bắt buộc một PR riêng; chỉ tách khi việc kế tiếp còn xa. PR này áp dụng luôn quy tắc vừa
+  thêm (gộp cập nhật `PROGRESS.md` vào cùng PR).
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19, PR #146 đã merge): 5 thực hành lấy từ đối chiếu dự án
   `seeker19110/donghanh`.** Theo yêu cầu người dùng "phân tích lấy những điểm mạnh về cho dự án"
   từ repo `donghanh` (dự án production từng dùng một bản khung này), chạy đúng phương pháp 3 cột
   của `adopt-from-outside.md`. Kết quả: 5 điểm ưu tiên nhất được đưa vào khung — (1) tách nhật ký
