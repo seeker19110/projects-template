@@ -83,6 +83,8 @@ Vi phạm mục nào trong 7 mục trên khi đụng dữ liệu người dùng 
 4. **Giám sát drift** dữ liệu đầu vào/đầu ra ở production (cảnh báo khi lệch ngưỡng đã chốt) — không chỉ đánh giá một lần lúc launch.
 5. **Không train/serve trên dữ liệu cá nhân chưa ẩn danh hóa** nếu không có sự đồng ý rõ ràng của người dùng (đối chiếu mục "Cổng bổ sung PII" ở đầu file).
 6. Nếu xây ứng dụng dùng LLM: dùng **model Claude mới nhất phù hợp bài toán**, xác minh bằng skill `claude-api` — không đoán tên/giá theo trí nhớ.
+7. **"Kill-switch" cho tính năng gọi LLM production:** mọi tính năng gọi LLM ở production phải có một cấu hình có thể **TẮT TỨC THÌ không cần deploy lại** (feature flag/cấu hình DB có cache ngắn — vài chục giây, không phải biến môi trường cần redeploy), dùng khi phát hiện chi phí AI tăng bất thường (bug vòng lặp gọi API, spam, prompt injection gây gọi tool lặp) — đây là cầu dao khẩn cấp **runtime**, khác với việc ước tính/dự báo chi phí lúc dev (`.claude/hooks/usage-guard.sh`/`scripts/usage-estimate.sh` của khung chỉ là dự báo trước, không thay được cầu dao runtime này).
+8. **Eval bắt buộc khi đổi prompt/model:** mọi PR đổi system prompt, đổi model, hoặc đổi guardrail của một tính năng AI phải chạy lại một bộ eval offline có **golden fixtures cố định** (input mẫu + kỳ vọng đã chốt) và **dán bảng so sánh với baseline trước đó vào PR** (metric kiểu recall/precision/tỷ lệ đúng, tùy bài toán) — không merge một thay đổi prompt/model mà "cảm tính là chắc tốt hơn" (đối chiếu mục 3 phía trên "Eval set cố định, so metric với baseline trước khi thay model vào production" — mục 8 này áp cùng nguyên tắc đó cho **mọi** thay đổi prompt/model, không chỉ lúc thay model). Tham chiếu mẫu: `docs/framework/templates/AI-EVAL.template.md`.
 
 ## C8 — Game
 
