@@ -6,7 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): làm rõ CLAUDE.md §8 mục (5) — không bắt buộc PR
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): bản đồ 5 tầng SDLC (ADR-0008, đã duyệt).**
+  Người dùng đề xuất mô hình 5 core AI (Product & UX · Design · Engineering · Verify & Operate ·
+  Knowledge) + controller deterministic + worker động. Đối chiếu ba cột
+  (`docs/reports/2026-09-19-doi-chieu-mo-hinh-5-tang-sdlc.md`): khung đã có và sâu hơn ở 10/13 hạng
+  mục; lấy 2 điểm nông — bản đồ một trang `standard-delivery.md` §3b (tầng ↔ cổng ↔ lệnh/agent ↔
+  artifact ↔ cổng máy ↔ fail quay về) + luật quy lỗi về tầng trước lần sửa thứ 2; **không** tạo 5 agent
+  cố định (mâu thuẫn luật Tầng 1 giữ quyền hỏi). Người dùng đã duyệt ADR-0008 (2026-09-19).
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19): làm rõ CLAUDE.md §8 mục (5) — không bắt buộc PR
   riêng để sync `PROGRESS.md`.** Sau khi PR #146/#147 (đối chiếu `donghanh`) cần tới 2 PR liên tiếp
   chỉ để sync `PROGRESS.md`, người dùng yêu cầu gộp bước này vào PR việc kế tiếp thay vì tách riêng
   — thêm một câu làm rõ vào CLAUDE.md §8 mục (5): "ngay" nghĩa là trước khi mở/merge PR kế tiếp,
