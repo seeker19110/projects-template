@@ -6,7 +6,20 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-19, đang mở PR trên nhánh `docs/sync-progress-pr144`): hook
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR #146 đã merge): 5 thực hành lấy từ đối chiếu dự án
+  `seeker19110/donghanh`.** Theo yêu cầu người dùng "phân tích lấy những điểm mạnh về cho dự án"
+  từ repo `donghanh` (dự án production từng dùng một bản khung này), chạy đúng phương pháp 3 cột
+  của `adopt-from-outside.md`. Kết quả: 5 điểm ưu tiên nhất được đưa vào khung — (1) tách nhật ký
+  đợt việc khỏi `PROGRESS.md` ra `docs/changelog/` (mục 9, `quality-supplements-group1.md`), (2)
+  cảnh báo "máy xanh giả" (lockfile lệch/dist cũ/lệnh khác CI thật) thêm vào `.claude/commands/gate.md`
+  Bước 1, (3) cảnh báo "oracle test tự trùng nguồn với input" thêm vào mục 6 `quality-supplements-group2.md`,
+  (4) kill-switch runtime cho tính năng gọi LLM + eval bắt buộc khi đổi prompt/model (C7 mục 7-8,
+  `quality-gates-by-profile.md`) kèm mẫu mới `docs/framework/templates/AI-EVAL.template.md`, (5)
+  nguyên tắc đồng bộ trạng thái duyệt ngoài git về file trong repo (mục 10, group1). 5 điểm còn lại
+  (contrast-audit tự động, quét tĩnh migration nguy hiểm, red-team AI feature, "biên độ còn lại"
+  cho ngưỡng chất lượng, 2 điểm nông của AUDIT.md) xếp "chưa cần ngay" — để người dùng quyết sau.
+  Kiểm: `check-docs-consistency.sh` xanh, `check-ci-policy.sh` xanh, CI PR #146 `success`.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19, PR #145 đã merge): hook
   Stop `telemetry-record.sh` — đóng khoảng cách "kỷ luật §5 chỉ nằm trên giấy".** Theo yêu cầu
   người dùng "audit tối ưu quy trình và giảm token", rà `models-and-automation.md` §5 với thực tế:
   `telemetry-log.sh --record` được tài liệu hoá là "ghi mỗi tác vụ AI" nhưng **không hook nào gọi
@@ -268,7 +281,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `39a92ae` (`origin/main`, PR #144)
+- Default-branch SHA đã đối chiếu: `a974b93` (`origin/main`, PR #146)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-19
 
