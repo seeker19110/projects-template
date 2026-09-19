@@ -6,7 +6,32 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Bảo trì định kỳ 2026-09-15 (`/maintain`, đợt sạch): 0 mục hành động.**
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, đang mở PR trên nhánh `docs/sync-progress-pr144`): hook
+  Stop `telemetry-record.sh` — đóng khoảng cách "kỷ luật §5 chỉ nằm trên giấy".** Theo yêu cầu
+  người dùng "audit tối ưu quy trình và giảm token", rà `models-and-automation.md` §5 với thực tế:
+  `telemetry-log.sh --record` được tài liệu hoá là "ghi mỗi tác vụ AI" nhưng **không hook nào gọi
+  thật** — chỉ gọi tay theo `AGENTS.md` hoặc trong `maintain-run.sh` khi chạy agent `maintainer`.
+  Hệ quả: chưa từng có dữ liệu thật để biết phiên có tuân theo "plan một lần/ngữ cảnh gọn" hay
+  không (cùng khuôn C-01 "khung chưa từng dùng trọn vẹn cho dự án thật"). Thêm
+  `.claude/hooks/telemetry-record.sh` (đọc thời lượng từ `transcript_path`, model từ
+  `settings.json`, gọi `telemetry-log.sh --record`, best-effort không chặn phiên) + đăng ký vào
+  `Stop` của CẢ `settings.json` VÀ `settings-shared-default.json` (CODEMAP.md yêu cầu khớp hai
+  file) + cập nhật bảng/sơ đồ hook trong `models-and-automation.md` §6. `copy-framework.sh`/`.ps1`
+  không cần sửa (copy cả thư mục `.claude/hooks`). Kiểm: `test-hooks-gate.sh` xanh (không đổi hành
+  vi 2 hook cũ), `check-docs-consistency.sh` 8/8 mục xanh.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19, PR #144 đã merge): đối chiếu 6 nguồn ngoài +
+  khuôn severity cho review UI.** Theo yêu cầu người dùng "đánh giá tổng hợp cái hay" từ 6 nguồn
+  (tasteskill.dev, `ianho7/ai-friendly-web-design-skill`, `bergside/awesome-design-skills`,
+  `Octo-o-o-o/Image2Code`, `microsoft/playwright-cli`, `alibaba/open-code-review`), chạy đúng
+  phương pháp `adopt-from-outside.md`. Kết quả: `docs/reports/2026-09-19-doi-chieu-6-nguon-ngoai.md`
+  — 2 nguồn đã sâu hơn (không lấy), 1 điểm nông hơn lấy đúng điểm đó, 4 nguồn xếp "chưa cần" vì
+  chưa qua cổng "sự cố thật" (mỗi mục có điều kiện xem lại), 1 nguồn mâu thuẫn luật (đa phong cách
+  theme, không lấy dù chưa có). Việc thực lấy: thêm khuôn báo cáo severity 🔴/🟡/🟢 cho review UI
+  có sẵn vào `.claude/commands/ui-ux.md`. Người dùng hỏi thêm về hạng mục `open-code-review`
+  (rule-matching tất định + resume) — giữ nguyên "chưa cần", chưa có sự cố thật tương ứng.
+  CI đỏ một lần ở job `metadata` (PR body thiếu mục `## Research / Spec` của template) — sửa body
+  PR, chạy lại xanh, merge squash.
+- Giai đoạn trước đó: GĐ 8. **Bảo trì định kỳ 2026-09-15 (`/maintain`, đợt sạch): 0 mục hành động.**
   `maintenance-sweep.sh` mặc định ra 🔴 0 · 🟡 0 · ℹ️ 5; Tầng 1 chạy lại `--strict` để kiểm chứng.
   Git sạch, 7 workflow ghim full SHA, không bí mật bị track, docs-consistency/ci-policy ✅,
   arch-health-radar 100/100. Dependency `n-a` do repo khung cố ý không có dependency manager.
@@ -243,9 +268,9 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `9351961` (`origin/main`, PR #141)
+- Default-branch SHA đã đối chiếu: `39a92ae` (`origin/main`, PR #144)
 - Nhánh đang làm: `main` (không có việc dở)
-- Ngày cập nhật: 2026-09-15
+- Ngày cập nhật: 2026-09-19
 
 ## Goal đang active
 
@@ -354,19 +379,15 @@
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-15
-- State: DONE, không có việc dở. PR #130 (ADR-0007 — bỏ `opusplan` mặc định) đã merge vào `main`.
-- Việc đã xong và bằng chứng: `docs/adr/0007-bo-opusplan-mac-dinh.md` (ADR mới, không sửa
-  ADR-0006); đổi `.claude/settings.json` + đổi tên `settings-shared-opusplan.json` →
-  `settings-shared-default.json` (model mặc định `claude-sonnet-5`); viết lại
-  `.claude/hooks/session-guide.sh` (bỏ so khớp chuỗi `opusplan`); viết lại
-  `docs/framework/models-and-automation.md`; sửa `orchestration-3-tier.md`,
-  `new-project-runbook.md`, `case-study-greenfield-dry-run.md`, `CODEMAP.md`, `README.md`,
-  `copy-framework.sh`/`.ps1`, `scripts/model-capability-tiers.json`, `CLAUDE.md` §2, và 7 file
-  `.claude/commands/*.md`. CI đỏ một lần trên `framework-lint` (contract test C-3: spec cũ đã
-  Approved `docs/specs/2026-09-12-enforcement-guardrails.md` tham chiếu file vừa đổi tên) — vá 1
-  đường dẫn touchpoint, không đổi nội dung quyết định lịch sử; CI xanh lại (9/9 job), merge squash.
+- Lần cập nhật: 2026-09-19
+- State: DONE, không có việc dở. PR #144 (đối chiếu 6 nguồn ngoài + khuôn severity `ui-ux.md`) đã
+  merge vào `main`.
+- Việc đã xong và bằng chứng: `docs/reports/2026-09-19-doi-chieu-6-nguon-ngoai.md` (bản đối chiếu
+  ba cột đầy đủ); `.claude/commands/ui-ux.md` (mục mới "Khuôn báo cáo khi REVIEW một UI có sẵn").
+  CI đỏ một lần trên job `metadata` (PR body thiếu mục `## Research / Spec`) — sửa body PR qua
+  `update_pull_request`, chạy lại xanh, merge squash; `subscribe_pr_activity` tự huỷ đăng ký khi
+  PR đóng (đúng thiết kế).
 - Việc CHƯA xong + lý do: không có.
-- Bước tiếp theo: chờ yêu cầu người dùng.
-- Quyền/quyết định cần thêm: không có. Ruleset đã import từ trước (xác nhận lại qua log
-  `protection-guard` live 2026-09-15) — mục "Rủi ro/nợ kỹ thuật" đã gạch dòng lỗi thời tương ứng.
+- Bước tiếp theo: chờ yêu cầu người dùng. Hạng mục `open-code-review` (rule-matching tất định)
+  vẫn "chưa cần" — điều kiện xem lại đã ghi trong báo cáo.
+- Quyền/quyết định cần thêm: không có.
