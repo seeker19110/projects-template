@@ -238,6 +238,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
      • sửa file  → PostToolUse  → auto-format.sh   → dev-task.sh format-file
      • git commit→ PreToolUse   → pre-commit-gate.sh→ dev-task.sh gate (đỏ = CHẶN)
      • hết lượt  → Stop         → usage-guard.sh    → usage-estimate.sh (≥70% → nhắc wind-down)
+                                └ telemetry-record.sh → telemetry-log.sh --record (ghi thời gian/model mỗi lượt)
      • mở phiên  → SessionStart → session-resume.sh → nạp PROGRESS.md + git ("tiếp tục")
                                 └ session-guide.sh  → HIỆN gợi ý "làm gì tiếp theo"
                                   │
@@ -298,6 +299,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
+| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đóng khoảng cách audit 2026-09-19: trước đó engine chỉ được tài liệu hoá là "ghi mỗi tác vụ AI" nhưng không hook nào gọi thật, nên §5 (kỷ luật vận hành) chưa từng có dữ liệu để đối chiếu |
 
 **Script — `scripts/`**
 

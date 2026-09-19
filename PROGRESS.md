@@ -6,7 +6,20 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-19, PR #144 đã merge): đối chiếu 6 nguồn ngoài +
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, đang mở PR trên nhánh `docs/sync-progress-pr144`): hook
+  Stop `telemetry-record.sh` — đóng khoảng cách "kỷ luật §5 chỉ nằm trên giấy".** Theo yêu cầu
+  người dùng "audit tối ưu quy trình và giảm token", rà `models-and-automation.md` §5 với thực tế:
+  `telemetry-log.sh --record` được tài liệu hoá là "ghi mỗi tác vụ AI" nhưng **không hook nào gọi
+  thật** — chỉ gọi tay theo `AGENTS.md` hoặc trong `maintain-run.sh` khi chạy agent `maintainer`.
+  Hệ quả: chưa từng có dữ liệu thật để biết phiên có tuân theo "plan một lần/ngữ cảnh gọn" hay
+  không (cùng khuôn C-01 "khung chưa từng dùng trọn vẹn cho dự án thật"). Thêm
+  `.claude/hooks/telemetry-record.sh` (đọc thời lượng từ `transcript_path`, model từ
+  `settings.json`, gọi `telemetry-log.sh --record`, best-effort không chặn phiên) + đăng ký vào
+  `Stop` của CẢ `settings.json` VÀ `settings-shared-default.json` (CODEMAP.md yêu cầu khớp hai
+  file) + cập nhật bảng/sơ đồ hook trong `models-and-automation.md` §6. `copy-framework.sh`/`.ps1`
+  không cần sửa (copy cả thư mục `.claude/hooks`). Kiểm: `test-hooks-gate.sh` xanh (không đổi hành
+  vi 2 hook cũ), `check-docs-consistency.sh` 8/8 mục xanh.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19, PR #144 đã merge): đối chiếu 6 nguồn ngoài +
   khuôn severity cho review UI.** Theo yêu cầu người dùng "đánh giá tổng hợp cái hay" từ 6 nguồn
   (tasteskill.dev, `ianho7/ai-friendly-web-design-skill`, `bergside/awesome-design-skills`,
   `Octo-o-o-o/Image2Code`, `microsoft/playwright-cli`, `alibaba/open-code-review`), chạy đúng
