@@ -116,7 +116,7 @@ jobs:
       - name: JSON cấu hình hợp lệ (jq)
         run: |
           set -e
-          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json scripts/model-rates.json; do
+          for f in .claude/settings.json .claude/settings-shared-default.json .mcp.json scripts/model-rates.json; do
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 

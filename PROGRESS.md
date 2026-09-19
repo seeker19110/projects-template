@@ -6,7 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): bản đồ 5 tầng SDLC (ADR-0008, đã duyệt).**
+- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): `/maintain` quét toàn repo theo yêu cầu người dùng
+  ("tối ưu file rồi context, cái nào không còn áp dụng thì xoá bỏ").** `maintenance-sweep.sh` sạch
+  tuyệt đối (🔴 0 · 🟡 0). Rà tay thêm vùng máy không phủ (tham chiếu tên file trong YAML/shell, file
+  mồ côi, ADR/spec/goal treo) tìm được đúng 1 mục thật: `ci.yml` job `metadata` vẫn kiểm JSON của tên
+  file cũ `settings-shared-opusplan.json` (đã đổi tên sang `settings-shared-default.json` từ ADR-0007,
+  2026-09-15) — guard `if [ -f ]` khiến cổng lặng lẽ bỏ qua, file cấu hình thật chưa từng được kiểm
+  JSON hợp lệ. Sửa 1 dòng `ci.yml` (`docs/ops/MAINTENANCE-PLAN.md` mục M-01). Mọi nội dung khác
+  (ADR, `docs/reports/`, spec đã Approved, changelog, TRAPS) là hồ sơ lịch sử bắt buộc giữ nguyên
+  theo chính luật khung — không xoá.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19): bản đồ 5 tầng SDLC (ADR-0008, đã duyệt).**
   Người dùng đề xuất mô hình 5 core AI (Product & UX · Design · Engineering · Verify & Operate ·
   Knowledge) + controller deterministic + worker động. Đối chiếu ba cột
   (`docs/reports/2026-09-19-doi-chieu-mo-hinh-5-tang-sdlc.md`): khung đã có và sâu hơn ở 10/13 hạng
