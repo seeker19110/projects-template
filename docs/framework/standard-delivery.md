@@ -42,6 +42,26 @@ giữ tóm tắt; Goal giữ iteration state; Spec giữ contract capability; Gi
 
 **Feature code bị cấm trước khi spec ghi Approved for implementation, người duyệt và ngày duyệt.**
 
+### 3b. Bản đồ 5 tầng SDLC ↔ cơ chế đang có (ADR-0008)
+
+Cùng 9 cổng ở trên, nhìn theo **5 câu hỏi vòng đời**. "Tầng" ở đây là *tầng vòng đời*, khác "Tầng 1/2/3"
+của `orchestration-3-tier.md` (*tầng điều phối*) — cột "Ai làm" nói rõ ánh xạ. Không có agent nào mới:
+tầng ①②⑤ là **vai của phiên chính**; chỉ ③④ dùng subagent (spawn khi cần, xong thì kết thúc).
+
+| Tầng vòng đời | Câu hỏi | Cổng | Ai làm (lệnh / agent) | Artifact ra | Cổng máy kiểm | Fail ở tầng sau → quay về đây khi |
+| --- | --- | --- | --- | --- | --- | --- |
+| ① Product & UX | Xây gì, tại sao? | Frame · Research · Approve | Phiên chính: `/consult`, `/grill`, `lookup`/`version-check` (tra cứu) | `docs/goals/<id>.md`, `docs/specs/<ngày>-<slug>.md` **Approved** | `pr-policy.yml` (PR `feat` chưa Approved → đỏ) | acceptance criteria sai/thiếu, scope lệch, edge case chưa nêu |
+| ② Design | Hoạt động / trông thế nào? | Approve (spec §6, §10, §11) · Plan | Phiên chính: `/ui-ux` (UI) hoặc thiết kế CLI/API/DX theo hồ sơ C4/C5 | Mục journeys-mọi-state, UX/a11y, kiến trúc & điểm chạm **trong cùng spec** | axe/E2E a11y, Lighthouse CI (hồ sơ C1); cổng hồ sơ khác ở `quality-gates-by-profile.md` | thiếu state (tải/rỗng/lỗi), luồng không khớp, contract API/DDL chưa chốt |
+| ③ Engineering | Xây bằng cách nào? | Plan · Build | Tầng 1 viết PLAN.md → `coordinator` → worker `route:complex/spec/standard/mechanical` (`subagent-dispatch.sh --tier`) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
+| ④ Verify & Operate | Đúng, an toàn, chạy tốt không? | Verify · Integrate · Observe | `/gate` (§5–§7), `tester`, `reviewer`, `security-reviewer`; `release-readiness.md`; `/incident`; `/maintain` | Báo cáo xác thực §7, PR xanh + auto-merge, post-mortem, `MAINTENANCE-*.md` | `ci.yml` job `gate`, `secret-scan`, `dependency-review`, `maintenance.yml` | cổng/CI/hạ tầng sai (máy xanh giả, lockfile lệch — xem `gate.md` Bước 1) |
+| ⑤ Knowledge | Hệ thống biết gì, đã đổi gì? | Reconcile (+ mọi PR, §8 bước 0/5) | Phiên chính: `/adr`, cập nhật `PROGRESS.md`, `CONTEXT.md`, `TRAPS.md`, `CODEMAP.md`, `docs/changelog/` | ADR, TRAPS mục mới, PROGRESS mốc + SHA, changelog đợt việc | `progress-freshness` (PF-1..3), `docs-consistency`, `maintenance-sweep` 🟡 `DEBT:` thiếu `xem lại khi:` | (không có tầng sau) — tri thức sai làm ① của chu kỳ kế lệch: sửa tại ADR/TRAPS, không sửa code |
+
+**Luật quy lỗi về tầng (bổ sung trần "3 lần → BLOCKED" của §4):** khi Verify fail, lần sửa **đầu** được
+sửa code ngay; trước lần sửa **thứ 2 cùng một failure** phải viết một dòng *"lỗi ở tầng ①/②/③/④ vì …"*
+và quay về đúng tầng đó (sửa spec/design trước, rồi mới code). Lần thứ 3 vẫn fail → BLOCKED, xin quyết
+định. Cross-cutting (bảo mật, hiệu năng, a11y, quyền riêng tư, chi phí, observability) **không** là tầng
+riêng: mỗi tầng có cổng của mình cho chúng (spec §8/§14 → design a11y → code an toàn → scan/test → ADR).
+
 ## 4. AI Goal Loop
 
 ```text

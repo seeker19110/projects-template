@@ -151,6 +151,9 @@ subagent `version-check` hoặc nguồn sống trước khi dùng thật (CLAUDE
 ```
 
 ## Ranh giới với phần còn lại của khung
+- **"Tầng" ở đây là tầng ĐIỀU PHỐI (nghĩ/chạy/làm).** 5 *tầng vòng đời* (Product & UX → Design →
+  Engineering → Verify & Operate → Knowledge, ADR-0008) là bản đồ ở `standard-delivery.md` §3b: tầng ①②⑤
+  là vai của Tầng 1; tầng ③ = Tầng 2+3; tầng ④ = `tester`/`reviewer`/`security-reviewer` + `/gate` + CI.
 - **Không thay** `PROJECT.md` (cái-gì), các cổng `/gate` (commit/merge), hay ADR (`/adr`). 3 tầng chỉ là **cách điều phối thực thi**.
 - **Hai pha lập kế hoạch/thực thi** (chuyển `/model` bằng tay — ADR-0007) vẫn là nền của phiên chính; 3 tầng dùng khi thay đổi đủ lớn để cần nhiều worker. Thay đổi nhỏ gọn trong một PR vẫn có thể làm thẳng ở pha-code (Sonnet) + subagent như trước, không cần đổi model.
 - **Đa nhà cung cấp là mở rộng, không phải thay thế**: mặc định không đổi gì vẫn chạy đúng như trước (Claude Sonnet 5 xuyên suốt cho thực thi); `--tier` chỉ dùng khi có lý do chọn khác (độ phức tạp, chi phí, tính khả dụng) — xem ADR-0006.
