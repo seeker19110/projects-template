@@ -33,4 +33,18 @@ Gọn, ưu tiên hành động: mỗi đề xuất kèm *vì sao* (1 dòng) và 
 
 Khi xong thiết kế: chuyển sang code thì qua cổng a11y (jsx-a11y + axe trong E2E) và `/gate` trước commit.
 
+## Khuôn báo cáo khi REVIEW một UI có sẵn (không phải thiết kế mới)
+Khi được yêu cầu *review* một màn/component đã code (không phải đề xuất thiết kế mới), xếp mỗi phát
+hiện vào đúng một mức, nêu rõ mức ngay đầu dòng — không liệt kê phẳng không phân cấp:
+- 🔴 **Chặn** — vi phạm mục "Nguyên tắc bất biến" ở trên (thiếu token/hard-code màu, AA fail, không
+  dùng được bàn phím, thiếu trạng thái lỗi/rỗng) hoặc chặn hẳn một luồng thao tác/truy cập.
+- 🟡 **Ảnh hưởng usability/ổn định** — dùng được nhưng khó dùng, không nhất quán pattern với phần
+  còn lại của app, locator không ổn định (không dùng `getByRole`/`getByLabel`), thiếu chỉ báo tiến
+  trình cho thao tác > ~400ms.
+- 🟢 **Tinh chỉnh** — spacing/typography lệch nhẹ, cơ hội đơn giản hoá, không ảnh hưởng chức năng.
+
+Mỗi dòng phát hiện: `[mức] <mô tả ngắn> — <vì sao, quy chiếu đúng mục/nguyên tắc ở trên>`. Ưu tiên
+sửa 🔴 trước khi bàn 🟢. Không có 🔴 nào mới coi là "review xong" (🟡/🟢 có thể để lại thành nợ, ghi
+`TODO`/`DEBT:` theo đúng khuôn CLAUDE.md §3 mục 7 nếu cố ý chưa sửa).
+
 Bắt đầu bằng **làm rõ người dùng/ngữ cảnh & mục tiêu màn hình**, rồi ra **đặc tả thiết kế**.
