@@ -2,7 +2,8 @@
 
 Nguồn: `docs/ops/MAINTENANCE-REPORT.md` (quét 2026-09-19, 🔴 0 · 🟡 0 — sạch tuyệt đối) + rà tay
 toàn repo theo yêu cầu người dùng ("tối ưu file rồi context, cái nào không còn áp dụng thì xoá bỏ
-— toàn bộ trong repo này"). Trạng thái: **ĐÃ DUYỆT — 1 mục, đã thực thi qua PR.**
+— toàn bộ trong repo này"). Trạng thái: **ĐÓNG** (duyệt 2026-09-19, M-01 đã đẩy lên PR #151, auto-merge đã bật — xem
+`docs/ops/MAINTENANCE-LOG.md`).
 
 ## Phạm vi rà tay (máy không phủ tới)
 
