@@ -287,6 +287,27 @@ cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** 
 > thái cuối của repo. Nó được cưỡng chế bằng review, cùng hạng với `CLAUDE.md` §9. Nói thẳng ra đây
 > để không ai tưởng có cổng canh.
 
+### Oracle test tự trùng nguồn với input (test luôn xanh giả)
+
+Biến thể **nguy hiểm hơn** tautological ở trên: không phải một test tính lại công thức, mà cả một
+**bộ dữ liệu kiểm thử "chấm đúng/sai"** được sinh ra bằng chính hàm/logic dùng để chấm nó. Ca thật
+đã xảy ra: 4 môn học tự sinh đáp án bằng cùng một hàm/service **dùng để CHẤM** đáp án đó — nên test
+luôn báo đúng, kể cả khi công thức chấm điểm sai từ gốc, vì test tự so nó với chính nó (oracle
+trùng nguồn với input).
+
+- **Cách nhận diện:** hỏi thẳng "nếu tôi cố tình phá công thức/logic nghiệp vụ ngay bây giờ, test
+  này có đỏ không?" — nếu câu trả lời là **không**, đây là oracle tự trùng nguồn, không phải test.
+- **Cách rà:** mọi ca test kiểm tra "kết quả đúng/sai" phải có một **nguồn đối chứng độc lập** với
+  logic đang kiểm — ví dụ: golden set chốt bằng tay (người/chuyên gia xác nhận trực tiếp từng giá
+  trị), hoặc một implementation/oracle khác độc lập để so chéo. **Không được** lấy chính hàm/service
+  đang test làm luôn nguồn sinh dữ liệu kỳ vọng cho nó.
+- **Ghi chú:** khuôn lỗi này nguy hiểm hơn ở tầng 2 (subagent/PR review) — khi tài liệu hoặc mô tả PR
+  viện dẫn "đã có test pass" làm bằng chứng để duyệt, người duyệt tưởng logic đã được kiểm chứng
+  nhưng thực chất test đó không kiểm chứng được gì.
+- Đây là mở rộng của nguyên tắc "test tái hiện đỏ trước khi sửa" (`CLAUDE.md` §3.6) sang một lớp
+  sâu hơn: không chỉ trình tự đỏ → sửa → xanh phải đúng, mà **bản thân oracle của test cũng phải
+  được xét lại** — một test không có nguồn đối chứng độc lập thì không bao giờ đỏ đúng nghĩa.
+
 ### Golden test — khi nào dùng, lưu ở đâu, cập nhật thế nào
 
 Golden test = so đầu ra thật với một giá trị kỳ vọng đã lưu ("golden") thay vì viết lại từng

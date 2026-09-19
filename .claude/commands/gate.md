@@ -11,6 +11,10 @@ Chạy **cổng chất lượng trước khi commit/merge** rồi xuất **Báo 
 2. Khớp các cổng với script **thực sự tồn tại** (tên có thể khác): build (`build`), type-check (`type-check`/`typecheck`/`tsc`), lint (`lint`), format (`format:check`/`format`/`prettier --check`), test (`test`/`test:run`/`vitest run`).
 3. Cổng nào **không có script tương ứng** → ghi **N/A** trong báo cáo (không bịa lệnh, không tự cài).
 4. Không có `package.json` (vd repo template chưa scaffold) → báo "chưa có hàng rào để chạy", gợi ý `/bootstrap`, dừng.
+5. **Cảnh giác khuôn lỗi "máy xanh giả"** — cổng chạy xanh trên máy AI nhưng CI thật đỏ, vì môi trường/lệnh khác nhau (sự cố thật đã xảy ra, CI đỏ 3 lần liên tiếp dù local báo xanh). Ba biến thể phải tự kiểm:
+   - **Lockfile lệch** — có `npm install`/thêm gói tùy tiện trong lúc sửa? CI chạy `npm ci` (chối thẳng nếu lockfile không khớp `package.json`) → tự kiểm lockfile khớp `package.json` trước khi báo xanh.
+   - **Dist/build cũ sót lại** — thư mục build/dist (`dist`, `.next`, v.v.) từ lần chạy trước có thể khiến test/type-check đọc trúng bản cũ thay vì mã nguồn mới sửa → với monorepo/nhiều workspace, xóa sạch output build trước lần chạy cổng CUỐI CÙNG trước khi báo kết quả.
+   - **Lệnh chạy khác CI thật** — không tự đoán lệnh "gần giống" (vd chạy `npm test` trong khi CI thật chạy `npm run test:coverage` hay lệnh có flag khác). Có file workflow CI thật (`.github/workflows/*.yml` hoặc tương đương GitLab/CircleCI…) → **đọc đúng lệnh trong đó**, không chỉ dò `package.json` rồi đoán tên gần đúng.
 
 ## Bước 2 — Chạy & ĐỌC output thật
 Chạy từng cổng dò được, **đọc kết quả thật** (không suy đoán). Phạm vi test: trước **commit** chạy test liên quan; trước **merge** chạy **toàn bộ** test (CLAUDE.md §6). Nếu người dùng gõ `/gate merge` → chế độ merge (toàn bộ test + các mục §6).

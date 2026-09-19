@@ -5,7 +5,7 @@
 
 | PHẦN | Nội dung |
 |------|----------|
-| 1 — Nhóm 1 | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ (CONTEXT.md) |
+| 1 — Nhóm 1 | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ (CONTEXT.md), changelog tách khỏi PROGRESS.md, đồng bộ trạng thái duyệt |
 | 2 — Nhóm 2 | mobile-first, hiệu năng/Lighthouse, kiểm thử E2E+a11y+coverage, UI/UX, chống lỗi logic, observability, tối ưu mã nguồn |
 | 3 — Theme | Dark blue mặc định + Light, design tokens, no-flash |
 | 4 — Nâng cao | i18n · PWA · Sentry · SEO · Analytics |
@@ -26,7 +26,7 @@
 
 | Phần | File | Nội dung |
 | --- | --- | --- |
-| 1 — Nhóm 1 | `docs/framework/quality-supplements-group1.md` | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ `CONTEXT.md` |
+| 1 — Nhóm 1 | `docs/framework/quality-supplements-group1.md` | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ `CONTEXT.md`, changelog tách khỏi PROGRESS.md, đồng bộ trạng thái duyệt |
 | 2 — Nhóm 2 | `docs/framework/quality-supplements-group2.md` | mobile-first, hiệu năng/Lighthouse, E2E + a11y + coverage, UI/UX, chống lỗi logic, observability, tối ưu mã nguồn |
 | 3 — Theme | `docs/framework/quality-supplements-theme.md` | Dark blue mặc định + Light, design tokens, WCAG AA cả hai chế độ |
 | 4 — Nâng cao | `docs/framework/quality-supplements-advanced.md` | i18n · PWA · Sentry · SEO · Analytics |

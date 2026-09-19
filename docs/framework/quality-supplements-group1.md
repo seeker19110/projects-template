@@ -15,6 +15,8 @@
 | Vercel Preview làm staging | "Có staging" tưởng tốn công, thực ra miễn phí | GĐ 6 |
 | Definition of Ready | Bổ trợ cho Definition of Done | GĐ 1 & 4 |
 | Sổ tay thuật ngữ (`CONTEXT.md`) | Người dùng & AI trôi dạt từ vựng → đặt tên/hội thoại không nhất quán | Xuyên suốt, nhất là GĐ 0–1 |
+| Tách nhật ký đợt việc khỏi `PROGRESS.md` (`docs/changelog/`) | Nhiều PR song song cùng sửa đầu `PROGRESS.md` → xung đột git lặp lại | Xuyên suốt |
+| Đồng bộ trạng thái duyệt ngoài git về file trong repo | Cổng CI/merge đọc trạng thái duyệt lệch với nguồn ngoài git (dashboard/CSDL) | GĐ 4 — mọi merge |
 
 ---
 
@@ -176,5 +178,43 @@ _Tránh dùng_: người dùng, client, tài khoản
 **Dự án nhiều module/bounded-context riêng biệt** (monorepo, nhiều domain rõ rệt): dùng `CONTEXT-MAP.md` ở gốc, trỏ tới một file `CONTEXT.md` đặt riêng trong thư mục từng module; dự án thường (một domain) chỉ cần một `CONTEXT.md` ở gốc.
 
 → **Gắn vào khung:** `/grill` (xem `.claude/commands/grill.md`) cập nhật `CONTEXT.md` ngay khi một thuật ngữ chốt trong lúc phỏng vấn; `/consult` và mọi skill khác nên đọc `CONTEXT.md` (nếu có) trước khi đặt tên biến/hàm/tính năng để khớp ngôn ngữ đã chốt.
+
+---
+
+## 9. Tách nhật ký đợt việc khỏi `PROGRESS.md` (thư mục `docs/changelog/`)
+
+Sự cố thật: nhiều PR chạy song song thường cùng sửa đúng phần đầu `PROGRESS.md` — mục "Giai đoạn hiện tại", các dòng "Mốc ..." — vì mỗi PR đều muốn ghi lại việc mình vừa làm. Kết quả là xung đột git ở đúng chỗ đó, lặp lại hầu như mỗi lần merge, dù các PR không đụng chung code.
+
+**Quy ước:**
+- `PROGRESS.md` **chỉ sửa TẠI CHỖ** phần "Giai đoạn hiện tại" — thay thế nội dung cũ bằng nội dung mới, **không chèn thêm dòng lịch sử dài** vào đó qua từng PR.
+- Nhật ký chi tiết của **một đợt việc/PR** (bối cảnh, quyết định đã ra, file đã đổi) ghi ra một file riêng:
+  `docs/changelog/<số thứ tự 4 chữ số>-<ngày YYYY-MM-DD>-<slug>.md`
+
+  Ví dụ: `docs/changelog/0012-2026-09-19-them-xac-thuc-2fa.md` (số minh họa, chưa tồn tại trong repo khung — file thật sinh ở dự án đích khi cần).
+
+- `PROGRESS.md` chỉ cần **trỏ link tới file đó bằng một dòng ngắn**, không chép lại nội dung:
+  ```md
+  ## Giai đoạn hiện tại
+  GĐ 6 — Kiểm thử & tinh chỉnh. Đợt việc gần nhất: xem docs/changelog/0012-2026-09-19-them-xac-thuc-2fa.md.
+  ```
+
+**Lợi ích:** mỗi PR chỉ tạo/động vào **một file changelog riêng của nó** (file mới, không ai khác đụng vào) — phần "Giai đoạn hiện tại" của `PROGRESS.md` vẫn có thể đổi, nhưng tần suất và độ dài thay đổi giảm hẳn so với việc dồn cả nhật ký chi tiết vào đó, nên xung đột git giảm đáng kể.
+
+→ **Gắn vào khung:** áp dụng cùng lúc với quy tắc "Cập nhật `PROGRESS.md` NGAY sau khi quay về `main`" ở mục 8 (Quy ước Git) của `CLAUDE.md` — cập nhật ở đây nghĩa là thay tại chỗ + trỏ link, không phải chèn thêm dòng.
+
+---
+
+## 10. Đồng bộ trạng thái duyệt ngoài git về file trong repo
+
+Sự cố thật: khi một quy trình duyệt/chấp thuận (review, approval) được thao tác ở nơi **khác ngoài git** — một bảng trong CSDL, một dashboard nội bộ, một form ngoài — mà cổng CI/merge lại đọc trạng thái từ một file trong repo, hai nguồn trạng thái dễ lệch nhau: CSDL nói "đã duyệt", repo nói "còn draft" (hoặc ngược lại), và cổng merge dựa vào file cũ nên quyết định sai.
+
+**Nguyên tắc:**
+- Nếu một trạng thái duyệt được thao tác ở ngoài git, **phải có một bước đồng bộ** (script hoặc CI job) ghi trạng thái đó **về một file trong repo**.
+- File trong repo đó — **không phải nguồn ngoài** — là **nguồn sự thật cuối cùng** mà cổng CI/merge đối chiếu. Cổng không bao giờ gọi thẳng ra nguồn ngoài để quyết định merge hay không.
+- Bước đồng bộ mặc định chạy ở **chế độ an toàn (dry-run/xem trước)** trước khi ghi thật vào file, để tránh ghi nhầm trạng thái do lỗi kết nối hay dữ liệu tạm thời từ nguồn ngoài.
+- Sau khi ghi, có **bước tự kiểm lại** (CI chạy lại một lần) để xác nhận file trong repo đang khớp đúng với nguồn ngoài tại thời điểm ghi — phát hiện sớm trường hợp đồng bộ nửa chừng hoặc ghi sai.
+- Không có công cụ cụ thể bắt buộc — đây là nguyên tắc chung; dự án tự chọn cách triển khai (webhook, script định kỳ, CI job thủ công...) theo đúng stack đang dùng.
+
+→ **Gắn vào khung:** áp dụng khi dự án có quy trình duyệt nằm ngoài git (ví dụ: duyệt pháp lý, duyệt nội dung, duyệt compliance) nhưng vẫn muốn cổng merge tự động của Git/CI (mục 5–7 của `CLAUDE.md`) tôn trọng kết quả duyệt đó.
 
 ===============================================================================
