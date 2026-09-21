@@ -6,7 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #153, đã merge — SHA `3892c37`): mở rộng tập skill
+- Giai đoạn: GĐ 8. **Mốc (2026-09-21): `/maintain` quét định kỳ, kết quả sạch gần tuyệt đối.**
+  Đồng bộ `main` (44 commit sau, fast-forward lên `2c62723`) rồi giao subagent `maintainer` chạy
+  `maintenance-sweep.sh`: 🔴 0 · 🟡 1 (nhánh local `claude/brave-gates-tn5hak` đã merge còn sót) ·
+  ℹ️ 5 (đều n-a/không phải nợ thật — xem `docs/ops/MAINTENANCE-LOG.md`). Duyệt M-01, xoá nhánh
+  local (nhánh remote hoá ra đã không còn tồn tại từ trước, GitHub tự dọn sau merge PR #153).
+  Quét lại `--strict` chỉ còn 🟡 1 là chính `MAINTENANCE-PLAN.md` vừa sinh (không phải phát hiện
+  thật, như lượt 2026-09-15). Không có mục DỪNG & HỎI, không đổi source code.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21, PR #153, đã merge — SHA `3892c37`): mở rộng tập skill
   tự-trigger.** Người dùng yêu cầu thêm skill tự-trigger cho vibe-coding; sau khi hỏi phạm vi
   (`AskUserQuestion`), thêm 3 skill mới: `/review` (rà soát logic/thiết kế trước khi mở PR, bổ sung
   cho `/gate`), `/deps-upgrade` (nâng cấp dependency theo yêu cầu cụ thể/CVE, khác `/maintain` định
