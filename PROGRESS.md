@@ -6,7 +6,19 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #157, đã merge — SHA `22829d2`): thêm trần WIP tối đa 3 PR
+- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #159, đã merge — SHA `2ed9767`): xoá tường thuật lịch sử
+  khỏi file quy định luật.** Theo yêu cầu người dùng "chỉ giữ những quy định luật lệ hiện hành, xoá
+  hết lịch sử thay đổi khỏi mọi file *.md". Sau hai vòng `AskUserQuestion` để chốt phạm vi (loại trừ
+  docs/adr/*.md và TRAPS.md — trái luật "không sửa ADR cũ"/mất giá trị sổ bẫy; loại trừ mọi file có
+  chức năng nhật ký/đặc tả/báo cáo theo thời điểm: PROGRESS.md, CHANGELOG.md, docs/specs/*,
+  docs/reports/*, docs/research/*, docs/ops/*), giao subagent dọn 10 file luật còn lại: `CODEMAP.md`,
+  `docs/CONVENTIONS.md`, `docs/FEATURE-MAP.md`, và 7 file `docs/framework/*.md` (adopt-from-outside,
+  industry-standards, models-and-automation, new-project-runbook-part-e-checklist,
+  orchestration-3-tier, quality-gates-by-profile, quality-supplements-group2) — bỏ các đoạn "đã làm
+  gì/ngày nào/PR nào/chốt ngày X thay quy ước cũ Y", giữ nguyên ý nghĩa luật hiện hành. Bỏ qua
+  `docs/framework/case-study-greenfield-dry-run.md` vì toàn bài là tường thuật một lần chạy thử, không
+  có luật độc lập. Soát diff, mở PR #159, CI xanh, đã merge.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21, PR #157, đã merge — SHA `22829d2`): thêm trần WIP tối đa 3 PR
   mở đồng thời.** Theo yêu cầu người dùng (thay thế đề xuất FIFO tuyệt đối "chỉ tạo PR mới khi PR cũ
   đã merge hết" — bị nhận xét sẽ triệt tiêu song song hóa), chốt trần WIP = tối đa 3 PR mở đồng thời
   trên toàn repo, mọi tác giả/mọi mô hình AI, vẫn giữ FIFO cho thứ tự merge. Cập nhật `CLAUDE.md` §8
