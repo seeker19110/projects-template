@@ -6,7 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-21): `/maintain` quét định kỳ, kết quả sạch gần tuyệt đối.**
+- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #157, đã merge — SHA `22829d2`): thêm trần WIP tối đa 3 PR
+  mở đồng thời.** Theo yêu cầu người dùng (thay thế đề xuất FIFO tuyệt đối "chỉ tạo PR mới khi PR cũ
+  đã merge hết" — bị nhận xét sẽ triệt tiêu song song hóa), chốt trần WIP = tối đa 3 PR mở đồng thời
+  trên toàn repo, mọi tác giả/mọi mô hình AI, vẫn giữ FIFO cho thứ tự merge. Cập nhật `CLAUDE.md` §8
+  và `AGENTS.md` (dòng tham chiếu điều phối) cho khớp. PR được tạo từ Claude Code UI (không phải do
+  phiên tự mở), đăng ký theo dõi qua `subscribe_pr_activity`, CI xanh hết 10 check, không review
+  comment nào, merge squash trực tiếp (đã clean, không cần auto-merge).
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21): `/maintain` quét định kỳ, kết quả sạch gần tuyệt đối.**
   Đồng bộ `main` (44 commit sau, fast-forward lên `2c62723`) rồi giao subagent `maintainer` chạy
   `maintenance-sweep.sh`: 🔴 0 · 🟡 1 (nhánh local `claude/brave-gates-tn5hak` đã merge còn sót) ·
   ℹ️ 5 (đều n-a/không phải nợ thật — xem `docs/ops/MAINTENANCE-LOG.md`). Duyệt M-01, xoá nhánh
