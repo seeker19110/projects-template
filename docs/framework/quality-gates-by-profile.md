@@ -13,9 +13,9 @@
 
 ## Cổng bổ sung áp cho MỌI hồ sơ có dữ liệu cá nhân (không riêng web)
 
-> Khoảng trống trước đây: `CLAUDE.md` §3.2 chỉ nói "không tin client, bảo mật server-side" — chưa nói rõ
-> vòng đời **dữ liệu cá nhân** (PII). Áp cho bất kỳ hồ sơ nào (C1–C10) có thu thập/lưu dữ liệu người dùng
-> thật, kể cả khi không phải web (app mobile, backend, pipeline data/ML).
+> Bổ sung cho `CLAUDE.md` §3.2 ("không tin client, bảo mật server-side"): vòng đời **dữ liệu cá nhân**
+> (PII). Áp cho bất kỳ hồ sơ nào (C1–C10) có thu thập/lưu dữ liệu người dùng thật, kể cả khi không phải
+> web (app mobile, backend, pipeline data/ML).
 
 1. **Thu thập tối thiểu:** chỉ lưu trường dữ liệu cá nhân thực sự cần cho tính năng; không lưu "phòng khi cần sau".
 2. **Khai báo rõ mục đích dùng** ở nơi thu thập (form, permission prompt, API doc) — không dùng cho mục đích khác mà không hỏi lại.

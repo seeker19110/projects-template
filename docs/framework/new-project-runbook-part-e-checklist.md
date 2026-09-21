@@ -48,7 +48,7 @@
 (bản mẫu `.github/rulesets/main.json` có bật), GitHub **chặn auto-merge** mọi PR có commit
 không gắn được vào một tài khoản GitHub. Phiên AI hay commit bằng một email chưa liên kết
 tài khoản → **mọi PR do AI tạo đều kẹt**, mỗi phiên một lần, và triệu chứng
-(`blocked` dù CI xanh hết) không nói ra nguyên nhân. Đã xảy ra thật ở PR #93 của repo khung.
+(`blocked` dù CI xanh hết) không nói ra nguyên nhân.
 
 Git tách **author** (người viết — quyết định GitHub gán commit cho ai) khỏi **committer**
 (người tạo commit — quyết định chữ ký), nên **không phải đánh đổi**:

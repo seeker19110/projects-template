@@ -93,9 +93,8 @@ luôn nghĩa là bước §3 bị bỏ.
 
 ## 6. Cạm bẫy đã mắc
 
-- **Đọc văn xuôi mô tả vấn đề rồi tin là chỗ đó còn trống** (§3). Mắc **hai lần liên tiếp** trong cùng một
-  phiên 2026-09-14 khi đối chiếu khung này với một repo đích: cả hai lần thứ định "bổ sung" đều đã có cổng
-  thật đang chạy, và bản có sẵn mạnh hơn.
+- **Đọc văn xuôi mô tả vấn đề rồi tin là chỗ đó còn trống** (§3). Bẫy đã mắc thật: thứ định "bổ sung" hoá ra
+  đã có cổng thật đang chạy, và bản có sẵn mạnh hơn.
 - **Loại một ứng viên sau khi NGHĨ, thay vì sau khi ĐO.** Ngược lại cũng vậy: một bộ dò tưởng hay, đo thử
   trên repo thật thì ra 42 kết quả mà gần như toàn bộ là dương tính giả. Đo trước khi kết luận, cả hai chiều.
 - **Chép cả hạng mục khi chỉ nông hơn một điểm.** Cột 2 tồn tại để chặn đúng việc này.

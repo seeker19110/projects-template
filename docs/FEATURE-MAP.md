@@ -6,7 +6,7 @@
 > **Chủ thể đặc biệt:** repo này LÀ bộ khung, nên "tính năng" = **năng lực khung cung cấp cho dự án
 > đích**, không phải route/endpoint của một app. "Điểm vào" = cách người dùng/AI kích hoạt năng lực
 > đó. "Dữ liệu đụng tới" = file/thư mục nó đọc-ghi. Lập từ việc đọc file thật (`ls`, `copy-framework.sh`,
-> `scripts/*.sh`, `.github/workflows/*`) — không đoán. Ngày lập: 2026-09-12.
+> `scripts/*.sh`, `.github/workflows/*`) — không đoán.
 
 ## A. Slash command (13) — `.claude/commands/`
 
@@ -57,7 +57,7 @@
 | FT-26 | Kiểm tài liệu đồng bộ (link, tên cũ, lệnh ↔ CLAUDE.md) | `scripts/check-docs-consistency.sh` | mọi `*.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-27 | Kiểm job CI ↔ required checks 2 chiều | `scripts/check-ci-policy.sh` | `ci.yml`, `pr-policy.yml`, `repository-settings.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh`/`copy-framework.ps1` | ✅ | job CI `copy-framework-smoke` |
-| FT-29 | *(gỡ 2026-09-12, ADR-0004 — scaffold Web đã xoá, không còn dropins Lớp 2 để kiểm chạy thật)* | — | — | ➖ | — |
+| FT-29 | *(đã gỡ — ADR-0004: scaffold Web đã xoá, không còn dropins Lớp 2 để kiểm chạy thật)* | — | — | ➖ | — |
 
 ## E. Bộ copy khung (2 biến thể)
 
@@ -90,7 +90,7 @@
 
 ## H. Dropins Lớp 2 (CI/quy ước GitHub tổng quát — KHÔNG đè dự án đích)
 
-> **Gỡ 2026-09-12 (ADR-0004):** scaffold Web (Next.js/Supabase — theme, i18n, golden test ví dụ,
+> **Theo ADR-0004:** scaffold Web (Next.js/Supabase — theme, i18n, golden test ví dụ,
 > migration RLS mẫu, cấu hình Vitest/Playwright/Lighthouse/ESLint/Prettier/husky) đã xoá khỏi repo
 > khung. Lớp 2 giờ chỉ còn CI/quy ước GitHub tổng quát (không đặc thù stack nào).
 
@@ -105,4 +105,4 @@
 2. **Cổng chặn commit/merge đỏ** (FT-04, FT-22, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; ⚠️ dự án đích tự thêm cổng build/test theo stack đã chọn, chưa có test "thử vi phạm phải bị chặn" cho phần đó (không có ở repo khung).
 3. **Tài liệu ↔ code khung không lệch** (FT-26, FT-27): ✅ có test 2 chiều + negative test.
 4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): ❌ **không có test/nghiệm thu nào**; chỉ có case-study thủ công.
-5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung (01/09) nhưng **chưa chạy trên dự án đích thật**.
+5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung nhưng **chưa chạy trên dự án đích thật**.

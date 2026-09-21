@@ -5,7 +5,7 @@
 > Đây là bản mở rộng của `models-and-automation.md`: nền vẫn là hai pha lập kế hoạch/thực thi (chuyển
 > `/model` bằng tay — ADR-0007, `opusplan` đã ngừng hỗ trợ), 3 tầng là cách tổ chức khi một thay đổi
 > đủ lớn để cần điều phối nhiều worker song song.
-> **Đa model, đa nhà cung cấp (ADR-0006, 2026-09-15):** cả 3 tầng đều có thể chạy trên nhà cung
+> **Đa model, đa nhà cung cấp (ADR-0006):** cả 3 tầng đều có thể chạy trên nhà cung
 > cấp AI khác Claude khi CLI cục bộ đã có nhánh xử lý thật (`scripts/subagent-dispatch.py`,
 > `scripts/maintain-run.sh`). `route:` là **cấp năng lực** (capability tier), không phải tên một
 > model Claude cụ thể — xem PHẦN "Chọn đa nhà cung cấp" bên dưới.
@@ -59,8 +59,8 @@ Hai trục quyết định nhãn:
 - **Độ phức tạp** (cần chiều sâu lý luận?) → Opus vs Sonnet/Haiku.
 - **Độ kín đặc tả** (còn chỗ tự quyết?) → effort vừa (`complex`) vs effort thấp/chỉ-thi-hành (`spec`).
 
-**Trần effort = `medium` cho MỌI worker Tầng 3, kể cả `route:complex`** (chốt 2026-09-12, thay quy
-ước cũ "complex = effort cao"). Model (Opus vs Sonnet vs Haiku) vẫn là trục phân biệt năng lực chính;
+**Trần effort = `medium` cho MỌI worker Tầng 3, kể cả `route:complex`** (không phải "complex = effort
+cao"). Model (Opus vs Sonnet vs Haiku) vẫn là trục phân biệt năng lực chính;
 không worker nào được tự nâng `/effort` quá `medium` để tiết kiệm token — việc thật sự cần effort
 cao hơn (`xhigh`/`ultrathink`) không giao worker, giữ lại ở Tầng 1 (đúng CLAUDE.md §9 "nhiều đánh đổi
 lớn/quyết định kiến trúc" — Tầng 1 tự làm, không route xuống).

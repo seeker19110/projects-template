@@ -4,7 +4,7 @@
 > Nói về model **chạy Claude Code để làm dự án theo khung này** — KHÔNG phải chọn model *bên trong* sản phẩm bạn xây (cái đó xem kỹ năng `claude-api`).
 > Đọc khi: bắt đầu/đổi quy mô dự án, cân nhắc chi phí–chất lượng, hoặc muốn hiểu nhanh hệ thống tự động.
 >
-> **`/model opusplan` đã ngừng được CLI hỗ trợ (2026-09-15, ADR-0007).** File này không còn giả định
+> **`/model opusplan` không còn được CLI hỗ trợ (ADR-0007).** File này không còn giả định
 > có một alias/chế độ tự-chuyển-model-theo-pha nào — chọn model cho từng pha là thao tác **thủ công**
 > (`/model <model-id>`), mô tả ở mục 1 dưới đây.
 
@@ -258,10 +258,8 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `permissions.ask` | force-push nhánh khác (`--force`/`-f`/`--force-with-lease`) | Hỏi từng lần, không chặn cứng |
 | `hooks` | SessionStart, PreToolUse, PostToolUse, Stop | 4 hook tự động (bảng dưới) |
 
-> **Ba lớp cho force-push (2026-09-15).** Trước đây `deny` chặn **mọi** force-push, kể cả trên nhánh
-> do chính phiên tạo — rộng hơn luật thật (`AGENTS.md`: cấm force-push **vào `main`/`master`**), và
-> đã làm kẹt thật hai lần khi cần `--amend` một commit merge sai tiêu đề (PR #125 phải đóng và
-> dựng lại nhánh; PR #134 phải nhờ người dùng gõ tay). Nay chia ba lớp:
+> **Ba lớp cho force-push.** `deny` không chặn mọi force-push (kể cả trên nhánh do chính phiên tạo) —
+> luật thật (`AGENTS.md`) chỉ cấm force-push **vào `main`/`master`**. Chia ba lớp:
 >
 > 1. `permissions.deny` — các cách viết nhắm thẳng `main`/`master` (`... main`, `...:main`, `-f`,
 >    `--force`, `--force-with-lease`): **chặn cứng, không hỏi**. Lớp này không phụ thuộc `jq`.
@@ -299,7 +297,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
-| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đóng khoảng cách audit 2026-09-19: trước đó engine chỉ được tài liệu hoá là "ghi mỗi tác vụ AI" nhưng không hook nào gọi thật, nên §5 (kỷ luật vận hành) chưa từng có dữ liệu để đối chiếu |
+| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy |
 
 **Script — `scripts/`**
 
@@ -372,7 +370,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 
 ## 9. Q&A nhanh
 
-- **Còn `opusplan` không?** Không — CLI đã ngừng hỗ trợ (2026-09-15, ADR-0007). Thay bằng hai pha chuyển **tay**: `/model` sang model cao cấp nhất sẵn có lúc lập kế hoạch, `/model claude-sonnet-5` lúc thực thi.
+- **Còn `opusplan` không?** Không — CLI không còn hỗ trợ (ADR-0007). Thay bằng hai pha chuyển **tay**: `/model` sang model cao cấp nhất sẵn có lúc lập kế hoạch, `/model claude-sonnet-5` lúc thực thi.
 - **Sao không để Fable 5.1 mặc định cho chắc?** "Dao mổ trâu thịt gà": Fable tính $10/1M mọi token (kể cả việc Haiku $1 làm được) → lãng phí ~60–70%. Nâng Fable **có chọn lọc** đúng ca kiến trúc khó nhất mới đáng.
 - **Dự án nhỏ có cần chuyển pha không?** Không bắt buộc. <5k LOC → Sonnet 5 xuyên suốt đủ tốt và rẻ hơn.
 - **Tương thích mọi loại dự án?** Có. Permissions phủ Node/Python/Go/Rust/Makefile; hooks không phụ thuộc stack (thiếu `dev-task.sh` thì no-op).
