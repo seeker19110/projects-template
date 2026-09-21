@@ -10,7 +10,7 @@
 | 3 — Theme | Dark blue mặc định + Light, design tokens, no-flash |
 | 4 — Nâng cao | i18n · PWA · Sentry · SEO · Analytics |
 
-> **Kể từ ADR-0004 (2026-09-12): repo khung KHÔNG còn kèm sẵn scaffold Web (Next.js/Supabase).**
+> **Theo ADR-0004: repo khung KHÔNG còn kèm sẵn scaffold Web (Next.js/Supabase).**
 > Mọi đường dẫn file trong tài liệu này (`lib/env.ts`, `app/*.tsx`, `styles/theme.css`, `i18n/*`,
 > `e2e/*`, `lighthouserc.json`, `.github/workflows/lighthouse-ci.yml`...) là **ví dụ minh hoạ cho
 > hồ sơ Web** (C-nào đó trong KHUNG-3 PHẦN C) — bạn tự tạo các file này ở dự án đích khi hồ sơ áp
