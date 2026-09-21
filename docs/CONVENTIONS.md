@@ -6,7 +6,7 @@
 > **Chủ thể:** repo này LÀ bộ khung — "pattern" ở đây là pattern **viết tài liệu, script, lệnh,
 > subagent, cổng CI** của chính khung, không phải pattern app (validate/API/UI — những cái đó là
 > nội dung khung *dạy dự án đích*, nằm ở `CLAUDE.md` §3 và `quality-supplements.md`).
-> Lập bằng cách đọc file thật ngày 2026-09-12.
+> Lập bằng cách đọc file thật trong repo.
 
 ## A. Quy ước shell script
 
@@ -18,8 +18,8 @@
 | Không phụ thuộc stack | Mọi lệnh stack đi qua `scripts/dev-task.sh` | `.claude/hooks/pre-commit-gate.sh` | Vì khung hỗ trợ mọi loại dự án (§0b) |
 | Bản Windows | Mỗi script người dùng chạy có cặp `.sh` + `.ps1`; `.ps1` dùng `$ErrorActionPreference='Stop'` | `copy-framework.sh` / `.ps1` | Chỉ áp cho `copy-framework`; script cổng nội bộ không cần |
 | Kiểm CẤU TRÚC, không kiểm nội dung | Script cổng chỉ đối chiếu *có khớp danh sách/tồn tại không*, không ép nội dung từng bước | `scripts/check-ci-policy.sh` dòng 12–14 | Tránh biến cổng thành vật cản mỗi lần thêm bước mới |
-| Mọi assertion mới có **negative test** | Thêm một kiểm mới → chứng minh nó **bắt được** vi phạm (cố tình làm sai, thấy đỏ) | `scripts/test-copy-framework.sh` | Ghi ở PROGRESS.md như bằng chứng của PR #62 |
-| Phục hồi file trong negative test | `cp` từ bản sao ở scratchpad — **KHÔNG** `git checkout/restore <file>` (xoá luôn sửa chưa commit, xem `TRAPS.md` mục 6) | — | Bẫy đã mắc thật 2026-09-12 |
+| Mọi assertion mới có **negative test** | Thêm một kiểm mới → chứng minh nó **bắt được** vi phạm (cố tình làm sai, thấy đỏ) | `scripts/test-copy-framework.sh` | Ghi bằng chứng ở PR |
+| Phục hồi file trong negative test | `cp` từ bản sao ở scratchpad — **KHÔNG** `git checkout/restore <file>` (xoá luôn sửa chưa commit, xem `TRAPS.md` mục 6) | — | Bẫy đã mắc thật — xem `TRAPS.md` |
 
 ## B. Quy ước tài liệu
 
@@ -48,25 +48,23 @@
 |---------|--------------------|------------------|---------|
 | Commit | conventional commits; một thay đổi logic/commit | `CLAUDE.md` §8 | `commitlint.config.cjs` ở dropins |
 | Merge | squash, qua PR, không push thẳng `main`, FIFO theo thứ tự tạo PR | `CLAUDE.md` §8 | ⚠️ chưa có hàng rào thi hành (chỉ là luật) |
-| Sửa bug | test tái hiện **đỏ trước** khi sửa, test ở lại làm hồi quy | `CLAUDE.md` §3.6 | PR #62 |
+| Sửa bug | test tái hiện **đỏ trước** khi sửa, test ở lại làm hồi quy | `CLAUDE.md` §3.6 | |
 | Tính năng | spec `docs/specs/<ngày>-<slug>.md` ghi "Approved for implementation" trước khi sửa source | `docs/specs/2026-09-12-*.md` | Cưỡng chế bằng `pr-policy.yml` |
 | Required checks | Danh sách tên job **duy nhất** ở `docs/ops/repository-settings.md` | như trên | Cưỡng chế 2 chiều bằng `check-ci-policy.sh` |
 
 ## Đang có NHIỀU KIỂU / quy ước NGẦM — cần hợp nhất (đầu vào cho kế hoạch hoàn thiện)
 
-1. ✅ **ĐÃ XỬ LÝ (W-307, 2026-09-12)** — **`set -euo` vs `set -uo`.** Hiện 4 file dùng `-euo` (script cổng), 8 file dùng `-uo`
-   (3 script tiện ích + 5 hook). Lựa chọn là **đúng và có chủ đích** (hook không được làm chết phiên),
-   nhưng **không tài liệu nào nói ra** — người/AI sau rất dễ "chuẩn hoá" bằng cách thêm `-e` vào hook
-   và biến một formatter thiếu thành cổng chặn phiên. Đã ghi vào file này + comment `# cố ý KHÔNG -e`
-   tại cả 9 file dùng `set -uo pipefail`.
+1. **`set -euo` vs `set -uo` phải có chủ đích, không "chuẩn hoá" ngầm.** Script cổng dùng `-euo`; script
+   tiện ích + hook dùng `-uo` (hook không được làm chết phiên) — comment `# cố ý KHÔNG -e` phải có ở mọi
+   file dùng `set -uo pipefail`, để người/AI sau không vô tình thêm `-e` và biến một formatter thiếu
+   thành cổng chặn phiên.
 2. **Hai bản kiểm CI song song** (`scripts/check-ci-policy.sh` shell cho repo khung ·
    `scripts/ci-workflow-policy.test.ts` vitest cho dropins) — **cố ý không gộp** (repo khung không có
    `package.json`), đã ghi rõ trong header script. Không phải nợ, nhưng là điểm phân kỳ cần canh:
    sửa một bên phải soát bên kia. Chưa có cổng nào ràng hai bên với nhau.
-3. ✅ **ĐÃ XỬ LÝ (W-309, 2026-09-12)** — **`copy-framework.sh` ↔ `.ps1`**: hai bản phải khớp danh sách
-   file. Việc bỏ qua `.ps1` khi thiếu `pwsh` giờ in cảnh báo nổi bật, và CI chạy với `REQUIRE_PWSH=1`
-   nên runner mất `pwsh` sẽ làm job đỏ thay vì bỏ qua âm thầm.
+3. **`copy-framework.sh` ↔ `.ps1` phải khớp danh sách file.** Bỏ qua `.ps1` khi thiếu `pwsh` phải in
+   cảnh báo nổi bật; CI chạy với `REQUIRE_PWSH=1` nên runner mất `pwsh` làm job đỏ thay vì bỏ qua âm thầm.
 
 4. **Fail-open phải NÓI RA.** Mọi hook/cổng khi bỏ qua vì thiếu công cụ (`jq`, `gitleaks`, `pwsh`,
-   `dev-task.sh`) đều phải in cảnh báo ra stderr. Đã áp cho `auto-format.sh` (W-204),
+   `dev-task.sh`) đều phải in cảnh báo ra stderr. Đã áp cho `auto-format.sh`,
    `pre-commit-gate.sh`, `block-dangerous-git.sh`, `.husky/pre-commit`, `test-copy-framework.sh`.

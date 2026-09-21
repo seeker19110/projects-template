@@ -261,8 +261,8 @@ test **vô dụng dù vẫn xanh** — rà cả khi viết mới lẫn khi revie
 test đó pass (không đoán trước tính năng chưa cần) → refactor an toàn (có lưới test) → lặp lại
 cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** mỗi vòng.
 
-> **Hai luật bắt buộc, một danh sách ngoại lệ — đừng lẫn.** *(Cập nhật 2026-09-14, ADR-0005: vòng
-> đỏ-xanh cho code mới đã lên **mặc định bắt buộc**; trước đó là khuyến nghị.)*
+> **Hai luật bắt buộc, một danh sách ngoại lệ — đừng lẫn.** *(ADR-0005: vòng đỏ-xanh cho code mới là
+> **mặc định bắt buộc**, không phải khuyến nghị.)*
 >
 > 1. **Sửa bug (`fix:`) phải có test tái hiện chạy đỏ TRƯỚC khi sửa** (`CLAUDE.md` §3.6). Đây không
 >    phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng — không có nó, không biết

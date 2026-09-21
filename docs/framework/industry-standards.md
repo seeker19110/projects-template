@@ -83,7 +83,7 @@ Xem `docs/ops/repository-settings.md` và `docs/ops/supply-chain.md` để biế
 
 Vi phạm rõ nhất cần tránh: state lưu trong RAM của một instance (mục VI), cấu hình hardcode theo môi trường (mục III), build lẫn với run (mục V).
 
-**Bổ sung — signed commit/tag:** khung trước đây chỉ dừng ở ý tưởng nghiên cứu (`docs/research/template-completeness-2026-08-16.md`), chưa thành luật. Chính thức hóa:
+**Bổ sung — signed commit/tag:**
 - Dự án ASVS L2+ hoặc có nhiều người đóng góp không quen biết trực tiếp: **bật "Require signed commits"** (GitHub Settings → Branches) và ký bằng GPG/SSH signing key cho commit lên nhánh chính.
 - Release/tag phát hành ra ngoài: **luôn ký** (khớp `supply-chain.md` §Provenance — signing bằng OIDC/identity ngắn hạn khi hỗ trợ).
 - Không bắt buộc cho dự án cá nhân/nội bộ nhỏ — chi phí vận hành (mỗi máy dev phải cấu hình key) không tương xứng lợi ích ở quy mô đó; dự án tự chốt vào `PROJECT.md`.
