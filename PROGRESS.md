@@ -6,7 +6,17 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-19, PR này): `/maintain` quét toàn repo theo yêu cầu người dùng
+- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #153, đã merge — SHA `3892c37`): mở rộng tập skill
+  tự-trigger.** Người dùng yêu cầu thêm skill tự-trigger cho vibe-coding; sau khi hỏi phạm vi
+  (`AskUserQuestion`), thêm 3 skill mới: `/review` (rà soát logic/thiết kế trước khi mở PR, bổ sung
+  cho `/gate`), `/deps-upgrade` (nâng cấp dependency theo yêu cầu cụ thể/CVE, khác `/maintain` định
+  kỳ), `/contract` (chốt schema DB/API trước khi code, nối vào feature gate CLAUDE.md §2). Đăng ký
+  TRIGGER trong CLAUDE.md mục 1. Tiện thể đặt mặc định nhịp check-in PR babysit = 5 phút (CLAUDE.md
+  §8 + §10, trước đó §8 ghi 3 phút — đã đồng bộ theo yêu cầu người dùng). PR ban đầu đặt tiêu đề
+  `feat:` sai bản chất (đây là thay đổi tài liệu/skill khung, không phải feature source code) khiến
+  cổng `metadata` đỏ do đòi `docs/specs/*` Approved; sửa lại `docs:` cho khớp Change type đã khai
+  trong PR body, qua hết 10 check.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-19): `/maintain` quét toàn repo theo yêu cầu người dùng
   ("tối ưu file rồi context, cái nào không còn áp dụng thì xoá bỏ").** `maintenance-sweep.sh` sạch
   tuyệt đối (🔴 0 · 🟡 0). Rà tay thêm vùng máy không phủ (tham chiếu tên file trong YAML/shell, file
   mồ côi, ADR/spec/goal treo) tìm được đúng 1 mục thật: `ci.yml` job `metadata` vẫn kiểm JSON của tên
