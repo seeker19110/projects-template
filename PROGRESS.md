@@ -6,7 +6,15 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #159, đã merge — SHA `2ed9767`): xoá tường thuật lịch sử
+- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #161, đã merge — SHA `1ec4bed`): rà lại toàn bộ .md, vá
+  1 chỗ sót.** Theo yêu cầu người dùng "kiểm tra lại toàn bộ file .md còn lỗi thời không" (nối tiếp
+  PR #159). Grep lại toàn bộ phạm vi file luật bằng cùng tiêu chí đã chốt + thêm mẫu không kèm ngày
+  tháng (trước đó là/đã ngừng/quy ước cũ...). Tìm thấy 1 chỗ sót: `docs/framework/quality-supplements.md`
+  dòng dẫn ADR-0004 còn kèm ngày `(2026-09-12)` giống mẫu đã xử lý ở `FEATURE-MAP.md` nhưng bị bỏ sót
+  lúc PR #159. Rút gọn thành "Theo ADR-0004: ..." — giữ nguyên ý luật. Các match còn lại xác nhận đều
+  là luật hiện hành (mốc snapshot cần xác minh lại, ví dụ tên file chuẩn, phát biểu trạng thái hiện tại
+  như "opusplan đã ngừng hỗ trợ") — không phải tường thuật lịch sử, không sửa.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21, PR #159, đã merge — SHA `2ed9767`): xoá tường thuật lịch sử
   khỏi file quy định luật.** Theo yêu cầu người dùng "chỉ giữ những quy định luật lệ hiện hành, xoá
   hết lịch sử thay đổi khỏi mọi file *.md". Sau hai vòng `AskUserQuestion` để chốt phạm vi (loại trừ
   docs/adr/*.md và TRAPS.md — trái luật "không sửa ADR cũ"/mất giá trị sổ bẫy; loại trừ mọi file có
