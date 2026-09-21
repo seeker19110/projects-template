@@ -12,7 +12,11 @@
   ℹ️ 5 (đều n-a/không phải nợ thật — xem `docs/ops/MAINTENANCE-LOG.md`). Duyệt M-01, xoá nhánh
   local (nhánh remote hoá ra đã không còn tồn tại từ trước, GitHub tự dọn sau merge PR #153).
   Quét lại `--strict` chỉ còn 🟡 1 là chính `MAINTENANCE-PLAN.md` vừa sinh (không phải phát hiện
-  thật, như lượt 2026-09-15). Không có mục DỪNG & HỎI, không đổi source code.
+  thật, như lượt 2026-09-15). Không có mục DỪNG & HỎI, không đổi source code. Đẩy PR #153-kế
+  tiếp — chore/maint riêng cho M-01 + cập nhật `MAINTENANCE-PLAN.md`/`MAINTENANCE-LOG.md`/
+  `PROGRESS.md` — mở PR #155, auto-merge, CI xanh, đã merge (SHA `58464d4`). **Xác nhận cuối:**
+  đồng bộ lại `main` về `58464d4`, chạy `maintenance-sweep.sh --strict` lần nữa → **🔴 0 · 🟡 0**,
+  sạch tuyệt đối (chỉ còn 5 mục ℹ️ thông tin, không phải nợ thật).
 - Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21, PR #153, đã merge — SHA `3892c37`): mở rộng tập skill
   tự-trigger.** Người dùng yêu cầu thêm skill tự-trigger cho vibe-coding; sau khi hỏi phạm vi
   (`AskUserQuestion`), thêm 3 skill mới: `/review` (rà soát logic/thiết kế trước khi mở PR, bổ sung
