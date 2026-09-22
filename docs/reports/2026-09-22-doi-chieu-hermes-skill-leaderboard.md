@@ -102,7 +102,38 @@ grep -rli "nén token\|compress.*token\|token.*proxy" .        → 0 kết quả
 Không lấy 7/8 còn lại — lý do tóm tắt: 5 đã sâu hơn hoặc đối lập có chủ đích (cột 1), 1 mâu thuẫn luật
 (Agentic Awesome Skills), 2 ngoài phạm vi khung (Caveman token-proxy, last30days/scientific khi tính gộp).
 
-## 6. Đính chính giữa chừng (giữ nguyên, không xoá)
+## 6. Phụ lục — nghiên cứu sâu `using-git-worktrees` của `superpowers` (2026-09-22, theo yêu cầu tiếp theo)
+
+Đọc trực tiếp 3 file `SKILL.md` thật (raw GitHub, không chỉ README): `using-git-worktrees`,
+`dispatching-parallel-agents`, `finishing-a-development-branch`. Đối chiếu với `.claude/agents/
+coordinator.md` (đã có khái niệm worktree ở bước 2 — xếp **cột 2 "đã có nhưng nông hơn"**, không cần
+qua cổng §2 vì đó chỉ áp cho cột 3 "CHƯA CÓ").
+
+**3 điểm nông cụ thể tìm thấy** (bảng đầy đủ đã trình bày trong hội thoại, tóm tắt ở đây để lưu vết):
+
+1. Thiếu **bước 0 phát hiện cô lập sẵn có** (`git rev-parse --git-dir` vs `--git-common-dir`) trước khi tạo
+   worktree mới → rủi ro worktree lồng worktree khi coordinator được gọi từ trong một worktree đã có sẵn.
+2. Thiếu **baseline verification** (cài dependency + chạy thử cổng nhẹ) sau khi tạo worktree, trước khi
+   dispatch việc cho worker → lỗi môi trường có thể bị lẫn với lỗi của chính việc worker sắp làm.
+3. **Không có bước dọn dẹp worktree** sau khi đơn vị PR merge — và nếu sau này có ai thêm bằng tay mà
+   không kiểm tra trước, rủi ro `git worktree remove` xoá mất việc chưa commit của một đơn vị PR khác đang
+   chạy song song. Nguồn xử lý bằng: kiểm `git status --porcelain -uall` trước, từ chối xoá nếu có file
+   chưa track/chưa commit (không bao giờ force-delete), chỉ tự dọn worktree do chính nó tạo.
+
+**Đã lấy (người dùng duyệt trực tiếp, không qua Feature gate — đây là tinh chỉnh subagent điều phối, không
+phải tính năng sản phẩm):** cả 3 điểm, đã sửa vào `.claude/agents/coordinator.md`:
+- Bước 2 tách thành 2a (phát hiện cô lập) / 2b (tạo worktree dưới `.worktrees/<tên-đơn-vị>`, đã gitignore)
+  / 2c (baseline verification qua `scripts/dev-task.sh` nếu có).
+- Thêm bước 7 mới "dọn worktree của đơn vị vừa merge" — kiểm `git status --porcelain -uall` trước, có file
+  chưa commit/chưa track thì **dừng và báo lên phiên chính** (không tự chọn commit/chuyển/xoá — đẩy về §9),
+  sạch mới `git worktree remove`; chỉ dọn worktree do bước 2b tạo, không đụng workspace người dùng có sẵn.
+- Đánh số lại bước "Báo cáo tổng hợp" từ 7 → 8.
+
+**Không lấy:** cơ chế "native tool trước, `git worktree add` chỉ là fallback" (`EnterWorktree`/`/worktree`)
+của nguồn — khung này không có lớp native tool tương đương ở mọi harness đa nhà cung cấp đang hỗ trợ, thêm
+vào sẽ tạo nhánh rẽ không kiểm chứng được cho phần lớn harness; giữ `git worktree` trực tiếp như hiện tại.
+
+## 7. Đính chính giữa chừng (giữ nguyên, không xoá)
 
 - Lượt trả lời đầu tiên (trước khi có báo cáo này) đã xếp cả 10 repo vào kết luận nhanh "không repo nào đủ
   điều kiện lấy ngay". Sau khi grep kỹ `TRAPS.md` cho từ khoá "CODEMAP" (bước bắt buộc của §3 phương pháp,
