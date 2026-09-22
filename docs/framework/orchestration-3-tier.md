@@ -21,7 +21,10 @@ TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · model cao cấp nh�
                                   │  PLAN.md (đã người dùng duyệt)
                                   ▼
 TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "CHẠY"
-   Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → với MỖI đơn vị PR: tạo nhánh riêng
+   Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → với MỖI đơn vị PR: tạo nhánh/worktree
+   riêng (phát hiện cô lập sẵn có trước khi tạo mới → baseline verification trước khi
+   dispatch → dọn worktree an toàn sau khi merge, không bao giờ force-delete khi còn
+   file chưa commit — chi tiết từng bước: `.claude/agents/coordinator.md`)
    → dispatch việc trong đơn vị theo `route:` (trần effort **medium**, kể cả `route:complex`)
    → nghiệm thu (tiêu chí chấp nhận, gọi `tester` chạy cổng) → gọi `reviewer` soát diff
    (đụng bảo mật/dữ liệu thật → thêm `security-reviewer`) → mở PR cho đơn vị → cổng
