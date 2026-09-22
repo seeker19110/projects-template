@@ -6,7 +6,24 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-21, PR #161, đã merge — SHA `1ec4bed`): rà lại toàn bộ .md, vá
+- Giai đoạn: GĐ 8. **Mốc (2026-09-22, PR #163, đã merge — SHA `f2e4bbc`): đối chiếu 8 nguồn ngoài
+  (bảng "Top 10 Hermes Skill Repos") + tinh chỉnh vòng đời worktree của `coordinator`.** Theo yêu cầu
+  người dùng đối chiếu ba cột (`adopt-from-outside.md`) cho Graphify, Understand Anything, Caveman,
+  last30days-skill, i-have-adhd, Agentic Awesome Skills, Scientific Agent Skills, Diagram Design (+
+  bổ sung `obra/superpowers` đã đối chiếu sơ trước đó). Ghi `docs/reports/2026-09-22-doi-chieu-hermes-
+  skill-leaderboard.md`: 1/8 qua cổng §2 (sự cố thật ở `TRAPS.md` — script cổng thiếu dòng CODEMAP.md)
+  → đề xuất ý tưởng đồ thị codebase tự sinh, **chưa code, chờ Feature gate riêng**. Theo yêu cầu tiếp
+  theo, đọc trực tiếp 3 `SKILL.md` thật của `superpowers` (using-git-worktrees, dispatching-parallel-
+  agents, finishing-a-development-branch) → tìm 3 điểm nông ở `.claude/agents/coordinator.md` (thiếu
+  phát hiện cô lập sẵn có, thiếu baseline verification, thiếu dọn worktree an toàn sau merge) → người
+  dùng duyệt sửa trực tiếp: bước 2 tách 2a/2b/2c, thêm bước 7 dọn worktree (kiểm `git status
+  --porcelain -uall` trước, không force-delete). Đồng bộ `docs/framework/orchestration-3-tier.md` trỏ
+  về `coordinator.md` làm nguồn sự thật (xác nhận `scripts/subagent-dispatch.py` đọc chung một file
+  cho mọi harness đa nhà cung cấp — không có bản coordinator riêng theo provider cần sửa thêm). PR tạo
+  từ Claude Code UI; job `metadata` đỏ lần đầu vì mô tả PR thiếu 2 mục template (`Risk, rollout and
+  rollback`, `Definition of Done`) — bổ sung qua `update_pull_request`, job tự kích lại và xanh. Chủ
+  repo bật auto-merge (squash), CI xanh hết, đã merge.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-21, PR #161, đã merge — SHA `1ec4bed`): rà lại toàn bộ .md, vá
   1 chỗ sót.** Theo yêu cầu người dùng "kiểm tra lại toàn bộ file .md còn lỗi thời không" (nối tiếp
   PR #159). Grep lại toàn bộ phạm vi file luật bằng cùng tiêu chí đã chốt + thêm mẫu không kèm ngày
   tháng (trước đó là/đã ngừng/quy ước cũ...). Tìm thấy 1 chỗ sót: `docs/framework/quality-supplements.md`
