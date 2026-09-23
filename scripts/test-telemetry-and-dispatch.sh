@@ -127,7 +127,7 @@ for m in $hinted claude-fable-5-1 claude-opus-5-5 claude-sonnet-5 claude-haiku-4
   fi
 done
 # Giá phải khớp nguồn sống 2026-09-23 (platform.claude.com/docs/en/about-claude/pricing), không phải đời cũ.
-py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-rates.json'))['rates']; print(r['$1']['input'], r['$1']['output'])" 2>/dev/null; }
+py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-rates.json', encoding='utf-8'))['rates']; print(r['$1']['input'], r['$1']['output'])" 2>/dev/null; }
 [ "$(py_rate opus-5-5)" = "4.0 20.0" ] && ok "opus-5-5 = 4/20" || bad "opus-5-5 phải là 4/20 (đang: $(py_rate opus-5-5))"
 [ "$(py_rate fable-5-1)" = "10.0 50.0" ] && ok "fable-5-1 = 10/50" || bad "fable-5-1 phải là 10/50 (đang: $(py_rate fable-5-1))"
 [ "$(py_rate sonnet)" = "2.0 10.0" ] && ok "sonnet = 2/10" || bad "sonnet phải là 2/10 (đang: $(py_rate sonnet))"
@@ -135,7 +135,7 @@ py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-r
 # --- Không có token thật → chi phí 0 + cảnh báo, KHÔNG bịa 1000/500 (C4, CLAUDE.md §4) ---
 echo "== 4. Không bịa token khi không được cấp =="
 err0="$(bash "$ROOT/scripts/telemetry-log.sh" --record --model claude-sonnet-5 --agent zero-check --task "zero" 2>&1 >/dev/null)"
-last_cost="$(python3 -c "import json; l=json.load(open('$ROOT/.ai-telemetry/telemetry.json')); print(l[-1]['est_cost_usd'], l[-1]['input_tokens'], l[-1]['output_tokens'])")"
+last_cost="$(python3 -c "import json; l=json.load(open('$ROOT/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['est_cost_usd'], l[-1]['input_tokens'], l[-1]['output_tokens'])")"
 if [ "$last_cost" = "0.0 0 0" ] || [ "$last_cost" = "0 0 0" ]; then
   ok "record không token → input=0, output=0, est_cost=0"
 else

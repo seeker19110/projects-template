@@ -32,7 +32,7 @@ cat > "$TR" <<'EOF'
 {"type":"assistant","timestamp":"2026-09-23T10:12:00.000Z","message":{"model":"claude-sonnet-5","usage":{"input_tokens":3000,"output_tokens":800}}}
 EOF
 run_hook() { printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"; }
-last_entry() { python3 -c "import json,sys; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json')); e=l[$1]; print(e['model'], e['input_tokens'], e['output_tokens'], e['duration_sec'], len(l))"; }
+last_entry() { python3 -c "import json,sys; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); e=l[$1]; print(e['model'], e['input_tokens'], e['output_tokens'], e['duration_sec'], len(l))"; }
 
 echo "== 1. telemetry-record: token = tổng usage THẬT, model = message cuối, thời lượng = delta =="
 run_hook; rc=$?
@@ -47,7 +47,7 @@ fi
 
 echo "== 2. Lượt kế KHÔNG có dòng mới → không ghi thêm (không cộng dồn cả phiên) =="
 run_hook
-n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json'))))")"
+n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
 [ "$n" = "1" ] && ok "vẫn 1 entry" || bad "hook ghi trùng khi không có dòng mới: $n entry"
 
 echo "== 3. Có dòng mới → chỉ tính phần MỚI (delta), không tính lại từ đầu =="
@@ -59,7 +59,7 @@ e="$(last_entry -1)"
 
 echo "== 4. Transcript không tồn tại / payload rỗng → thoát 0, không ghi =="
 printf '{}' | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"; rc=$?
-n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json'))))")"
+n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
 [ "$rc" -eq 0 ] && [ "$n" = "2" ] && ok "payload rỗng: thoát 0, không ghi" || bad "payload rỗng: rc=$rc, entry=$n"
 
 echo "== 5. NEGATIVE: engine đổi mặc định token về số bịa thì test này phải ĐỎ =="
@@ -68,7 +68,7 @@ rm -f "$PROJ/.ai-telemetry/last-stop-ts" "$PROJ/.ai-telemetry/telemetry.json"
 printf '{"transcript_path":"%s"}' "$WORK/none.jsonl" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"
 # transcript không tồn tại → hook không ghi; gọi engine trực tiếp không token → phải lộ 777
 CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/scripts/telemetry-log.sh" --record --agent neg --task neg >/dev/null 2>&1
-e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json')); print(l[-1]['input_tokens'])")"
+e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['input_tokens'])")"
 [ "$e" = "777" ] && ok "negative test bắt được engine bịa token (777)" || bad "negative test không bắt được (đọc: $e)"
 
 if [ "$fails" -eq 0 ]; then

@@ -549,7 +549,11 @@ không giả vờ xanh; CI luôn có gawk nên nơi đó không bao giờ bỏ q
 ## 24. Script Python in tiếng Việt/emoji → chết trên console Windows (cp1252)
 
 **Ngày/PR:** 2026-09-15, phát hiện khi người dùng hỏi "template này hoàn hảo chưa" và chạy thử toàn
-bộ self-test trên máy Windows thật.
+bộ self-test trên máy Windows thật. **Tái phát 2026-09-23 (PR #166), biến thể ĐỌC:** test mới gọi
+`python3 -c "json.load(open(...))"` không có `encoding='utf-8'` — trên runner Windows, `open()` mặc định
+cp1252 chết vì `_comment` tiếng Việt trong `model-rates.json`, và `2>/dev/null` nuốt lỗi nên ca test đọc
+thành chuỗi rỗng → đỏ ở `framework-lint-windows`, xanh ở Linux. Luật rút ra: mọi `open()` trong Python
+inline của script test cũng phải có `encoding='utf-8'`, không chỉ file `.py`.
 
 **Khuôn lỗi:** 4 engine Python (`spec-compiler`, `arch-health-radar`, `telemetry-log`,
 `subagent-dispatch`) in báo cáo tiếng Việt + emoji ra stdout. Trên Windows, `sys.stdout` mặc định
