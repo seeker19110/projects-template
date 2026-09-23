@@ -280,8 +280,10 @@ bất kỳ câu nào về kết quả — `git fetch origin && git rev-parse HEA
 lệnh CHỨNG MINH được câu mình định nói, chạy đủ, đọc hết output) áp cho thao tác git. Và: **không
 ghép `git checkout` vào cùng một dòng với lệnh khác** — chạy riêng, đọc `git branch --show-current`.
 
-**Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
-này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
+**Cổng chốt chặn:** từ 2026-09-23 có cổng máy — `.claude/hooks/pre-commit-gate.sh` chặn `git commit` khi
+`git branch --show-current` là `main`/`master` (exit 2; bỏ qua tường minh `ALLOW_COMMIT_ON_MAIN=1`), ca ở
+`scripts/test-hooks-gate.sh` mục 11. Chỉ có hiệu lực trong Claude Code (harness khác: `AGENTS.md` hàng rào thủ
+công). Dấu hiệu sớm ngoài hook: `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
 
 ## 15. "Đã copy đủ file" không có nghĩa là "dùng được ở dự án đích"
 

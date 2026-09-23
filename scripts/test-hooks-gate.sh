@@ -7,7 +7,7 @@
 # husky cũng không chạy. Tức hàng rào quan trọng nhất là hàng rào duy nhất chưa có bằng chứng
 # hoạt động — nếu nó hỏng im lặng (fail-open), mọi dự án đích mất cổng mà không ai biết.
 #
-# Kiểm: pre-commit-gate (6 ca) + block-dangerous-git (chặn 5 khuôn, không chặn oan 5 ca, cờ bỏ qua, negative test).
+# Kiểm: pre-commit-gate (6 ca + main/bí mật/file lớn) + block-dangerous-git (chặn 5 khuôn, không chặn oan, cờ bỏ qua, negative test).
 # Chi tiết pre-commit-gate: chặn khi đỏ · cho qua khi xanh · --no-verify bỏ qua · lệnh không phải commit bỏ qua ·
 # thiếu jq thì fail-open CÓ CẢNH BÁO · và NEGATIVE TEST (hook hỏng phải làm test này đỏ).
 #
@@ -44,6 +44,7 @@ exit 0
 EOF
   chmod +x "$dir/scripts/dev-task.sh"
   git -C "$dir" init -q 2>/dev/null
+  git -C "$dir" switch -q -c feat/test 2>/dev/null || git -C "$dir" checkout -q -b feat/test 2>/dev/null   # hook chặn commit trên main (mục 11)
   printf '%s\n' "$dir"
 }
 
@@ -167,6 +168,46 @@ rc="$(printf '{"tool_input":{"command":"git reset --hard"}}' | ALLOW_DANGEROUS_G
 echo "== 10. NEGATIVE TEST cho hook chặn git (hook rỗng phải bị bắt) =="
 rc="$(run_hook "$any" 'git reset --hard' "" "$broken")"
 [ "$rc" = "0" ] && ok "test bắt được hook git hỏng" || bad "negative test sai (exit $rc)"
+
+echo "== 11. pre-commit-gate: commit trên main/master bị chặn; bí mật / file lớn staged bị chặn =="
+onmain="$(setup_project 0)"; git -C "$onmain" switch -q -c main 2>/dev/null || git -C "$onmain" checkout -q -b main
+rc="$(run_hook "$onmain" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "chặn commit khi đang ở main (TRAPS 14)" || bad "KHÔNG chặn commit trên main (exit $rc)"
+rc="$(printf '{"tool_input":{"command":"git commit -m x"}}' | ALLOW_COMMIT_ON_MAIN=1 CLAUDE_PROJECT_DIR="$onmain" bash "$HOOK" >/dev/null 2>&1; echo $?)"
+[ "$rc" = "0" ] && ok "ALLOW_COMMIT_ON_MAIN=1 cho qua" || bad "cờ ALLOW_COMMIT_ON_MAIN không hoạt động (exit $rc)"
+sec="$(setup_project 0)"
+# Khoá giả dựng lúc chạy (không viết literal — kẻo chính test này bị sweep/hook bắt).
+printf 'KEY=AKIA%s\n' "$(printf 'Q%.0s' $(seq 16))" > "$sec/cfg.txt"; git -C "$sec" add cfg.txt
+rc="$(run_hook "$sec" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "chặn commit có chuỗi giống khoá AWS trong staged" || bad "KHÔNG chặn bí mật staged (exit $rc)"
+bigp="$(setup_project 0)"; head -c 1100000 /dev/zero > "$bigp/blob.bin"; git -C "$bigp" add blob.bin
+rc="$(run_hook "$bigp" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "chặn commit có file staged > 1 MB" || bad "KHÔNG chặn file lớn staged (exit $rc)"
+clean="$(setup_project 0)"; echo "hello" > "$clean/a.txt"; git -C "$clean" add a.txt
+rc="$(run_hook "$clean" 'git commit -m "x"')"
+[ "$rc" = "0" ] && ok "diff sạch trên nhánh riêng → cho qua" || bad "chặn OAN diff sạch (exit $rc)"
+
+echo "== 12. block-dangerous-git: khuôn 5 — push xoá / ép ghi đè nhánh chính không có --force =="
+for pair in \
+  "git push origin +main|refspec +main" \
+  "git push origin +HEAD:master|refspec +HEAD:master" \
+  "git push origin :main|refspec :main (xoá)" \
+  "git push --delete origin main|--delete main" \
+  "git push origin -d master|-d master" \
+; do
+  c="${pair%%|*}"; label="${pair##*|}"
+  rc="$(run_hook "$any" "$c" "" "$DG")"
+  [ "$rc" = "2" ] && ok "chặn: $label" || bad "KHÔNG chặn: $label (exit $rc, kỳ vọng 2)"
+done
+for pair in \
+  "git push origin +feat/x|refspec + nhánh riêng" \
+  "git push --delete origin feat/x|xoá nhánh riêng" \
+  "git push origin main|push thường lên main (ruleset chặn, hook không cần)" \
+; do
+  c="${pair%%|*}"; label="${pair##*|}"
+  rc="$(run_hook "$any" "$c" "" "$DG")"
+  [ "$rc" = "0" ] && ok "cho qua: $label" || bad "chặn OAN: $label (exit $rc)"
+done
 
 fi
 

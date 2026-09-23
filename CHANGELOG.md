@@ -13,6 +13,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Hàng rào commit + ngữ cảnh phiên gọn** (spec `docs/specs/2026-09-23-hang-rao-commit-va-ngu-canh-phien.md`):
+  `pre-commit-gate.sh` chặn commit trên `main`/`master` (TRAPS 14 nay có cổng máy), chặn chuỗi giống bí mật và file
+  > 1 MB trong diff staged; `block-dangerous-git.sh` khuôn 5 chặn `push +main`/`:main`/`--delete main`;
+  `session-resume.sh` chỉ nạp 4 mục của `PROGRESS.md` với trần 8 KB (trước: 60 KB mỗi phiên); lịch sử `PROGRESS.md`
+  tách sang `docs/changelog/0001-…` và cổng PF-4 chặn tích lại; `pr-policy.yml` thêm trần WIP 3 PR, tiêu đề ≤ 72
+  ký tự không mojibake, cảnh báo `fix:` không chạm `TRAPS.md`; `maintain-run.sh` đóng stdin cho harness nhận prompt
+  qua argv (hết treo khi chạy từ nền).
 - **Audit toàn diện repo khung + kế hoạch 7 đợt** (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`):
   12 phát hiện Cao, 18 Trung; đợt 1 (mất dữ liệu / số sai) đang triển khai.
 

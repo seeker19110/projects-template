@@ -30,6 +30,28 @@ jobs:
               core.info(`PR của bot (${pr.user.login}) → miễn trừ yêu cầu mục PR template.`);
               return;
             }
+            // Tiêu đề ≤ 72 ký tự và không ký tự điều khiển/mojibake (TRAPS mục 22: cổng chỉ soi tiền tố
+            // nên tiêu đề hỏng vẫn qua; audit 2026-09-23 C10).
+            if (pr.title.length > 72) core.setFailed(`PR title dài ${pr.title.length} ký tự (tối đa 72 — squash lấy làm tiêu đề commit trên main).`);
+            if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/.test(pr.title)) core.setFailed("PR title chứa ký tự điều khiển hoặc U+FFFD (mojibake).");
+            // Trần WIP = tối đa 3 PR mở đồng thời trên toàn repo, mọi tác giả (CLAUDE.md §8; sự cố PR #157).
+            // Đếm PR KHÁC đang mở (không draft); PR này là cái thứ 4 trở đi → đỏ. Không tự đóng gì.
+            const openPrs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner, repo: context.repo.repo, state: "open", per_page: 100,
+            });
+            const others = openPrs.filter(p => p.number !== pr.number && !p.draft);
+            if (others.length >= 3) {
+              core.setFailed(`Trần WIP: đã có ${others.length} PR khác đang mở (#${others.map(p => p.number).join(", #")}) — tối đa 3 PR mở đồng thời (CLAUDE.md §8). Merge/đóng bớt rồi re-run check này.`);
+            }
+            // fix: mà không chạm TRAPS.md → chỉ CẢNH BÁO (CLAUDE.md §1: bug là một khuôn thì ghi TRAPS; typo thì không).
+            if (/^fix(\(|:)/.test(pr.title)) {
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number, per_page: 100,
+              });
+              if (!files.some(f => f.filename === "TRAPS.md")) {
+                core.warning("PR fix: không chạm TRAPS.md — nếu bug này là một KHUÔN (không phải lỗi gõ một lần) thì thêm mục TRAPS trong cùng PR (CLAUDE.md §8 bước 0).");
+              }
+            }
             const headings = ["## Summary", "## Issue / Goal", "## Research / Spec",
               "## Validation", "## Risk, rollout and rollback", "## Definition of Done"];
             const missing = headings.filter(h => !body.includes(h));

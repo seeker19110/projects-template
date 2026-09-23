@@ -71,8 +71,36 @@ CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/scripts/telemetry-log.sh" --record --agen
 e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['input_tokens'])")"
 [ "$e" = "777" ] && ok "negative test bắt được engine bịa token (777)" || bad "negative test không bắt được (đọc: $e)"
 
+echo "== 6. session-resume: chỉ nạp 4 mục, bỏ khối 'trước đó', trần byte, nói rõ khi cắt =="
+SR="$ROOT/.claude/hooks/session-resume.sh"
+P2="$WORK/proj2"; mkdir -p "$P2/.claude"; git -C "$P2" init -q 2>/dev/null
+{
+  echo "# PROGRESS"; echo; echo "## Giai đoạn hiện tại"; echo; echo "- Giai đoạn: GĐ 5. MOC-HIEN-TAI"
+  echo "- Giai đoạn trước đó: LICH-SU-CU dòng 1"; echo "  LICH-SU-CU dòng 2 thụt đầu dòng"
+  echo "- Default-branch SHA đã đối chiếu: abc"; echo; echo "## Goal đang active"; echo; echo "GOAL-KHONG-CAN"
+  echo; echo "## Đang làm / chờ"; echo; echo "- DANG-LAM-X"; echo; echo "## Tiếp theo"; echo; echo "- TIEP-THEO-Y"
+  echo; echo "## Quyết định quan trọng"; echo; echo "QUYET-DINH-KHONG-CAN"; echo; echo "## Bàn giao phiên"; echo; echo "- BAN-GIAO-Z"
+} > "$P2/PROGRESS.md"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$P2" bash "$SR")"
+ctx="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')"
+for want in MOC-HIEN-TAI DANG-LAM-X TIEP-THEO-Y BAN-GIAO-Z "SHA đã đối chiếu"; do
+  printf '%s' "$ctx" | grep -q -- "$want" && ok "có: $want" || bad "thiếu mục cần cho 'tiếp tục': $want"
+done
+for nowant in LICH-SU-CU GOAL-KHONG-CAN QUYET-DINH-KHONG-CAN; do
+  printf '%s' "$ctx" | grep -q -- "$nowant" && bad "vẫn nạp thứ không cần: $nowant" || ok "không nạp: $nowant"
+done
+# Trần: PROGRESS.md 100 KB toàn nội dung trong mục cần → phải cắt ở trần và nói rõ.
+{ echo "## Đang làm / chờ"; echo; yes -- "- dòng dài lặp lại để vượt trần byte của hook session-resume" | head -n 2000; } > "$P2/PROGRESS.md"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$P2" bash "$SR")"
+n="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' | wc -c)"
+[ "$n" -le 9000 ] && ok "ngữ cảnh bị cắt về ≤ 9000 byte (đo: $n)" || bad "hook vẫn nạp $n byte — vượt trần"
+printf '%s' "$out" | grep -q "ĐÃ CẮT" && ok "nói rõ đã cắt" || bad "cắt mà không nói"
+out="$(printf '{}' | SESSION_RESUME_MAX_BYTES=2000 CLAUDE_PROJECT_DIR="$P2" bash "$SR")"
+n="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' | wc -c)"
+[ "$n" -le 2600 ] && ok "trần tuỳ chỉnh SESSION_RESUME_MAX_BYTES=2000 có hiệu lực (đo: $n)" || bad "trần tuỳ chỉnh không hiệu lực ($n)"
+
 if [ "$fails" -eq 0 ]; then
-  echo "OK — hook session (telemetry-record) ghi số thật, delta đúng, không ghi trùng."
+  echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
   exit 0
 fi
 echo "FAIL — $fails ca hỏng."

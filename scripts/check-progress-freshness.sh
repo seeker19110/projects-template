@@ -15,6 +15,7 @@
 #   PF-2  Nếu PROGRESS.md nêu tên "Nhánh đang làm" thì nhánh đó phải còn tồn tại trên remote
 #         (nhánh đã merge/xoá mà PROGRESS.md vẫn nói "đang làm" = lỗi thời)
 #   PF-3  Số PR trong dòng "Giai đoạn" phải >= số PR của commit mà "SHA đã đối chiếu" trỏ tới
+#   PF-4  Tối đa 1 khối "- Giai đoạn trước đó" (lịch sử đi docs/changelog/, không tích trong file)
 #         (hai dòng cùng mô tả MỘT mốc đối chiếu, lệch nhau là lỗi thời)
 #
 # Job wiring (ci.yml): job này CHỈ chạy khi push thẳng vào main (sau khi một PR vừa merge) — lúc
@@ -114,8 +115,21 @@ else
   fi
 fi
 
+# --- PF-4: PROGRESS.md không tích lịch sử (audit 2026-09-23, C5). ---
+# VÌ SAO: luật quality-supplements-group1 §9 ("chỉ sửa TẠI CHỖ, không chèn lịch sử") không có cổng nên
+# file tích 21 khối "Giai đoạn trước đó" (58 KB) và hook session-resume nạp hết vào ngữ cảnh mỗi phiên.
+# Cho phép TỐI ĐA 1 khối "trước đó" (đủ để trỏ sang docs/changelog/), từ khối thứ hai là đỏ.
+echo "== PF-4: tối đa 1 khối 'Giai đoạn trước đó' (lịch sử đi docs/changelog/) =="
+prev_n="$(grep -cE '^- Giai đoạn trước đó' "$PROGRESS_FILE" || true)"
+if [ "${prev_n:-0}" -le 1 ]; then
+  echo "OK: $prev_n khối 'Giai đoạn trước đó'."
+else
+  echo "::error file=$PROGRESS_FILE::PROGRESS.md có $prev_n khối 'Giai đoạn trước đó' (tối đa 1) — chuyển các khối cũ sang docs/changelog/NNNN-<ngày>-<slug>.md và để lại một dòng trỏ link (quality-supplements-group1 §9; hook session-resume nạp file này mỗi phiên)."
+  fail=1
+fi
+
 if [ "$fail" -eq 0 ]; then
-  echo "OK — PROGRESS.md khớp git thật (PF-1, PF-2, PF-3)."
+  echo "OK — PROGRESS.md khớp git thật (PF-1, PF-2, PF-3, PF-4)."
 fi
 
 exit "$fail"

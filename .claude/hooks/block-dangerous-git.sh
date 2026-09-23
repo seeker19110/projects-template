@@ -5,12 +5,14 @@
 # lệnh cấm chỉ tồn tại dưới dạng LUẬT — không có cơ chế nào thi hành. Luật không có hàng rào thì
 # sẽ bị vi phạm ở phiên dài (bằng chứng thật: luật FIFO §8 bị vi phạm 19 ngày, F-001).
 #
-# Chặn 4 khuôn (exit 2 = chặn, thông báo về lại Claude):
+# Chặn 5 khuôn (exit 2 = chặn, thông báo về lại Claude):
 #   1. force-push vào nhánh chính (`--force`/`-f`/`--force-with-lease` + main/master)
 #   2. `reset --hard` (mất thay đổi chưa commit, không hoàn tác được)
 #   3. `merge --abort` / `rebase --abort` (né việc giải xung đột — CLAUDE.md §8 cấm tường minh)
 #   4. `push --force` lên nhánh KHÔNG phải của mình → chỉ cảnh báo (không chặn), vì rebase nhánh
 #      riêng là hợp lệ theo quy ước repo.
+#   5. `push` xoá hoặc ép ghi đè nhánh chính không qua chữ --force: refspec `+main`, `:main`,
+#      `--delete main` (audit 2026-09-23).
 #
 # Bỏ qua có chủ đích: đặt ALLOW_DANGEROUS_GIT=1 trong môi trường (tường minh, có chủ ý).
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên (xem docs/CONVENTIONS.md §A)
@@ -99,6 +101,17 @@ fi
 if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?(merge|rebase|cherry-pick)([[:space:]]|$)' \
    && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--abort([[:space:]]|$)'; then
   block "git ...--abort" "CLAUDE.md §8: KHÔNG BAO GIỜ --abort để né việc giải xung đột — đọc cả hai phía rồi giải."
+fi
+
+# --- 5. push XOÁ nhánh chính hoặc refspec ép ghi đè (`+main`, `+HEAD:main`, `:main`, `--delete main`) ---
+# Cùng bản chất khuôn 1 nhưng không có chữ --force nên bản cũ để lọt (audit 2026-09-23, T5).
+# So theo TỪNG TOKEN (tách bằng khoảng trắng) để refspec `+feat/x` hay `--delete feat/x` không bị oan.
+if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?push([[:space:]]|$)'; then
+  tokens="$(printf '%s' "$cmd_scan" | tr -s '[:space:]' '\n')"
+  if printf '%s\n' "$tokens" | grep -Eq '^\+([^:]*:)?(main|master)$|^:(main|master)$' \
+     || { printf '%s\n' "$tokens" | grep -Eq '^(--delete|-d)$' && printf '%s\n' "$tokens" | grep -Eq '^(main|master)$'; }; then
+    block "push xoá / ép ghi đè nhánh chính" "CLAUDE.md §8: nhánh chính chỉ nhận thay đổi qua PR; refspec '+main', ':main' hay --delete main xoá lịch sử/nhánh của mọi người."
+  fi
 fi
 
 # --- 4. force-push nhánh khác: cảnh báo, không chặn ---

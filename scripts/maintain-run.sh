@@ -123,7 +123,7 @@ fi
 start="$(date +%s)"
 case "$HARNESS" in
   claude|codex) "${cmd[@]}" < "$PROMPT_FILE" ;;
-  *)            "${cmd[@]}" ;;
+  *)            "${cmd[@]}" < /dev/null ;;   # prompt đã nằm trong argv — đóng stdin kẻo CLI chờ stdin của tiến trình gọi (treo vô hạn khi chạy từ cron/agent nền)
 esac
 rc=$?
 dur=$(( $(date +%s) - start ))

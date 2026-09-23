@@ -218,6 +218,13 @@ git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md t
 rc="$(run_check "$d" check-progress-freshness.sh)"
 [ "$rc" = "1" ] && ok "bắt được SHA không phải tổ tiên của HEAD (PF-1)" || bad "KHÔNG bắt được SHA sai nhánh (rc=$rc)"
 
+# PF-4: tích lịch sử trong PROGRESS.md (≥ 2 khối "Giai đoạn trước đó") phải đỏ.
+d="$(setup_repo)"
+printf -- '- Giai đoạn trước đó: khối cũ A\n- Giai đoạn trước đó: khối cũ B\n' >> "$d/PROGRESS.md"
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md tích lịch sử"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "1" ] && ok "bắt được PROGRESS.md tích ≥ 2 khối 'Giai đoạn trước đó' (PF-4)" || bad "KHÔNG bắt được PROGRESS.md tích lịch sử (rc=$rc)"
+
 # PF-2: "Nhánh đang làm" nêu tên một nhánh KHÔNG còn tồn tại trên remote (đã merge/xoá).
 d="$(setup_repo)"
 git init -q --bare "$WORK/origin.git"
