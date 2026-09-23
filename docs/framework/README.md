@@ -14,6 +14,7 @@
 | `new-project-runbook-part-d-guardrails.md` | KHOI-TAO · Phần D | Cấu hình chi tiết hàng rào — 14 bước sao chép được (Prettier/ESLint/TS strict/Husky/commitlint/Vitest/CI/branch protection/Dependabot) | Khi dựng nền thật |
 | `new-project-runbook-part-e-checklist.md` | KHOI-TAO · Phần E | Checklist triển khai trên DỰ ÁN THẬT (secrets, Supabase/Vercel, analytics, release) | Khi đã có dự án thật |
 | `adopt-from-outside.md` | HOC-NGOAI | Học từ repo/khung/skill BÊN NGOÀI: ba cột (sâu hơn / nông hơn / chưa có), cổng "phải ứng với sự cố thật", luật **grep cổng đang chạy đừng đọc văn xuôi**, kiểm mâu thuẫn luật | Được đưa một nguồn ngoài và bảo "lấy cái hay về" |
+| `ui-ux-intelligence-provider.md` | UI-INTELLIGENCE | Contract provider-neutral cho design intelligence bên ngoài: precedence, query nhỏ nhất, verify/fallback, adapter `ui-ux-pro-max`; provider chỉ là recommendation | Khi `/ui-ux` cần nguồn gợi ý bên ngoài hoặc dự án đã có provider UI/UX |
 | `existing-project-adoption.md` | AP-DUNG | Áp khung lên dự án CÓ SẴN: tự dò stack, hàng rào tăng dần, không big-bang (Bước 0→4) | Brownfield (`/consult`) |
 | `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/completion`) |
 | `quality-supplements.md` | BO-SUNG | **Trang mục lục** trỏ tới 4 phần dưới đây | Tra checklist chi tiết |
