@@ -6,7 +6,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #PRNUM, đang mở — nhánh `claude/ui-ux-skills-upgrade-f0d0ex`): nâng cấp
+- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #165, đang mở — nhánh `claude/ui-ux-skills-upgrade-f0d0ex`): nâng cấp
   `/ui-ux`.** Theo yêu cầu người dùng "nâng cấp kỹ năng thiết kế UI/UX". Đối chiếu ba cột với skill
   `ui-ux-design` v6 của repo Claude-Agents (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): lấy 9 điểm
   cột 2, mỗi điểm siết một luật cứng đang có (§3.3/3.8/3.9/3.10/§4); cột 3 (danh mục "mặc định của AI", vân

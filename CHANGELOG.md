@@ -13,7 +13,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
-- **Nâng cấp `/ui-ux`** (`.claude/commands/ui-ux.md`) theo bản đối chiếu ba cột với skill `ui-ux-design` v6
+- **Nâng cấp `/ui-ux`** (#165, `.claude/commands/ui-ux.md`) theo bản đối chiếu ba cột với skill `ui-ux-design` v6
   (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): 9 điểm "đã có nhưng nông hơn", mỗi điểm siết một
   luật cứng đang có — trạng thái tầng component (8 trạng thái, disabled ba kênh), tương phản theo từng khối đổi
   nền, không nhảy layout ở input/ảnh/lỗi form (CLS), công thức chống cuộn ngang, chuyển động chỉ
