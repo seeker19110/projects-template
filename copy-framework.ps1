@@ -29,6 +29,7 @@
 #
 [CmdletBinding()]
 param(
+  [switch] $Upgrade,
   [Parameter(Position = 0)]
   [string] $Target
 )
@@ -43,6 +44,12 @@ try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 $Src = $PSScriptRoot
 $Sep = [System.IO.Path]::DirectorySeparatorChar
 
+if ($Upgrade) {
+  # DEBT: --upgrade (merge 3 chiều + manifest) chỉ có ở copy-framework.sh | trần: bản .ps1 vẫn ghi đè Lớp 1 | xem lại khi: có người dùng Windows không có Git Bash cần nâng bản
+  Write-Host "Nâng bản (-Upgrade) chưa hỗ trợ ở bản .ps1 — dùng Git Bash (có sẵn với Git for Windows):"
+  Write-Host "  bash copy-framework.sh '$Target' --upgrade"
+  exit 2
+}
 if ([string]::IsNullOrWhiteSpace($Target)) {
   Write-Host "Lỗi: thiếu đường dẫn dự án đích."
   Write-Host "Dùng:  pwsh ./copy-framework.ps1 /đường-dẫn/tới/dự-án-đích"
