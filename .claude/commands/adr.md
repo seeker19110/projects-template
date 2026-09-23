@@ -6,7 +6,7 @@ Tạo một **ADR (Architecture Decision Record)** mới cho một quyết đị
 
 > Khi nào cần ADR: quyết định kiến trúc/công nghệ lớn, khó đảo, ảnh hưởng nhiều nơi. ADR ghi lại **"TẠI SAO"** để bạn (hoặc một phiên AI mới) không vô tình lật ngược quyết định cũ mà không biết lý do.
 
-> 💡 **Model/effort cho ca này:** ghi ADR = quyết định kiến trúc khó đảo, **lý luận sâu**. Cân nhắc nâng thủ công `/model claude-fable-5-1` (hoặc `claude-opus-5`) + `/effort xhigh` khi so sánh ứng viên/đánh đổi; xong quay lại `/model claude-sonnet-5` + `/effort medium` cho khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 **Model/effort cho ca này:** ghi ADR = quyết định kiến trúc khó đảo, **lý luận sâu**. Cân nhắc nâng thủ công `/model claude-fable-5-1` (hoặc `claude-opus-5-5`) + `/effort xhigh` khi so sánh ứng viên/đánh đổi; xong quay lại `/model claude-sonnet-5` + `/effort medium` cho khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
 
 ## Bước 1 — Đánh số & đặt tên (không đoán)
 1. Đọc `docs/adr/` → tìm số ADR lớn nhất hiện có (vd `0001-...`) → số mới = **kế tiếp**, đệm 4 chữ số.

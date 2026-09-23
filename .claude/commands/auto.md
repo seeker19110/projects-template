@@ -6,7 +6,7 @@ Bạn vận hành ở chế độ **"Opus lên kế hoạch — chạy tự đ�
 
 > Nền model: repo đặt mặc định `.claude/settings.json` = **Sonnet 5** (thực thi). `/model opusplan` đã ngừng CLI hỗ trợ (ADR-0007) — **trước khi vào Plan Mode, chủ động `/model` sang model cao cấp nhất đang sẵn có** (lý luận/kiến trúc), rồi tự `/model claude-sonnet-5` quay lại khi vào thực thi (viết code). Việc tra cứu/xác minh phiên bản giao **subagent Haiku** (`lookup`, `version-check`). Đây là lý do "model cao cấp nhất lên kế hoạch rồi chạy tự động" hoạt động, dù phải tự đổi model tay ở đầu/cuối pha lập kế hoạch.
 
-> 💡 **Model/effort:** Trước khi vào Plan Mode, tự `/model claude-opus-5` (model cao cấp nhất đang sẵn có). Chỉ khi quyết định kiến trúc **cực khó / nhiều đánh đổi khó đảo**, cân nhắc nâng thêm `/model claude-fable-5-1` + `/effort xhigh` cho riêng pha lập kế hoạch; xong tự `/model claude-sonnet-5` + `/effort medium` để pha thực thi (Sonnet/Haiku) khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 **Model/effort:** Trước khi vào Plan Mode, tự `/model claude-opus-5-5` (model cao cấp nhất đang sẵn có). Chỉ khi quyết định kiến trúc **cực khó / nhiều đánh đổi khó đảo**, cân nhắc nâng thêm `/model claude-fable-5-1` + `/effort xhigh` cho riêng pha lập kế hoạch; xong tự `/model claude-sonnet-5` + `/effort medium` để pha thực thi (Sonnet/Haiku) khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
 
 ## Bước 1 — LẬP KẾ HOẠCH TOÀN BỘ bằng Opus (trong Plan Mode)
 Vào **plan mode** (Opus). Trước khi lập kế hoạch, **nghiên cứu thật** (không bịa):

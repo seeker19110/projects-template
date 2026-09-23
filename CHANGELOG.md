@@ -18,6 +18,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Fixed (Sửa)
 
+- **ID model hiện hành ở mọi lệnh/tài liệu**: `claude-opus-4-8`/`claude-fable-5` (không tồn tại) trong `audit-full.md`,
+  `completion.md`; `claude-opus-5` (legacy, đắt hơn) → `claude-opus-5-5` ở 4 lệnh, `models-and-automation.md`,
+  `model-capability-tiers.json`, `copy-framework.sh`; CLAUDE.md §1 hết "Opus 4.8". `fallbackModel` bỏ phần tử trùng
+  model chính. Cổng mới `check-docs-consistency.sh` mục 5b cấm ID cũ sống lại (negative test trong `test-check-scripts.sh`).
 - **`maintenance-sweep.sh` đo đúng chiều + không còn command injection**: Go/pip "gói lỗi thời" trước đây đảo chiều
   (Go có gói cũ → báo sạch; pip không bao giờ 🟡); quét file lớn không còn nội suy tên file vào `sh -c` (file tên
   `$(…)` từ PR/fork sẽ chạy lệnh khi `maintain-cron` quét không giám sát); `find` đúng thứ tự `-maxdepth`; regex bí

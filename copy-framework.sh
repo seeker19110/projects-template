@@ -214,7 +214,7 @@ cat <<'NEXT'
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
-     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5 (hoặc claude-fable-5-1).
+     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.
      → AI tự đọc CLAUDE.md + .claude/settings.json (model tiêu chuẩn sẵn sàng).

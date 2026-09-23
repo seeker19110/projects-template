@@ -192,6 +192,22 @@ while IFS= read -r hit; do
   fail=1
 done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true)
 
+# --- 5b. ID model đã ngừng / sai chính tả không được sống lại (audit 2026-09-23, C6). ---
+# VÌ SAO: `audit-full.md` dạy người dùng gõ `/model claude-opus-4-8` (không còn) và `claude-fable-5`
+# (thiếu `-1`) — làm theo là lỗi ngay trước bước tổng hợp. Tên model được chép tay ở ~10 file; đây là
+# chốt hẹp cùng khuôn mục 5: cấm CHUỖI đã biết là sai, không phân tích ngữ nghĩa. ID hiện hành:
+# scripts/model-capability-tiers.json (nguồn duy nhất). Thêm chuỗi mới vào STALE_MODEL_RE khi một ID ngừng.
+echo "== 5b. ID model cũ (claude-opus-4-*, claude-fable-5 thiếu -1, 'Opus 4.8') không còn sót =="
+STALE_MODEL_RE='claude-opus-4-[0-9]|claude-fable-5([^-0-9]|$)|Opus 4\.8'
+while IFS= read -r hit; do
+  [ -n "$hit" ] || continue
+  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"
+  is_in "$file" "${STALE_EFFORT_EXCLUDE[@]}" && continue
+  case "$file" in docs/specs/*|docs/reports/*|docs/research/*|docs/adr/*) continue ;; esac
+  echo "::error file=$file,line=$lineno::ID model đã ngừng/sai (claude-opus-4-x, claude-fable-5 thiếu '-1', 'Opus 4.8') còn sót — dùng ID hiện hành trong scripts/model-capability-tiers.json (claude-opus-5-5 / claude-fable-5-1)."
+  fail=1
+done < <(git grep --untracked -noE "$STALE_MODEL_RE" -- '*.md' '*.sh' '*.ps1' '*.json' 2>/dev/null || true)
+
 
 # ── 6. Mọi script trong scripts/ phải được CODEMAP.md khai (audit 2026-09-13, CAO-2). ──
 # VÌ SAO: PR #89/#91 thêm 4 engine (~650 dòng Python) mà KHÔNG thêm dòng nào vào CODEMAP.md và

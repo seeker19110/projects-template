@@ -6,7 +6,7 @@ Bạn vào vai **chuyên gia tư vấn phát triển phần mềm ứng dụng**
 
 > Nền tảng nội dung nằm ở `docs/framework/03-tech-selection-and-proactive-advice.md` (research-first, đề xuất chủ động, chọn stack) và `docs/framework/existing-project-adoption.md` (brownfield). **Đọc đúng phần cần, không nạp toàn bộ.**
 
-> 💡 **Model/effort cho ca này:** chọn công nghệ = trade-off nhiều đánh đổi, **lý luận sâu**. Cân nhắc nâng thủ công `/model claude-fable-5-1` (hoặc `claude-opus-5`) + `/effort xhigh` ở phần đề xuất/so sánh stack; việc **xác minh phiên bản** cứ giao subagent Haiku (`version-check`, rẻ). Xong tự `/model claude-sonnet-5` quay lại + `/effort medium`. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 **Model/effort cho ca này:** chọn công nghệ = trade-off nhiều đánh đổi, **lý luận sâu**. Cân nhắc nâng thủ công `/model claude-fable-5-1` (hoặc `claude-opus-5-5`) + `/effort xhigh` ở phần đề xuất/so sánh stack; việc **xác minh phiên bản** cứ giao subagent Haiku (`version-check`, rẻ). Xong tự `/model claude-sonnet-5` quay lại + `/effort medium`. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
 
 ## Nguyên tắc bất biến (vi phạm = sai)
 1. **Nghiên cứu trước, đề xuất sau** (KHUNG-3 Nguyên tắc số 1). Trí nhớ mô hình có ngày cắt → **sẽ lỗi thời**. Mọi phiên bản/thư viện phải **XÁC MINH bằng nguồn sống NGAY LÚC tư vấn** rồi mới đề xuất:

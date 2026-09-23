@@ -9,7 +9,7 @@ description: Audit toàn diện mọi khía cạnh dự án — quét lại từ
 > + `/effort medium`, không cần nâng. Nhưng bước **tổng hợp BÁO CÁO cuối GIAI ĐOẠN 1** (cân đánh đổi
 > giữa 12 nhóm, xếp ưu tiên toàn cục — lý luận sâu, rủi ro cao nếu xếp sai) đúng việc Opus/Fable làm
 > tốt hơn hẳn Sonnet (`models-and-automation.md` §3 xếp `/audit-full` là "audit lớn" — nhóm cần nâng
-> model). Trước khi viết mục tổng hợp: nâng `/model claude-opus-4-8` (hoặc `claude-fable-5` nếu dự án
+> model). Trước khi viết mục tổng hợp: nâng `/model claude-opus-5-5` (hoặc `claude-fable-5-1` nếu dự án
 > rất phức tạp/nhiều rủi ro) + `/effort xhigh`; xong quay lại `/model claude-sonnet-5` + `/effort medium` cho
 > GIAI ĐOẠN 2 (xử lý — lại là việc Sonnet làm tốt).
 
