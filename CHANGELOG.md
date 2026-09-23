@@ -18,6 +18,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Fixed (Sửa)
 
+- **Telemetry ghi số thật** (`scripts/model-rates.json`, `scripts/telemetry-log.py`, `.claude/hooks/telemetry-record.sh`):
+  bảng giá cập nhật theo nguồn sống 2026-09-23 (Fable 5.1 10/50 · Opus 5.5 4/20 · Sonnet 5 2/10; trước đó `opus`
+  15/75 sai ×3.75, thiếu `fable`); engine mặc định token 0 kèm cảnh báo thay vì bịa 1000/500; hook Stop đọc
+  `message.usage` của phần transcript MỚI kể từ lần ghi trước (delta, không cộng dồn cả phiên), model lấy từ message
+  cuối. Test mới `scripts/test-hooks-session.sh` + mục 3–4 của `test-telemetry-and-dispatch.sh`.
 - **`copy-framework.sh`/`.ps1` không còn copy file trạng thái `docs/ops/*-PLAN|LOG|STATUS.md` của repo khung
   sang dự án đích** — trước đó chạy lại để nâng bản sẽ đè mất nhật ký `/maintain`/`/completion` thật của đích
   (TRAPS mục 30). Đồng thời copy `docs/specs/README.md` + `docs/goals/README.md` vì dropin `pr-policy.yml` đòi

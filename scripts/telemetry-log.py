@@ -231,12 +231,18 @@ def main():
     parser.add_argument("--duration", type=float, default=1.0)
     parser.add_argument("--diff-loc", type=int, default=0)
     parser.add_argument("--test-status", type=str, default="PASSED")
-    parser.add_argument("--input-tokens", type=int, default=1000)
-    parser.add_argument("--output-tokens", type=int, default=500)
+    # Mặc định 0, KHÔNG phải một con số "trông hợp lý": không được cấp token thật thì chi phí
+    # phải là 0 kèm cảnh báo, không bịa (CLAUDE.md §4; audit 2026-09-23 C4 — bản cũ mặc định
+    # 1000/500 khiến mọi entry từ hook Stop mang chi phí giả).
+    parser.add_argument("--input-tokens", type=int, default=0)
+    parser.add_argument("--output-tokens", type=int, default=0)
 
     args = parser.parse_args()
 
     if args.record:
+        if args.input_tokens == 0 and args.output_tokens == 0:
+            print("CẢNH BÁO: --record không có số token thật (--input-tokens/--output-tokens = 0) "
+                  "→ est_cost_usd = 0; hook nên đọc message.usage từ transcript.", file=sys.stderr)
         entry = record_entry(
             harness=args.harness,
             provider=args.provider,
