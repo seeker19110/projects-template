@@ -13,11 +13,13 @@
   `session-resume.sh` 60 KB → 5,6 KB, lịch sử PROGRESS → `docs/changelog/0001-…`, PF-4, pr-policy WIP 3 + tiêu đề ≤ 72).
   Đợt 3 (PR #168, `18fba63` — ADR-0009 nội dung ngoài là dữ liệu + threat model cron, CodeQL/Scorecard/secret-scan lịch,
   timeout mọi job, `requirements-ci.txt` + Dependabot pip, ruleset strict — **chủ repo cần import lại ruleset**).
-  Đang mở: Đợt 4 (`VERSION` 0.1.0, `copy-framework.sh --upgrade` merge 3 chiều + manifest, sweep 🟡 khung cũ).
-  Còn lại: Đợt 5–7 theo báo cáo §3.
+  Đợt 4 (PR #170, `65fb52e` — `VERSION` 0.1.0, `copy-framework.sh --upgrade` merge 3 chiều + manifest, sweep 🟡 khung cũ).
+  Đang mở: Đợt 5 (frontmatter `effort`/`memory`/`maxTurns` cho 11 agent, coordinator luật thất bại 3 vòng → BLOCKED,
+  hook `SubagentStop` telemetry theo agent + `PreCompact` checkpoint, `coordinator`/`spec-executor` → Sonnet · low).
+  Còn lại: Đợt 6–7 theo báo cáo §3.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #165 (nâng cấp `/ui-ux`) và toàn bộ lịch sử cũ hơn: xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md` (luật: PROGRESS.md chỉ giữ một khối hiện tại).
-- Default-branch SHA đã đối chiếu: `18fba63` (`origin/main`, PR #168)
+- Default-branch SHA đã đối chiếu: `65fb52e` (`origin/main`, PR #170)
 - Nhánh đang làm: `claude/eager-darwin-k1f1y6` (Đợt 1–7 nâng cấp khung, mỗi đợt một PR, restart nhánh từ `main` sau mỗi merge)
 - Ngày cập nhật: 2026-09-23
 

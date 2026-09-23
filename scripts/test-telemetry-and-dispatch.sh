@@ -33,6 +33,10 @@ else
   bad "A-03: đầu ra không nêu tool Task/subagent_type"
 fi
 
+# Frontmatter `effort:` (2026-09-23) phải đi theo vai khi dispatch cho harness ngoài Claude Code.
+out_generic="$(bash "$ROOT/scripts/subagent-dispatch.sh" --agent coordinator --task "x" --harness generic 2>&1)"
+echo "$out_generic" | grep -q "(effort: low)" && ok "dispatch nêu effort từ frontmatter (coordinator: low)" || bad "dispatch không nêu effort từ frontmatter"
+
 # Đối chứng: mọi lệnh slash sinh ra (nếu có) phải có file thật trong .claude/commands/.
 for slash in $(echo "$out_claude" | grep -oE '(^|[[:space:]])/[a-z][a-z0-9-]*' | tr -d ' /' | sort -u); do
   if [ ! -f "$ROOT/.claude/commands/$slash.md" ]; then

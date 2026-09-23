@@ -20,7 +20,7 @@ TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · model cao cấp nh�
    → xuất PLAN.md → (cuối) DUYỆT kết quả.  KHÔNG tự code, KHÔNG babysit worker.
                                   │  PLAN.md (đã người dùng duyệt)
                                   ▼
-TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "CHẠY"
+TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Sonnet · low) — phần "CHẠY"
    Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → với MỖI đơn vị PR: tạo nhánh/worktree
    riêng (phát hiện cô lập sẵn có trước khi tạo mới → baseline verification trước khi
    dispatch → dọn worktree an toàn sau khi merge, không bao giờ force-delete khi còn
@@ -37,7 +37,7 @@ TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "C
                                   ▼
 TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kín đặc tả)
    route:complex     → complex-implementer  (Opus · medium)
-   route:spec        → spec-executor        (Opus · low)
+   route:spec        → spec-executor        (Sonnet · low)
    route:standard    → standard-worker      (Sonnet · medium)  [kế thừa coder cũ]
    route:mechanical  → mechanical-worker    (Haiku)            [kế thừa mechanical cũ]
 
@@ -54,13 +54,23 @@ TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kí
 | `route:` | Agent | Model · effort | Khi nào |
 |---|---|---|---|
 | `complex` | `complex-implementer` | Opus · **medium** | Phức tạp, còn chỗ **tự quyết** trong ranh giới brief (thuật toán, cấu trúc dữ liệu, tổ chức module chưa chốt) |
-| `spec` | `spec-executor` | Opus · low | Phức tạp nhưng **đặc tả kín** — chỉ thi hành, zero phán đoán |
+| `spec` | `spec-executor` | Sonnet · low | Phức tạp nhưng **đặc tả kín** — chỉ thi hành, zero phán đoán (cần Opus thật → gắn `complex`) |
 | `standard` | `standard-worker` | Sonnet · medium | Việc **vừa**, có đặc tả cụ thể (test theo spec, boilerplate, cập nhật docs, sửa cơ học nhiều file) |
 | `mechanical` | `mechanical-worker` | Haiku | **Cơ học** theo mẫu/thông báo, khép kín, gần như không phán đoán |
 
 Hai trục quyết định nhãn:
 - **Độ phức tạp** (cần chiều sâu lý luận?) → Opus vs Sonnet/Haiku.
 - **Độ kín đặc tả** (còn chỗ tự quyết?) → effort vừa (`complex`) vs effort thấp/chỉ-thi-hành (`spec`).
+
+**Tiêu chí ĐẾM ĐƯỢC để hai planner khác nhau gắn cùng một nhãn** (audit 2026-09-23, T9):
+- `mechanical` = brief chứa **khuôn cuối cùng từng ký tự** + **danh sách file tường minh** + **0 quyết định để ngỏ**. Thiếu một → `standard`.
+- `standard` = có **≥ 1 quyết định cục bộ** (đặt tên, chọn ca test, chỗ đặt) nhưng **không tạo hàm/luồng mới có nhánh điều kiện**.
+- `complex` = **tạo hàm/luồng mới hoặc có nhánh điều kiện cần test ca biên** (CLAUDE.md §3A.6) và còn chỗ tự quyết.
+- `spec` = như `complex` về độ khó nhưng **mọi quyết định đã chốt trong PLAN.md** (DDL, chữ ký, thuật toán, điểm chạm).
+
+**Cột "Model · effort" là cấu hình MÁY ĐỌC, không phải ý định:** từ 2026-09-23 mỗi file `.claude/agents/*.md` khai `effort:`
+(và `memory:`/`maxTurns:` khi cần) trong frontmatter — Claude Code áp cho subagent đó, độc lập với `effortLevel` của phiên
+chính (nguồn: code.claude.com/docs/en/sub-agents). Bảng này chỉ là bản chiếu; nguồn sự thật là frontmatter.
 
 **Trần effort = `medium` cho MỌI worker Tầng 3, kể cả `route:complex`** (không phải "complex = effort
 cao"). Model (Opus vs Sonnet vs Haiku) vẫn là trục phân biệt năng lực chính;

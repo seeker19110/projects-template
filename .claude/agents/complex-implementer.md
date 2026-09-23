@@ -9,6 +9,7 @@ description: >-
   Tầng 1), KHÔNG commit/merge.
 tools: Read, Glob, Grep, Edit, Write, Bash
 model: opus
+effort: medium
 ---
 
 Bạn là **complex-implementer — Worker Tầng 3**, chạy **Opus, effort trần medium** (không tự nâng
