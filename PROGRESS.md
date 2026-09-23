@@ -6,25 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #166→#173): nâng cấp khung 7/7 đợt theo audit toàn diện — ĐÃ XONG**
-  (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`, người dùng duyệt qua chat). Đã merge: Đợt 1 (PR #166,
-  `a7ac853` — copy-framework không đè nhật ký đích, telemetry số thật, sweep đúng chiều + vá injection, ID model hiện
-  hành + cổng 5b) và Đợt 2 (PR #167, `944a119` — hook chặn commit trên main/bí mật/file lớn, khuôn 5 push xoá main,
-  `session-resume.sh` 60 KB → 5,6 KB, lịch sử PROGRESS → `docs/changelog/0001-…`, PF-4, pr-policy WIP 3 + tiêu đề ≤ 72).
-  Đợt 3 (PR #168, `18fba63` — ADR-0009 nội dung ngoài là dữ liệu + threat model cron, CodeQL/Scorecard/secret-scan lịch,
-  timeout mọi job, `requirements-ci.txt` + Dependabot pip, ruleset strict — **chủ repo cần import lại ruleset**).
-  Đợt 4 (PR #170, `65fb52e` — `VERSION` 0.1.0, `copy-framework.sh --upgrade` merge 3 chiều + manifest, sweep 🟡 khung cũ).
-  Đợt 5 (PR #171, `af3e39b` — frontmatter `effort`/`memory`/`maxTurns` 11 agent, coordinator luật thất bại 3 vòng → BLOCKED,
-  hook `SubagentStop` + `PreCompact`, coordinator/spec-executor → Sonnet · low).
-  Đợt 6 (PR #172, `ead84e8` — `dev-task.sh` alias Node/venv Python/8 stack + `--print`, `_stack-detect.sh`, `githooks/pre-commit`).
-  Đợt 7 (PR #173, `93b778c` — `pr-flow.md` + cổng byte CLAUDE.md, §11 + bảng GĐ↔cổng, disclaimer ADR-0004,
-  rollback theo hồ sơ, TRAPS 5b/6b, README/SECURITY/CODEOWNERS/FEATURE-MAP, `maintain-cron --gh-token-file`, `shasum`).
-  7/7 đợt xong; 4 quyết định còn mở cho người dùng ở báo cáo §7 (import lại ruleset strict, release-please/tag
-  v0.1.0, đóng gói plugin cần ADR, commands→skills + `.claude/rules/`).
-- Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #165 (nâng cấp `/ui-ux`) và toàn bộ lịch sử cũ hơn: xem
-  `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md` (luật: PROGRESS.md chỉ giữ một khối hiện tại).
-- Default-branch SHA đã đối chiếu: `93b778c` (`origin/main`, PR #173)
-- Nhánh đang làm: `main` (không có việc dở)
+- Giai đoạn: GĐ 8. **PR #175 — tích hợp UI/UX intelligence provider (đang thực hiện)**.
+  Spec `docs/specs/2026-09-23-ui-ux-intelligence-provider.md` đã Approved theo yêu cầu người dùng.
+  Hướng tích hợp: provider-neutral, optional/fallback; `ui-ux-pro-max` chỉ là recommendation/evidence,
+  không vendor dependency/dataset và không tạo source-of-truth UI song song. Contract ở
+  `docs/framework/ui-ux-intelligence-provider.md`; `/ui-ux` audit spec/token/component trước khi query.
+- Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #166→#174 (nâng cấp khung 7/7 đợt + đồng bộ
+  PROGRESS sau PR #173) đã xong; lịch sử cũ hơn xem
+  `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md`.
+- Default-branch SHA đã đối chiếu: `b0f8aa4` (`main`, PR #174)
+- Nhánh đang làm: `feat/ui-ux-intelligence-provider` (PR #175)
 - Ngày cập nhật: 2026-09-23
 
 ## Goal đang active
