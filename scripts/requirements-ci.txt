@@ -1,5 +1,5 @@
 # Công cụ Python mà cổng CI của khung cần (job framework-lint / framework-lint-windows).
 # GHIM chặt: đổi bản radon là đổi cách tính CC, đổi bản coverage là đổi số đo. Dependabot (pip)
 # theo dõi file này — trước đây ghim inline trong ci.yml nên không hệ sinh thái nào nhìn thấy.
-coverage==7.16.0
+coverage==7.16.1
 radon==6.0.1
