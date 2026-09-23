@@ -125,7 +125,7 @@ _deps_node() {
 _deps_python() {
   [ -f pyproject.toml ] || [ -f requirements.txt ] || return 1
   case "$1" in
-    outdated) has pip && echo "pip list --outdated" ;;
+    outdated) has pip && echo "! pip list --outdated --format=freeze 2>/dev/null | grep -q ." ;;   # có dòng = có gói cũ → exit 1 (pip luôn exit 0)
     audit)    has pip-audit && echo "pip-audit" ;;
   esac
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
@@ -133,7 +133,7 @@ _deps_python() {
 _deps_go() {
   [ -f go.mod ] || return 1
   case "$1" in
-    outdated) echo "go list -m -u all | grep '\\['" ;;
+    outdated) echo "test -z \"\$(go list -m -u all 2>/dev/null | grep '\\[')\"" ;;   # có '[vX]' = có gói cũ → exit 1 (bản cũ đảo chiều: grep khớp → exit 0 → báo 'sạch')
     audit)    has govulncheck && echo "govulncheck ./..." ;;
   esac
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
@@ -235,14 +235,17 @@ sweep_hygiene() {
   line "- File .env đang được git theo dõi: ${envs:-không}"
   [ -n "$envs" ] && red "Bí mật" "file .env nằm trong git: $envs" "git rm --cached <file> + thêm vào .gitignore + xoay vòng bí mật"
   hits="$(tracked | grep -zvE '\.(example|sample)$|maintenance-sweep\.sh$' \
-    | xargs -0 grep -nIE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})' 2>/dev/null | head -n 10 || true)"
+    | xargs -0 grep -nIE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})' 2>/dev/null | head -n 10 || true)"
   if [ -n "$hits" ]; then
     line "- Chuỗi giống bí mật:"; block <<<"$(printf '%s\n' "$hits" | cut -c1-160)"
     red "Bí mật" "$(printf '%s\n' "$hits" | wc -l | tr -d ' ') dòng giống khoá/token thật trong file được git theo dõi" "xoá khỏi lịch sử + xoay vòng khoá; cân nhắc gitleaks"
   else
-    line "- Chuỗi giống bí mật (AWS/PEM/GitHub/OpenAI/Slack): không"
+    line "- Chuỗi giống bí mật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack): không"
   fi
-  big="$(tracked | xargs -0 -I{} sh -c 'f="{}"; s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt 1048576 ] && echo "$f ($((s/1024)) KB)"' 2>/dev/null || true)"
+  # KHÔNG nội suy tên file vào chuỗi lệnh shell (bản cũ `xargs -I{} sh -c 'f="{}"'` = command
+  # injection qua tên file do PR/fork đưa vào — nguy hiểm khi maintain-cron chạy không giám sát).
+  big="$(tracked | while IFS= read -r -d '' f; do
+    s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt 1048576 ] && echo "$f ($((s/1024)) KB)"; done || true)"
   line "- File > 1 MB được theo dõi: ${big:-không}"
   [ -n "$big" ] && yel "Vệ sinh" "file lớn trong git: $(printf '%s' "$big" | tr '\n' ' ')" "cân nhắc Git LFS hoặc loại khỏi repo"
 }
@@ -252,7 +255,7 @@ sweep_ci() {
   sec "5. CI & chuỗi cung ứng"
   local wf unpinned
   if [ ! -d .github/workflows ]; then line "n-a — không có .github/workflows"; info CI "chưa có workflow CI" "xem docs/ops/repository-settings.md"; return; fi
-  wf="$(find .github/workflows -maxdepth 1 -name '*.yml' -o -maxdepth 1 -name '*.yaml' | wc -l | tr -d ' ')"
+  wf="$(find .github/workflows -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' \) | wc -l | tr -d ' ')"
   line "- Workflow: $wf"
   unpinned="$(grep -nE '^\s*-?\s*uses:\s*[^./][^@]*@' .github/workflows/*.y*ml 2>/dev/null | grep -vE '@[0-9a-f]{40}' || true)"
   if [ -n "$unpinned" ]; then

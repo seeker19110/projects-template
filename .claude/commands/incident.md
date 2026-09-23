@@ -6,7 +6,7 @@ Kích hoạt **quy trình xử lý sự cố production**. Đọc kỹ `docs/ops
 
 > Đây là việc đụng **production & dữ liệu thật** → thuộc nhóm "PHẢI dừng và hỏi" (CLAUDE.md §9). **An toàn trước tốc độ:** mọi thao tác lên dữ liệu thật phải cân nhắc rollback **trước** khi chạy, và xác nhận với người dùng trước các bước không thể hoàn tác.
 
-> 💡 **Model/effort:** pha **giảm thiệt hại khẩn cấp** cần NHANH — cứ để nguyên model tiêu chuẩn (Sonnet 5), đừng dừng đổi model. Chỉ khi sang **tìm nguyên nhân gốc / viết post-mortem** (lý luận sâu) mới cân nhắc nâng `/model claude-fable-5-1` (hoặc `claude-opus-5`) + `/effort xhigh`; xong hạ lại. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 **Model/effort:** pha **giảm thiệt hại khẩn cấp** cần NHANH — cứ để nguyên model tiêu chuẩn (Sonnet 5), đừng dừng đổi model. Chỉ khi sang **tìm nguyên nhân gốc / viết post-mortem** (lý luận sâu) mới cân nhắc nâng `/model claude-fable-5-1` (hoặc `claude-opus-5-5`) + `/effort xhigh`; xong hạ lại. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
 
 ## Trình tự (bám `docs/ops/incident-response.md`)
 1. **Phát hiện & ghi nhận:** mở issue sự cố (template `incident` trong `.github/ISSUE_TEMPLATE/`); ghi thời điểm bắt đầu, triệu chứng, ai xử lý, nguồn cảnh báo (Sentry/uptime/người dùng).

@@ -83,7 +83,17 @@ echo ""
 # ── LỚP 1 — Quy trình & tiêu chuẩn (áp mọi stack): copy thẳng ──
 echo "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 copy_into "docs/framework"
-copy_into "docs/ops"
+# docs/ops: chỉ copy TÀI LIỆU hướng dẫn. Bốn file *-PLAN/*-LOG/*-STATUS là TRẠNG THÁI nội bộ của repo
+# khung (nhật ký /maintain, /completion, /audit-full của chính khung) — copy sang là nhiễu, và chạy lại
+# để nâng bản sẽ ĐÈ MẤT nhật ký thật của dự án đích (sự cố ghi ở docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md C1).
+for f in "$SRC"/docs/ops/*.md; do
+  case "$(basename "$f")" in
+    *-PLAN.md|*-LOG.md|*-STATUS.md) ;;                   # trạng thái riêng của khung — KHÔNG copy
+    *) copy_into "docs/ops/$(basename "$f")" ;;
+  esac
+done
+copy_if_absent "docs/specs/README.md"                # pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
+copy_if_absent "docs/goals/README.md"
 copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain
 copy_if_absent "docs/adr/0000-template.md"
 
@@ -204,7 +214,7 @@ cat <<'NEXT'
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
-     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5 (hoặc claude-fable-5-1).
+     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.
      → AI tự đọc CLAUDE.md + .claude/settings.json (model tiêu chuẩn sẵn sàng).

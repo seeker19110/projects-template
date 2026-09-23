@@ -7,7 +7,7 @@
     "planning": {
       "desc": "Lập kế hoạch / quyết định kiến trúc — Tầng 1, cần suy luận sâu nhất, ít tần suất",
       "candidates": [
-        { "provider": "anthropic", "harness": "claude", "model_hint": "claude-opus-5 (chuyển tay bằng /model cho pha lập kế hoạch) hoặc claude-fable-5-1 cho ca khó nhất", "verify_before_use": false },
+        { "provider": "anthropic", "harness": "claude", "model_hint": "claude-opus-5-5 (chuyển tay bằng /model cho pha lập kế hoạch) hoặc claude-fable-5-1 cho ca khó nhất", "verify_before_use": false },
         { "provider": "google-qua-hermes", "harness": "hermes --provider antigravity", "model_hint": "gemini-3.1-pro", "verify_before_use": true },
         { "provider": "openai", "harness": "codex", "model_hint": "model mặc định của `codex exec` (CLI không nhận --model qua maintain-run.sh)", "verify_before_use": true }
       ]

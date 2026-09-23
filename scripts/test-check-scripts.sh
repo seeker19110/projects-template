@@ -87,6 +87,13 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được nhãn effort đã rút lại sống lại (mục 5, G-003/G-004)" || bad "KHÔNG bắt được nhãn effort cũ sống lại (rc=$rc)"
 
 d="$(setup_repo)"
+# Mục 5b: ID model đã ngừng sống lại (dựng chuỗi lúc chạy để chính test này không bị mục 5b bắt).
+stale_id="claude-fable-"; stale_id="${stale_id}5\`"
+printf '\nNâng \`/model %s cho ca khó.\n' "$stale_id" >> "$d/docs/framework/orchestration-3-tier.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được ID model cũ/thiếu hậu tố sống lại (mục 5b)" || bad "KHÔNG bắt được ID model cũ sống lại (rc=$rc)"
+
+d="$(setup_repo)"
 # Mục 8: ký tự điều khiển vô hình trong *.md. Chèn BACKSPACE (0x08) — đúng ca đã gặp thật khi
 # một chuỗi Python thường chứa  sinh ra tài liệu (2026-09-15). Ký tự được DỰNG LÚC CHẠY bằng
 # printf, không viết thẳng vào source của test này: một ký tự điều khiển nằm trong chính file test
@@ -100,7 +107,8 @@ d="$(setup_repo)"
 # Đối chứng: TAB và CR là ký tự văn bản HỢP LỆ — chặn chúng là chặn oan (bảng Markdown dùng tab,
 # file checkout trên Windows có CR). Mục 8 phải bỏ qua cả hai.
 printf 'Cot1%sCot2%s
-' "$(printf '	')" "$(printf '')" >> "$d/README.md"
+' "$(printf '	')" "$(printf '
+')" >> "$d/README.md"
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "KHÔNG chặn oan TAB/CR trong *.md (đối chứng mục 8)" || bad "chặn OAN tab/CR (rc=$rc)"
 

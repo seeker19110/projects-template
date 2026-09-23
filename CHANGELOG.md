@@ -13,6 +13,29 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Audit toàn diện repo khung + kế hoạch 7 đợt** (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`):
+  12 phát hiện Cao, 18 Trung; đợt 1 (mất dữ liệu / số sai) đang triển khai.
+
+### Fixed (Sửa)
+
+- **ID model hiện hành ở mọi lệnh/tài liệu**: `claude-opus-4-8`/`claude-fable-5` (không tồn tại) trong `audit-full.md`,
+  `completion.md`; `claude-opus-5` (legacy, đắt hơn) → `claude-opus-5-5` ở 4 lệnh, `models-and-automation.md`,
+  `model-capability-tiers.json`, `copy-framework.sh`; CLAUDE.md §1 hết "Opus 4.8". `fallbackModel` bỏ phần tử trùng
+  model chính. Cổng mới `check-docs-consistency.sh` mục 5b cấm ID cũ sống lại (negative test trong `test-check-scripts.sh`).
+- **`maintenance-sweep.sh` đo đúng chiều + không còn command injection**: Go/pip "gói lỗi thời" trước đây đảo chiều
+  (Go có gói cũ → báo sạch; pip không bao giờ 🟡); quét file lớn không còn nội suy tên file vào `sh -c` (file tên
+  `$(…)` từ PR/fork sẽ chạy lệnh khi `maintain-cron` quét không giám sát); `find` đúng thứ tự `-maxdepth`; regex bí
+  mật thêm `github_pat_`/`glpat-`/`AIza`. Negative test mục 3b–3c trong `test-maintenance-sweep.sh`.
+- **Telemetry ghi số thật** (`scripts/model-rates.json`, `scripts/telemetry-log.py`, `.claude/hooks/telemetry-record.sh`):
+  bảng giá cập nhật theo nguồn sống 2026-09-23 (Fable 5.1 10/50 · Opus 5.5 4/20 · Sonnet 5 2/10; trước đó `opus`
+  15/75 sai ×3.75, thiếu `fable`); engine mặc định token 0 kèm cảnh báo thay vì bịa 1000/500; hook Stop đọc
+  `message.usage` của phần transcript MỚI kể từ lần ghi trước (delta, không cộng dồn cả phiên), model lấy từ message
+  cuối. Test mới `scripts/test-hooks-session.sh` + mục 3–4 của `test-telemetry-and-dispatch.sh`.
+- **`copy-framework.sh`/`.ps1` không còn copy file trạng thái `docs/ops/*-PLAN|LOG|STATUS.md` của repo khung
+  sang dự án đích** — trước đó chạy lại để nâng bản sẽ đè mất nhật ký `/maintain`/`/completion` thật của đích
+  (TRAPS mục 30). Đồng thời copy `docs/specs/README.md` + `docs/goals/README.md` vì dropin `pr-policy.yml` đòi
+  `docs/specs/` cho PR `feat`. Test: sentinel ở đích phải sống sót qua lần copy thứ hai.
+
 - **Nâng cấp `/ui-ux`** (#165, `.claude/commands/ui-ux.md`) theo bản đối chiếu ba cột với skill `ui-ux-design` v6
   (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): 9 điểm "đã có nhưng nông hơn", mỗi điểm siết một
   luật cứng đang có — trạng thái tầng component (8 trạng thái, disabled ba kênh), tương phản theo từng khối đổi

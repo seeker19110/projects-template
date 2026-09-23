@@ -5,7 +5,7 @@ description: Hoàn thiện dự án — lập kế hoạch chi tiết từ hiệ
 Đọc kỹ `docs/framework/project-completion.md` trong repo này và **làm theo đúng 5 pha trong đó**.
 
 > 💡 **Model/effort:** lập kế hoạch hoàn thiện (Pha 2) là việc lý luận sâu — trước khi vào Plan Mode, tự `/model` sang model cao cấp nhất đang sẵn có (ADR-0007; `opusplan` đã ngừng hỗ trợ) đã
-> dùng Opus; ca đặc biệt phức tạp cân nhắc `/model claude-fable-5` + `/effort xhigh` cho riêng Pha 2,
+> dùng Opus; ca đặc biệt phức tạp cân nhắc `/model claude-fable-5-1` + `/effort xhigh` cho riêng Pha 2,
 > xong tự `/model claude-sonnet-5` quay lại. Việc quét/đo cơ học giao subagent (`lookup`, `version-check`).
 
 Ràng buộc bắt buộc (chi tiết nằm ở file trên — bám `CLAUDE.md` §3–§4, cổng §5–§7):

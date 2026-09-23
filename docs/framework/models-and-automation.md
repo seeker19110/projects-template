@@ -23,7 +23,7 @@ Script copy `.claude/settings.json` (model tiêu chuẩn: Sonnet 5) + hooks + ag
 | Quy mô dự án | Nên dùng | Cách đặt |
 |---|---|---|
 | **Nhỏ** (script, landing, prototype <5k LOC) | **Sonnet 5** xuyên suốt | `"model": "claude-sonnet-5"` |
-| **Tầm trung → lớn** (10–50k+ LOC) | **Sonnet 5** thực thi + **chuyển tay sang model cao cấp nhất sẵn có** cho pha lập kế hoạch | `/model claude-opus-5` (hoặc tương đương) lúc plan, quay lại Sonnet 5 lúc code |
+| **Tầm trung → lớn** (10–50k+ LOC) | **Sonnet 5** thực thi + **chuyển tay sang model cao cấp nhất sẵn có** cho pha lập kế hoạch | `/model claude-opus-5-5` (hoặc tương đương) lúc plan, quay lại Sonnet 5 lúc code |
 | **Rất phức tạp / rủi ro cực cao** | như trên + nâng riêng lúc cần | `/model claude-fable-5-1` ở ca khó nhất |
 
 > **Nguyên tắc vàng:** dùng model **rẻ nhất vẫn đạt chất lượng** cho phần lớn công việc; **nâng cấp có chọn lọc** đúng các mốc rủi ro cao mà khung bắt "dừng và hỏi" (CLAUDE.md §9).
@@ -45,17 +45,17 @@ Khung **không còn dựa vào một chế độ CLI tự-chuyển-model** (`opu
 
 **So với dùng một model mạnh cho tất cả:**
 - **Fable 5.1 thuần** ($10/1M): mọi token — kể cả đọc file, format, tìm kiếm — tính giá cao nhất → **lãng phí ~60–70%** ("dao mổ trâu thịt gà").
-- **Opus 5 thuần** ($5/1M): tốt hơn Fable thuần, nhưng vẫn trả giá Opus cho cả việc cơ học Haiku làm được.
+- **Opus 5.5 thuần** ($4/1M): tốt hơn Fable thuần, nhưng vẫn trả giá Opus cho cả việc cơ học Haiku làm được.
 - **Hai pha thủ công**: chỉ trả giá cao ở pha lập kế hoạch → **rẻ hơn Opus thuần, rẻ hơn nhiều so với Fable thuần**, mà vẫn giữ chất lượng đúng chỗ cần — đánh đổi duy nhất so với `opusplan` cũ là phải tự gõ `/model` để chuyển pha, không tự động trong một phiên.
 
-**Bảng giá tham khảo (2026-07 — xác minh lại trước khi chốt ngân sách):**
+**Bảng giá tham khảo (nguồn platform.claude.com/docs/en/about-claude/pricing, 2026-09-23 — xác minh lại trước khi chốt ngân sách; máy đọc: `scripts/model-rates.json`):**
 
 | Model | Ngữ cảnh | Giá /1M (in/out) | So Sonnet 5 |
 |---|---|---|---|
-| Haiku 4.5 | 200K | $1 / $5 | 0.33× (rẻ) |
-| Sonnet 5 | 1M | $3 / $15 (GT $2/$10 tới 31/08/2026) | 1× (baseline) |
-| Opus 5 | 1M | $5 / $25 | 1.67× |
-| Fable 5.1 | 1M (out 128K) | $10 / $50 | 3.3× |
+| Haiku 4.5 | 200K | $1 / $5 | 0.5× (rẻ) |
+| Sonnet 5 | 1M | $2 / $10 | 1× (baseline) |
+| Opus 5.5 | 1M | $4 / $20 | 2× |
+| Fable 5.1 | 1M (out 128K) | $10 / $50 | 5× |
 
 > **Lưu ý bản chất:** hai pha đổi model theo **thao tác tay** (plan ⇄ execution), KHÔNG "đoán độ khó từng câu" và KHÔNG tự chuyển lại khi hết plan mode — người dùng phải tự `/model` quay về. Việc phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự và không đổi.
 
@@ -74,7 +74,7 @@ Loại: web / mobile / backend-API / desktop / CLI-thư viện / data-ML / game 
 
 ### Bước 3 — Suy ra model mặc định
 - **0–1 điểm** → **Sonnet 5** xuyên suốt cho toàn dự án.
-- **2 điểm** → **Sonnet 5** thực thi + **chuyển tay sang Opus 5** đúng các mốc dính rủi ro (pha lập kế hoạch).
+- **2 điểm** → **Sonnet 5** thực thi + **chuyển tay sang Opus 5.5** đúng các mốc dính rủi ro (pha lập kế hoạch).
 - **3–4 điểm** → như trên + cân nhắc **Fable 5.1** cho quyết định kiến trúc khó nhất / GĐ 0–2.
 
 ### Bước 4 — Áp chiến lược lai (tầm trung trở lên)
@@ -82,10 +82,10 @@ Không còn tự động theo chế độ — tự chuyển tay tại mốc:
 
 | Giai đoạn / công việc | Model |
 |---|---|
-| GĐ 0–2: ý tưởng, chọn công nghệ, thiết kế kiến trúc, viết ADR | **Opus 5** (Fable 5.1 nếu rất phức tạp) — `/model` trước khi vào pha này |
+| GĐ 0–2: ý tưởng, chọn công nghệ, thiết kế kiến trúc, viết ADR | **Opus 5.5** (Fable 5.1 nếu rất phức tạp) — `/model` trước khi vào pha này |
 | GĐ 3–7: code tính năng, UI/UX, test, refactor, docs | **Sonnet 5** — `/model claude-sonnet-5` khi quay lại |
-| Cổng trước MERGE: rà bảo mật, migration, breaking change | **Opus 5** |
-| GĐ 8: xử lý sự cố production, post-mortem; audit lớn | **Opus 5** |
+| Cổng trước MERGE: rà bảo mật, migration, breaking change | **Opus 5.5** |
+| GĐ 8: xử lý sự cố production, post-mortem; audit lớn | **Opus 5.5** |
 
 ### Bước 5 — Ghi quyết định
 Ghi model đã chọn + lý do vào **PROGRESS.md** (hoặc ADR nếu coi là quyết định vận hành đáng lưu), kèm **quy tắc nâng cấp** để nhất quán qua các phiên.
@@ -116,7 +116,7 @@ Y". Chi tiết luật cứng theo tầng + ví dụ dispatch: `docs/framework/or
 
 ### Ba kịch bản mẫu
 - **A. Tầm trung, không nhạy cảm** (blog/CMS, dashboard CRUD) → **Sonnet 5** xuyên suốt, không cần chuyển pha.
-- **B. Tầm trung có 1–2 điểm nhạy cảm** (SaaS nhỏ có thanh toán) → **Sonnet 5** thực thi + chuyển tay **Opus 5** cho luồng thanh toán, migration, rà bảo mật, sự cố.
+- **B. Tầm trung có 1–2 điểm nhạy cảm** (SaaS nhỏ có thanh toán) → **Sonnet 5** thực thi + chuyển tay **Opus 5.5** cho luồng thanh toán, migration, rà bảo mật, sự cố.
 - **C. Lớn/phức tạp** (nhiều dịch vụ, realtime, dữ liệu nhạy cảm) → **Sonnet 5** thực thi + chuyển tay **Fable 5.1** cho quyết định kiến trúc khó nhất (GĐ 0–2) và phân tích breaking change diện rộng.
 
 ---
@@ -128,7 +128,7 @@ Bảng dưới xếp hạng **model Claude** (dùng trong Claude Code). Cần so
 Dùng để chọn model **đúng đầu việc**, không phải một model cho cả dự án.
 **Thang:** ✅✅ xuất sắc · ✅ đủ tốt · 🟡 làm được nhưng nên soát kỹ / cân nhắc nâng · ❌ không nên giao.
 
-| Khung / Kỹ năng | Trọng tâm | Haiku 4.5 | Sonnet 5 | Opus 5 | Fable 5.1 |
+| Khung / Kỹ năng | Trọng tâm | Haiku 4.5 | Sonnet 5 | Opus 5.5 | Fable 5.1 |
 |---|---|:--:|:--:|:--:|:--:|
 | **KHUNG-1** — 9 giai đoạn + tiêu chuẩn | Kỷ luật giai đoạn, cổng, DoD | 🟡 | ✅ | ✅✅ | ✅✅ |
 | **KHUNG-2** — luật AI + chống ảo giác | Tuân luật, không bịa API, đọc file thật | 🟡 | ✅ | ✅✅ | ✅✅ |
@@ -147,7 +147,7 @@ Dùng để chọn model **đúng đầu việc**, không phải một model cho
 
 **Đọc theo nhóm:**
 - **Việc code/UI/cổng thường ngày** → **Sonnet 5 đủ tốt → xuất sắc**, chi phí thấp — ngựa thồ.
-- **Việc lý luận sâu / rủi ro cao** (KHUNG-3, `/adr`, `/incident`, chống lỗi logic, audit lớn) → **Opus 5 xuất sắc; Sonnet chỉ 🟡** → chuyển tay sang Opus, hoặc Fable ở ca khó nhất.
+- **Việc lý luận sâu / rủi ro cao** (KHUNG-3, `/adr`, `/incident`, chống lỗi logic, audit lớn) → **Opus 5.5 xuất sắc; Sonnet chỉ 🟡** → chuyển tay sang Opus, hoặc Fable ở ca khó nhất.
 - **Việc đơn giản, đơn lẻ** → Haiku gánh phần cổng/kiểm tra máy móc; **không** giao phần lý luận.
 - **Fable 5.1** hầu như luôn ✅✅ nhưng **chênh lệch đáng tiền** chỉ ở nhóm lý luận sâu; việc thường ngày không hơn Sonnet/Opus đủ để bù chi phí gấp 2–3 lần.
 
@@ -252,7 +252,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | Khóa | Giá trị | Ý nghĩa |
 |---|---|---|
 | `model` | `claude-sonnet-5` | Model tiêu chuẩn cho pha thực thi; pha lập kế hoạch chuyển tay bằng `/model` (mục 1) |
-| `fallbackModel` | `[sonnet-5, haiku-4-5]` | Dự phòng khi model chính bận |
+| `fallbackModel` | `[haiku-4-5]` (không lặp lại model chính) | Dự phòng khi model chính bận |
 | `permissions.allow` | Edit/Write/Read, git an toàn, dev-task.sh, test/format/build | Auto-mode chạy không hỏi |
 | `permissions.deny` | rm -rf, force-push **vào `main`/`master`**, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
 | `permissions.ask` | force-push nhánh khác (`--force`/`-f`/`--force-with-lease`) | Hỏi từng lần, không chặn cứng |
@@ -337,7 +337,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 
 **Đổi model:**
 - Dự án nhỏ (tiết kiệm nhất): `{ "model": "claude-sonnet-5", "fallbackModel": ["claude-haiku-4-5"] }`.
-- Nâng riêng lúc cần (không đổi file): `/model claude-opus-5` hoặc `/model claude-fable-5-1` cho ca kiến trúc khó nhất — xong tự `/model claude-sonnet-5` quay lại.
+- Nâng riêng lúc cần (không đổi file): `/model claude-opus-5-5` hoặc `/model claude-fable-5-1` cho ca kiến trúc khó nhất — xong tự `/model claude-sonnet-5` quay lại.
 
 **Tùy chỉnh:**
 - Thêm permission: `{ "permissions": { "allow": ["Bash(make *)", "Bash(docker *)", "Bash(kubectl *)"] } }`.
@@ -349,7 +349,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 - ✅ Mỗi lần Edit/Write, file tự format.
 - ❌ Nếu sai: `ls -la .claude/settings.json`, `grep '"model"' .claude/settings.json`, đóng/mở lại phiên.
 
-> **Chọn model lúc mở phiên:** picker hiển thị model thật (Sonnet 5/Opus 5/Fable 5.1/Haiku 4.5) — không còn alias chế độ nào (`opusplan` đã ngừng hỗ trợ). Chọn **"Default"** để repo tự áp model tiêu chuẩn (Sonnet 5), hoặc gõ **`/model <model-id>`** để chuyển tay theo pha (mục 1). **Tránh chọn Opus/Fable cho mọi việc** — chạy model cao cấp cho mọi thứ đốt hết quota 5h nhanh hơn nhiều (Pro ~1h nếu dùng Opus thuần).
+> **Chọn model lúc mở phiên:** picker hiển thị model thật (Sonnet 5/Opus 5.5/Fable 5.1/Haiku 4.5) — không còn alias chế độ nào (`opusplan` đã ngừng hỗ trợ). Chọn **"Default"** để repo tự áp model tiêu chuẩn (Sonnet 5), hoặc gõ **`/model <model-id>`** để chuyển tay theo pha (mục 1). **Tránh chọn Opus/Fable cho mọi việc** — chạy model cao cấp cho mọi thứ đốt hết quota 5h nhanh hơn nhiều (Pro ~1h nếu dùng Opus thuần).
 
 ---
 
