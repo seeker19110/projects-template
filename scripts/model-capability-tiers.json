@@ -22,7 +22,7 @@
     "spec": {
       "desc": "route:spec — phức tạp nhưng đặc tả kín, chỉ thi hành",
       "candidates": [
-        { "provider": "anthropic", "harness": "claude", "model_hint": "opus · effort low (subagent spec-executor)", "verify_before_use": false },
+        { "provider": "anthropic", "harness": "claude", "model_hint": "sonnet · effort low (subagent spec-executor; cần Opus → route:complex)", "verify_before_use": false },
         { "provider": "openai", "harness": "codex", "model_hint": "codex exec (thi hành đặc tả kín hợp thế mạnh)", "verify_before_use": true }
       ]
     },

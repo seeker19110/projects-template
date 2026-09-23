@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# telemetry-record.sh — Stop hook. Tự ghi một entry vào telemetry-log.py cuối mỗi lượt,
+# telemetry-record.sh — Stop + SubagentStop hook. Tự ghi một entry vào telemetry-log.py cuối mỗi lượt,
 # thay vì chỉ dựa vào lời gọi tay theo AGENTS.md (khoảng cách đã phát hiện ở audit
 # 2026-09-19: tài liệu mô tả engine "ghi mỗi tác vụ AI" nhưng không hook nào gọi nó thật).
 #
@@ -9,7 +9,9 @@
 #     (mốc lưu ở .ai-telemetry/last-stop-ts) — cùng cách đọc với scripts/usage-estimate.sh;
 #   - thời lượng = delta từ mốc trước tới timestamp cuối;
 #   - model = model của message assistant cuối cùng (không đọc settings.json — sau `/model` sẽ sai);
-#   - không có dòng mới → không ghi gì.
+#   - không có dòng mới → không ghi gì;
+#   - SubagentStop (Claude Code gửi agent_type + transcript_path riêng của subagent): --agent = tên
+#     agent, mốc lưu riêng theo transcript nên Tầng 2/3 — nơi tốn nhất — được đo tách khỏi phiên chính.
 # Không chặn phiên nếu lỗi (xem docs/CONVENTIONS.md §A) — best-effort, im lặng khi thiếu điều kiện.
 set -uo pipefail
 
@@ -21,9 +23,12 @@ command -v python3 >/dev/null 2>&1 || exit 0
 payload="$(cat)"
 tp="$(printf '%s' "$payload" | jq -r '.transcript_path // empty' 2>/dev/null)"
 [ -n "$tp" ] && [ -f "$tp" ] || exit 0
+agent="$(printf '%s' "$payload" | jq -r '.agent_type // "session"' 2>/dev/null)"; [ -n "$agent" ] || agent=session
 
 STATE_DIR="$ROOT/.ai-telemetry"
-STATE="$STATE_DIR/last-stop-ts"
+# Mốc riêng theo transcript (git hash-object của ĐƯỜNG DẪN — ổn định, không cần sha256sum): phiên chính và
+# từng subagent có transcript riêng → delta không lẫn nhau.
+STATE="$STATE_DIR/last-stop-$(printf '%s' "$tp" | git hash-object --stdin 2>/dev/null || printf '%s' "$tp" | cksum | cut -d' ' -f1)"
 mkdir -p "$STATE_DIR" 2>/dev/null || exit 0
 
 # In một dòng: <model> <input> <output> <giờ> <ts-cuối>  — hoặc rỗng nếu không có dòng mới.
@@ -81,7 +86,7 @@ read -r model in_tok out_tok hours last_ts <<<"$stats"
 
 bash "$ROOT/scripts/telemetry-log.sh" --record \
   --harness claude-code --provider anthropic --model "$model" \
-  --agent session --task "Stop hook tu dong" \
+  --agent "$agent" --task "Stop hook tu dong" \
   --duration "$hours" --test-status N/A \
   --input-tokens "$in_tok" --output-tokens "$out_tok" >/dev/null 2>&1 || exit 0
 

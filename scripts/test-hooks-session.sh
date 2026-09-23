@@ -99,6 +99,28 @@ out="$(printf '{}' | SESSION_RESUME_MAX_BYTES=2000 CLAUDE_PROJECT_DIR="$P2" bash
 n="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' | wc -c)"
 [ "$n" -le 2600 ] && ok "trần tuỳ chỉnh SESSION_RESUME_MAX_BYTES=2000 có hiệu lực (đo: $n)" || bad "trần tuỳ chỉnh không hiệu lực ($n)"
 
+echo "== 7. SubagentStop: --agent = agent_type, mốc riêng theo transcript (không lẫn với phiên chính) =="
+TR2="$WORK/sub-transcript.jsonl"
+printf '{"type":"assistant","timestamp":"2026-09-23T11:00:00.000Z","message":{"model":"claude-haiku-4-5","usage":{"input_tokens":10,"output_tokens":5}}}\n' > "$TR2"
+printf '{"transcript_path":"%s","agent_type":"mechanical-worker","hook_event_name":"SubagentStop"}' "$TR2" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"
+e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); e=l[-1]; print(e['agent'], e['input_tokens'], e['output_tokens'])")"
+[ "$e" = "mechanical-worker 10 5" ] && ok "SubagentStop ghi agent=mechanical-worker với token riêng" || bad "SubagentStop sai: '$e'"
+# Phiên chính vẫn không có dòng mới → không ghi (mốc của nó không bị mốc subagent ghi đè)
+n0="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+run_hook
+n1="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+[ "$n0" = "$n1" ] && ok "mốc phiên chính độc lập với mốc subagent" || bad "mốc bị lẫn: phiên chính ghi thêm entry ($n0 → $n1)"
+
+echo "== 8. PreCompact: chụp checkpoint có nhánh + mục Đang làm, ghi compact.log =="
+PC="$ROOT/.claude/hooks/precompact-checkpoint.sh"
+P3="$WORK/proj3"; mkdir -p "$P3/.claude"; git -C "$P3" init -q 2>/dev/null; git -C "$P3" switch -q -c feat/x 2>/dev/null || git -C "$P3" checkout -q -b feat/x
+printf '## Đang làm / chờ\n\n- DANG-LAM-CHECKPOINT\n\n## Bàn giao phiên\n\n- BAN-GIAO-CHECKPOINT\n' > "$P3/PROGRESS.md"
+printf '{"trigger":"auto"}' | CLAUDE_PROJECT_DIR="$P3" bash "$PC" 2>/dev/null; rc=$?
+[ "$rc" -eq 0 ] && ok "hook thoát 0" || bad "hook thoát $rc"
+grep -q "Branch: feat/x" "$P3/.claude/.compact-checkpoint" && grep -q "DANG-LAM-CHECKPOINT" "$P3/.claude/.compact-checkpoint" && grep -q "BAN-GIAO-CHECKPOINT" "$P3/.claude/.compact-checkpoint" \
+  && ok "checkpoint có nhánh + Đang làm + Bàn giao" || bad "checkpoint thiếu nội dung: $(head -c 300 "$P3/.claude/.compact-checkpoint" 2>/dev/null)"
+grep -q "trigger=auto" "$P3/.ai-telemetry/compact.log" && ok "compact.log ghi trigger" || bad "compact.log không ghi"
+
 if [ "$fails" -eq 0 ]; then
   echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
   exit 0

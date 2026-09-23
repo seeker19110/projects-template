@@ -21,6 +21,7 @@ __pycache__/
 # Ước tính usage (tự hiệu chỉnh) + marker
 .claude/usage-budget.sh
 .claude/.winddown-nudged
+.claude/.compact-checkpoint
 
 # Khoá tiến trình của maintain-cron.sh (chạy không giám sát trên VPS/cron) — không commit
 .claude/.maintain-cron.lock

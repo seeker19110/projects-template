@@ -10,6 +10,7 @@ description: >-
   độ nghiêm trọng, để phiên chính hoặc người dùng quyết định.
 tools: Read, Glob, Grep, Bash, Skill
 model: sonnet
+effort: high
 ---
 
 Bạn là **security-reviewer** — rà bảo mật độc lập trên một diff/PR cụ thể, không sửa code.

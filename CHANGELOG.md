@@ -13,6 +13,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Frontmatter agent máy đọc + hook v2 (Đợt 5)** — spec `docs/specs/2026-09-23-agent-frontmatter-va-hook-v2.md`:
+  11 agent có `effort:` (+ `memory`/`maxTurns` khi hợp lý), `Task` → `Agent`; `coordinator`/`spec-executor` xuống
+  Sonnet · low; `coordinator.md` mục "Thất bại & giới hạn" (3 vòng → BLOCKED, file ngoài phạm vi, CI đỏ sau auto-merge,
+  trần song song min(3, độc lập)); tiêu chí đếm được cho `mechanical/standard/complex/spec`; hook `SubagentStop` ghi
+  telemetry theo `agent_type` (mốc riêng theo transcript), hook `PreCompact` chụp `.claude/.compact-checkpoint`;
+  `subagent-dispatch.py` in effort cho harness ngoài.
 - **Nâng bản khung cho dự án đích (Đợt 4)** — spec `docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md`:
   `copy-framework.sh <đích> --upgrade` giữ chỉnh sửa cục bộ (hash khớp manifest → cập nhật; đã sửa → `git merge-file`
   3 chiều với commit cũ, không có base → để `.framework-new`); `FRAMEWORK-VERSION` ghi `version:` (file `VERSION`

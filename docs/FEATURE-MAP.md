@@ -29,7 +29,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-13 | Điều phối Tầng 2 | `coordinator` (Opus·low) | `PLAN.md`, git worktree | ✅ | ❌ không có |
+| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ✅ | ❌ không có |
 | FT-14 | Worker `route:spec` | `spec-executor` | theo brief | ✅ | ❌ không có |
 | FT-15 | Worker `route:complex` | `complex-implementer` | theo brief | ✅ | ❌ không có |
 | FT-16 | Worker `route:standard` | `standard-worker` | theo brief | ✅ | ❌ không có |
