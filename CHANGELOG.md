@@ -18,6 +18,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Fixed (Sửa)
 
+- **`maintenance-sweep.sh` đo đúng chiều + không còn command injection**: Go/pip "gói lỗi thời" trước đây đảo chiều
+  (Go có gói cũ → báo sạch; pip không bao giờ 🟡); quét file lớn không còn nội suy tên file vào `sh -c` (file tên
+  `$(…)` từ PR/fork sẽ chạy lệnh khi `maintain-cron` quét không giám sát); `find` đúng thứ tự `-maxdepth`; regex bí
+  mật thêm `github_pat_`/`glpat-`/`AIza`. Negative test mục 3b–3c trong `test-maintenance-sweep.sh`.
 - **Telemetry ghi số thật** (`scripts/model-rates.json`, `scripts/telemetry-log.py`, `.claude/hooks/telemetry-record.sh`):
   bảng giá cập nhật theo nguồn sống 2026-09-23 (Fable 5.1 10/50 · Opus 5.5 4/20 · Sonnet 5 2/10; trước đó `opus`
   15/75 sai ×3.75, thiếu `fable`); engine mặc định token 0 kèm cảnh báo thay vì bịa 1000/500; hook Stop đọc
