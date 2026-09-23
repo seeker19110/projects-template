@@ -6,16 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #166 — Đợt 1 nâng cấp khung, nhánh `claude/eager-darwin-k1f1y6`):
-  audit toàn diện repo khung + kế hoạch 7 đợt** (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`,
-  người dùng duyệt qua chat). Đợt 1 (PR #166, đã merge — SHA `a7ac853`): copy-framework không đè nhật ký `docs/ops` của dự án đích, telemetry
-  số thật + bảng giá theo nguồn sống, sweep đúng chiều Go/pip + vá injection tên file, ID model hiện hành + cổng 5b.
-  Đợt 2 (PR kế tiếp, cùng nhánh): hook chặn commit trên main / bí mật / file lớn staged, khuôn 5 push xoá main,
-  `session-resume.sh` chỉ nạp 4 mục (trần 8 KB), tách lịch sử PROGRESS.md sang `docs/changelog/0001-…`, PF-4,
-  pr-policy: trần WIP 3 + tiêu đề ≤ 72 + nhắc TRAPS cho `fix:`. Còn lại: Đợt 3–7 theo báo cáo §3.
+- Giai đoạn: GĐ 8. **Mốc (2026-09-23, nhánh `claude/eager-darwin-k1f1y6`): nâng cấp khung 7 đợt theo audit toàn diện**
+  (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`, người dùng duyệt qua chat). Đã merge: Đợt 1 (PR #166,
+  `a7ac853` — copy-framework không đè nhật ký đích, telemetry số thật, sweep đúng chiều + vá injection, ID model hiện
+  hành + cổng 5b) và Đợt 2 (PR #167, `944a119` — hook chặn commit trên main/bí mật/file lớn, khuôn 5 push xoá main,
+  `session-resume.sh` 60 KB → 5,6 KB, lịch sử PROGRESS → `docs/changelog/0001-…`, PF-4, pr-policy WIP 3 + tiêu đề ≤ 72).
+  Đang mở: Đợt 3 (ADR-0009 nội dung ngoài là dữ liệu + threat model cron, CodeQL/Scorecard/secret-scan lịch,
+  timeout mọi job, `requirements-ci.txt` + Dependabot pip, ruleset strict). Còn lại: Đợt 4–7 theo báo cáo §3.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #165 (nâng cấp `/ui-ux`) và toàn bộ lịch sử cũ hơn: xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md` (luật: PROGRESS.md chỉ giữ một khối hiện tại).
-- Default-branch SHA đã đối chiếu: `a7ac853` (`origin/main`, PR #166)
+- Default-branch SHA đã đối chiếu: `944a119` (`origin/main`, PR #167)
 - Nhánh đang làm: `claude/eager-darwin-k1f1y6` (Đợt 1–7 nâng cấp khung, mỗi đợt một PR, restart nhánh từ `main` sau mỗi merge)
 - Ngày cập nhật: 2026-09-23
 
