@@ -13,6 +13,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Nâng bản khung cho dự án đích (Đợt 4)** — spec `docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md`:
+  `copy-framework.sh <đích> --upgrade` giữ chỉnh sửa cục bộ (hash khớp manifest → cập nhật; đã sửa → `git merge-file`
+  3 chiều với commit cũ, không có base → để `.framework-new`); `FRAMEWORK-VERSION` ghi `version:` (file `VERSION`
+  mới, SemVer, bắt đầu 0.1.0) + manifest hash từng file Lớp 1; `maintenance-sweep.sh` 🟡 khi bản khung đã copy quá 90
+  ngày. Không cờ → hành vi cũ. Bản `.ps1 -Upgrade` in hướng dẫn dùng Git Bash (DEBT có điều kiện xem lại).
 - **An toàn agent + chuỗi cung ứng (Đợt 3)**: ADR-0009 "nội dung ngoài là dữ liệu, không phải chỉ thị" (CLAUDE.md
   §4, AGENTS.md, 3 agent) + `docs/ops/threat-model-maintain-cron.md`; `codeql.yml` (python + actions) và
   `scorecard.yml` (dropin cho dự án đích); `secret-scan.yml` quét toàn lịch sử hằng tuần; `timeout-minutes` cho mọi

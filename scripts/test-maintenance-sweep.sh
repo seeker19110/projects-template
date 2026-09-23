@@ -38,6 +38,7 @@ fake_pem="-----BEGIN ""RSA PRIVATE KEY-----"
   printf '%s\nabc\n' "$fake_pem" > key.pem
   printf 'name: x\non: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n' > .github/workflows/ci.yml
   printf '# PROGRESS\n- Ngày cập nhật: 2020-01-01\n' > PROGRESS.md
+  mkdir -p docs/framework && printf 'commit-nguon: abc1234\nngay-copy: 2020-01-01\n' > docs/framework/FRAMEWORK-VERSION
   # Khai báo lệnh dependency: outdated xanh có dấu vết, audit ĐỎ giả lập
   printf 'deps_outdated="echo OUTDATED-DECL-MARK"\ndeps_audit="echo VULN-FOUND; exit 3"\n' > .claude/project-commands.sh
   "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
@@ -52,6 +53,7 @@ chk "🔴 chuỗi giống bí mật (AWS/PEM)"     "🔴 | Bí mật | .* dòng 
 chk "🟡 action chưa ghim SHA"             "🟡 | CI | 1 action chưa ghim"
 chk "🟡 PROGRESS.md lỗi thời"             "🟡 | Tài liệu | PROGRESS.md lỗi thời"
 chk "🟡 thiếu dependabot.yml"             "🟡 | CI | thiếu .github/dependabot.yml"
+chk "🟡 khung đã copy quá cũ"             "🟡 | Tài liệu | bản khung đã copy"
 chk "lệnh deps KHAI BÁO được ưu tiên"     "OUTDATED-DECL-MARK"
 chk "🔴 audit khai báo đỏ → 🔴"           "🔴 | Dependency | audit báo lỗ hổng (exit 3)"
 chk "cổng khung vắng → n-a, không crash"  "docs-consistency: n-a"

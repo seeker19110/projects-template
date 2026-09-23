@@ -69,6 +69,12 @@ check_structure() {     # check_structure <mô tả> <target>
   else
     echo "  FAIL [$label]: thiếu/hỏng docs/framework/FRAMEWORK-VERSION (dấu bản khung)"; ok=0
   fi
+  if [ "$label" = "bash / đích trống" ]; then   # phiên bản + manifest (spec 2026-09-23 nâng bản khung, AC-1) — bản .ps1 chỉ ghi commit
+    grep -q "^version: $(cat "$REPO_ROOT/VERSION")$" "$target/docs/framework/FRAMEWORK-VERSION" 2>/dev/null \
+      || { echo "  FAIL [$label]: FRAMEWORK-VERSION thiếu 'version:' khớp file VERSION"; ok=0; }
+    [ "$(grep -c '^manifest: ' "$target/docs/framework/FRAMEWORK-VERSION" 2>/dev/null)" -gt 0 ] \
+      || { echo "  FAIL [$label]: FRAMEWORK-VERSION thiếu dòng 'manifest:' (hash từng file Lớp 1)"; ok=0; }
+  fi
   [ "$ok" -eq 1 ] && echo "  ok [$label]: cấu trúc copy đúng kỳ vọng" || fail=1
 }
 
@@ -143,6 +149,44 @@ echo "SENTINEL-NHAT-KY-DICH" > "$targetA/docs/ops/MAINTENANCE-LOG.md"
 run_logged "bash / chạy lại lần 2" bash "$REPO_ROOT/copy-framework.sh" "$targetA" \
   && echo "  ok [bash / chạy lại lần 2]: không lỗi"
 check_ops_state_kept "bash / chạy lại lần 2" "$targetA"
+
+echo ""
+echo "== bash / --upgrade: giữ chỉnh sửa của đích, cập nhật file chưa sửa (AC-2, AC-3) =="
+targetU="$(new_target)"
+run_logged "upgrade / copy lần đầu" bash "$REPO_ROOT/copy-framework.sh" "$targetU"
+echo "USER-EDIT-GIU-LAI" >> "$targetU/docs/framework/quickstart.md"
+echo "KHONG-PHAI-BAN-KHUNG" > "$targetU/docs/framework/standard-delivery.md"
+cp "$targetU/docs/framework/standard-delivery.md" "$targetU/docs/framework/standard-delivery.md.usercopy"
+# Giả lập file "chưa sửa" nhưng khung có bản mới: đích giữ nguyên hash manifest → phải được ghi đè.
+run_logged "upgrade / lần 2 --upgrade" bash "$REPO_ROOT/copy-framework.sh" "$targetU" --upgrade
+if grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md" || grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md.framework-new" 2>/dev/null; then
+  grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md" && echo "  ok [upgrade]: chỉnh sửa của đích còn trong quickstart.md (merge/giữ)" \
+    || echo "  ok [upgrade]: chỉnh sửa của đích được giữ, bản khung để cạnh .framework-new"
+else
+  echo "  FAIL [upgrade]: --upgrade làm MẤT chỉnh sửa của đích trong quickstart.md"; fail=1
+fi
+if grep -q "KHONG-PHAI-BAN-KHUNG" "$targetU/docs/framework/standard-delivery.md"; then
+  echo "  ok [upgrade]: file đích viết lại toàn bộ → nội dung đích được giữ (merge 3 chiều hoặc .framework-new)"
+else
+  echo "  FAIL [upgrade]: --upgrade ghi đè file đích đã sửa (standard-delivery.md)"; fail=1
+fi
+cmp -s "$REPO_ROOT/docs/framework/new-project-runbook.md" "$targetU/docs/framework/new-project-runbook.md" \
+  && echo "  ok [upgrade]: file chưa sửa được cập nhật bằng bản khung" \
+  || { echo "  FAIL [upgrade]: file chưa sửa không khớp bản khung sau --upgrade"; fail=1; }
+# AC-3: FRAMEWORK-VERSION đời cũ (chỉ commit-nguon không giải được, không manifest) → vẫn không mất sửa đổi.
+targetV="$(new_target)"
+run_logged "upgrade cũ / copy lần đầu" bash "$REPO_ROOT/copy-framework.sh" "$targetV"
+printf 'commit-nguon: khong-ro\nngay-copy: 2020-01-01\n' > "$targetV/docs/framework/FRAMEWORK-VERSION"
+echo "USER-EDIT-CU" >> "$targetV/docs/framework/quickstart.md"
+run_logged "upgrade cũ / --upgrade" bash "$REPO_ROOT/copy-framework.sh" "$targetV" --upgrade
+{ grep -q "USER-EDIT-CU" "$targetV/docs/framework/quickstart.md" || grep -q "USER-EDIT-CU" "$targetV/docs/framework/quickstart.md.framework-new" 2>/dev/null; } \
+  && echo "  ok [upgrade cũ]: không manifest/không base → vẫn giữ chỉnh sửa (giữ đích hoặc .framework-new)" \
+  || { echo "  FAIL [upgrade cũ]: --upgrade trên FRAMEWORK-VERSION đời cũ làm MẤT chỉnh sửa"; fail=1; }
+# Không cờ → hành vi cũ (ghi đè Lớp 1) — để script/CI đang gọi không bất ngờ (AC-5).
+run_logged "không cờ / lần 2" bash "$REPO_ROOT/copy-framework.sh" "$targetV"
+grep -q "USER-EDIT-CU" "$targetV/docs/framework/quickstart.md" \
+  && { echo "  FAIL [không cờ]: không --upgrade mà không ghi đè Lớp 1 — hành vi cũ đổi ngoài ý muốn"; fail=1; } \
+  || echo "  ok [không cờ]: không --upgrade → ghi đè Lớp 1 như cũ"
 
 if command -v pwsh >/dev/null 2>&1; then
   echo ""
