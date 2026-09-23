@@ -13,6 +13,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **UI/UX intelligence provider contract**: tích hợp `ui-ux-pro-max` theo hướng provider-neutral thay vì
+  vendor/cài bắt buộc — `docs/framework/ui-ux-intelligence-provider.md` định nghĩa precedence source-of-truth,
+  query nhỏ nhất (design-system/domain/stack), verify + retry một lần + fallback, privacy/ADR-0009 và adapter
+  `nextlevelbuilder/ui-ux-pro-max-skill`; `/ui-ux` audit spec/token/component trước khi query và chỉ đưa phần
+  đã review về artifact chuẩn của dự án. Không tạo `UI_SPEC.md` song song, không persist raw provider output.
+
 - **Dọn luật/tài liệu (Đợt 7)**: `docs/framework/pr-flow.md` giữ luật đầy đủ PR → merge + giải xung đột (CLAUDE.md §8
   còn tóm tắt; cổng `check-docs-consistency.sh` mục 9 chặn CLAUDE.md > trần byte trượt / dòng > 2 000 ký tự);
   `standard-delivery.md` §11 đủ 13 file + bảng 9 cổng ↔ 9 GĐ; disclaimer ADR-0004 ở runbook/part-d/part-e/
