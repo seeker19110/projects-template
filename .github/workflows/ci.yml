@@ -66,6 +66,11 @@ jobs:
       - name: Hook session (telemetry-record) ghi số thật, không cộng dồn
         run: bash scripts/test-hooks-session.sh
 
+      # dev-task.sh phải PHÂN GIẢI ĐÚNG LỆNH từng stack (audit 2026-09-23 T4: type-check bị bỏ qua âm thầm ở
+      # dự án Node điển hình, 8 stack §0b no-op) — fixture + binary giả, không cần cài stack thật.
+      - name: dev-task.sh phân giải đúng lệnh cho 13 stack
+        run: bash scripts/test-dev-task.sh
+
       # Characterization test khoá HÀNH VI TỪNG NHÁNH của scan_codebase_health + parse_spec_markdown
       # (không chỉ "chạy không crash"): hai hàm này là logic ĐO của khung, refactor sai làm số liệu
       # sai âm thầm. Viết trước khi hạ complexity hai hàm từ CC=18 xuống <12 (ADR-0005).

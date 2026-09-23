@@ -14,12 +14,13 @@
   Đợt 3 (PR #168, `18fba63` — ADR-0009 nội dung ngoài là dữ liệu + threat model cron, CodeQL/Scorecard/secret-scan lịch,
   timeout mọi job, `requirements-ci.txt` + Dependabot pip, ruleset strict — **chủ repo cần import lại ruleset**).
   Đợt 4 (PR #170, `65fb52e` — `VERSION` 0.1.0, `copy-framework.sh --upgrade` merge 3 chiều + manifest, sweep 🟡 khung cũ).
-  Đang mở: Đợt 5 (frontmatter `effort`/`memory`/`maxTurns` cho 11 agent, coordinator luật thất bại 3 vòng → BLOCKED,
-  hook `SubagentStop` telemetry theo agent + `PreCompact` checkpoint, `coordinator`/`spec-executor` → Sonnet · low).
-  Còn lại: Đợt 6–7 theo báo cáo §3.
+  Đợt 5 (PR #171, `af3e39b` — frontmatter `effort`/`memory`/`maxTurns` 11 agent, coordinator luật thất bại 3 vòng → BLOCKED,
+  hook `SubagentStop` + `PreCompact`, coordinator/spec-executor → Sonnet · low).
+  Đang mở: Đợt 6 (`dev-task.sh` alias Node/venv Python/8 stack mới + `--print`, `_stack-detect.sh` dùng chung,
+  `scripts/githooks/pre-commit` harness-agnostic, test 13 stack). Còn lại: Đợt 7 (dọn luật/tài liệu) theo báo cáo §3.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #165 (nâng cấp `/ui-ux`) và toàn bộ lịch sử cũ hơn: xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md` (luật: PROGRESS.md chỉ giữ một khối hiện tại).
-- Default-branch SHA đã đối chiếu: `65fb52e` (`origin/main`, PR #170)
+- Default-branch SHA đã đối chiếu: `af3e39b` (`origin/main`, PR #171)
 - Nhánh đang làm: `claude/eager-darwin-k1f1y6` (Đợt 1–7 nâng cấp khung, mỗi đợt một PR, restart nhánh từ `main` sau mỗi merge)
 - Ngày cập nhật: 2026-09-23
 

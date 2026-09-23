@@ -13,6 +13,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **`dev-task.sh` đa stack thật + hook git harness-agnostic (Đợt 6)** — spec `docs/specs/2026-09-23-dev-task-da-stack-va-githooks.md`:
+  alias script Node (`typecheck→type-check→tsc→check-types`, `lint→check`, `format→fmt`; bản cũ bỏ qua type-check
+  âm thầm), Python chạy đúng môi trường (`.venv` → `uv run` → `poetry run` → PATH, marker `requirements.txt`/`setup.py`),
+  Bun `bun.lock`, Rust `cargo check`; 8 stack mới (Java/Kotlin, .NET, Flutter/Dart, PHP, Ruby, Elixir, Deno, Swift);
+  `--print <task>`; `scripts/_stack-detect.sh` dùng chung với sweep; `scripts/githooks/pre-commit` (main/bí mật/file lớn/
+  gate) bật bằng `git config core.hooksPath scripts/githooks`; test mới `scripts/test-dev-task.sh` (13 stack).
 - **Frontmatter agent máy đọc + hook v2 (Đợt 5)** — spec `docs/specs/2026-09-23-agent-frontmatter-va-hook-v2.md`:
   11 agent có `effort:` (+ `memory`/`maxTurns` khi hợp lý), `Task` → `Agent`; `coordinator`/`spec-executor` xuống
   Sonnet · low; `coordinator.md` mục "Thất bại & giới hạn" (3 vòng → BLOCKED, file ngoài phạm vi, CI đỏ sau auto-merge,

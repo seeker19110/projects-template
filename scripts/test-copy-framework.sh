@@ -48,6 +48,8 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/_framework-dropins/.github/workflows/maintenance.yml" ] || { echo "  FAIL [$label]: thiếu Maintenance sweep drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/codeql.yml" ] && [ -f "$target/_framework-dropins/.github/workflows/scorecard.yml" ] || { echo "  FAIL [$label]: thiếu CodeQL/Scorecard drop-in"; ok=0; }
   [ -f "$target/scripts/requirements-ci.txt" ] || { echo "  FAIL [$label]: thiếu scripts/requirements-ci.txt (ci.yml dropin cần)"; ok=0; }
+  [ -f "$target/scripts/_stack-detect.sh" ] && [ -x "$target/scripts/githooks/pre-commit" ] || { echo "  FAIL [$label]: thiếu scripts/_stack-detect.sh hoặc scripts/githooks/pre-commit (dev-task/sweep source; hook harness-agnostic)"; ok=0; }
+  ( cd "$target" && bash scripts/dev-task.sh --print lint >/dev/null 2>&1 ) || { echo "  FAIL [$label]: dev-task.sh --print không chạy được ở đích (thiếu _stack-detect.sh?)"; ok=0; }
   [ -x "$target/scripts/maintenance-sweep.sh" ] && [ -x "$target/scripts/maintain-run.sh" ] || { echo "  FAIL [$label]: thiếu/không chạy được maintenance-sweep.sh hoặc maintain-run.sh"; ok=0; }
   [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
   [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }

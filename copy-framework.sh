@@ -225,6 +225,8 @@ copy_if_absent ".claude/hooks"
 copy_if_absent ".claude/agents"
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 copy_if_absent "scripts/dev-task.sh"
+copy_if_absent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
+copy_if_absent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
 copy_if_absent "scripts/usage-estimate.sh"
 copy_if_absent "scripts/test-usage-estimate.sh"
 copy_if_absent "scripts/subagent-dispatch.py"
@@ -256,7 +258,7 @@ copy_if_absent "scripts/requirements-ci.txt"       # ghim radon/coverage cho ci.
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
