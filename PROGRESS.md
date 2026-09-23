@@ -6,7 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-22, PR #163, đã merge — SHA `f2e4bbc`): đối chiếu 8 nguồn ngoài
+- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #PRNUM, đang mở — nhánh `claude/ui-ux-skills-upgrade-f0d0ex`): nâng cấp
+  `/ui-ux`.** Theo yêu cầu người dùng "nâng cấp kỹ năng thiết kế UI/UX". Đối chiếu ba cột với skill
+  `ui-ux-design` v6 của repo Claude-Agents (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): lấy 9 điểm
+  cột 2, mỗi điểm siết một luật cứng đang có (§3.3/3.8/3.9/3.10/§4); cột 3 (danh mục "mặc định của AI", vân
+  tay cấu trúc, tự chấm 6 trục) xếp "chưa cần" vì không có sự cố ghi nhận; breakpoint/type scale cố định
+  không lấy vì mâu thuẫn `TRAPS.md` §9. Sửa câu "File thật: `styles/theme.css`" sai với ADR-0004.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-22, PR #163, đã merge — SHA `f2e4bbc`): đối chiếu 8 nguồn ngoài
   (bảng "Top 10 Hermes Skill Repos") + tinh chỉnh vòng đời worktree của `coordinator`.** Theo yêu cầu
   người dùng đối chiếu ba cột (`adopt-from-outside.md`) cho Graphify, Understand Anything, Caveman,
   last30days-skill, i-have-adhd, Agentic Awesome Skills, Scientific Agent Skills, Diagram Design (+

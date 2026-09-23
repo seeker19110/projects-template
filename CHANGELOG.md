@@ -13,6 +13,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Nâng cấp `/ui-ux`** (`.claude/commands/ui-ux.md`) theo bản đối chiếu ba cột với skill `ui-ux-design` v6
+  (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): 9 điểm "đã có nhưng nông hơn", mỗi điểm siết một
+  luật cứng đang có — trạng thái tầng component (8 trạng thái, disabled ba kênh), tương phản theo từng khối đổi
+  nền, không nhảy layout ở input/ảnh/lỗi form (CLS), công thức chống cuộn ngang, chuyển động chỉ
+  `transform`/`opacity`, lỗi = nguyên nhân + việc làm tiếp, một primary CTA, không bịa nội dung (§4), a11y chi
+  tiết (label hiển thị, WCAG 2.2.2). Sửa câu "File thật: `styles/theme.css`" sai với ADR-0004. Danh mục "mặc
+  định của AI", vân tay cấu trúc, tự chấm 6 trục xếp "chưa cần" kèm điều kiện xem lại.
 - **Cổng máy CC cho mã shell** (`scripts/check-shell-complexity.sh`, spec:
   `docs/specs/2026-09-15-cong-may-cc-shell.md`) — nối tiếp cổng CC Python: đo bằng
   `vendor/shellmetrics` (shellmetrics 0.5.0, MIT, **vendor + ghim SHA256** nên chạy offline và
