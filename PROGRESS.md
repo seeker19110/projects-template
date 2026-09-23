@@ -6,16 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **PR #175 — tích hợp UI/UX intelligence provider (đang thực hiện)**.
-  Spec `docs/specs/2026-09-23-ui-ux-intelligence-provider.md` đã Approved theo yêu cầu người dùng.
-  Hướng tích hợp: provider-neutral, optional/fallback; `ui-ux-pro-max` chỉ là recommendation/evidence,
-  không vendor dependency/dataset và không tạo source-of-truth UI song song. Contract ở
-  `docs/framework/ui-ux-intelligence-provider.md`; `/ui-ux` audit spec/token/component trước khi query.
+- Giai đoạn: GĐ 8. **PR #175 — tích hợp UI/UX intelligence provider — ĐÃ XONG**.
+  Đã merge squash vào `main` tại `de976ad`. Contract provider-neutral ở
+  `docs/framework/ui-ux-intelligence-provider.md`; `/ui-ux` dùng provider theo kiểu optional/fallback,
+  audit source-of-truth trước, query nhỏ nhất đủ dùng, verify/retry một lần và không persist raw output.
+  Adapter đầu tiên tương thích `nextlevelbuilder/ui-ux-pro-max-skill` nhưng không vendor/cài dependency bắt buộc.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #166→#174 (nâng cấp khung 7/7 đợt + đồng bộ
   PROGRESS sau PR #173) đã xong; lịch sử cũ hơn xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md`.
-- Default-branch SHA đã đối chiếu: `b0f8aa4` (`main`, PR #174)
-- Nhánh đang làm: `feat/ui-ux-intelligence-provider` (PR #175)
+- Default-branch SHA đã đối chiếu: `de976ad` (`main`, PR #175)
+- Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-23
 
 ## Goal đang active
