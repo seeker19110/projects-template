@@ -42,6 +42,17 @@ giữ tóm tắt; Goal giữ iteration state; Spec giữ contract capability; Gi
 
 **Feature code bị cấm trước khi spec ghi Approved for implementation, người duyệt và ngày duyệt.**
 
+**Ánh xạ 9 cổng ↔ 9 giai đoạn (GĐ 0–8 của `01-process-and-standards.md`)** — hai bộ từ vựng cùng mô tả một vòng đời;
+`PROGRESS.md` ghi GĐ, spec/goal ghi cổng:
+
+| Cổng | GĐ tương ứng |
+| --- | --- |
+| Frame · Research | GĐ 0 (ý tưởng) · GĐ 1 (nghiên cứu & chọn công nghệ) |
+| Approve · Plan | GĐ 2 (thiết kế, ADR, spec Approved) · GĐ 3 (dựng nền, kế hoạch) |
+| Build · Verify | GĐ 4 (phát triển) · GĐ 5 (kiểm thử) |
+| Integrate | GĐ 6 (tích hợp, release) |
+| Observe · Reconcile | GĐ 7 (ra mắt, quan sát) · GĐ 8 (vận hành, bảo trì, đo goal gap) |
+
 ### 3b. Bản đồ 5 tầng SDLC ↔ cơ chế đang có (ADR-0008)
 
 Cùng 9 cổng ở trên, nhìn theo **5 câu hỏi vòng đời**. "Tầng" ở đây là *tầng vòng đời*, khác "Tầng 1/2/3"
@@ -148,6 +159,13 @@ migration/data tests cho DB, eval/cost/safety cho AI, platform/device tests cho 
 - Quy trình 9 giai đoạn: `01-process-and-standards.md`.
 - Research/stack profiles: `03-tech-selection-and-proactive-advice.md`.
 - Feature spec nâng cao/OpenSpec: `spec-driven-openspec.md`.
+- Điều phối 3 tầng + bảng `route:`: `orchestration-3-tier.md`.
+- Model, effort, chế độ tự động: `models-and-automation.md`.
+- Cổng chất lượng đo được theo hồ sơ C2–C10: `quality-gates-by-profile.md`.
+- Mức nghiêm ngặt ngành (ASVS, SOLID, 12-Factor, GDPR/SOC2): `industry-standards.md`.
+- Học từ nguồn ngoài (ba cột, cổng sự cố thật): `adopt-from-outside.md`.
+- Quy trình PR → merge + giải xung đột (luật đầy đủ của CLAUDE.md §8): `pr-flow.md`.
+- Hoàn thiện dự án (bản đồ tính năng, vòng hội tụ): `project-completion.md`.
 - Audit/hội tụ Project Complete: `project-completion.md`.
 - Checklist chất lượng: `quality-supplements.md`.
 

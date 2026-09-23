@@ -1,5 +1,9 @@
 # Phần D — Cấu hình chi tiết hàng rào (pre-commit + CI)
 
+> **Theo ADR-0004: repo khung KHÔNG kèm sẵn scaffold Web.** Mọi tên công nghệ/file cụ thể trong tài liệu này
+> (Next.js, Supabase, Vercel, `lighthouse-ci.yml`, `lib/env.ts`…) là **ví dụ cho hồ sơ Web (C1)** — dự án đích tự tạo
+> khi hồ sơ áp dụng là Web; hồ sơ khác thay bằng công cụ tương đương (`quality-gates-by-profile.md`).
+
 > Cấu hình cụ thể, sao chép được, cho stack **Next.js (App Router) + TypeScript + Tailwind + Supabase + Vercel**.
 > Đây là phần biến tiêu chuẩn thành "hàng rào tự động" — máy chặn lỗi để con người không phải nhớ.
 > Làm theo thứ tự từ trên xuống. Mỗi khối code ghi rõ tên file cần tạo / lệnh cần chạy.

@@ -13,6 +13,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Dọn luật/tài liệu (Đợt 7)**: `docs/framework/pr-flow.md` giữ luật đầy đủ PR → merge + giải xung đột (CLAUDE.md §8
+  còn tóm tắt; cổng `check-docs-consistency.sh` mục 9 chặn CLAUDE.md > trần byte trượt / dòng > 2 000 ký tự);
+  `standard-delivery.md` §11 đủ 13 file + bảng 9 cổng ↔ 9 GĐ; disclaimer ADR-0004 ở runbook/part-d/part-e/
+  incident-response; bảng rollback theo hồ sơ C1–C10; TRAPS 5b/6b hết trùng số; README yêu cầu máy dev + 7 job CI;
+  CODEOWNERS bỏ `/supabase/` + nói rõ không phải cổng; SECURITY.md kênh báo; FEATURE-MAP FT-51/52; `maintain-cron.sh`
+  `--help` đủ cờ + `--gh-token-file`; `check-shell-complexity.sh` chạy trên macOS (`shasum`); Evidence
+  `repository-settings.md` điền thật.
 - **`dev-task.sh` đa stack thật + hook git harness-agnostic (Đợt 6)** — spec `docs/specs/2026-09-23-dev-task-da-stack-va-githooks.md`:
   alias script Node (`typecheck→type-check→tsc→check-types`, `lint→check`, `format→fmt`; bản cũ bỏ qua type-check
   âm thầm), Python chạy đúng môi trường (`.venv` → `uv run` → `poetry run` → PATH, marker `requirements.txt`/`setup.py`),

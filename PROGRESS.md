@@ -6,7 +6,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc (2026-09-23, nhánh `claude/eager-darwin-k1f1y6`): nâng cấp khung 7 đợt theo audit toàn diện**
+- Giai đoạn: GĐ 8. **Mốc (2026-09-23, PR #166→#172 + PR Đợt 7, nhánh `claude/eager-darwin-k1f1y6`): nâng cấp khung 7 đợt theo audit toàn diện**
   (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`, người dùng duyệt qua chat). Đã merge: Đợt 1 (PR #166,
   `a7ac853` — copy-framework không đè nhật ký đích, telemetry số thật, sweep đúng chiều + vá injection, ID model hiện
   hành + cổng 5b) và Đợt 2 (PR #167, `944a119` — hook chặn commit trên main/bí mật/file lớn, khuôn 5 push xoá main,
@@ -16,12 +16,14 @@
   Đợt 4 (PR #170, `65fb52e` — `VERSION` 0.1.0, `copy-framework.sh --upgrade` merge 3 chiều + manifest, sweep 🟡 khung cũ).
   Đợt 5 (PR #171, `af3e39b` — frontmatter `effort`/`memory`/`maxTurns` 11 agent, coordinator luật thất bại 3 vòng → BLOCKED,
   hook `SubagentStop` + `PreCompact`, coordinator/spec-executor → Sonnet · low).
-  Đang mở: Đợt 6 (`dev-task.sh` alias Node/venv Python/8 stack mới + `--print`, `_stack-detect.sh` dùng chung,
-  `scripts/githooks/pre-commit` harness-agnostic, test 13 stack). Còn lại: Đợt 7 (dọn luật/tài liệu) theo báo cáo §3.
+  Đợt 6 (PR #172, `ead84e8` — `dev-task.sh` alias Node/venv Python/8 stack + `--print`, `_stack-detect.sh`, `githooks/pre-commit`).
+  Đang mở: Đợt 7 (dọn luật/tài liệu: `pr-flow.md` + cổng byte CLAUDE.md, §11 + bảng GĐ↔cổng, disclaimer ADR-0004,
+  rollback theo hồ sơ, TRAPS 5b/6b, README/SECURITY/CODEOWNERS/FEATURE-MAP, `maintain-cron --gh-token-file`, `shasum`).
+  Sau Đợt 7: 7/7 đợt xong; 4 quyết định còn mở cho người dùng ở báo cáo §7.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #165 (nâng cấp `/ui-ux`) và toàn bộ lịch sử cũ hơn: xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md` (luật: PROGRESS.md chỉ giữ một khối hiện tại).
-- Default-branch SHA đã đối chiếu: `af3e39b` (`origin/main`, PR #171)
-- Nhánh đang làm: `claude/eager-darwin-k1f1y6` (Đợt 1–7 nâng cấp khung, mỗi đợt một PR, restart nhánh từ `main` sau mỗi merge)
+- Default-branch SHA đã đối chiếu: `ead84e8` (`origin/main`, PR #172)
+- Nhánh đang làm: `claude/eager-darwin-k1f1y6` (Đợt 7 — PR cuối của kế hoạch nâng cấp; merge xong thì quay về `main`, không còn việc dở)
 - Ngày cập nhật: 2026-09-23
 
 ## Goal đang active

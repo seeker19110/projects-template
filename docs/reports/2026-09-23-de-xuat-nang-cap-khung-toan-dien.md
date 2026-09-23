@@ -4,7 +4,7 @@
 > Phương pháp: áp 12 nhóm của `/audit-full` lên **chính repo khung như một sản phẩm** (luật · engine ·
 > agent/lệnh · CI/chuỗi cung ứng · trải nghiệm dự án đích · bối cảnh ngành 09/2026). Năm lượt rà đọc-chỉ
 > song song + phiên chính tự chạy toàn bộ cổng và tái hiện tay mọi phát hiện mức Cao trước khi ghi.
-> **Trạng thái: CHỜ DUYỆT.** Chưa sửa file luật/engine nào. Mỗi đợt dưới đây là một hoặc vài PR nhỏ qua `/gate`.
+> **Trạng thái: ĐÃ DUYỆT (người dùng, chat 2026-09-23) và ĐÃ TRIỂN KHAI 7/7 đợt** — bảng PR ở mục 7 cuối file.
 
 Tham chiếu SHA: `b0dd309` (main, sau PR #165).
 
@@ -167,3 +167,23 @@ trùng: 1a copy-framework · 1b telemetry+rates · 1c sweep), 1d sau 1b vì cùn
 - platform.claude.com/docs: models overview, pricing.
 - github.com: agentsmd/agents.md · obra/superpowers · github/spec-kit · Fission-AI/OpenSpec · BMAD-METHOD · ossf/scorecard · slsa-framework/slsa.
 - Nguồn thứ cấp cho OWASP LLM/Agentic Top 10 2026 và CVE-2026-22708 (cycode.com, aembit.io, helpnetsecurity.com, vectra.ai) — trang gốc genai.owasp.org/scorecard.dev/slsa.dev/agents.md bị chặn egress: **phiên bản chính thức của Scorecard, SLSA và spec agents.md chưa xác minh được**, không đưa số phiên bản vào đề xuất.
+
+## 7. Trạng thái thực hiện (cập nhật 2026-09-23, cùng phiên)
+
+| Đợt | PR | Phạm vi đã vào `main` | Lệch so với kế hoạch §3 |
+| --- | --- | --- | --- |
+| 1 | #166 | copy-framework không đè `docs/ops` đích + `docs/specs`; bảng giá + telemetry số thật; sweep Go/pip đúng chiều + vá injection tên file; ID model hiện hành + cổng 5b | 1a không đổi CODEOWNERS (làm ở Đợt 7); `test-hooks-session.sh` ra đời sớm ở đợt này |
+| 2 | #167 | hook chặn commit trên main / bí mật / file lớn; khuôn 5 push xoá main; `session-resume` 60 KB → 5,6 KB; lịch sử PROGRESS → `docs/changelog/0001`; PF-4; pr-policy WIP 3 + tiêu đề ≤ 72 + nhắc TRAPS | `maintain-run` đóng stdin (phát hiện khi audit) gộp vào đây |
+| 3 | #168 | ADR-0009 + threat model cron; CodeQL + Scorecard; secret-scan lịch; timeout 14 job; `requirements-ci.txt` + Dependabot pip; ruleset strict (**chủ repo cần import lại**) | không thu hẹp `Bash(git push *)` (lý do trong ADR-0009) |
+| 4 | #170 | `VERSION` 0.1.0; `copy-framework --upgrade` (manifest hash + merge 3 chiều + `.framework-new`); sweep 🟡 khung cũ | **không** bật release-please cho repo khung, **không** tag — chờ người dùng chốt (spec §4); `.ps1 -Upgrade` chỉ hướng dẫn (DEBT) |
+| 5 | #171 | frontmatter `effort`/`memory`/`maxTurns` 11 agent; coordinator "Thất bại & giới hạn"; tiêu chí route đếm được; hook `SubagentStop` + `PreCompact`; coordinator/spec-executor → Sonnet | không `isolation: worktree` cho worker, không `async` auto-format, không `TaskCompleted`, không eval route tự động (5c), chưa chuyển commands → skills |
+| 6 | #172 | `dev-task.sh` alias Node / venv Python / 8 stack mới / `--print`; `_stack-detect.sh`; `scripts/githooks/pre-commit`; test 13 stack | chưa `stacks.json` (chỉ khi > 13 stack) |
+| 7 | PR kế tiếp | `pr-flow.md` + cổng byte CLAUDE.md; §11 + bảng GĐ↔cổng; disclaimer ADR-0004; rollback theo hồ sơ; TRAPS 5b/6b; README/SECURITY/CODEOWNERS/FEATURE-MAP; `maintain-cron --gh-token-file`; `shasum` macOS; Evidence | AGENTS.md không rút thêm (các đoạn đã là một dòng); `mapfile` giữ, thay bằng yêu cầu bash ≥ 4 trong README |
+
+**Còn mở, cần người dùng quyết** (không tự làm vì là quyết định vận hành/kiến trúc — §9): (1) import lại ruleset để
+`strict_required_status_checks_policy: true` có hiệu lực; (2) bật release-please `simple` / tag `v0.1.0` cho repo khung;
+(3) đóng gói khung thành plugin Claude Code (ADR mới); (4) chuyển 16 command → skills + tách CLAUDE.md sang `.claude/rules/`.
+
+**Bẫy tự mắc trong lượt này (đã vào `TRAPS.md`/PR body):** `python3 -c` mở JSON không `encoding` đỏ trên Windows (TRAPS 24
+tái phát); test đối chứng đếm cả thư mục radar loại trừ (AHR-2 đỏ oan); cherry-pick chỉ chóp nhánh chuẩn bị nhiều commit
+(nhánh push thiếu file — dựng lại trước khi mở PR); ba lần tiêu đề PR > 72 ký tự bị chính cổng mới chặn.

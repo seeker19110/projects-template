@@ -116,3 +116,23 @@ Vi phạm mục nào trong 7 mục trên khi đụng dữ liệu người dùng 
 Không coi là "ngoài khả năng của khung" — áp đúng **phương pháp** ở PHẦN A–B của
 `03-tech-selection-and-proactive-advice.md` (research-first, cân bằng phổ biến↔năng lực, xác minh phiên
 bản) để tự dựng cổng chất lượng đặc thù mới, rồi **ghi ADR** — không chờ file này liệt kê sẵn mới làm.
+
+
+---
+
+## Rollback theo hồ sơ (điền vào `release-readiness.md`/runbook sự cố của dự án đích)
+
+Rollback web ≠ rollback mobile — checklist chung "rollback được" không đủ (audit 2026-09-23, T18).
+
+| Hồ sơ | Cơ chế rollback thật | Điều kiện tiên quyết phải có TRƯỚC khi release |
+| --- | --- | --- |
+| C1 Web | Promote bản deploy trước (Vercel/Netlify), hoặc tag ảnh container trước | mỗi release một tag/ảnh bất biến; migration DB tương thích ngược (expand → migrate → contract) |
+| C2 Mobile native | **Không rollback được bản đã phát hành** — chỉ hotfix / dừng staged rollout / remote config tắt tính năng | staged rollout bật; feature flag phía server cho tính năng rủi ro; thời gian review store tính vào kế hoạch |
+| C3 Desktop | Kênh cập nhật trỏ về bản trước + giữ installer cũ | auto-updater có kênh/phiên bản ghim; dữ liệu cục bộ có migration lùi hoặc backup trước khi nâng |
+| C4 Backend/API | Deploy lại ảnh trước; blue/green hoặc canary hạ về 0% | API tương thích ngược ≥ 1 phiên bản; migration DB tách khỏi deploy code; job idempotent |
+| C5 Site tĩnh | Publish lại build trước | giữ ≥ N build artifact |
+| C6 CLI/thư viện/SDK | Không thu hồi được bản đã tải — phát hành bản vá + deprecate (yank chỉ chặn cài mới) | SemVer đúng; changelog; kiểm tương thích trước khi tag |
+| C7 Data/ML | Trỏ lại model/dataset version trước (registry) | mọi artifact có version + lineage; pipeline chạy lại được từ input bất biến |
+| C8 Game | Hotfix qua patch/live-ops config; console: chu kỳ cert dài → flag server | live-ops config tách khỏi binary; save-game tương thích ngược |
+| C9 Blockchain | **Không rollback on-chain** — proxy upgrade/pause/kill-switch đã audit | contract có pause + upgrade path được audit; migration state có kịch bản |
+| C10 Monorepo | theo từng `apps/*` như hồ sơ tương ứng; không rollback lockstep nếu versioning độc lập | ADR ghi chiến lược versioning |

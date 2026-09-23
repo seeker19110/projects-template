@@ -302,6 +302,22 @@ while IFS= read -r mdfile; do
   fi
 done < <(git ls-files '*.md')
 
+# ── 9. CLAUDE.md không được phình bằng DÒNG DÀI (audit 2026-09-23, T3). ──
+# CLAUDE.md tự ép "< 200 dòng" và cổng cũ chỉ đếm dòng — nên nó 155 dòng nhưng 43 KB, có dòng 3 553 ký tự.
+# Trần byte là TRẦN TRƯỢT (đặt trên mức hiện tại, chỉ hạ, không nâng); dòng dài > 2 000 ký tự là đỏ.
+echo "== 9. CLAUDE.md không phình (≤ ${CLAUDE_MAX_BYTES:-42000} byte, không dòng > 2000 ký tự) =="
+if [ -f CLAUDE.md ]; then
+  cbytes="$(wc -c < CLAUDE.md | tr -d ' ')"
+  if [ "$cbytes" -gt "${CLAUDE_MAX_BYTES:-42000}" ]; then
+    echo "::error file=CLAUDE.md::CLAUDE.md nặng $cbytes byte > trần ${CLAUDE_MAX_BYTES:-42000} — tách phần chi tiết ra docs/framework/*.md và để lại TRIGGER một dòng (mục 1 CLAUDE.md nói rõ: giữ file này gọn, chi tiết để ở tài liệu tham khảo)."
+    fail=1
+  fi
+  longl="$(awk 'length($0) > 2000 {print NR; exit}' CLAUDE.md)"
+  if [ -n "$longl" ]; then
+    echo "::error file=CLAUDE.md,line=$longl::Dòng $longl dài hơn 2000 ký tự — luật '< 200 dòng' bị vô hiệu bằng dòng dài; tách đoạn này ra file riêng (như docs/framework/pr-flow.md) và trỏ sang."
+    fail=1
+  fi
+fi
 
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."

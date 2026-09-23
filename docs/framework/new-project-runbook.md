@@ -1,5 +1,9 @@
 # Runbook: Khởi tạo & triển khai một dự án mới
 
+> **Theo ADR-0004: repo khung KHÔNG kèm sẵn scaffold Web.** Mọi tên công nghệ/file cụ thể trong tài liệu này
+> (Next.js, Supabase, Vercel, `lighthouse-ci.yml`, `lib/env.ts`…) là **ví dụ cho hồ sơ Web (C1)** — dự án đích tự tạo
+> khi hồ sơ áp dụng là Web; hồ sơ khác thay bằng công cụ tương đương (`quality-gates-by-profile.md`).
+
 > Tài liệu này chỉ rõ: khi bắt đầu một dự án, **làm gì theo thứ tự** (Phần A) và **phải tuân thủ gì** (Phần B), kết thúc bằng **cổng "sẵn sàng phát triển"** (Phần C).
 > Đi từ trên xuống. Không bỏ bước.
 

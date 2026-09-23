@@ -1,4 +1,6 @@
-# Chủ sở hữu mã nguồn — tự gán reviewer cho mọi PR (ăn khớp với branch protection).
+# Chủ sở hữu mã nguồn — tự gán reviewer cho mọi PR. LƯU Ý: ruleset main.json để required_approving_review_count = 0
+# và require_code_owner_review = false (repo một người) → file này chỉ auto-assign reviewer, KHÔNG phải cổng;
+# bật lại cả hai trong ruleset khi repo có ≥ 2 collaborator (docs/ops/repository-settings.md).
 # Cú pháp: <mẫu đường dẫn>  <@user hoặc @org/team>
 # Đổi @seeker19110 thành chủ repo / team thật của dự án.
 
@@ -8,6 +10,5 @@
 # Khu vực nhạy cảm — nên có review kỹ hơn (giữ đồng bộ khi thêm người).
 /.github/                 @seeker19110
 /.claude/                 @seeker19110
-/supabase/                @seeker19110
 /docs/framework/          @seeker19110
 /CLAUDE.md                @seeker19110

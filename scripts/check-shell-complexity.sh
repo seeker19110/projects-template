@@ -29,7 +29,8 @@ TOOL="vendor/shellmetrics/shellmetrics"
 
 # Checksum trước, đo sau. Sai checksum = hoặc ai đó sửa tay bản vendor, hoặc nâng cấp mà quên
 # cập nhật SHA256SUMS — cả hai đều phải ĐỎ, không phải cảnh báo.
-if ! ( cd vendor/shellmetrics && sha256sum -c SHA256SUMS ) >/dev/null 2>&1; then
+SHA_CMD="sha256sum"; command -v sha256sum >/dev/null 2>&1 || SHA_CMD="shasum -a 256"   # macOS không có sha256sum
+if ! ( cd vendor/shellmetrics && $SHA_CMD -c SHA256SUMS ) >/dev/null 2>&1; then
   echo "::error file=vendor/shellmetrics/SHA256SUMS::Checksum của $TOOL KHÔNG khớp SHA256SUMS — không đo bằng một công cụ không rõ nội dung. Nâng cấp thì cập nhật SHA256SUMS + README rồi chạy lại." >&2
   exit 1
 fi
