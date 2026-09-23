@@ -36,6 +36,30 @@ Chỉ animate `transform`/`opacity` (không `width/height/top/left/margin/paddin
 Validate **inline** ngay dưới ô lỗi (khi blur), nói *cách sửa*; form dài/nhiều lỗi có tóm tắt lỗi ở đầu · nút submit **disable + loading** khi gửi (chặn double-submit) · thất bại thì **giữ nguyên dữ liệu đã nhập** · hành động phá hủy tách khỏi CTA chính, ưu tiên **Undo** hơn hỏi "chắc chưa?" (chỉ hỏi khi thật sự không hoàn tác được) · thao tác > ~400ms có chỉ báo tiến trình · mọi cử chỉ vuốt/kéo có nút tương đương.
 **Mọi thông báo lỗi = nguyên nhân + việc làm tiếp** ("Thẻ bị từ chối — thử thẻ khác hoặc liên hệ ngân hàng"), không "Dữ liệu không hợp lệ" / "Đã có lỗi xảy ra".
 
+## UI intelligence provider (tùy chọn, không phải nguồn sự thật)
+
+Khi môi trường **đã có sẵn** một UI/UX intelligence provider (ví dụ
+`nextlevelbuilder/ui-ux-pro-max-skill`), đọc
+`docs/framework/ui-ux-intelligence-provider.md` trước khi dùng. **Không tự cài provider/package**
+chỉ để có recommendation.
+
+Thứ tự bắt buộc:
+1. **Audit trước**: đọc spec/ADR đã Approved, token/component/pattern thật và stack thật của dự án.
+2. Chỉ query provider nếu còn một quyết định UI/UX mà dữ liệu hiện tại chưa trả lời đủ.
+3. Dùng mode **nhỏ nhất đủ dùng**: direction mới → design-system; concern hẹp → domain; chi tiết code
+   theo framework → stack search. Không generate lại cả hệ design cho một bug nhỏ.
+4. Kiểm domain/top result/fit; lệch thì retry **tối đa một lần** với query hẹp hơn. Vẫn lệch → bỏ
+   output và dùng luật nội bộ của lệnh này.
+5. Provider output chỉ là **candidate/evidence**. Quyết định được chấp nhận phải quay về feature spec,
+   token/component hoặc ADR hiện hữu; raw output không thành source of truth riêng.
+
+Precedence khi mâu thuẫn:
+**Approved project decisions → token/component/pattern thật → Approved feature spec/ADR →
+platform/framework + a11y constraints → provider recommendation → generic model knowledge.**
+
+`variance / motion / density` (nếu provider hỗ trợ) chỉ là vocabulary tùy chọn để diễn đạt intent;
+không tự trở thành quyết định dự án khi chưa được ghi vào artifact chuẩn hoặc được người dùng chốt.
+
 ## Quy trình tư vấn thiết kế
 1. **Làm rõ:** người dùng & ngữ cảnh dùng (thiết bị chính, tần suất), mục tiêu chính của màn hình, nội dung/dữ liệu cần hiển thị.
 2. **Thông tin & phân cấp:** một màn — một mục tiêu — **đúng MỘT primary CTA**, hành động phụ hạ cấp thị giác; sắp theo độ ưu tiên; giảm tải nhận thức; nhất quán pattern với phần còn lại của app.
