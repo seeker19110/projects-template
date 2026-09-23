@@ -41,7 +41,17 @@
       "Bash(cargo fmt*)",
       "Bash(cargo test*)",
       "Bash(cargo build*)",
-      "Bash(cargo clippy*)"
+      "Bash(cargo clippy*)",
+      "Bash(dotnet *)",
+      "Bash(mvn *)",
+      "Bash(./gradlew *)",
+      "Bash(flutter *)",
+      "Bash(dart *)",
+      "Bash(composer *)",
+      "Bash(bundle exec *)",
+      "Bash(mix *)",
+      "Bash(deno *)",
+      "Bash(swift *)"
     ],
     "deny": [
       "Bash(git push --force * main*)",

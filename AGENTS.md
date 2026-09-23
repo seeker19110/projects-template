@@ -54,6 +54,7 @@ Xem `CLAUDE.md` §10 (tech stack, lệnh dev/build/test/lint) — dự án thậ
 
 Claude Code có thể thi hành các luật dưới đây bằng hook (`.claude/hooks/*.sh`); agent khác **không có cơ chế chặn tự động** nên phải tự áp dụng đúng như một quy tắc cứng, không suy diễn khác đi:
 
+- **Bật hook git chuẩn một lần (khuyến nghị, thay tự giác bằng cổng thật):** `git config core.hooksPath scripts/githooks` — `scripts/githooks/pre-commit` chặn commit trên `main`/`master`, chuỗi giống bí mật / file > 1 MB trong staged, và cổng `dev-task.sh gate`; áp cho mọi công cụ, không riêng Claude Code.
 - **Trước mỗi `git commit`:** chạy `scripts/dev-task.sh gate` trước; đỏ thì KHÔNG commit — sửa xong chạy lại.
 - **Sau mỗi lần sửa/tạo file:** nên format lại đúng file đó bằng `scripts/dev-task.sh format-file <path>` trước khi coi là xong.
 - **Cấm tuyệt đối** (không có ngoại lệ ngầm định — nếu thật sự cần, hỏi người dùng trước): `git push --force`/`-f`/`--force-with-lease` vào `main`/`master`; `git reset --hard` khi có thay đổi chưa commit; `git merge --abort`/`git rebase --abort` để né giải xung đột (đọc `CLAUDE.md` §8 — phải giải, không né); `rm -rf`, `git clean -f*`, `git checkout .`/`git restore .` mà chưa `git status` + stash/commit trước.

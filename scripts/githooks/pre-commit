@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# pre-commit — hook GIT chuẩn (harness-agnostic), bản chiếu của .claude/hooks/pre-commit-gate.sh cho
+# mọi công cụ không có hook Claude Code (Cursor/Codex/Copilot/Gemini/OpenCode, hay dev gõ tay).
+# Bật một lần trong dự án:   git config core.hooksPath scripts/githooks
+# Kiểm: (1) không commit trên main/master (ALLOW_COMMIT_ON_MAIN=1 bỏ qua); (2) không có chuỗi giống
+# bí mật / file > 1 MB trong diff staged; (3) cổng build/typecheck/lint/test qua scripts/dev-task.sh gate.
+# `git commit --no-verify` bỏ qua toàn bộ (cơ chế chuẩn của git — tường minh, có chủ ý).
+set -uo pipefail
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+branch="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
+if [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ] && { [ "$branch" = "main" ] || [ "$branch" = "master" ]; }; then
+  echo "pre-commit: đang ở '$branch' — mọi thay đổi vào nhánh chính đi qua PR (AGENTS.md). Tạo nhánh: git switch -c feat/<tên>. Cố ý: ALLOW_COMMIT_ON_MAIN=1." >&2
+  exit 1
+fi
+
+secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
+if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then
+  echo "pre-commit: diff staged chứa chuỗi giống khoá/token — gỡ khỏi staged, dùng biến môi trường, xoay khoá nếu đã lộ." >&2
+  exit 1
+fi
+big=""
+while IFS= read -r -d '' f; do
+  sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"; [ "$sz" -gt 1048576 ] && big="$big $f"
+done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
+[ -z "$big" ] || { echo "pre-commit: file staged > 1 MB:$big — Git LFS hoặc loại khỏi repo." >&2; exit 1; }
+
+if [ -x "$ROOT/scripts/dev-task.sh" ]; then
+  "$ROOT/scripts/dev-task.sh" gate || { echo "pre-commit: cổng build/typecheck/lint/test ĐỎ — sửa rồi commit lại." >&2; exit 1; }
+fi
+exit 0

@@ -105,12 +105,9 @@ sweep_git() {
 }
 
 # ── 2. Dependency (cần mạng; ưu tiên khai báo, rồi tự dò) ─────────────────────
-node_pm() {
-  if   [ -f pnpm-lock.yaml ]; then echo pnpm
-  elif [ -f yarn.lock ];      then echo yarn
-  elif [ -f bun.lockb ];      then echo bun
-  else echo npm; fi
-}
+# node_pm/py_present dùng chung với dev-task.sh — một nguồn (scripts/_stack-detect.sh); ROOT = thư mục đang quét.
+# shellcheck source=scripts/_stack-detect.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"
 # Mỗi hệ sinh thái một hàm: in lệnh cho loại quét $1 (outdated|audit), hoặc return 1 nếu hệ sinh
 # thái này không có mặt / không có lệnh. Tách ra vì bản gộp từng ở CC 13 — trên trần 12 mà
 # `scripts/check-shell-complexity.sh` cưỡng chế.
@@ -124,7 +121,7 @@ _deps_node() {
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
 }
 _deps_python() {
-  [ -f pyproject.toml ] || [ -f requirements.txt ] || return 1
+  py_present || return 1
   case "$1" in
     outdated) has pip && echo "! pip list --outdated --format=freeze 2>/dev/null | grep -q ." ;;   # có dòng = có gói cũ → exit 1 (pip luôn exit 0)
     audit)    has pip-audit && echo "pip-audit" ;;
