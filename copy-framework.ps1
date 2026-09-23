@@ -118,7 +118,13 @@ Write-Host ""
 # ── LỚP 1 — Quy trình & tiêu chuẩn (áp mọi stack): copy thẳng ──
 Write-Host "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 Copy-Into "docs/framework"
-Copy-Into "docs/ops"
+# docs/ops: chỉ copy TÀI LIỆU hướng dẫn; *-PLAN/*-LOG/*-STATUS là trạng thái nội bộ của repo khung —
+# copy sang là nhiễu và chạy lại sẽ đè mất nhật ký thật của dự án đích (khớp copy-framework.sh).
+Get-ChildItem -LiteralPath (Join-Path $Src 'docs/ops') -Filter '*.md' | ForEach-Object {
+  if ($_.Name -notmatch '-(PLAN|LOG|STATUS)\.md$') { Copy-Into ("docs/ops/" + $_.Name) }
+}
+Copy-IfAbsent "docs/specs/README.md"                # pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
+Copy-IfAbsent "docs/goals/README.md"
 Copy-Into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug
 Copy-IfAbsent "docs/adr/0000-template.md"
 

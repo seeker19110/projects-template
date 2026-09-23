@@ -58,6 +58,10 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/_framework-dropins/scripts/ci-workflow-policy.test.ts" ] || { echo "  FAIL [$label]: thiếu ci-workflow-policy.test.ts drop-in"; ok=0; }
   [ ! -e "$target/TRAPS.md" ] || { echo "  FAIL [$label]: TRAPS.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
   [ ! -e "$target/CODEMAP.md" ] || { echo "  FAIL [$label]: CODEMAP.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
+  for st in MAINTENANCE-LOG.md MAINTENANCE-PLAN.md COMPLETION-PLAN.md COMPREHENSIVE-AUDIT-STATUS.md; do
+    [ ! -e "$target/docs/ops/$st" ] || { echo "  FAIL [$label]: docs/ops/$st (trạng thái nội bộ của khung) bị copy sang dự án đích"; ok=0; }
+  done
+  [ -f "$target/docs/specs/README.md" ] && [ -f "$target/docs/goals/README.md" ] || { echo "  FAIL [$label]: thiếu docs/specs/README.md hoặc docs/goals/README.md (pr-policy.yml đòi docs/specs/)"; ok=0; }
   if [ -f "$target/docs/framework/FRAMEWORK-VERSION" ] && grep -q "^commit-nguon: " "$target/docs/framework/FRAMEWORK-VERSION"; then
     :
   else
@@ -104,6 +108,16 @@ check_claude_config_not_overwritten() {   # check_claude_config_not_overwritten 
     || { echo "  FAIL [$label]: thiếu hooks.framework-new"; fail=1; }
 }
 
+check_ops_state_kept() {  # check_ops_state_kept <mô tả> <target> — chạy lại copy KHÔNG được xoá nhật ký của đích
+  local label="$1" target="$2"
+  if grep -q "SENTINEL-NHAT-KY-DICH" "$target/docs/ops/MAINTENANCE-LOG.md" 2>/dev/null; then
+    echo "  ok [$label]: docs/ops/MAINTENANCE-LOG.md của đích KHÔNG bị đè khi chạy lại"
+  else
+    echo "  FAIL [$label]: docs/ops/MAINTENANCE-LOG.md của đích bị đè bằng nhật ký của repo khung (mất dữ liệu)!"
+    fail=1
+  fi
+}
+
 echo "== bash / đích trống =="
 targetA="$(new_target)"
 run_logged "bash / đích trống" bash "$REPO_ROOT/copy-framework.sh" "$targetA"
@@ -121,9 +135,12 @@ check_no_overwrite "bash / đích có sẵn" "$targetB"
 check_claude_config_not_overwritten "bash / đích có sẵn" "$targetB"
 
 echo ""
-echo "== bash / chạy lại lần hai trên cùng đích =="
+echo "== bash / chạy lại lần hai trên cùng đích (nhật ký vận hành của đích phải còn nguyên) =="
+mkdir -p "$targetA/docs/ops"
+echo "SENTINEL-NHAT-KY-DICH" > "$targetA/docs/ops/MAINTENANCE-LOG.md"
 run_logged "bash / chạy lại lần 2" bash "$REPO_ROOT/copy-framework.sh" "$targetA" \
   && echo "  ok [bash / chạy lại lần 2]: không lỗi"
+check_ops_state_kept "bash / chạy lại lần 2" "$targetA"
 
 if command -v pwsh >/dev/null 2>&1; then
   echo ""
@@ -142,6 +159,13 @@ if command -v pwsh >/dev/null 2>&1; then
   run_logged "pwsh / đích có sẵn" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetE"
   check_no_overwrite "pwsh / đích có sẵn" "$targetE"
   check_claude_config_not_overwritten "pwsh / đích có sẵn" "$targetE"
+
+  echo ""
+  echo "== pwsh / chạy lại lần hai (nhật ký vận hành của đích phải còn nguyên) =="
+  mkdir -p "$targetD/docs/ops"
+  echo "SENTINEL-NHAT-KY-DICH" > "$targetD/docs/ops/MAINTENANCE-LOG.md"
+  run_logged "pwsh / chạy lại lần 2" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
+  check_ops_state_kept "pwsh / chạy lại lần 2" "$targetD"
 else
   echo ""
   echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."

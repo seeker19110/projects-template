@@ -13,6 +13,16 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Audit toàn diện repo khung + kế hoạch 7 đợt** (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md`):
+  12 phát hiện Cao, 18 Trung; đợt 1 (mất dữ liệu / số sai) đang triển khai.
+
+### Fixed (Sửa)
+
+- **`copy-framework.sh`/`.ps1` không còn copy file trạng thái `docs/ops/*-PLAN|LOG|STATUS.md` của repo khung
+  sang dự án đích** — trước đó chạy lại để nâng bản sẽ đè mất nhật ký `/maintain`/`/completion` thật của đích
+  (TRAPS mục 30). Đồng thời copy `docs/specs/README.md` + `docs/goals/README.md` vì dropin `pr-policy.yml` đòi
+  `docs/specs/` cho PR `feat`. Test: sentinel ở đích phải sống sót qua lần copy thứ hai.
+
 - **Nâng cấp `/ui-ux`** (#165, `.claude/commands/ui-ux.md`) theo bản đối chiếu ba cột với skill `ui-ux-design` v6
   (`docs/reports/2026-09-23-doi-chieu-ui-ux-design-v6.md`): 9 điểm "đã có nhưng nông hơn", mỗi điểm siết một
   luật cứng đang có — trạng thái tầng component (8 trạng thái, disabled ba kênh), tương phản theo từng khối đổi

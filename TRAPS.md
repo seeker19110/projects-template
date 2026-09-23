@@ -700,3 +700,26 @@ nhanh một file: `LC_ALL=C grep -n "$(printf '[\001-\010\013\014\016-\037\177]'
 tự điều khiển thật vào source — nếu không, chính script sẽ tự khớp mình (khuôn "bộ dò tự khớp văn
 bản của thứ nó đang soi", xem `block-dangerous-git.sh`). Có **negative test** (chèn 0x08 → phải đỏ)
 và **đối chứng** (TAB/CR → phải xanh) trong `scripts/test-check-scripts.sh`.
+
+## 30. Copy "tài liệu khung" bằng `cp -R` cả thư mục → chạy lại để nâng bản ĐÈ MẤT nhật ký của dự án đích
+
+**Ngày/PR:** 2026-09-23, phát hiện ở audit toàn diện repo khung (`docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md` C1), tái hiện thật.
+
+**Khuôn lỗi:** `copy_into "docs/ops"` copy NGUYÊN thư mục vì "docs/ops chỉ là tài liệu tham khảo".
+Nhưng thư mục đó dần chứa cả **file trạng thái** của chính repo khung (`MAINTENANCE-LOG.md`,
+`MAINTENANCE-PLAN.md`, `COMPLETION-PLAN.md`, `COMPREHENSIVE-AUDIT-STATUS.md`) — được thêm SAU khi
+viết lệnh copy, không ai quay lại soát danh sách. Hệ quả hai tầng: (1) dự án đích nhận nhật ký bảo
+trì của repo khung làm nhiễu; (2) dự án đích chạy lại `copy-framework.sh` để nâng bản → `cp -R`
+ghi đè, **xoá sạch nhật ký `/maintain`/`/completion` thật của họ**. Test chỉ kiểm "chạy lần 2 không
+lỗi" — mất dữ liệu không phải lỗi thoát nên xanh. Cùng họ mục 19 (danh sách file viết tay lệch
+thực tế) và mục 10 (test không đo đúng thứ cần bảo vệ).
+
+**Cách rà:** với mọi lệnh copy cả thư mục sang dự án đích, hỏi: *thư mục này có file nào là
+TRẠNG THÁI (log/plan/status) thay vì TÀI LIỆU không?* `ls docs/ops | grep -E -- '-(PLAN|LOG|STATUS)\.md$'`.
+Mọi file sinh ra bởi một lệnh/agent (chứ không do người viết tay một lần) đều là trạng thái.
+
+**Cổng chốt chặn:** `scripts/test-copy-framework.sh` — (a) `check_structure` khẳng định 4 file trạng
+thái KHÔNG có ở đích trống; (b) ca "chạy lại lần 2" ghi sentinel vào `docs/ops/MAINTENANCE-LOG.md`
+của đích trước, chạy lại, sentinel phải còn nguyên (cả bash lẫn pwsh). `copy-framework.sh`/`.ps1`
+lọc theo hậu tố `-PLAN/-LOG/-STATUS.md` thay vì liệt kê tên (file trạng thái mới cùng khuôn tên
+tự được loại).
