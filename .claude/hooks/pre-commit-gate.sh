@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # pre-commit-gate.sh — PreToolUse hook (matcher: Bash).
-# Khi Claude định chạy `git commit`, chạy cổng chất lượng (build/typecheck/lint/test)
-# qua scripts/dev-task.sh. Cổng ĐỎ → exit 2 để CHẶN commit (đồng bộ CLAUDE.md §5).
+# Khi Claude định chạy `git commit`: (1) chặn nếu đang đứng trên main/master (CLAUDE.md §8),
+# (2) chặn nếu diff staged có chuỗi giống bí mật hoặc file > 1 MB, (3) chạy cổng chất lượng
+# (build/typecheck/lint/test) qua scripts/dev-task.sh. Cổng ĐỎ → exit 2 để CHẶN commit (CLAUDE.md §5).
 # Cổng no-op (dự án chưa cấu hình lệnh) → exit 0, cho commit chạy bình thường.
 #
 # An toàn đa-loại-dự-án: hook KHÔNG chứa lệnh stack nào; mọi lệnh nằm sau dev-task.sh.
@@ -36,6 +37,32 @@ fi
 if printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)'; then
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
+fi
+
+# --- Không commit thẳng lên nhánh chính (CLAUDE.md §8; TRAPS mục 14: `checkout -b` hỏng → commit rơi
+# vào main mà không ai thấy). Bỏ qua tường minh: ALLOW_COMMIT_ON_MAIN=1.
+branch="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
+if [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ] && { [ "$branch" = "main" ] || [ "$branch" = "master" ]; }; then
+  echo "🚫 Đang đứng trên nhánh '$branch' — CLAUDE.md §8: mọi thay đổi vào nhánh chính đi qua PR. Tạo nhánh trước: git switch -c feat/<tên>." >&2
+  echo "   Nếu THỰC SỰ cần: chạy lại với ALLOW_COMMIT_ON_MAIN=1 (và nói rõ lý do cho người dùng)." >&2
+  exit 2
+fi
+
+# --- Bí mật / file lớn trong diff STAGED (cùng mẫu với scripts/maintenance-sweep.sh — sweep chỉ chạy
+# định kỳ, tới lúc đó khoá đã nằm trong lịch sử git; chặn ở đây là chặn TRƯỚC khi vào lịch sử). ---
+secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
+if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then
+  echo "🚫 Diff staged chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi staged, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
+  exit 2
+fi
+big=""
+while IFS= read -r -d '' f; do
+  sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"
+  [ "$sz" -gt 1048576 ] && big="$big $f($((sz/1024))KB)"
+done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
+if [ -n "$big" ]; then
+  echo "🚫 File staged > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
+  exit 2
 fi
 
 if [ ! -x "$ROOT/scripts/dev-task.sh" ]; then

@@ -32,7 +32,7 @@ EXCLUDE_SOURCE=(
 # feature spec mô tả file nó sẽ tạo khi được thực thi, nên tham chiếu tới file chưa tồn tại là
 # BẢN CHẤT của nó, không phải lỗi. Nếu không miễn trừ, mọi spec mới đều làm cổng này đỏ và áp lực
 # sẽ là viết spec mờ đi (bỏ backtick) — tức cổng làm hỏng đúng thứ nó bảo vệ.
-EXCLUDE_SOURCE_PREFIX=("docs/specs/")
+EXCLUDE_SOURCE_PREFIX=("docs/specs/" "docs/changelog/")   # changelog = nhật ký NGUYÊN VĂN theo thời điểm, tên cũ/file đã gỡ là dữ kiện lịch sử
 
 # Đường dẫn được nhắc tới trong docs nhưng KHÔNG đóng gói sẵn trong repo khung này:
 # sinh ra tại dự án đích (`/completion`, `/audit-full`), hoặc người dùng tự tạo từ
