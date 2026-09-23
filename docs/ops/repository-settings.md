@@ -18,7 +18,11 @@ xoá/force-push `main`, **required status checks = `gate` + `metadata`** (chỉ 
 **không ai bypass được kể cả admin** (`bypass_actors` rỗng), `required_approving_review_count: 0`
 (không phải hạ chuẩn — GitHub không cho tự duyệt PR của chính mình; đặt 1 sẽ khoá vĩnh viễn mọi PR
 khi repo chỉ có một người, xem case PR #40 của Claude-Agents nếu tò mò tại sao). Đặt lại thành ≥ 1
-khi repo có thêm collaborator khác.
+khi repo có thêm collaborator khác. **`strict_required_status_checks_policy: true`** (từ 2026-09-23, audit T1):
+nhánh phải cập nhật với `main` trước khi merge — đúng CLAUDE.md §6; với trần WIP 3 + auto-merge, PR sau merge
+của PR trước phải "Update branch" (GitHub tự làm khi bật auto-merge, hoặc tay) rồi CI chạy lại. **Đổi file này
+thì chủ repo phải import lại ruleset** — `protection-guard` chỉ đối chiếu rule/check có mặt, không đối chiếu
+tham số `strict`.
 
 `gate` là job tổng hợp `needs:` mọi job cổng của `ci.yml`, nên thêm job cổng mới **không cần**
 sửa cấu hình GitHub nữa — chỉ thêm vào `needs:` của `gate` trong cùng PR.
@@ -52,8 +56,9 @@ pr-policy.yml: metadata
 - [ ] Require conversation resolution; code-owner approval cho vùng nhạy cảm.
 - [x] Nhánh đã merge dọn sạch (audit 2026-09-12, F-014) — người dùng đã tự xoá qua GitHub UI
       2026-09-13; `list_branches` xác nhận repo chỉ còn `main`.
-- [ ] Auto-delete branch sau merge — **chưa bật thật**, chỉ chủ repo bật được trên GitHub Settings
-      → General → Pull Requests (bật để nhánh không tích tụ lại như đợt trước).
+- [x] Auto-delete branch sau merge — **đã bật** (bằng chứng: nhánh `claude/eager-darwin-k1f1y6` biến mất khỏi
+      remote ngay sau khi PR #166 merge 2026-09-23, `check-progress-freshness.sh` PF-2 báo; `MAINTENANCE-LOG.md`
+      2026-09-21 ghi nhận tương tự).
 - [ ] Không cho workflow tự approve PR; default `GITHUB_TOKEN` read-only.
 - [ ] Chọn squash/rebase/merge strategy và auto-delete branch.
 - [ ] **Require signed commits** (chỉ khi dự án ở ASVS L2+ hoặc nhiều người đóng góp không quen biết
