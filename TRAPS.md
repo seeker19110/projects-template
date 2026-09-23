@@ -74,7 +74,7 @@ chạy `npm ci` thật ở bước đó (không chỉ `npm install` cục bộ c
 thật là: **cổng chạy không thường xuyên (hằng đêm/theo yêu cầu) cần được xem lại log định kỳ**, không
 chỉ dựa vào nó tự báo đỏ trên PR đang mở. (2026-09-06, PR #61, commit `d0baf40`)
 
-## 5. Cổng đòi thứ bot không thể có → PR bảo mật kẹt vĩnh viễn, nhìn như "PR chưa đạt chuẩn"
+## 5b. Cổng đòi thứ bot không thể có → PR bảo mật kẹt vĩnh viễn, nhìn như "PR chưa đạt chuẩn"
 
 **Ngày/PR:** 2026-09-12, audit toàn diện (F-001) — bẫy đã âm thầm hoạt động từ 2026-08-24.
 
@@ -95,7 +95,7 @@ Nguy hiểm hơn cổng thiếu, vì nó trông như đang làm việc.
 **Cổng chốt chặn:** `pr-policy.yml` miễn trừ `BOT_ACTORS` khỏi yêu cầu mục template (vẫn giữ kiểm
 tiêu đề conventional). Chưa tự động hoá được phần "phát hiện PR đọng" — xem W-105.
 
-## 6. `git checkout <file>` xoá sạch thay đổi chưa commit — không cần `reset --hard`
+## 6b. `git checkout <file>` xoá sạch thay đổi chưa commit — không cần `reset --hard`
 
 **Ngày/PR:** 2026-09-12, trong lúc chạy `/completion` Pha 3.
 

@@ -1,5 +1,9 @@
 # Phần E — Triển khai trên DỰ ÁN THẬT (việc chỉ làm được khi có dự án)
 
+> **Theo ADR-0004: repo khung KHÔNG kèm sẵn scaffold Web.** Mọi tên công nghệ/file cụ thể trong tài liệu này
+> (Next.js, Supabase, Vercel, `lighthouse-ci.yml`, `lib/env.ts`…) là **ví dụ cho hồ sơ Web (C1)** — dự án đích tự tạo
+> khi hồ sơ áp dụng là Web; hồ sơ khác thay bằng công cụ tương đương (`quality-gates-by-profile.md`).
+
 > **File ghi chú để bổ sung sau.** Template chứa sẵn *quy trình + cấu hình mẫu*, nhưng có những thứ
 > **chỉ tồn tại khi đã có dự án thật** (mã nguồn thật, repo settings, tài khoản dịch vụ, bí mật, lựa chọn
 > nhà cung cấp). Tài liệu này gom hết lại thành một chỗ — đi từ trên xuống, tick dần.

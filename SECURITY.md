@@ -8,7 +8,7 @@ và **các hàng rào bảo mật tự động** đang chạy.
 **Đừng** mở issue công khai cho lỗ hổng bảo mật. Thay vào đó:
 
 - Dùng **GitHub Security Advisories**: tab **Security → Report a vulnerability** (private disclosure), hoặc
-- Gửi email tới người bảo trì repo.
+- Repo này không công bố email riêng cho bảo mật — dùng kênh Security Advisories ở trên (dự án đích: điền email/kênh thật của mình vào đây).
 
 Vui lòng kèm: mô tả, bước tái hiện, ảnh hưởng dự kiến, và phiên bản/commit liên quan.
 Mục tiêu phản hồi: xác nhận trong vòng **72 giờ**; thống nhất mốc vá trước khi công bố.
