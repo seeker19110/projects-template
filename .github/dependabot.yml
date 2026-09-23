@@ -8,10 +8,18 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
 
-  # Phụ thuộc của CHÍNH bộ khung: các action trong .github/workflows/ đang dùng tag
-  # trôi (@v4, @v3) — Dependabot theo dõi để bắt bản mới + bản vá bảo mật.
+  # Phụ thuộc của CHÍNH bộ khung: action trong .github/workflows/ (đã ghim full SHA — cổng CP-2);
+  # Dependabot mở PR nâng SHA + comment tag để bắt bản vá bảo mật.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+  # Công cụ Python của cổng CI (radon, coverage) ghim ở scripts/requirements-ci.txt —
+  # trước đây ghim inline trong ci.yml nên không hệ sinh thái nào theo dõi (audit 2026-09-23, T8).
+  - package-ecosystem: pip
+    directory: /scripts
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

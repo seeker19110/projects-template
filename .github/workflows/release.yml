@@ -21,6 +21,7 @@ jobs:
   # Repo khung (chưa có package.json) → bỏ qua để không lỗi; tự bật khi có dự án thật.
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       exists: ${{ steps.app.outputs.exists }}
     steps:
@@ -38,6 +39,7 @@ jobs:
     needs: check
     if: needs.check.outputs.exists == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Chỉ job này cần ghi (tạo tag/CHANGELOG/PR release) — job `check` giữ read-only.
     permissions:
       contents: write

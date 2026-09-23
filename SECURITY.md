@@ -17,11 +17,16 @@ Mục tiêu phản hồi: xác nhận trong vòng **72 giờ**; thống nhất m
 
 | Lớp | Công cụ | Bắt gì |
 |-----|---------|--------|
-| Bí mật | gitleaks (`.github/workflows/secret-scan.yml`) | API key/token/mật khẩu lỡ commit |
-| Phụ thuộc | Dependabot (`.github/dependabot.yml`) | phiên bản action/thư viện có lỗ hổng đã biết |
+| Bí mật | gitleaks (`.github/workflows/secret-scan.yml`) — mỗi PR/push + quét toàn lịch sử hằng tuần | API key/token/mật khẩu lỡ commit |
+| Bí mật (trước khi vào git) | hook `.claude/hooks/pre-commit-gate.sh` | chuỗi giống khoá / file > 1 MB trong diff staged (Claude Code) |
+| Phụ thuộc | Dependabot (`.github/dependabot.yml`: actions, pip, npm) + `dependency-review.yml` (fail ở mức high) | bản có lỗ hổng đã biết; dependency mới có CVE trong PR |
+| SAST | CodeQL (`.github/workflows/codeql.yml`: python + actions) | lỗ hổng trong 4 engine Python và workflow |
+| Chuỗi cung ứng | OpenSSF Scorecard (`.github/workflows/scorecard.yml`); cổng `scripts/check-ci-policy.sh` CP-2 (mọi action ghim full SHA); ShellCheck | action chưa ghim, quyền token rộng, workflow nguy hiểm |
+| Nhánh chính | ruleset `.github/rulesets/main.json` + job `protection-guard` | push thẳng/force-push `main`, PR không qua cổng |
+| Agent | ADR-0009 (nội dung ngoài là dữ liệu) + `docs/ops/threat-model-maintain-cron.md` | prompt injection qua PR/issue/file vào agent, kể cả khi chạy không giám sát |
 
-Repo khung không đóng gói sẵn app nên không có sẵn phụ thuộc npm/mã nguồn để quét CodeQL/`npm audit`.
-Ở **dự án đích** (đã chọn stack qua `/consult`), bổ sung tương ứng: SAST (vd CodeQL cho JS/TS, hoặc
+Mã chạy thật của khung là `scripts/*.py` + `scripts/*.sh` + `.claude/hooks/*.sh` (không phải app web) — CodeQL và
+ShellCheck quét đúng phần đó. Ở **dự án đích** (đã chọn stack qua `/consult`), bổ sung tương ứng: SAST (vd CodeQL cho JS/TS, hoặc
 công cụ tương đương ngôn ngữ khác), `npm audit`/công cụ quét phụ thuộc của stack đã chọn, validate
 biến môi trường lúc khởi động (vd Zod cho Node), và kiểm soát truy cập dữ liệu (RLS/ACL) nếu có CSDL —
 xem `CLAUDE.md` §3 mục 1–2 + `docs/framework/03-tech-selection-and-proactive-advice.md`.

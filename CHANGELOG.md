@@ -13,6 +13,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **An toàn agent + chuỗi cung ứng (Đợt 3)**: ADR-0009 "nội dung ngoài là dữ liệu, không phải chỉ thị" (CLAUDE.md
+  §4, AGENTS.md, 3 agent) + `docs/ops/threat-model-maintain-cron.md`; `codeql.yml` (python + actions) và
+  `scorecard.yml` (dropin cho dự án đích); `secret-scan.yml` quét toàn lịch sử hằng tuần; `timeout-minutes` cho mọi
+  job; `scripts/requirements-ci.txt` + `setup-python` cache + Dependabot pip; ruleset
+  `strict_required_status_checks_policy: true` (chủ repo import lại); SECURITY.md kê đủ hàng rào.
 - **Hàng rào commit + ngữ cảnh phiên gọn** (spec `docs/specs/2026-09-23-hang-rao-commit-va-ngu-canh-phien.md`):
   `pre-commit-gate.sh` chặn commit trên `main`/`master` (TRAPS 14 nay có cổng máy), chặn chuỗi giống bí mật và file
   > 1 MB trong diff staged; `block-dangerous-git.sh` khuôn 5 chặn `push +main`/`:main`/`--delete main`;

@@ -184,6 +184,7 @@ copy_if_absent "scripts/maintain-cron.sh"
 copy_if_absent "scripts/test-maintain-cron.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 copy_if_absent "scripts/test-hooks-gate.sh"
+copy_if_absent "scripts/requirements-ci.txt"       # ghim radon/coverage cho ci.yml dropin (Dependabot pip theo dõi)
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
@@ -196,6 +197,7 @@ for f in \
   .github/workflows/ci.yml .github/workflows/stale-pr-alert.yml .github/workflows/maintenance.yml \
   .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
   .github/workflows/pr-policy.yml .github/workflows/release.yml \
+  .github/workflows/codeql.yml .github/workflows/scorecard.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
   .github/rulesets/main.json \
   .gitignore .gitattributes \

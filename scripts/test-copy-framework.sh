@@ -46,6 +46,8 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/maintenance.yml" ] || { echo "  FAIL [$label]: thiếu Maintenance sweep drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/codeql.yml" ] && [ -f "$target/_framework-dropins/.github/workflows/scorecard.yml" ] || { echo "  FAIL [$label]: thiếu CodeQL/Scorecard drop-in"; ok=0; }
+  [ -f "$target/scripts/requirements-ci.txt" ] || { echo "  FAIL [$label]: thiếu scripts/requirements-ci.txt (ci.yml dropin cần)"; ok=0; }
   [ -x "$target/scripts/maintenance-sweep.sh" ] && [ -x "$target/scripts/maintain-run.sh" ] || { echo "  FAIL [$label]: thiếu/không chạy được maintenance-sweep.sh hoặc maintain-run.sh"; ok=0; }
   [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
   [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }

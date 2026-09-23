@@ -24,8 +24,17 @@ jobs:
   # liệu đã có job docs-consistency riêng bên dưới — không lặp lại ở đây.)
   framework-lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Cache pip theo scripts/requirements-ci.txt (một nguồn ghim duy nhất, Dependabot pip theo dõi).
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.x'
+          cache: pip
+          cache-dependency-path: scripts/requirements-ci.txt
+      - name: Cài công cụ Python của cổng (ghim ở scripts/requirements-ci.txt)
+        run: python3 -m pip install --quiet -r scripts/requirements-ci.txt
 
       - name: Cú pháp shell (bash -n — mọi *.sh)
         run: |
@@ -80,7 +89,6 @@ jobs:
       # cổng 100% mà độ phủ dòng ~ 0. Sàn 95%, nâng khi thêm ca — hạ phải nêu lý do trong PR.
       - name: Độ phủ dòng của 4 engine Python (coverage.py)
         run: |
-          python3 -m pip install --quiet "coverage==7.16.0"   # ghim: đứt nguồn cung/đổi hành vi sẽ làm sai số đo
           bash scripts/test-py-coverage.sh
 
       # Ngưỡng CC 12 đã được nhắc ở ADR-0005 + characterization test nhưng CHƯA có cổng nào
@@ -88,7 +96,6 @@ jobs:
       # kèm negative test chứng minh nó bắt đúng hàm vượt trần (không chỉ chạy không crash).
       - name: Độ phức tạp vòng của engine Python ≤ CC 12 (radon)
         run: |
-          python3 -m pip install --quiet "radon==6.0.1"   # ghim: đổi bản radon là đổi cách tính CC
           bash scripts/check-python-complexity.sh
           bash scripts/test-check-python-complexity.sh
 
@@ -140,6 +147,7 @@ jobs:
   # `shell: bash` trên runner Windows = Git Bash — đúng thứ người dùng Windows thực sự dùng.
   framework-lint-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -181,7 +189,7 @@ jobs:
         run: |
           set -e
           PY=python3; command -v python3 >/dev/null || PY=python
-          "$PY" -m pip install --quiet "radon==6.0.1"   # ghim: đổi bản radon là đổi cách tính CC
+          "$PY" -m pip install --quiet -r scripts/requirements-ci.txt
           bash scripts/check-python-complexity.sh
           bash scripts/test-check-python-complexity.sh
 
@@ -192,6 +200,7 @@ jobs:
   # của chính repo khung, để không phải rà tay sau mỗi lần đổi tên file.
   docs-consistency:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: bash scripts/check-docs-consistency.sh
@@ -204,6 +213,7 @@ jobs:
   # dự án đích, và chạy lại lần hai không lỗi. ubuntu-latest có sẵn pwsh nên kiểm cả .ps1.
   copy-framework-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # REQUIRE_PWSH=1 (audit 2026-09-12, F-015): trên CI bản .ps1 PHẢI được kiểm thật.
@@ -215,6 +225,7 @@ jobs:
   progress-freshness:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -286,6 +297,7 @@ jobs:
     if: always()
     needs: [framework-lint, framework-lint-windows, docs-consistency, copy-framework-smoke, progress-freshness, protection-guard]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Kết luận từ mọi job cổng
         env:
