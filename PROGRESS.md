@@ -6,11 +6,11 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Impeccable optional adapter — sẵn sàng PR**.
+- Giai đoạn: GĐ 8. **PR #177 — Impeccable optional adapter — đang chờ review/CI**.
   Nền provider-neutral từ PR #175 (`de976ad`) vẫn giữ nguyên; bổ sung mapping có chọn lọc cho
   `pbakaus/impeccable`: chỉ dùng khi dự án đích đã cài/tin cậy, không vendor/cài dependency/hook, không tạo
   `PRODUCT.md`/`DESIGN.md` song song. Evidence: `docs/specs/2026-09-24-impeccable-optional-adapter.md` và
-  `docs/reports/2026-09-24-doi-chieu-impeccable.md`; đang chờ gate + PR.
+  `docs/reports/2026-09-24-doi-chieu-impeccable.md`; PR #177 đã mở, chưa merge.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #166→#174 (nâng cấp khung 7/7 đợt + đồng bộ
   PROGRESS sau PR #173) đã xong; lịch sử cũ hơn xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md`.
