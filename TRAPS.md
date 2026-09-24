@@ -729,3 +729,21 @@ thái KHÔNG có ở đích trống; (b) ca "chạy lại lần 2" ghi sentinel 
 của đích trước, chạy lại, sentinel phải còn nguyên (cả bash lẫn pwsh). `copy-framework.sh`/`.ps1`
 lọc theo hậu tố `-PLAN/-LOG/-STATUS.md` thay vì liệt kê tên (file trạng thái mới cùng khuôn tên
 tự được loại).
+
+## 31. Fixture sửa dòng tùy chọn không có thật → negative test xanh giả
+
+*Ngày/PR:* 2026-09-24, PR #177. Job `framework-lint` đỏ ở ca PF-2.
+
+**Khuôn lỗi:** `test-check-scripts.sh` dựng sandbox bằng `git archive HEAD` rồi dùng `sed`
+thay dòng `Nhánh đang làm`. Dòng này là tùy chọn và đã không còn ở `PROGRESS.md` hiện tại,
+nên `sed` thoát 0 nhưng không thay byte nào. Ca "nhánh đã xoá" không tạo tiền đề; cổng
+kiểm đúng khi trả 0, nhưng test kết luận cổng đã hỏng. Fixture còn chạy bản commit cũ
+thay vì bản đang sửa, khiến pre-commit test không kiểm đúng nội dung sắp commit.
+
+*Cách rà:* khi negative test dùng `sed`, kiểm tiền đề/đối chứng thật trong sandbox, đọc
+output cổng nếu assertion sai. Không suy ra fixture đã đổi chỉ từ exit code của `sed`.
+
+*Cổng chốt chặn:* `setup_repo` dựng tường minh cả hai dòng fixture, lấy bản working tree
+đã track và fail khi dựng sandbox lỗi. PF-2 có ca nhánh mất và nhánh còn thật trên bare
+remote; suite in output cổng khi thất bại. Chạy `scripts/test-check-scripts.sh` trước
+commit để kiểm đúng bản đang ghi.

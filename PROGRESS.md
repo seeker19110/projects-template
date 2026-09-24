@@ -6,17 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **PR #175 — tích hợp UI/UX intelligence provider — ĐÃ XONG**.
-  Đã merge squash vào `main` tại `de976ad`. Contract provider-neutral ở
-  `docs/framework/ui-ux-intelligence-provider.md`; `/ui-ux` dùng provider theo kiểu optional/fallback,
-  audit source-of-truth trước, query nhỏ nhất đủ dùng, verify/retry một lần và không persist raw output.
-  Adapter đầu tiên tương thích `nextlevelbuilder/ui-ux-pro-max-skill` nhưng không vendor/cài dependency bắt buộc.
+- Giai đoạn: GĐ 8. **PR #177 — Impeccable optional adapter — đang chờ review/CI**.
+  Nền provider-neutral từ PR #175 (`de976ad`) vẫn giữ nguyên; bổ sung mapping có chọn lọc cho
+  `pbakaus/impeccable`: chỉ dùng khi dự án đích đã cài/tin cậy, không vendor/cài dependency/hook, không tạo
+  `PRODUCT.md`/`DESIGN.md` song song. Evidence: `docs/specs/2026-09-24-impeccable-optional-adapter.md` và
+  `docs/reports/2026-09-24-doi-chieu-impeccable.md`; PR #177 đã mở, chưa merge.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #166→#174 (nâng cấp khung 7/7 đợt + đồng bộ
   PROGRESS sau PR #173) đã xong; lịch sử cũ hơn xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md`.
-- Default-branch SHA đã đối chiếu: `de976ad` (`main`, PR #175)
-- Nhánh đang làm: `main` (không có việc dở)
-- Ngày cập nhật: 2026-09-23
+- Default-branch SHA đã đối chiếu: `9087c1f` (`main`, PR #176)
+- Ngày cập nhật: 2026-09-24
 
 ## Goal đang active
 

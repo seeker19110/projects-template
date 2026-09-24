@@ -12,6 +12,7 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # explicit for ShellCheck; _test-lib.sh also initializes the counter
 
 if ! command -v jq >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
   echo "::error::Cần jq + python3 để kiểm hook session (hook fail-open khi thiếu — test này không được xanh giả)."
@@ -120,6 +121,32 @@ printf '{"trigger":"auto"}' | CLAUDE_PROJECT_DIR="$P3" bash "$PC" 2>/dev/null; r
 grep -q "Branch: feat/x" "$P3/.claude/.compact-checkpoint" && grep -q "DANG-LAM-CHECKPOINT" "$P3/.claude/.compact-checkpoint" && grep -q "BAN-GIAO-CHECKPOINT" "$P3/.claude/.compact-checkpoint" \
   && ok "checkpoint có nhánh + Đang làm + Bàn giao" || bad "checkpoint thiếu nội dung: $(head -c 300 "$P3/.claude/.compact-checkpoint" 2>/dev/null)"
 grep -q "trigger=auto" "$P3/.ai-telemetry/compact.log" && ok "compact.log ghi trigger" || bad "compact.log không ghi"
+
+echo "== 9. UI detector chỉ chạy khi opt-in và chỉ nhận file UI tồn tại =="
+UI="$ROOT/.claude/hooks/ui-intelligence.sh"
+UI_PROJ="$WORK/ui-proj"; mkdir -p "$UI_PROJ/src"
+UI_FILE="$UI_PROJ/src/my component.tsx"
+printf 'export default null\n' > "$UI_FILE"
+PROVIDER="$WORK/provider.sh"
+cat > "$PROVIDER" <<'PROVIDER_SH'
+#!/usr/bin/env bash
+printf '%s\n' "$1" "$2" >> "$UI_CALLS"
+exit "${UI_EXIT:-0}"
+PROVIDER_SH
+chmod +x "$PROVIDER"
+UI_CALLS="$WORK/ui-calls"; export UI_CALLS
+ui_payload() { printf '{"tool_input":{"file_path":%s}}' "$(printf '%s' "$1" | jq -Rs .)"; }
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
+[ "$rc" -eq 0 ] && [ ! -e "$UI_CALLS" ] && ok "disabled: không gọi provider" || bad "disabled: rc=$rc hoặc provider vẫn chạy"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
+[ "$rc" -eq 0 ] && [ "$(cat "$UI_CALLS")" = "$(printf 'detect\n%s' "$UI_FILE")" ] && ok "enabled: gọi đúng file UI có khoảng trắng" || bad "enabled: sai command/path hoặc exit $rc"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/not-found.tsx')"
+[ "$(wc -l < "$UI_CALLS")" -eq 2 ] && ok "file thiếu: không gọi provider" || bad "file thiếu vẫn gọi provider"
+printf 'text\n' > "$UI_PROJ/src/readme.txt"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/readme.txt')"
+[ "$(wc -l < "$UI_CALLS")" -eq 2 ] && ok "file ngoài danh sách UI: không gọi provider" || bad "file ngoài danh sách UI vẫn gọi provider"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" UI_EXIT=9 bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
+[ "$rc" -eq 0 ] && [ "$(wc -l < "$UI_CALLS")" -eq 4 ] && ok "provider lỗi: edit vẫn tiếp tục" || bad "provider lỗi đã chặn edit hoặc không chạy"
 
 if [ "$fails" -eq 0 ]; then
   echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
