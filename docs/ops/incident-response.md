@@ -1,5 +1,9 @@
 # Runbook: Xử lý sự cố (Incident Response)
 
+> **Theo ADR-0004: repo khung KHÔNG kèm sẵn scaffold Web.** Mọi tên công nghệ/file cụ thể trong tài liệu này
+> (Next.js, Supabase, Vercel, `lighthouse-ci.yml`, `lib/env.ts`…) là **ví dụ cho hồ sơ Web (C1)** — dự án đích tự tạo
+> khi hồ sơ áp dụng là Web; hồ sơ khác thay bằng công cụ tương đương (`quality-gates-by-profile.md`).
+
 > Cụ thể hóa "Quy trình xử lý sự cố rõ ràng" của KHUNG 1 (GĐ 8 — Sau ra mắt).
 > Mục tiêu: khi production có sự cố, **giảm thiệt hại trước, tìm nguyên nhân sau** — theo các bước cố định
 > để không phải suy nghĩ lúc đang hoảng.
@@ -18,7 +22,7 @@
    ai đang xử lý. Nguồn cảnh báo: Sentry, uptime monitor, người dùng báo.
 2. **Đánh giá mức (severity)** theo bảng trên. SEV1 → ưu tiên tuyệt đối.
 3. **Giảm thiệt hại trước (mitigate).** Ưu tiên khôi phục dịch vụ hơn là vá triệt để:
-   - **Rollback** bản deploy gần nhất (Vercel: Promote bản trước đó), HOẶC
+   - **Rollback** bản deploy gần nhất theo nền tảng của dự án (vd Vercel: Promote bản trước; container: tag ảnh trước; mobile/blockchain KHÔNG rollback được — xem bảng "Rollback theo hồ sơ" trong `docs/framework/quality-gates-by-profile.md`), HOẶC
    - Tắt cờ tính năng/feature flag gây lỗi, HOẶC
    - Khôi phục dữ liệu từ **backup/PITR** (nếu mất/hỏng dữ liệu).
 4. **Liên lạc.** Cập nhật trạng thái cho người dùng nếu ảnh hưởng diện rộng (trang status/thông báo).

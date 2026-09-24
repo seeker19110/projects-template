@@ -211,6 +211,18 @@ done
 
 fi
 
+echo "== 13. scripts/githooks/pre-commit (hook git chuẩn, harness-agnostic) =="
+GH="$ROOT/scripts/githooks/pre-commit"
+g1="$(setup_project 0)"; git -C "$g1" switch -q -c main 2>/dev/null || git -C "$g1" checkout -q -b main
+rc="$( cd "$g1" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: chặn commit trên main (exit 1)" || bad "githooks: KHÔNG chặn trên main (exit $rc)"
+g2="$(setup_project 0)"; echo hi > "$g2/a.txt"; git -C "$g2" add a.txt
+rc="$( cd "$g2" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "0" ] && ok "githooks: nhánh riêng + diff sạch + gate xanh → 0" || bad "githooks: chặn oan (exit $rc)"
+g3="$(setup_project 1)"; echo hi > "$g3/a.txt"; git -C "$g3" add a.txt
+rc="$( cd "$g3" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: gate đỏ → 1" || bad "githooks: gate đỏ mà cho qua (exit $rc)"
+
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."

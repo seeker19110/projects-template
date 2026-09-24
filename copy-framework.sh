@@ -18,15 +18,28 @@
 #   - File CI/quy ước GitHub (workflows, PR template, dependabot...) → KHÔNG đè; đưa vào
 #     _framework-dropins/ để bạn tự so/merge với cấu hình CI đã có (nếu có).
 #
+# NÂNG BẢN khung ở dự án đích đã có khung:   bash copy-framework.sh /đích --upgrade
+#   Với từng file Lớp 1: chưa sửa ở đích (hash khớp manifest trong FRAMEWORK-VERSION) → cập nhật;
+#   đã sửa + repo khung còn commit cũ → `git merge-file` 3 chiều (marker xung đột nếu có);
+#   đã sửa + không có base → giữ nguyên đích, để bản mới ở <file>.framework-new. KHÔNG BAO GIỜ mất
+#   nội dung của đích (spec docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md).
+#
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$SCRIPT_DIR"
 
-TARGET="${1:-}"
+TARGET=""; UPGRADE=0
+for arg in "$@"; do
+  case "$arg" in
+    --upgrade) UPGRADE=1 ;;
+    -*) echo "Lỗi: cờ không hợp lệ '$arg' (chỉ có --upgrade)."; exit 1 ;;
+    *) TARGET="$arg" ;;
+  esac
+done
 if [ -z "$TARGET" ]; then
   echo "Lỗi: thiếu đường dẫn dự án đích."
-  echo "Dùng:  bash copy-framework.sh /đường-dẫn/tới/dự-án-đích"
+  echo "Dùng:  bash copy-framework.sh /đường-dẫn/tới/dự-án-đích [--upgrade]"
   exit 1
 fi
 if [ ! -d "$TARGET" ]; then
@@ -37,10 +50,56 @@ if [ ! -d "$TARGET/.git" ]; then
   echo "Cảnh báo: '$TARGET' không có .git — chắc đây là gốc repo dự án chứ?"
 fi
 
+# ── Nâng bản: đọc dấu bản khung CŨ của đích trước khi ghi đè bất cứ gì ──
+STAMP_REL="docs/framework/FRAMEWORK-VERSION"
+OLD_COMMIT=""; OLD_MANIFEST="$(mktemp)"; trap 'rm -f "$OLD_MANIFEST"' EXIT
+N_UPD=0; N_MERGE=0; N_ASIDE=0
+if [ "$UPGRADE" -eq 1 ]; then
+  if [ -f "$TARGET/$STAMP_REL" ]; then
+    OLD_COMMIT="$(grep -m1 '^commit-nguon: ' "$TARGET/$STAMP_REL" | awk '{print $2}')"
+    grep '^manifest: ' "$TARGET/$STAMP_REL" > "$OLD_MANIFEST" 2>/dev/null || true
+    if [ -z "$OLD_COMMIT" ] || ! git -C "$SRC" cat-file -e "${OLD_COMMIT}^{commit}" 2>/dev/null; then
+      echo "  ! commit-nguon '${OLD_COMMIT:-?}' không có trong lịch sử repo khung → không merge 3 chiều được; file đích đã sửa sẽ giữ nguyên, bản mới để cạnh (.framework-new)."
+      OLD_COMMIT=""
+    fi
+  else
+    echo "  ! --upgrade nhưng đích chưa có $STAMP_REL → chạy như copy lần đầu."
+    UPGRADE=0
+  fi
+elif [ -f "$TARGET/$STAMP_REL" ]; then
+  echo "  ℹ Đích đã có khung ($(grep -m1 '^commit-nguon: ' "$TARGET/$STAMP_REL" | awk '{print $2}')). Không có --upgrade → Lớp 1 bị GHI ĐÈ như cũ; muốn giữ chỉnh sửa cục bộ: thêm --upgrade."
+fi
+
 # ── Trợ giúp ──────────────────────────────────────────────
+upgrade_file() {        # $1 = MỘT file Lớp 1 (đường dẫn tương đối) — chế độ --upgrade
+  local rel="$1" src="$SRC/$1" dst="$TARGET/$1" cur old rc
+  mkdir -p "$(dirname "$dst")"
+  if [ ! -f "$dst" ]; then cp "$src" "$dst"; echo "  + $rel"; N_UPD=$((N_UPD+1)); return 0; fi
+  if cmp -s "$src" "$dst"; then echo "  = $rel"; return 0; fi
+  cur="$(git hash-object "$dst")"
+  old="$(awk -v r="$rel" '$3==r{print $2; exit}' "$OLD_MANIFEST")"
+  if [ -n "$old" ] && [ "$cur" = "$old" ]; then
+    cp "$src" "$dst"; echo "  + $rel (đích chưa sửa → cập nhật)"; N_UPD=$((N_UPD+1)); return 0
+  fi
+  if [ -n "$OLD_COMMIT" ] && git -C "$SRC" show "$OLD_COMMIT:$rel" > "$dst.framework-base" 2>/dev/null; then
+    rc=0; git merge-file -L "dự án đích" -L "khung cũ ($OLD_COMMIT)" -L "khung mới" "$dst" "$dst.framework-base" "$src" || rc=$?
+    rm -f "$dst.framework-base"
+    if [ "$rc" -ge 0 ] 2>/dev/null; then echo "  ~ $rel merge 3 chiều ($rc xung đột — tìm '<<<<<<<' nếu > 0)"; N_MERGE=$((N_MERGE+1)); return 0; fi
+  fi
+  rm -f "$dst.framework-base"
+  cp "$src" "$dst.framework-new"; echo "  ~ $rel đích đã sửa, không có base → giữ đích, bản khung ở $rel.framework-new"; N_ASIDE=$((N_ASIDE+1))
+}
 copy_into() {           # copy thẳng (thư mục → copy NỘI DUNG vào đích, không lồng thừa khi chạy lại)
   local rel="$1"
   [ -e "$SRC/$rel" ] || return 0
+  if [ "$UPGRADE" -eq 1 ]; then
+    if [ -d "$SRC/$rel" ]; then
+      while IFS= read -r -d '' f; do upgrade_file "${f#"$SRC"/}"; done < <(find "$SRC/$rel" -type f -print0 | sort -z)
+    else
+      upgrade_file "$rel"
+    fi
+    return 0
+  fi
   if [ -d "$SRC/$rel" ]; then
     mkdir -p "$TARGET/$rel"
     cp -R "$SRC/$rel/." "$TARGET/$rel/"
@@ -98,16 +157,25 @@ copy_into ".claude/commands"                   # slash commands của khung: /co
 copy_if_absent "docs/adr/0000-template.md"
 
 # ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
-# Để dự án đích biết mình đang dùng khung bản nào; muốn cập nhật thì so CHANGELOG.md
-# của repo khung từ commit này trở đi, rồi chạy lại copy-framework.sh.
+# version (file VERSION của khung) + commit + ngày + MANIFEST hash từng file Lớp 1 vừa copy —
+# để lần --upgrade sau biết file nào đích đã sửa tay (không cần lịch sử git của khung).
 FRAMEWORK_COMMIT="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo 'khong-ro')"
+FRAMEWORK_VER="$(tr -d '[:space:]' < "$SRC/VERSION" 2>/dev/null || echo '0.0.0')"
+layer1_files() {        # mọi file Lớp 1 (đúng tập copy_into ở trên), đường dẫn tương đối, NUL-separated
+  find "$SRC/docs/framework" "$SRC/.claude/commands" -type f -print0
+  find "$SRC/docs/ops" -maxdepth 1 -name '*.md' ! -name '*-PLAN.md' ! -name '*-LOG.md' ! -name '*-STATUS.md' -print0
+}
 {
   echo "# FRAMEWORK-VERSION — dấu bản khung đã copy (sinh tự động bởi copy-framework.sh — đừng sửa tay)"
+  echo "version: $FRAMEWORK_VER"
   echo "commit-nguon: $FRAMEWORK_COMMIT"
   echo "ngay-copy: $(date +%F)"
-  echo "# Cách cập nhật: trong repo khung, xem CHANGELOG.md (hoặc git log ${FRAMEWORK_COMMIT}..HEAD) rồi chạy lại copy-framework.sh"
-} > "$TARGET/docs/framework/FRAMEWORK-VERSION"
-echo "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FRAMEWORK_COMMIT)"
+  echo "# Nâng bản: clone repo khung mới nhất rồi chạy  bash copy-framework.sh <đích> --upgrade  (giữ chỉnh sửa cục bộ; xem CHANGELOG.md từ ${FRAMEWORK_COMMIT}..HEAD)"
+  echo "# manifest: <git hash-object> <file> — file đích có hash KHÁC dòng này = đã sửa tay (--upgrade sẽ merge/để cạnh, không ghi đè)"
+  while IFS= read -r -d '' f; do printf 'manifest: %s %s\n' "$(git hash-object "$f")" "${f#"$SRC"/}"; done < <(layer1_files | sort -z)
+} > "$TARGET/$STAMP_REL"
+echo "  + $STAMP_REL (bản khung: v$FRAMEWORK_VER @ $FRAMEWORK_COMMIT, manifest $(grep -c '^manifest: ' "$TARGET/$STAMP_REL") file)"
+[ "$UPGRADE" -eq 1 ] && echo "  → --upgrade: $N_UPD cập nhật · $N_MERGE merge 3 chiều · $N_ASIDE giữ đích + .framework-new"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 copy_if_absent "CLAUDE.md"
@@ -157,6 +225,8 @@ copy_if_absent ".claude/hooks"
 copy_if_absent ".claude/agents"
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 copy_if_absent "scripts/dev-task.sh"
+copy_if_absent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
+copy_if_absent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
 copy_if_absent "scripts/usage-estimate.sh"
 copy_if_absent "scripts/test-usage-estimate.sh"
 copy_if_absent "scripts/subagent-dispatch.py"
@@ -188,7 +258,7 @@ copy_if_absent "scripts/requirements-ci.txt"       # ghim radon/coverage cho ci.
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""

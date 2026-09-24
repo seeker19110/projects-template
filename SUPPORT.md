@@ -14,8 +14,9 @@
 
 ## Phiên bản/môi trường được hỗ trợ
 
-- Nhánh `main` (bản mới nhất) — dự án đích so `docs/framework/FRAMEWORK-VERSION` với `CHANGELOG.md`
-  để biết khi nào nên copy lại khung.
+- Nhánh `main` (bản mới nhất; phiên bản ở file `VERSION`, SemVer — đổi luật cứng = minor, bỏ/đổi cổng = major) —
+  dự án đích so `docs/framework/FRAMEWORK-VERSION` với `CHANGELOG.md`, nâng bản bằng
+  `bash copy-framework.sh <đích> --upgrade` (giữ chỉnh sửa cục bộ).
 - Drop-ins hồ sơ Web nhắm Next.js hiện hành + Node theo `.nvmrc`; hồ sơ khác: chỉ phương pháp, không
   hỗ trợ công cụ cụ thể.
 

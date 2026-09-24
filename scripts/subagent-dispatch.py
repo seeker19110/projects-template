@@ -73,6 +73,7 @@ def parse_agent_md(file_path):
         "description": frontmatter.get("description", ""),
         "tools": frontmatter.get("tools", ""),
         "model": frontmatter.get("model", "sonnet"),
+        "effort": frontmatter.get("effort", ""),
         "path": file_path,
         "system_prompt": body,
     }
@@ -95,9 +96,10 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
     model = agent_info["model"]
     sys_prompt = agent_info["system_prompt"]
 
+    effort_note = f"(effort: {agent_info['effort']}) " if agent_info.get("effort") else ""
     full_prompt = (
         f"=== SUBAGENT ROLE: {name.upper()} ({model}) ===\n"
-        f"{sys_prompt}\n\n"
+        f"{effort_note}{sys_prompt}\n\n"
         f"=== TASK CONTEXT ===\n"
         f"{task_text}\n"
     )

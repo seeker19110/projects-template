@@ -14,6 +14,7 @@
 | `new-project-runbook-part-d-guardrails.md` | KHOI-TAO · Phần D | Cấu hình chi tiết hàng rào — 14 bước sao chép được (Prettier/ESLint/TS strict/Husky/commitlint/Vitest/CI/branch protection/Dependabot) | Khi dựng nền thật |
 | `new-project-runbook-part-e-checklist.md` | KHOI-TAO · Phần E | Checklist triển khai trên DỰ ÁN THẬT (secrets, Supabase/Vercel, analytics, release) | Khi đã có dự án thật |
 | `adopt-from-outside.md` | HOC-NGOAI | Học từ repo/khung/skill BÊN NGOÀI: ba cột (sâu hơn / nông hơn / chưa có), cổng "phải ứng với sự cố thật", luật **grep cổng đang chạy đừng đọc văn xuôi**, kiểm mâu thuẫn luật | Được đưa một nguồn ngoài và bảo "lấy cái hay về" |
+| `ui-ux-intelligence-provider.md` | UI-INTELLIGENCE | Contract provider-neutral cho design intelligence bên ngoài: precedence, query nhỏ nhất, verify/fallback, adapter `ui-ux-pro-max`; provider chỉ là recommendation | Khi `/ui-ux` cần nguồn gợi ý bên ngoài hoặc dự án đã có provider UI/UX |
 | `existing-project-adoption.md` | AP-DUNG | Áp khung lên dự án CÓ SẴN: tự dò stack, hàng rào tăng dần, không big-bang (Bước 0→4) | Brownfield (`/consult`) |
 | `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/completion`) |
 | `quality-supplements.md` | BO-SUNG | **Trang mục lục** trỏ tới 4 phần dưới đây | Tra checklist chi tiết |
@@ -24,8 +25,8 @@
 | `models-and-automation.md` | MODEL | Chọn model (Sonnet/Opus/Fable) + effort + kỷ luật vận hành tối ưu token + bản đồ chế độ chạy tự động | Bắt đầu/đổi quy mô; cân chi phí |
 | `spec-driven-openspec.md` | SPEC-DRIVEN | (Tùy chọn) Lớp spec cấp từng thay đổi với OpenSpec: proposal→spec→design→tasks trong Git, bản đồ khái niệm ↔ khung, khi nào dùng/không | Thay đổi vừa/lớn GĐ 4+; nhiều phiên/nhiều người |
 | `case-study-greenfield-dry-run.md` | — | Chạy thật runbook trên `create-next-app` thật: 3 lỗi tìm được + đã vá, bằng chứng chạy đầu-cuối | Kiểm chứng khung / trước khi tin runbook |
-| `templates/` | — | Bản mẫu sạch: `GOAL.template.md`, `FEATURE-SPEC.template.md`, `THREAT-MODEL.template.md`, `DATA-GOVERNANCE.template.md`, `GOVERNANCE.template.md`, `SUPPORT.template.md`, `FEATURE-MAP.template.md`, `CONVENTIONS.template.md`, `COMPLETION-PLAN.template.md` | Pha 1/3 của `/completion` |
-| `FRAMEWORK-VERSION` | — | (Chỉ có ở DỰ ÁN ĐÍCH — sinh tự động bởi `copy-framework.sh`/`.ps1`) dấu commit + ngày của bản khung đã copy; so `CHANGELOG.md` repo khung để biết khi nào nên copy lại | Muốn biết dự án đích dùng khung bản nào |
+| `templates/` | — | Bản mẫu sạch: `GOAL.template.md`, `FEATURE-SPEC.template.md`, `THREAT-MODEL.template.md`, `DATA-GOVERNANCE.template.md`, `GOVERNANCE.template.md`, `SUPPORT.template.md`, `FEATURE-MAP.template.md`, `CONVENTIONS.template.md`, `COMPLETION-PLAN.template.md`, `AI-EVAL.template.md`, `GOLDEN-TEST.template.md`, `TRAPS.template.md`, `CODEMAP.template.md`, `PROGRESS.template.md` | Pha 1/3 của `/completion` |
+| `FRAMEWORK-VERSION` | — | (Chỉ có ở DỰ ÁN ĐÍCH — sinh tự động bởi `copy-framework.sh`/`.ps1`) `version:` (file `VERSION` của khung, SemVer) + commit + ngày + **manifest hash từng file Lớp 1**; nâng bản: `bash copy-framework.sh <đích> --upgrade` (giữ chỉnh sửa cục bộ: hash khớp manifest → cập nhật, đã sửa → merge 3 chiều hoặc để `.framework-new`); `maintenance-sweep.sh` 🟡 khi quá 90 ngày | Muốn biết dự án đích dùng khung bản nào / nâng bản |
 
 ## Tên cũ (tiếng Việt) → tên mới — cho dự án đã copy khung bản trước
 

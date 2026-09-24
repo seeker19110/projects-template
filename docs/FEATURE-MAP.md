@@ -29,7 +29,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-13 | Điều phối Tầng 2 | `coordinator` (Opus·low) | `PLAN.md`, git worktree | ✅ | ❌ không có |
+| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ✅ | ❌ không có |
 | FT-14 | Worker `route:spec` | `spec-executor` | theo brief | ✅ | ❌ không có |
 | FT-15 | Worker `route:complex` | `complex-implementer` | theo brief | ✅ | ❌ không có |
 | FT-16 | Worker `route:standard` | `standard-worker` | theo brief | ✅ | ❌ không có |
@@ -44,8 +44,8 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-21 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
-| FT-22 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | như trên |
+| FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
+| FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | như trên |
 | FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | như trên |
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | như trên |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | như trên |

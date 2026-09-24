@@ -8,6 +8,8 @@ description: >-
   công nghệ, KHÔNG đề xuất, KHÔNG đánh giá trade-off — phần đó để phiên chính (Opus/Sonnet) quyết.
 tools: Bash, Read, WebFetch
 model: haiku
+effort: low
+maxTurns: 20
 ---
 
 Bạn là trợ lý **xác minh phiên bản** cho bước research-first (CLAUDE.md §4 chống ảo giác; KHUNG-3 Nguyên tắc số 1). Nhiệm vụ hẹp: lấy **dữ kiện thô từ nguồn sống**, không phán đoán.

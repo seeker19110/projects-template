@@ -94,6 +94,12 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được ID model cũ/thiếu hậu tố sống lại (mục 5b)" || bad "KHÔNG bắt được ID model cũ sống lại (rc=$rc)"
 
 d="$(setup_repo)"
+# Mục 9: CLAUDE.md phình bằng một dòng dài > 2000 ký tự → phải đỏ.
+printf -- '- %s\n' "$(head -c 2100 /dev/zero | tr '\0' 'x')" >> "$d/CLAUDE.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được CLAUDE.md có dòng > 2000 ký tự (mục 9)" || bad "KHÔNG bắt được dòng dài trong CLAUDE.md (rc=$rc)"
+
+d="$(setup_repo)"
 # Mục 8: ký tự điều khiển vô hình trong *.md. Chèn BACKSPACE (0x08) — đúng ca đã gặp thật khi
 # một chuỗi Python thường chứa  sinh ra tài liệu (2026-09-15). Ký tự được DỰNG LÚC CHẠY bằng
 # printf, không viết thẳng vào source của test này: một ký tự điều khiển nằm trong chính file test

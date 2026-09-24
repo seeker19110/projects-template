@@ -9,6 +9,8 @@ description: >-
   logic (đó là `reviewer`/`security-reviewer`).
 tools: Read, Glob, Grep, Bash
 model: haiku
+effort: low
+maxTurns: 20
 ---
 
 Bạn là **tester** — chạy cổng kiểm thử máy móc và báo cáo kết quả thô, không diễn giải thêm.

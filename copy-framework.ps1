@@ -29,6 +29,7 @@
 #
 [CmdletBinding()]
 param(
+  [switch] $Upgrade,
   [Parameter(Position = 0)]
   [string] $Target
 )
@@ -43,6 +44,12 @@ try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 $Src = $PSScriptRoot
 $Sep = [System.IO.Path]::DirectorySeparatorChar
 
+if ($Upgrade) {
+  # DEBT: --upgrade (merge 3 chiều + manifest) chỉ có ở copy-framework.sh | trần: bản .ps1 vẫn ghi đè Lớp 1 | xem lại khi: có người dùng Windows không có Git Bash cần nâng bản
+  Write-Host "Nâng bản (-Upgrade) chưa hỗ trợ ở bản .ps1 — dùng Git Bash (có sẵn với Git for Windows):"
+  Write-Host "  bash copy-framework.sh '$Target' --upgrade"
+  exit 2
+}
 if ([string]::IsNullOrWhiteSpace($Target)) {
   Write-Host "Lỗi: thiếu đường dẫn dự án đích."
   Write-Host "Dùng:  pwsh ./copy-framework.ps1 /đường-dẫn/tới/dự-án-đích"
@@ -198,6 +205,8 @@ Copy-IfAbsent ".claude/hooks"
 Copy-IfAbsent ".claude/agents"
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 Copy-IfAbsent "scripts/dev-task.sh"
+Copy-IfAbsent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
+Copy-IfAbsent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
 Copy-IfAbsent "scripts/usage-estimate.sh"
 Copy-IfAbsent "scripts/test-usage-estimate.sh"
 Copy-IfAbsent "scripts/subagent-dispatch.py"

@@ -157,8 +157,11 @@ fi
 
 # AHR-2: tỷ lệ tài liệu phải phản ánh thực tế. Bản cũ đếm văn xuôi Markdown là "code" nên
 # báo repo ~2/3 là .md thành "16% tài liệu". Đối chiếu với số đếm ĐỘC LẬP bằng find/wc.
-doc_lines_real="$(find "$ROOT" -name '*.md' -not -path '*/.git/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
-total_real="$(find "$ROOT" -type f -not -path '*/.git/*' -not -path '*/__pycache__/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
+# Loại trừ ĐÚNG tập thư mục radar loại trừ (EXCLUDE_DIRS trong arch-health-radar.py) — nếu không, bộ đếm
+# đối chứng tự lệch: .ai-telemetry/telemetry.json phình sau nhiều lượt test cục bộ làm find/wc ra 50% trong
+# khi radar (bỏ qua thư mục đó) ra 56% → ca này đỏ oan trên máy dev (gặp thật 2026-09-23).
+doc_lines_real="$(find "$ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/.ai-telemetry/*' -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
+total_real="$(find "$ROOT" -type f -not -path '*/.git/*' -not -path '*/__pycache__/*' -not -path '*/.ai-telemetry/*' -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/coverage/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
 radar_doc_pct="$(echo "$out_radar" | sed -n 's/.*\*\*\([0-9.]*\)%\*\* tổng số dòng.*/\1/p' | head -1)"
 if [ -n "$radar_doc_pct" ] && [ "$total_real" -gt 0 ]; then
   expected_pct=$(( 100 * doc_lines_real / total_real ))

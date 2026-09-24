@@ -92,4 +92,7 @@ pr-policy.yml: metadata
 
 | Setting/control | Value | Owner | Verified date | Evidence/link | Next review |
 | --- | --- | --- | --- | --- | --- |
-| | | | | | |
+| Ruleset `main` import từ `.github/rulesets/main.json` | active, bypass_actors rỗng | chủ repo | 2026-09-13 | job `protection-guard` xanh trên mọi PR (đối chiếu live rules ↔ file) | mỗi quý / khi đổi file ruleset (đổi gần nhất 2026-09-23: `strict_required_status_checks_policy: true` — **cần import lại**) |
+| Auto-delete branch sau merge | bật | chủ repo | 2026-09-23 | nhánh `claude/eager-darwin-k1f1y6` biến mất ngay sau PR #166 merge (PF-2 báo) | mỗi quý |
+| Auto-merge (squash) cho PR | bật | chủ repo | 2026-09-23 | `enable_pr_auto_merge` thành công ở PR #166–#172 | mỗi quý |
+| Secret scanning (gitleaks) + CodeQL + Scorecard | workflow chạy trên PR/push/lịch | khung | 2026-09-23 | check run `gitleaks`, `Analyze (python|actions)`, `CodeQL` trên PR #170 | khi đổi workflow |

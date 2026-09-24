@@ -13,6 +13,36 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **UI/UX intelligence provider contract**: tích hợp `ui-ux-pro-max` theo hướng provider-neutral thay vì
+  vendor/cài bắt buộc — `docs/framework/ui-ux-intelligence-provider.md` định nghĩa precedence source-of-truth,
+  query nhỏ nhất (design-system/domain/stack), verify + retry một lần + fallback, privacy/ADR-0009 và adapter
+  `nextlevelbuilder/ui-ux-pro-max-skill`; `/ui-ux` audit spec/token/component trước khi query và chỉ đưa phần
+  đã review về artifact chuẩn của dự án. Không tạo `UI_SPEC.md` song song, không persist raw provider output.
+
+- **Dọn luật/tài liệu (Đợt 7)**: `docs/framework/pr-flow.md` giữ luật đầy đủ PR → merge + giải xung đột (CLAUDE.md §8
+  còn tóm tắt; cổng `check-docs-consistency.sh` mục 9 chặn CLAUDE.md > trần byte trượt / dòng > 2 000 ký tự);
+  `standard-delivery.md` §11 đủ 13 file + bảng 9 cổng ↔ 9 GĐ; disclaimer ADR-0004 ở runbook/part-d/part-e/
+  incident-response; bảng rollback theo hồ sơ C1–C10; TRAPS 5b/6b hết trùng số; README yêu cầu máy dev + 7 job CI;
+  CODEOWNERS bỏ `/supabase/` + nói rõ không phải cổng; SECURITY.md kênh báo; FEATURE-MAP FT-51/52; `maintain-cron.sh`
+  `--help` đủ cờ + `--gh-token-file`; `check-shell-complexity.sh` chạy trên macOS (`shasum`); Evidence
+  `repository-settings.md` điền thật.
+- **`dev-task.sh` đa stack thật + hook git harness-agnostic (Đợt 6)** — spec `docs/specs/2026-09-23-dev-task-da-stack-va-githooks.md`:
+  alias script Node (`typecheck→type-check→tsc→check-types`, `lint→check`, `format→fmt`; bản cũ bỏ qua type-check
+  âm thầm), Python chạy đúng môi trường (`.venv` → `uv run` → `poetry run` → PATH, marker `requirements.txt`/`setup.py`),
+  Bun `bun.lock`, Rust `cargo check`; 8 stack mới (Java/Kotlin, .NET, Flutter/Dart, PHP, Ruby, Elixir, Deno, Swift);
+  `--print <task>`; `scripts/_stack-detect.sh` dùng chung với sweep; `scripts/githooks/pre-commit` (main/bí mật/file lớn/
+  gate) bật bằng `git config core.hooksPath scripts/githooks`; test mới `scripts/test-dev-task.sh` (13 stack).
+- **Frontmatter agent máy đọc + hook v2 (Đợt 5)** — spec `docs/specs/2026-09-23-agent-frontmatter-va-hook-v2.md`:
+  11 agent có `effort:` (+ `memory`/`maxTurns` khi hợp lý), `Task` → `Agent`; `coordinator`/`spec-executor` xuống
+  Sonnet · low; `coordinator.md` mục "Thất bại & giới hạn" (3 vòng → BLOCKED, file ngoài phạm vi, CI đỏ sau auto-merge,
+  trần song song min(3, độc lập)); tiêu chí đếm được cho `mechanical/standard/complex/spec`; hook `SubagentStop` ghi
+  telemetry theo `agent_type` (mốc riêng theo transcript), hook `PreCompact` chụp `.claude/.compact-checkpoint`;
+  `subagent-dispatch.py` in effort cho harness ngoài.
+- **Nâng bản khung cho dự án đích (Đợt 4)** — spec `docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md`:
+  `copy-framework.sh <đích> --upgrade` giữ chỉnh sửa cục bộ (hash khớp manifest → cập nhật; đã sửa → `git merge-file`
+  3 chiều với commit cũ, không có base → để `.framework-new`); `FRAMEWORK-VERSION` ghi `version:` (file `VERSION`
+  mới, SemVer, bắt đầu 0.1.0) + manifest hash từng file Lớp 1; `maintenance-sweep.sh` 🟡 khi bản khung đã copy quá 90
+  ngày. Không cờ → hành vi cũ. Bản `.ps1 -Upgrade` in hướng dẫn dùng Git Bash (DEBT có điều kiện xem lại).
 - **An toàn agent + chuỗi cung ứng (Đợt 3)**: ADR-0009 "nội dung ngoài là dữ liệu, không phải chỉ thị" (CLAUDE.md
   §4, AGENTS.md, 3 agent) + `docs/ops/threat-model-maintain-cron.md`; `codeql.yml` (python + actions) và
   `scorecard.yml` (dropin cho dự án đích); `secret-scan.yml` quét toàn lịch sử hằng tuần; `timeout-minutes` cho mọi

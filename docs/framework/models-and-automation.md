@@ -157,7 +157,7 @@ Dùng để chọn model **đúng đầu việc**, không phải một model cho
 
 Model là cần thứ nhất; **effort + thinking** là cần thứ hai. Nguyên tắc: **cần suy nghĩ thì max; việc cơ học thì hạ** — đừng để mọi task nhỏ "suy nghĩ 32k token".
 
-> ⚠️ **Giới hạn thật (đã xác minh):** `effortLevel` và `MAX_THINKING_TOKENS` là **session-global** — KHÔNG đặt riêng cho subagent, KHÔNG tự đổi giữa chừng theo task. Cách per-task duy nhất là **đổi thủ công bằng `/effort`** khi chuyển loại việc.
+> ⚠️ **Giới hạn thật (xác minh lại 2026-09-23):** `effortLevel` của `settings.json` và `MAX_THINKING_TOKENS` là **session-global** cho phiên chính — KHÔNG tự đổi giữa chừng theo task; per-task ở Tầng 1 là **đổi thủ công bằng `/effort`**. Riêng **subagent** nay đặt được effort riêng bằng khoá `effort:` trong frontmatter `.claude/agents/*.md` (Claude Code hiện hành) — khung dùng đúng cơ chế này cho Tầng 2/3 (coordinator/spec-executor/mechanical `low`, worker khác `medium`, security-reviewer `high`).
 
 | Cần điều khiển | Giá trị | Đặt ở đâu |
 |---|---|---|
@@ -278,9 +278,9 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 |---|---|---|
 | `lookup.md` | Haiku | Tìm file, grep symbol, định vị định nghĩa/tham chiếu, trích dữ kiện — read-only |
 | `version-check.md` | Haiku | Xác minh phiên bản bằng nguồn sống (npm/pypi/node) cho research-first |
-| `coordinator.md` | Opus · low | **Tầng 2** — điều phối: nhận nguyên văn PLAN.md, tạo nhánh/worktree, dispatch theo `route:`, nghiệm thu, gọi reviewer, tích hợp. Không đổi kế hoạch, không tự code, không merge. |
+| `coordinator.md` | Sonnet · low | **Tầng 2** — điều phối: nhận nguyên văn PLAN.md, tạo nhánh/worktree, dispatch theo `route:`, nghiệm thu, gọi reviewer, tích hợp. Không đổi kế hoạch, không tự code, không merge. |
 | `complex-implementer.md` | Opus · medium (trần) | **Tầng 3** `route:complex` — việc phức tạp còn chỗ tự quyết trong ranh giới brief. |
-| `spec-executor.md` | Opus · low | **Tầng 3** `route:spec` — việc phức tạp nhưng đặc tả kín, chỉ thi hành. |
+| `spec-executor.md` | Sonnet · low | **Tầng 3** `route:spec` — việc phức tạp nhưng đặc tả kín, chỉ thi hành. |
 | `standard-worker.md` | Sonnet | **Tầng 3** `route:standard` (kế thừa `executor`) — việc vừa, đặc tả cụ thể (test theo spec, boilerplate, cập nhật docs, sửa cơ học). Cô lập ngữ cảnh + song song, không phải "model rẻ hơn". |
 | `mechanical-worker.md` | Haiku | **Tầng 3** `route:mechanical` — việc cơ học theo mẫu/thông báo, khép kín. |
 | `reviewer.md` | Sonnet | Hậu kiểm bằng skill `code-review` sau khi worker xong, trước khi Tầng 1 duyệt. Ngoài bảng route. |

@@ -8,6 +8,8 @@ description: >-
   KHÔNG giao việc cần phán đoán kiến trúc, review code, phân tích trade-off, hay sửa file.
 tools: Read, Glob, Grep, Bash
 model: haiku
+effort: low
+maxTurns: 20
 ---
 
 Bạn là trợ lý **tra cứu read-only** cho dự án theo khung CLAUDE.md. Nhiệm vụ của bạn hẹp và cơ học — làm đúng, nhanh, rẻ.

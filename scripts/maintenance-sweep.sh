@@ -27,6 +27,7 @@ DECL="$ROOT/.claude/project-commands.sh"
 OUT=""; STRICT=0; RUN_GATE=0; DO_DEPS=1
 DEPS_TIMEOUT="${MAINT_DEPS_TIMEOUT:-180}"   # giây cho mỗi lệnh dependency (cần mạng)
 STALE_DOC_DAYS="${MAINT_STALE_DOC_DAYS:-30}"
+FRAMEWORK_STALE_DAYS="${MAINT_FRAMEWORK_STALE_DAYS:-90}"   # dự án đích: bản khung đã copy quá cũ → 🟡 (spec 2026-09-23 nâng bản khung)
 TODO_WARN="${MAINT_TODO_WARN:-20}"
 
 while [ $# -gt 0 ]; do
@@ -104,12 +105,9 @@ sweep_git() {
 }
 
 # ── 2. Dependency (cần mạng; ưu tiên khai báo, rồi tự dò) ─────────────────────
-node_pm() {
-  if   [ -f pnpm-lock.yaml ]; then echo pnpm
-  elif [ -f yarn.lock ];      then echo yarn
-  elif [ -f bun.lockb ];      then echo bun
-  else echo npm; fi
-}
+# node_pm/py_present dùng chung với dev-task.sh — một nguồn (scripts/_stack-detect.sh); ROOT = thư mục đang quét.
+# shellcheck source=scripts/_stack-detect.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"
 # Mỗi hệ sinh thái một hàm: in lệnh cho loại quét $1 (outdated|audit), hoặc return 1 nếu hệ sinh
 # thái này không có mặt / không có lệnh. Tách ra vì bản gộp từng ở CC 13 — trên trần 12 mà
 # `scripts/check-shell-complexity.sh` cưỡng chế.
@@ -123,7 +121,7 @@ _deps_node() {
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
 }
 _deps_python() {
-  [ -f pyproject.toml ] || [ -f requirements.txt ] || return 1
+  py_present || return 1
   case "$1" in
     outdated) has pip && echo "! pip list --outdated --format=freeze 2>/dev/null | grep -q ." ;;   # có dòng = có gói cũ → exit 1 (pip luôn exit 0)
     audit)    has pip-audit && echo "pip-audit" ;;
@@ -180,9 +178,19 @@ sweep_deps() {
 }
 
 # ── 3. Tài liệu & nợ kỹ thuật ─────────────────────────────────────────────────
+sweep_framework_age() {   # dự án đích có docs/framework/FRAMEWORK-VERSION → đo tuổi bản khung đã copy
+  local d age
+  [ -f docs/framework/FRAMEWORK-VERSION ] || return 0
+  d="$(grep -m1 -oE 'ngay-copy:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}' docs/framework/FRAMEWORK-VERSION | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)"
+  [ -n "$d" ] || { line "- Bản khung đã copy: không đọc được 'ngay-copy:'"; return 0; }
+  age="$(days_since "$d")"; line "- Bản khung đã copy: $age ngày trước ($d)"
+  [ -n "$age" ] && [ "$age" -gt "$FRAMEWORK_STALE_DAYS" ] && yel "Tài liệu" "bản khung đã copy $age ngày trước ($d)" "clone repo khung mới rồi: bash copy-framework.sh <đích> --upgrade (giữ chỉnh sửa cục bộ)"
+  return 0
+}
 sweep_docs() {
   sec "3. Tài liệu & nợ kỹ thuật"
   local d age n
+  sweep_framework_age
   if [ -f PROGRESS.md ]; then
     d="$(grep -m1 -oE 'Ngày cập nhật:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}' PROGRESS.md | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)"
     if [ -n "$d" ]; then

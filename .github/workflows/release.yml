@@ -1,7 +1,7 @@
 name: Release
 
 # CD nhẹ: sinh CHANGELOG + bump phiên bản + tạo GitHub Release TỰ ĐỘNG từ
-# conventional commits (release-please). Khung đã ép conventional commits (commitlint)
+# conventional commits (release-please). Khung đã ép conventional commits (job `metadata` của pr-policy.yml)
 # nên đây là bước tận dụng sẵn — đóng phần "lịch sử thay đổi" của GĐ 6 không phải viết tay.
 on:
   push:

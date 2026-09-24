@@ -27,6 +27,8 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
 | **`jq`** | hook `pre-commit-gate.sh`, `block-dangerous-git.sh` | **hàng rào fail-open: hook cảnh báo ra stderr rồi CHO QUA** — commit khi cổng đỏ, `git push --force` lên `main`, `reset --hard` đều không bị chặn |
 | `python3` (≥ 3.7) | 4 engine: `spec-compiler`, `arch-health-radar`, `telemetry-log`, `subagent-dispatch` | các lệnh engine báo lỗi và thoát |
 | `git` | toàn bộ quy trình | — |
+| `bash` ≥ 4 | `mapfile` trong 3 cổng `check-*.sh` (macOS mặc định bash 3.2 → `brew install bash`) | cổng chết với "mapfile: command not found" |
+| `shellcheck`, `radon`, `coverage`, `pwsh` *(tuỳ chọn — chỉ để chạy cổng CI cục bộ)* | ShellCheck, `check-python-complexity.sh`, `test-py-coverage.sh`, bản `.ps1` của copy-framework | các cổng đó ĐỎ RÕ (không skip): `pip install -r scripts/requirements-ci.txt`, `apt/brew install shellcheck` |
 
 > **`jq` là quan trọng nhất.** Hook cố tình fail-open khi thiếu `jq` (fail-closed sẽ chặn oan
 > vì không đọc được lệnh từ payload JSON), nên **máy không có `jq` = dự án không có hàng rào**
@@ -52,8 +54,9 @@ một quy trình song song bằng cảm tính.
 - `.gitignore`, `.gitattributes` — vệ sinh Git tối thiểu, không phụ thuộc stack.
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
-  `ci.yml` (job `framework-lint`/`docs-consistency`/`copy-framework-smoke`/`gate` tự kiểm chính bộ
-  khung; dự án đích tự thêm job build/test/lint theo stack đã chọn vào cùng file),
+  `ci.yml` (7 job tự kiểm chính bộ khung: `framework-lint`, `framework-lint-windows`, `docs-consistency`,
+  `copy-framework-smoke`, `progress-freshness`, `protection-guard`, `gate` tổng hợp; dự án đích tự thêm job
+  build/test/lint theo stack đã chọn vào cùng file), `codeql.yml`, `scorecard.yml`,
   `secret-scan.yml` (gitleaks), `dependency-review.yml`,
   `pr-policy.yml` (spec/evidence), `release.yml` (release-please),
   `stale-pr-alert.yml` (cảnh báo PR kẹt vì required check không thể xanh),
@@ -112,9 +115,8 @@ pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 ### Bước 2 — Merge phần CI/quy ước GitHub
 Soát thư mục `_framework-dropins/` trong dự án đích: so/merge từng workflow, PR template, dependabot,
 CODEOWNERS với cấu hình CI đã có (nếu có) — đừng đè cấu hình đang chạy. Với `ci.yml`: thêm job
-build/lint/type/test theo đúng stack đã chọn (research-first, `/consult`) vào file, giữ nguyên 3 job
-tự kiểm của khung (`framework-lint`, `docs-consistency`, `copy-framework-smoke`) và thêm job mới vào
-`needs:` của `gate`. Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc
+build/lint/type/test theo đúng stack đã chọn (research-first, `/consult`) vào file, giữ nguyên các job
+tự kiểm của khung (bản kê ở `docs/ops/repository-settings.md`) và thêm job mới vào `needs:` của `gate`. Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc
 rồi gộp phần cần, sau đó xóa.
 
 ### Bước 3 — Mở Claude Code trong dự án đích

@@ -37,7 +37,8 @@
 #     --no-push          chạy trọn vẹn (pull + sweep + agent) nhưng KHÔNG commit/push — để test tay
 #     --lock-dir <dir>   nơi đặt file khoá (mặc định: thư mục tạm hệ thống, NGOÀI working tree)
 #     --no-open-pr       đẩy nhánh nhưng KHÔNG tự mở PR dù có token (bạn tự mở tay)
-#     --gh-token <tok>   token GitHub thay cho biến môi trường GITHUB_TOKEN/GH_TOKEN
+#     --gh-token-file <f>  file chứa token GitHub (khuyến nghị trên máy chung, thay biến môi trường)
+#     --gh-token <tok>   token qua argv — CHỈ để tương thích cũ, lộ qua `ps`; script cảnh báo
 #     --repo <owner/repo> ghi đè owner/repo (mặc định: tự tách từ `git remote get-url origin`;
 #                        bắt buộc khai nếu origin không phải github.com hoặc là SSH alias lạ)
 set -uo pipefail
@@ -55,9 +56,10 @@ while [ $# -gt 0 ]; do
     --no-push)    NO_PUSH=1; shift ;;
     --lock-dir)   LOCK_DIR="${2:-}"; shift 2 ;;
     --no-open-pr) NO_OPEN_PR=1; shift ;;
-    --gh-token)   GH_TOKEN_FLAG="${2:-}"; shift 2 ;;
+    --gh-token)   GH_TOKEN_FLAG="${2:-}"; log "CẢNH BÁO: --gh-token đưa token vào argv (lộ qua ps/cron log máy chung) — dùng --gh-token-file hoặc biến môi trường GITHUB_TOKEN"; shift 2 ;;
+    --gh-token-file) GH_TOKEN_FLAG="$(tr -d '[:space:]' < "${2:-/dev/null}")"; shift 2 ;;
     --repo)       REPO_FLAG="${2:-}"; shift 2 ;;
-    -h|--help)    sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)    awk 'NR>1 && !/^#/{exit} NR>1' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;   # in TRỌN khối comment đầu file (bản cũ cắt ở dòng 36 → thiếu 5 cờ)
     --harness|--model|--provider|--mode) PASS_ARGS+=("$1" "${2:-}"); shift 2 ;;
     *) die "tham số lạ: $1 (xem --help)" 2 ;;
   esac

@@ -19,7 +19,7 @@
 | Bản Windows | Mỗi script người dùng chạy có cặp `.sh` + `.ps1`; `.ps1` dùng `$ErrorActionPreference='Stop'` | `copy-framework.sh` / `.ps1` | Chỉ áp cho `copy-framework`; script cổng nội bộ không cần |
 | Kiểm CẤU TRÚC, không kiểm nội dung | Script cổng chỉ đối chiếu *có khớp danh sách/tồn tại không*, không ép nội dung từng bước | `scripts/check-ci-policy.sh` dòng 12–14 | Tránh biến cổng thành vật cản mỗi lần thêm bước mới |
 | Mọi assertion mới có **negative test** | Thêm một kiểm mới → chứng minh nó **bắt được** vi phạm (cố tình làm sai, thấy đỏ) | `scripts/test-copy-framework.sh` | Ghi bằng chứng ở PR |
-| Phục hồi file trong negative test | `cp` từ bản sao ở scratchpad — **KHÔNG** `git checkout/restore <file>` (xoá luôn sửa chưa commit, xem `TRAPS.md` mục 6) | — | Bẫy đã mắc thật — xem `TRAPS.md` |
+| Phục hồi file trong negative test | `cp` từ bản sao ở scratchpad — **KHÔNG** `git checkout/restore <file>` (xoá luôn sửa chưa commit, xem `TRAPS.md` mục 6b) | — | Bẫy đã mắc thật — xem `TRAPS.md` |
 
 ## B. Quy ước tài liệu
 
