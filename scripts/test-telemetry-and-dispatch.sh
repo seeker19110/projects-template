@@ -8,6 +8,7 @@ if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
+fails=0
 
 echo "== 1. Subagent Dispatcher Engine =="
 
@@ -146,6 +147,16 @@ else
   bad "record không token vẫn ghi số bịa: $last_cost"
 fi
 echo "$err0" | grep -q "không có số token" && ok "có cảnh báo stderr khi thiếu token" || bad "thiếu cảnh báo stderr khi không có token"
+
+echo "== 5. Nhật ký telemetry giữ dữ liệu khi lỗi và khi ghi song song =="
+integrity_out="$(cd "$ROOT" && python3 -m unittest discover -s tests -p test_telemetry_integrity.py 2>&1)"
+integrity_rc=$?
+if [ "$integrity_rc" -eq 0 ] && printf '%s\n' "$integrity_out" | grep -q '^Ran 6 tests'; then
+  ok "6 ca toàn vẹn telemetry: JSON lỗi, schema, ghi lỗi, ghi đồng thời và chờ khoá"
+else
+  bad "telemetry integrity thất bại (rc=$integrity_rc)"
+  printf '%s\n' "$integrity_out" >&2
+fi
 
 if [ "$fails" -eq 0 ]; then
   echo "OK — Tất cả kiểm tra Universal Subagent Dispatch & Telemetry đều XANH."

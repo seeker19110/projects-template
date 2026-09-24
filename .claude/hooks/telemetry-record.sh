@@ -31,7 +31,7 @@ STATE_DIR="$ROOT/.ai-telemetry"
 STATE="$STATE_DIR/last-stop-$(printf '%s' "$tp" | git hash-object --stdin 2>/dev/null || printf '%s' "$tp" | cksum | cut -d' ' -f1)"
 mkdir -p "$STATE_DIR" 2>/dev/null || exit 0
 
-# In một dòng: <model> <input> <output> <giờ> <ts-cuối>  — hoặc rỗng nếu không có dòng mới.
+# In một dòng: <model> <input> <output> <giây> <ts-cuối>  — hoặc rỗng nếu không có dòng mới.
 # PYTHONIOENCODING: console Windows mặc định cp1252 (TRAPS.md bẫy 24).
 stats="$(PYTHONIOENCODING=utf-8 python3 - "$tp" "$STATE" <<'PY'
 import json, sys
@@ -77,17 +77,17 @@ with open(path, encoding="utf-8", errors="replace") as f:
 if last is None:
     sys.exit(0)
 start = since or first
-hours = max(0.0, (last - start).total_seconds() / 3600.0)
-print(model or "unknown", inp, out, f"{hours:.4f}", last.isoformat())
+seconds = max(0.0, (last - start).total_seconds())
+print(model or "unknown", inp, out, f"{seconds:.4f}", last.isoformat())
 PY
 )"
 [ -n "$stats" ] || exit 0
-read -r model in_tok out_tok hours last_ts <<<"$stats"
+read -r model in_tok out_tok seconds last_ts <<<"$stats"
 
 bash "$ROOT/scripts/telemetry-log.sh" --record \
   --harness claude-code --provider anthropic --model "$model" \
   --agent "$agent" --task "Stop hook tu dong" \
-  --duration "$hours" --test-status N/A \
+  --duration "$seconds" --test-status N/A \
   --input-tokens "$in_tok" --output-tokens "$out_tok" >/dev/null 2>&1 || exit 0
 
 printf '%s\n' "$last_ts" > "$STATE" 2>/dev/null || true

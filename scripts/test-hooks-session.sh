@@ -39,11 +39,11 @@ echo "== 1. telemetry-record: token = tổng usage THẬT, model = message cuố
 run_hook; rc=$?
 [ "$rc" -eq 0 ] && ok "hook thoát 0" || bad "hook thoát $rc"
 e="$(last_entry -1 2>/dev/null)"
-# input = 1000+500 (cache read) + 3000 = 4500; output = 200+800 = 1000; 10:00→10:12 = 0.2 giờ
-if [ "$e" = "claude-sonnet-5 4500 1000 0.2 1" ]; then
-  ok "entry = model cuối · 4500 in · 1000 out · 0.2 giờ (không phải 1000/500 bịa)"
+# input = 1000+500 (cache read) + 3000 = 4500; output = 200+800 = 1000; 10:00→10:12 = 720 giây
+if [ "$e" = "claude-sonnet-5 4500 1000 720.0 1" ]; then
+  ok "entry = model cuối · 4500 in · 1000 out · 720 giây (không phải 1000/500 bịa)"
 else
-  bad "entry sai: '$e' (kỳ vọng 'claude-sonnet-5 4500 1000 0.2 1')"
+  bad "entry sai: '$e' (kỳ vọng 'claude-sonnet-5 4500 1000 720.0 1')"
 fi
 
 echo "== 2. Lượt kế KHÔNG có dòng mới → không ghi thêm (không cộng dồn cả phiên) =="
@@ -55,8 +55,8 @@ echo "== 3. Có dòng mới → chỉ tính phần MỚI (delta), không tính l
 echo '{"type":"assistant","timestamp":"2026-09-23T10:30:00.000Z","message":{"model":"claude-sonnet-5","usage":{"input_tokens":100,"output_tokens":50}}}' >> "$TR"
 run_hook
 e="$(last_entry -1)"
-# 10:12 → 10:30 = 0.3 giờ
-[ "$e" = "claude-sonnet-5 100 50 0.3 2" ] && ok "entry 2 chỉ có phần mới: 100 in · 50 out · 0.3 giờ" || bad "entry 2 sai: '$e'"
+# 10:12 → 10:30 = 1080 giây
+[ "$e" = "claude-sonnet-5 100 50 1080.0 2" ] && ok "entry 2 chỉ có phần mới: 100 in · 50 out · 1080 giây" || bad "entry 2 sai: '$e'"
 
 echo "== 4. Transcript không tồn tại / payload rỗng → thoát 0, không ghi =="
 printf '{}' | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"; rc=$?
