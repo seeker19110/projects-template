@@ -7,8 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-import unittest
-from unittest import mock
+from unittest import TestCase, main, mock, skipIf
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +21,7 @@ def load_engine():
     return module
 
 
-class TelemetryIntegrityTests(unittest.TestCase):
+class TelemetryIntegrityTests(TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -92,7 +91,7 @@ mod.record_entry("claude", "anthropic", "claude-sonnet-5", "tester", sys.argv[4]
         logs = json.loads(self.log.read_text(encoding="utf-8"))
         self.assertEqual({entry["task"] for entry in logs}, {str(n) for n in range(6)})
 
-    @unittest.skipIf(os.name == "nt", "POSIX lock retry; Windows path is exercised by process test")
+    @skipIf(os.name == "nt", "POSIX lock retry; Windows path is exercised by process test")
     def test_busy_lock_waits_then_records(self):
         ready = self.directory / "ready"
         holder = r'''
@@ -120,4 +119,4 @@ with open(sys.argv[1], "a+b") as lock:
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
