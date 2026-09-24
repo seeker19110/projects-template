@@ -10,6 +10,9 @@ import argparse
 import json
 import time
 import html
+import errno
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 # Console Windows mặc định dùng cp1252 → in tiếng Việt/emoji ra stdout sẽ chết với
@@ -62,28 +65,70 @@ def resolve_rate(model, rates):
 
 
 def load_logs():
-    if not os.path.exists(LOG_FILE):
-        return []
     try:
         with open(LOG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+            logs = json.load(f)
+    except FileNotFoundError:
         return []
+    if not isinstance(logs, list) or any(not isinstance(entry, dict) for entry in logs):
+        raise ValueError(f"{LOG_FILE} phải là JSON array chứa object; giữ nguyên file để phục hồi")
+    return logs
+
+
+@contextmanager
+def log_lock():
+    """One lock file for the whole read/append/replace transaction on Windows and POSIX."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    with open(f"{LOG_FILE}.lock", "a+b") as lock:
+        lock.seek(0, os.SEEK_END)
+        if lock.tell() == 0:
+            lock.write(b"\0")
+            lock.flush()
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                lock.seek(0)
+                if os.name == "nt":
+                    import msvcrt
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError as exc:
+                if exc.errno not in (errno.EACCES, errno.EAGAIN) or time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.05)
+        try:
+            yield
+        finally:
+            lock.seek(0)
+            if os.name == "nt":
+                msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
 def save_logs(logs):
     os.makedirs(LOG_DIR, exist_ok=True)
-    with open(LOG_FILE, "w", encoding="utf-8") as f:
-        json.dump(logs, f, indent=2, ensure_ascii=False)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=LOG_DIR,
+                                         prefix=".telemetry-", suffix=".json", delete=False) as f:
+            temporary = f.name
+            json.dump(logs, f, indent=2, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, LOG_FILE)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
 
 def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, test_status, input_tokens=0, output_tokens=0):
-    logs = load_logs()
-    
     rates, _ = load_rates()
     rate = resolve_rate(model, rates)
     est_cost = ((input_tokens / 1_000_000) * rate["input"]) + ((output_tokens / 1_000_000) * rate["output"])
     
     entry = {
-        "id": f"tel-{int(time.time())}-{len(logs)+1}",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "harness": harness,
         "provider": provider,
@@ -98,8 +143,11 @@ def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, 
         "est_cost_usd": round(est_cost, 4)
     }
     
-    logs.append(entry)
-    save_logs(logs)
+    with log_lock():
+        logs = load_logs()
+        entry["id"] = f"tel-{int(time.time())}-{len(logs)+1}"
+        logs.append(entry)
+        save_logs(logs)
     return entry
 
 def generate_markdown_summary(logs):
@@ -270,4 +318,8 @@ def main():
     print(generate_markdown_summary(logs))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"LỖI: telemetry không được ghi/đọc; dữ liệu cũ được giữ nguyên: {exc}", file=sys.stderr)
+        sys.exit(1)

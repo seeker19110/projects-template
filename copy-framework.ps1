@@ -223,6 +223,7 @@ Copy-IfAbsent "scripts/spec-compiler.sh"
 Copy-IfAbsent "scripts/arch-health-radar.py"
 Copy-IfAbsent "scripts/arch-health-radar.sh"
 Copy-IfAbsent "scripts/test-telemetry-and-dispatch.sh"
+Copy-IfAbsent "tests/test_telemetry_integrity.py"  # required by the shipped telemetry self-test
 Copy-IfAbsent "scripts/test-next-gen-engines.sh"
 # Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test
 Copy-IfAbsent "scripts/maintenance-sweep.sh"

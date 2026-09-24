@@ -747,3 +747,33 @@ output cổng nếu assertion sai. Không suy ra fixture đã đổi chỉ từ 
 đã track và fail khi dựng sandbox lỗi. PF-2 có ca nhánh mất và nhánh còn thật trên bare
 remote; suite in output cổng khi thất bại. Chạy `scripts/test-check-scripts.sh` trước
 commit để kiểm đúng bản đang ghi.
+
+## 32. Telemetry nuốt JSON lỗi rồi ghi đè lịch sử
+
+*Ngày:* 2026-09-24, audit hoàn thiện. `telemetry-log.py` cũ bắt mọi exception
+khi đọc `telemetry.json` và trả danh sách rỗng. Một file JSON bị cắt hoặc lỗi đọc
+được coi như log mới; lượt ghi sau mở `w` và xoá toàn bộ lịch sử. Hai Stop hook
+ghi cùng lúc còn đọc chung một trạng thái rồi lượt sau ghi đè lượt trước. Test cũ
+chỉ đo lối đi bình thường, nên không phát hiện mất dữ liệu.
+
+*Cách rà:* làm hỏng JSON trong một thư mục thử, ghi entry và so bytes trước/sau;
+chạy nhiều process ghi cùng file và đếm đủ task. `os.replace` riêng lẻ chống file
+ghi dở nhưng không chống mất cập nhật của đọc–sửa–ghi.
+
+*Cổng chốt chặn:* `tests/test_telemetry_integrity.py` kiểm JSON lỗi, sai root type,
+lỗi replace, sáu process ghi đồng thời và chờ khoá. Hai suite telemetry và coverage
+chạy bộ test; copy framework đưa test kèm engine.
+
+## 33. Hook telemetry truyền giờ vào trường giây
+
+*Ngày:* 2026-09-24, audit hoàn thiện. `telemetry-record.sh` chia thời lượng
+transcript cho 3600 rồi truyền vào `--duration`, nhưng engine lưu trường
+`duration_sec` và báo cáo in `s`. Transcript 12 phút bị ghi thành `0.2s`.
+Test cũ khẳng định `0.2`, tức bảo vệ chính lỗi sai đơn vị.
+
+*Cách rà:* lấy hai timestamp cách nhau 12 phút, đo entry và summary. Giá trị
+`duration_sec` phải là 720, phần tiếp theo 18 phút phải là 1080.
+
+*Cổng chốt chặn:* `scripts/test-hooks-session.sh` khẳng định 720/1080 giây.
+Không nhân toàn bộ log lịch sử: CLI cũng ghi cùng schema nên không xác định an
+toàn entry cũ nào thực sự dùng giờ.
