@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # explicit for ShellCheck; _test-lib.sh also initializes the counter
 
 echo "== 1. Autonomous Spec-to-Contract Compiler Engine =="
 
@@ -14,24 +15,28 @@ PYTHON_CMD="python3"
 command -v python3 >/dev/null 2>&1 || PYTHON_CMD="python"
 
 out_compile="$(bash "$ROOT/scripts/spec-compiler.sh" --compile-all 2>&1)"
-# Chấp nhận CẢ HAI trạng thái hợp lệ: có spec -> biên dịch được; chưa có spec (dự án đích mới)
-# -> báo rõ và thoát 0. KHÔNG nới thành "chạy không crash là xanh".
-if echo "$out_compile" | grep -qE "Compiled contract test|chưa có gì để biên dịch"; then
-  ok "spec-compiler --compile-all biên dịch thành công Markdown specs sang Executable Tests"
+compile_rc=$?
+if [ "$compile_rc" -eq 0 ]; then
+  ok "spec-compiler --compile-all hoàn tất (rc=0)"
 else
-  bad "spec-compiler --compile-all thất bại"
+  bad "spec-compiler --compile-all thất bại (rc=$compile_rc)"
+  printf '%s\n' "$out_compile" >&2
 fi
 
-if [ ! -d "$ROOT/tests/contracts" ] || [ -z "$(ls -A "$ROOT/tests/contracts" 2>/dev/null)" ]; then
-  echo "  ⏭️  Bỏ qua chạy contract test: chưa có spec nào nên chưa sinh ra test nào"
-  out_unittest="OK"
-else
+if compgen -G "$ROOT/tests/contracts/test_*.py" >/dev/null; then
   out_unittest="$("$PYTHON_CMD" -m unittest discover -s "$ROOT/tests/contracts" 2>&1)"
-fi
-if echo "$out_unittest" | grep -q "OK"; then
-  ok "Tất cả Executable Spec Contract Tests chạy thành công (PASSED)"
+  unittest_rc=$?
+  if [ "$unittest_rc" -eq 0 ] && printf '%s\n' "$out_unittest" | grep -q '^Ran [1-9]'; then
+    ok "Tất cả Executable Spec Contract Tests chạy thành công (PASSED)"
+  else
+    bad "Executable Spec Contract Tests thất bại hoặc không chạy test nào (rc=$unittest_rc)"
+    printf '%s\n' "$out_unittest" >&2
+  fi
+elif [ "$compile_rc" -eq 0 ] && [ -z "$(find "$ROOT/docs/specs" -maxdepth 1 -name '*.md' ! -name README.md -print -quit 2>/dev/null)" ]; then
+  echo "  ⏭️  Bỏ qua contract test: chưa có spec nào nên chưa sinh test"
 else
-  bad "Executable Spec Contract Tests thất bại"
+  bad "Có specs nhưng không sinh được contract test"
+  printf '%s\n' "$out_compile" >&2
 fi
 
 # --- Negative-test cho AC-2/AC-3 (audit 2026-09-13, A-01) ---
@@ -89,10 +94,14 @@ cat > "$scratch/docs/specs/2099-01-01-ca-am.md" <<SPEC
 - \`$MISSING_PATH\`
 SPEC
 out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
+compile_rc=$?
 out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
-if [ $? -eq 0 ]; then
+unittest_rc=$?
+if [ "$compile_rc" -ne 0 ]; then
+  bad "AC-2: compiler thất bại (rc=$compile_rc)"; ac_diag
+elif [ "$unittest_rc" -eq 0 ]; then
   bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"; ac_diag
-elif ! printf '%s' "$out_ac2" | grep -q "^Ran [1-9]"; then
+elif ! printf '%s' "$out_ac2" | grep -q "^FAIL: test_c3_duong_dan_spec_hua_phai_ton_tai"; then
   # Đỏ nhưng KHÔNG phải vì assertion — discover không chạy được test nào (ví dụ đường dẫn MSYS
   # trên Windows). Nếu không bắt ở đây thì ca này xanh oan và che mất chính lỗi đó.
   bad "AC-2: đỏ nhưng SAI LÝ DO — unittest không chạy được test nào (discover hỏng?)"; ac_diag
@@ -104,8 +113,10 @@ fi
 rm -f "$scratch/tests/contracts"/*.py
 sed -i "s|$MISSING_PATH|scripts/file-co-that.sh|" "$scratch/docs/specs/2099-01-01-ca-am.md"
 out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
+compile_rc=$?
 out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
-if [ $? -eq 0 ]; then
+unittest_rc=$?
+if [ "$compile_rc" -eq 0 ] && [ "$unittest_rc" -eq 0 ] && printf '%s\n' "$out_ac2" | grep -q '^Ran [1-9]'; then
   ok "AC-3: contract test XANH khi mọi đường dẫn tồn tại (không đỏ oan)"
 else
   bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"; ac_diag
@@ -132,7 +143,8 @@ out = mod._display_path(os.path.join(root, "scripts", "spec-compiler.py"))
 print("OK" if out else "RONG")
 PY
 )"
-if [ "$out_sc1" = "OK" ]; then
+sc1_rc=$?
+if [ "$sc1_rc" -eq 0 ] && [ "$out_sc1" = "OK" ]; then
   ok "SC-1: _display_path chịu được ValueError khác ổ đĩa (không làm chết spec-compiler)"
 else
   bad "SC-1: _display_path vẫn vỡ khi relpath ném ValueError — $out_sc1"
@@ -141,10 +153,12 @@ fi
 echo "== 2. Architectural Health & Tech Debt Radar Engine =="
 
 out_radar="$(bash "$ROOT/scripts/arch-health-radar.sh" --scan 2>&1)"
-if echo "$out_radar" | grep -q "Repo Health & Tech Debt Radar"; then
+radar_rc=$?
+if [ "$radar_rc" -eq 0 ] && echo "$out_radar" | grep -q "Repo Health & Tech Debt Radar"; then
   ok "arch-health-radar --scan tạo được báo cáo"
 else
-  bad "arch-health-radar --scan thất bại"
+  bad "arch-health-radar --scan thất bại (rc=$radar_rc)"
+  printf '%s\n' "$out_radar" >&2
 fi
 
 # AHR-1: báo cáo PHẢI in công thức chấm điểm. Một con số không kèm cách tính là thứ đã khiến
