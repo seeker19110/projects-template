@@ -133,7 +133,39 @@ Nếu provider không được cài hoặc command/version không xác minh đư
 - không đoán path/CLI;
 - quay về workflow nội bộ của `/ui-ux`.
 
-## 8. Persistence và master/page override
+## 8. Adapter cho `pbakaus/impeccable`
+
+Nguồn tham chiếu: [`pbakaus/impeccable`](https://github.com/pbakaus/impeccable), xác minh ngày
+2026-09-24. Đây là skill/CLI design cho nhiều harness, với command theo concern, product/design context,
+và detector deterministic tùy chọn. Chỉ dùng adapter này khi Impeccable **đã được dự án hoặc người dùng
+cài và tin cậy**; template không cài, vendor, thêm submodule, hoặc bật hook của nó.
+
+| Năng lực Impeccable | Cách dùng an toàn trong template |
+| --- | --- |
+| `shape` | Candidate cho IA/UX trước cổng approve; quyết định cuối cùng ghi vào feature spec. |
+| `critique`, `audit`, `polish` | Review hẹp theo surface; findings cần triage theo severity/a11y/performance gate nội bộ, không phải auto-fix. |
+| `harden`, `adapt`, `clarify` | Bổ sung checklist cho error/edge state, responsive hoặc UX copy; áp luật nội bộ nếu mâu thuẫn. |
+| `PRODUCT.md` qua `init` | **Không tạo mặc định**: `PROJECT.md` và spec đã giữ durable product truth. Chỉ dùng khi dự án đích chủ động chọn migration có review. |
+| `DESIGN.md` qua `document` | **Không tạo mặc định**: tokens, components và feature spec là truth hiện hữu; tránh thêm sổ song song. |
+| 61 detector rules + PostToolUse/Stop hooks | Không bật từ template: external binary/trust/per-edit overhead và finding không thể thay gate. Có thể bật riêng tại dự án đích sau review, baseline và rollback. |
+
+Chọn một command theo câu hỏi hẹp, không gọi cả chuỗi 24 command. Impeccable phân biệt mode
+`Persuade`/`Operate`/`Read`/`Experience`; coi đó là vocabulary để làm rõ mục tiêu của **một surface**,
+và ghi lựa chọn có tác động vào feature spec thay vì tạo artifact context riêng.
+
+Nếu Impeccable báo detector finding, kiểm lại với DOM/code/token thật, đánh giá false-positive và ảnh
+hưởng accessibility/performance trước khi sửa. Không chấp nhận detector score như bằng chứng ship-ready.
+
+### Optional UI intelligence engine/hook
+
+Template có adapter hook generic `.claude/hooks/ui-intelligence.sh`, tắt mặc định. Dự án đích chỉ bật khi
+đã cài và tin cậy một detector local: đặt `UI_INTELLIGENCE_HOOK=1` và `UI_INTELLIGENCE_COMMAND` là đường
+dẫn executable đã xác minh, nhận contract `detect <absolute-ui-file>`. Với Impeccable, command trỏ tới
+launcher đã cài của nó. Hook chỉ quét file UI sau edit, không auto-install/download, không chặn edit và
+failure luôn fail-open có cảnh báo. Bật engine/hook phải có baseline, owner triage và rollback (`unset`
+hai biến) tại dự án đích.
+
+## 9. Persistence và master/page override
 
 Nếu provider có cơ chế Master + page override, chỉ dùng nó như **working evidence** khi dự án chủ động
 chọn cơ chế đó. Không để file generated của provider cạnh tranh với feature spec/token thật.
@@ -143,7 +175,7 @@ Nếu dự án cần persistence dài hạn:
 - page-specific deviation → ghi trong spec của capability/page hoặc artifact design hiện hữu của dự án;
 - override phải nêu rõ nó khác global rule ở đâu và vì sao.
 
-## 9. Brownfield vs greenfield
+## 10. Brownfield vs greenfield
 
 ### Brownfield
 Audit trước:
@@ -160,7 +192,7 @@ xếp hạng một style khác cao hơn.
 Provider có thể giúp tạo candidate direction trước Approve gate. Sau review, chỉ phần được chấp nhận
 mới đi vào feature spec/token/component.
 
-## 10. Pre-delivery
+## 11. Pre-delivery
 
 Provider không thay cổng chất lượng của khung. Trước khi code/merge vẫn áp:
 - checklist `/ui-ux`;
@@ -168,7 +200,7 @@ Provider không thay cổng chất lượng của khung. Trước khi code/merge
 - `scripts/dev-task.sh gate`;
 - review diff và source-of-truth của feature.
 
-## 11. Nguyên tắc chống drift
+## 12. Nguyên tắc chống drift
 
 - Không pin repo khung vào taxonomy/style catalog cụ thể của một provider.
 - Không copy dataset upstream vào đây.

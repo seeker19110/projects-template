@@ -39,7 +39,7 @@ Validate **inline** ngay dưới ô lỗi (khi blur), nói *cách sửa*; form d
 ## UI intelligence provider (tùy chọn, không phải nguồn sự thật)
 
 Khi môi trường **đã có sẵn** một UI/UX intelligence provider (ví dụ
-`nextlevelbuilder/ui-ux-pro-max-skill`), đọc
+`pbakaus/impeccable` hoặc `nextlevelbuilder/ui-ux-pro-max-skill`), đọc
 `docs/framework/ui-ux-intelligence-provider.md` trước khi dùng. **Không tự cài provider/package**
 chỉ để có recommendation.
 
@@ -52,6 +52,10 @@ Thứ tự bắt buộc:
    output và dùng luật nội bộ của lệnh này.
 5. Provider output chỉ là **candidate/evidence**. Quyết định được chấp nhận phải quay về feature spec,
    token/component hoặc ADR hiện hữu; raw output không thành source of truth riêng.
+
+Với Impeccable đã cài sẵn: dùng `shape`/`critique`/`audit`/`polish` theo đúng concern; chỉ coi kết quả
+detector là finding cần triage. Không chạy `init` hoặc `document` để tự tạo `PRODUCT.md`/`DESIGN.md` khi
+`PROJECT.md`, feature spec và token/component của dự án đã là nguồn sự thật.
 
 Precedence khi mâu thuẫn:
 **Approved project decisions → token/component/pattern thật → Approved feature spec/ADR →

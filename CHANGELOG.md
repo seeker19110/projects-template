@@ -13,6 +13,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Adapter Impeccable tùy chọn**: contract UI intelligence nay map `pbakaus/impeccable` vào `/ui-ux` theo
+  concern (`shape`/`critique`/`audit`/`polish`...), nhưng không cài/vendoring skill, thêm hook hay nhận
+  `PRODUCT.md`/`DESIGN.md` như nguồn sự thật song song. Detector chỉ là finding phải triage; quyết định
+  được chấp nhận vẫn về feature spec, token/component hoặc ADR.
+  Có thêm hook adapter generic, opt-in qua biến môi trường, chỉ gọi detector local đã tin cậy cho file UI;
+  không tự tải provider và không chặn edit.
+
 - **UI/UX intelligence provider contract**: tích hợp `ui-ux-pro-max` theo hướng provider-neutral thay vì
   vendor/cài bắt buộc — `docs/framework/ui-ux-intelligence-provider.md` định nghĩa precedence source-of-truth,
   query nhỏ nhất (design-system/domain/stack), verify + retry một lần + fallback, privacy/ADR-0009 và adapter
