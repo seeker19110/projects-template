@@ -7,7 +7,7 @@ Người dùng duyệt hồ sơ `docs/reports/2026-09-24-completion-inventory.md
 ngày 2026-09-24. Cho phép thực thi và tích hợp các sửa lỗi/kiểm thử/tài liệu trong
 phạm vi này; không áp thay đổi lên dự án đích hoặc dữ liệu người dùng thật.
 
-State: IN_PROGRESS. Mốc nền: `9087c1f`; PR #177 chưa merge. Mỗi đơn vị một PR,
+State: IN_PROGRESS. Mốc nền: `f3f29ef`; PR #169 và #177 đã merge. Mỗi đơn vị một PR,
 FIFO, tối đa 3 PR mở toàn repo. Không hạ cổng hay coi no-op là kiểm chứng.
 
 ## Phát hiện đã tái hiện và đơn vị PR
@@ -52,3 +52,8 @@ F-10 gate local no-op; F-11 bản đồ và tiến độ lỗi thời.
 - Baseline local gate exit 0 nhưng skip cả bốn bước; Python thiếu coverage/radon,
   ShellCheck/PowerShell chưa có trong PATH. Đang dựng toolchain cô lập để kiểm thật.
 - Lịch sử audit cũ giữ nguyên, không coi kết quả năm/ngày trước là bằng chứng hiện tại.
+- W-01/02: PR #169/#177 đã merge; #177 qua framework-lint Linux/Windows,
+  copy smoke, metadata, CodeQL, dependency review và secret scan.
+- W-03: test đỏ trước sửa (JSON lỗi, schema, atomic replace, process đồng thời,
+  đơn vị thời gian); sau sửa 6 ca integrity, hook, telemetry, copy smoke và Python
+  coverage 95% xanh cục bộ. Chờ CI và merge theo FIFO.

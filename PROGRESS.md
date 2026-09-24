@@ -6,21 +6,21 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **PR #177 — Impeccable optional adapter — đang chờ review/CI**.
-  Nền provider-neutral từ PR #175 (`de976ad`) vẫn giữ nguyên; bổ sung mapping có chọn lọc cho
-  `pbakaus/impeccable`: chỉ dùng khi dự án đích đã cài/tin cậy, không vendor/cài dependency/hook, không tạo
-  `PRODUCT.md`/`DESIGN.md` song song. Evidence: `docs/specs/2026-09-24-impeccable-optional-adapter.md` và
-  `docs/reports/2026-09-24-doi-chieu-impeccable.md`; PR #177 đã mở, chưa merge.
+- Giai đoạn: GĐ 8. **Hoàn thiện khung theo goal 2026-09-24**: PR #169 và #177 đã merge;
+  telemetry, an toàn bảo trì và gate local đang được xử lý lần lượt trong PR riêng.
+  PR #177 bổ sung adapter Impeccable tùy chọn, có CI Linux/Windows và metadata xanh;
+  xem `docs/specs/2026-09-24-impeccable-optional-adapter.md`.
 - Giai đoạn trước đó: GĐ 8. Mốc 2026-09-23 PR #166→#174 (nâng cấp khung 7/7 đợt + đồng bộ
   PROGRESS sau PR #173) đã xong; lịch sử cũ hơn xem
   `docs/changelog/0001-2026-09-23-lich-su-giai-doan-den-2026-09-23.md`.
-- Default-branch SHA đã đối chiếu: `9087c1f` (`main`, PR #176)
+- Default-branch SHA đã đối chiếu: `f3f29ef` (`origin/main`, sau PR #177)
 - Ngày cập nhật: 2026-09-24
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
+| Hoàn thiện khung 2026-09-24 | Sửa F-01..11, gate thật, re-audit | 🔄 W-03/05 | Telemetry, bảo trì, gate local và tài liệu | W-03 telemetry | `docs/goals/2026-09-24-completion.md` |
 | Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
 | Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | ✅ ĐÓNG (2026-09-13) | — | W-308 xong: người dùng đã tự xoá toàn bộ nhánh đã merge qua GitHub UI (`list_branches` xác nhận chỉ còn `main`) | `docs/ops/COMPLETION-PLAN.md` |
 | Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
