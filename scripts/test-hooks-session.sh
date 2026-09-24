@@ -136,16 +136,16 @@ PROVIDER_SH
 chmod +x "$PROVIDER"
 UI_CALLS="$WORK/ui-calls"; export UI_CALLS
 ui_payload() { printf '{"tool_input":{"file_path":%s}}' "$(printf '%s' "$1" | jq -Rs .)"; }
-ui_payload 'src/my component.tsx' | CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI"; rc=$?
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
 [ "$rc" -eq 0 ] && [ ! -e "$UI_CALLS" ] && ok "disabled: không gọi provider" || bad "disabled: rc=$rc hoặc provider vẫn chạy"
-ui_payload 'src/my component.tsx' | CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI"; rc=$?
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
 [ "$rc" -eq 0 ] && [ "$(cat "$UI_CALLS")" = "$(printf 'detect\n%s' "$UI_FILE")" ] && ok "enabled: gọi đúng file UI có khoảng trắng" || bad "enabled: sai command/path hoặc exit $rc"
-ui_payload 'src/not-found.tsx' | CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/not-found.tsx')"
 [ "$(wc -l < "$UI_CALLS")" -eq 2 ] && ok "file thiếu: không gọi provider" || bad "file thiếu vẫn gọi provider"
 printf 'text\n' > "$UI_PROJ/src/readme.txt"
-ui_payload 'src/readme.txt' | CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI"
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" bash "$UI" <<< "$(ui_payload 'src/readme.txt')"
 [ "$(wc -l < "$UI_CALLS")" -eq 2 ] && ok "file ngoài danh sách UI: không gọi provider" || bad "file ngoài danh sách UI vẫn gọi provider"
-ui_payload 'src/my component.tsx' | CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" UI_EXIT=9 bash "$UI"; rc=$?
+CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" UI_EXIT=9 bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
 [ "$rc" -eq 0 ] && [ "$(wc -l < "$UI_CALLS")" -eq 4 ] && ok "provider lỗi: edit vẫn tiếp tục" || bad "provider lỗi đã chặn edit hoặc không chạy"
 
 if [ "$fails" -eq 0 ]; then
