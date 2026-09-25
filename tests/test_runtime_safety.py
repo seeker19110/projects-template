@@ -104,6 +104,11 @@ if [ "${SAFETY_UNEXPECTED:-0}" = 1 ]; then
   printf 'unapproved source\\n' > unexpected.txt
   git add unexpected.txt
 fi
+if [ "${SAFETY_COMMIT:-0}" = 1 ]; then
+  printf 'unapproved committed source\\n' > unexpected.txt
+  git add unexpected.txt
+  git commit -qm 'test: unexpected worker commit'
+fi
 ''')
         write(seed / "docs/ops/MAINTENANCE-REPORT.md", "baseline report\n")
         commit(seed)
@@ -146,6 +151,14 @@ fi
         checkout, remote, _, branch = self.cron_fixture()
         previous = git(remote, "rev-parse", branch)
         result = self.cron(checkout, SAFETY_UNEXPECTED="1")
+        self.assertEqual(result.returncode, 9, result.stderr)
+        self.assertEqual(git(remote, "rev-parse", branch), previous)
+        self.assertTrue((checkout / "unexpected.txt").exists())
+
+    def test_report_only_publish_rejects_worker_commits(self):
+        checkout, remote, _, branch = self.cron_fixture()
+        previous = git(remote, "rev-parse", branch)
+        result = self.cron(checkout, SAFETY_COMMIT="1")
         self.assertEqual(result.returncode, 9, result.stderr)
         self.assertEqual(git(remote, "rev-parse", branch), previous)
         self.assertTrue((checkout / "unexpected.txt").exists())

@@ -147,6 +147,8 @@ fi
 log "nhánh làm việc: $WORK_BRANCH"
 
 # ── (2) Chạy agent (quét + triage qua CLI subscription cục bộ) ──────────────
+AGENT_BASE_SHA="$(git rev-parse HEAD)" || die "không đọc được HEAD trước khi chạy agent" 6
+readonly AGENT_BASE_SHA
 run_rc=0
 bash scripts/maintain-run.sh "${PASS_ARGS[@]}" || run_rc=$?
 [ "$run_rc" -eq 0 ] || log "maintain-run.sh thoát $run_rc (không phải lỗi chặn — có thể agent chỉ báo 🔴>0, hoặc CLI lỗi; xem log phía trên)"
@@ -154,6 +156,8 @@ bash scripts/maintain-run.sh "${PASS_ARGS[@]}" || run_rc=$?
 # Một CLI có thể stage file khác. Chỉ git add báo cáo là CHƯA đủ để giới hạn commit.
 assert_report_only() {
   local changed
+  [ "$(git rev-parse HEAD)" = "$AGENT_BASE_SHA" ] && [ "$(git symbolic-ref --quiet --short HEAD)" = "$WORK_BRANCH" ] \
+    || die "agent thay đổi commit/nhánh — giữ nguyên để review, không publish" 9
   while IFS= read -r -d '' changed; do
     case "$changed" in
       docs/ops/MAINTENANCE-PLAN.md|docs/ops/MAINTENANCE-LOG.md|docs/ops/MAINTENANCE-REPORT.md) ;;
