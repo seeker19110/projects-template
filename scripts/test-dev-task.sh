@@ -87,5 +87,84 @@ cp "$ROOT/scripts/_stack-detect.sh" "$WORK/_stack-detect.sh"
 got="$(CLAUDE_PROJECT_DIR="$WORK/node1" bash "$tmpdt" --print typecheck 2>/dev/null)"
 [ -z "$got" ] && ok "negative: không alias → 'type-check' không được nhận (test bắt được)" || bad "negative test không bắt được (được '$got')"
 
+
+# Contract tests share the real dispatcher; only these tiny fixture commands are stubs.
+gate_case() {  # $1=fixture $2=expected exit $3=output marker [$4=gate|doctor]
+  local dir="$1" expected="$2" marker="$3" rc
+  CLAUDE_PROJECT_DIR="$dir" bash "$DT" "${4:-gate}" >"$WORK/gate-output" 2>&1; rc=$?
+  if [ "$rc" -eq "$expected" ] && grep -q "$marker" "$WORK/gate-output"; then
+    ok "${dir##*/}: ${4:-gate} → exit $rc, $marker"
+  else
+    bad "${dir##*/}: expected exit $expected / $marker, got $rc"
+    cat "$WORK/gate-output"
+  fi
+}
+gate_fixture() {
+  local dir; dir="$(fx "$1")"; mkdir -p "$dir/.claude"
+  printf '%s\n' "build='true'" "typecheck='true'" "lint='true'" "test='true'" > "$dir/.claude/project-commands.sh"
+  printf '%s' "$dir"
+}
+assert_no_marker() {
+  if [ -e "$1/ran-check" ]; then bad "preflight/doctor executed a check"; else ok "preflight/doctor did not execute checks"; fi
+}
+contract_tests() {
+  local d
+  d="$(fx gate-empty)"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-incomplete)"; printf "test=''\nbuild='touch ran-check'\n" >> "$d/.claude/project-commands.sh"
+  gate_case "$d" 2 BLOCKED; assert_no_marker "$d"
+  d="$(gate_fixture gate-whitespace)"; printf "test='   '\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-config-syntax)"; printf "broken='\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-config-failure)"; printf "false\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-command-syntax)"; printf "test='if'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-missing-tool)"; printf "gate_tools='framework-fixture-tool-does-not-exist'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED doctor
+  d="$(gate_fixture gate-missing-module)"; printf "gate_python_modules='framework_fixture_module_does_not_exist'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED doctor
+  d="$(gate_fixture gate-doctor)"; printf "build='touch ran-check'\n" >> "$d/.claude/project-commands.sh"
+  gate_case "$d" 0 READY doctor; assert_no_marker "$d"
+  gate_case "$d" 0 PASS
+  [ -f "$d/ran-check" ] && ok "gate actually executed the check" || bad "gate reported PASS without running the check"
+}
+skip_and_failure_tests() {
+  local d t
+  d="$(gate_fixture gate-na)"; printf "typecheck=''\ngate_skip_typecheck_reason='Fixture has no statically typed sources; reviewed.'\n" >> "$d/.claude/project-commands.sh"
+  gate_case "$d" 0 PASS
+  grep -q 'N/A.*typecheck' "$WORK/gate-output" && ok "N/A reason visible" || bad "N/A reason not visible"
+  d="$(gate_fixture gate-na-ambiguous)"; printf "gate_skip_typecheck_reason='Old exclusion should not hide a newly available check.'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-all-na)"
+  for t in build typecheck lint test; do printf "%s=''\ngate_skip_%s_reason='Not applicable in this negative fixture.'\n" "$t" "$t" >> "$d/.claude/project-commands.sh"; done
+  gate_case "$d" 2 BLOCKED
+  d="$(gate_fixture gate-failing-test)"; printf "test='exit 7'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 1 FAIL
+  d="$(gate_fixture gate-pipeline)"; printf "test='false | true'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 1 FAIL
+  d="$(gate_fixture gate-masked-failure)"; printf "test='false; true'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 1 FAIL
+  d="$(gate_fixture gate-config-drift)"; printf "test='echo mutation >> .claude/project-commands.sh'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED
+}
+real_node_fixture() {
+  local d; d="$(fx gate-real-node)"; mkdir -p "$d/.claude"
+  if ! command -v node >/dev/null 2>&1; then bad "real Node fixture requires node; not skipped"; return; fi
+  cat > "$d/.claude/project-commands.sh" <<'CONFIG'
+gate_tools='node'
+build='node --check sum.cjs'
+lint='node --check test.cjs'
+test='node test.cjs'
+gate_skip_typecheck_reason='Plain JavaScript fixture; behavior is asserted by the real Node test.'
+CONFIG
+  printf "module.exports = (a,b) => a-b;\n" > "$d/sum.cjs"
+  printf "require('node:assert/strict').equal(require('./sum.cjs')(2,3),5);\n" > "$d/test.cjs"
+  gate_case "$d" 1 FAIL
+  printf "module.exports = (a,b) => a+b;\n" > "$d/sum.cjs"
+  gate_case "$d" 0 PASS
+}
+head_drift_test() {
+  local d; d="$(gate_fixture gate-head-drift)"
+  git -C "$d" init -q
+  git -C "$d" -c user.name=fixture -c user.email=fixture@example.invalid commit --allow-empty -qm 'test: baseline'
+  printf "test='git -c user.name=fixture -c user.email=fixture@example.invalid commit --allow-empty -qm changed'\n" >> "$d/.claude/project-commands.sh"
+  gate_case "$d" 2 BLOCKED
+}
+echo "== 7. Strict gate: missing checks are BLOCKED; doctor is READY, never PASS =="
+contract_tests
+skip_and_failure_tests
+head_drift_test
+real_node_fixture
+
 if [ "$fails" -eq 0 ]; then echo "OK — dev-task.sh phân giải đúng lệnh cho 13 stack, alias Node, môi trường Python."; exit 0; fi
 echo "FAIL — $fails ca hỏng."; exit 1

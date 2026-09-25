@@ -1,38 +1,40 @@
 #!/usr/bin/env bash
-# .claude/project-commands.sh — KHAI BÁO lệnh dev cho DỰ ÁN NÀY (escape hatch)
+# Copy thành .claude/project-commands.sh và điền lệnh THẬT của dự án.
+# Đây là shell tin cậy được nạp để đọc biến: chỉ dùng gán biến, không side effect.
+# Command đã khai được ưu tiên; để trống sẽ tự dò stack. Task đơn lẻ có thể skip,
+# nhưng gate/doctor BLOCKED nếu thiếu kiểm tra bắt buộc. Không dùng true để né gate.
 #
-# Cách dùng: copy file này thành `.claude/project-commands.sh` rồi điền lệnh THẬT
-# của dự án. `scripts/dev-task.sh` sẽ ưu tiên các biến ở đây trước khi tự dò.
-# Chỉ cần điền những task dự án có; để trống/không khai báo thì script tự dò hoặc no-op.
+# Kiểm cấu hình/tool (không chạy các lệnh kiểm tra): bash scripts/dev-task.sh doctor
+# Kiểm thật: bash scripts/dev-task.sh gate
+# READY khác PASS; nội dung command và lý do N/A phải được review theo profile.
 #
-# Đây là NƠI DUY NHẤT chứa lệnh đặc thù stack — nhờ vậy hook/settings trong template
-# giữ nguyên, không phụ thuộc loại dự án. (Mỗi dự án khác nhau → chỉ khác file này.)
+# Ví dụ Node (chỉnh theo package scripts thực tế):
+# export gate_tools='node npm'
+# export format='npm run format'
+# export build='npm run build'
+# export typecheck='npm run type-check'
+# export lint='npm run lint'
+# export test='npm test'
 #
-# Ví dụ cho một dự án Node:
-#   format="npm run format"
-#   lint="npm run lint"
-#   typecheck="npm run type-check"
-#   test="npm test"
-#   build="npm run build"
+# Ví dụ Python: dùng build-package thực nếu phát hành thư viện; dự án không có
+# bước đóng gói chỉ được N/A với lý do đã review, không tự suy ra từ thiếu command.
+# export gate_tools='python3 ruff mypy pytest'
+# export gate_python_modules='pytest'
+# export lint='ruff check .'
+# export typecheck='mypy .'
+# export test='pytest -q'
+# export gate_skip_build_reason='CLI nội bộ chạy trực tiếp, không tạo artifact đóng gói; đã review trong spec.'
 #
-# Ví dụ Python:
-#   format="ruff format ."
-#   lint="ruff check ."
-#   typecheck="mypy ."
-#   test="pytest -q"
+# Monorepo: khai lệnh tổng hợp tất cả thành phần liên quan, không chỉ workspace đầu.
+# export test='pnpm -r test && pytest -q'
 #
-# Ví dụ hỗn hợp/monorepo (tùy ý ghép lệnh):
-#   test="pnpm -r test && pytest -q"
-
-# --- Điền cho dự án của bạn bên dưới (bỏ dấu # để bật) ---
-# format=""
-# lint=""
-# typecheck=""
-# test=""
-# build=""
-
-# --- Bảo trì (scripts/maintenance-sweep.sh) — lệnh kiểm dependency nếu tự dò không đúng ---
-# Tự dò: npm/pnpm/yarn/bun outdated + audit · pip list --outdated + pip-audit · go list -m -u · cargo outdated/audit.
-# Quy ước: exit 0 = sạch; exit ≠ 0 ở deps_audit = 🔴 (lỗ hổng), ở deps_outdated = 🟡 (lỗi thời).
-# deps_outdated=""
-# deps_audit=""
+# Gate chạy Bash errexit + pipefail. Mọi pipeline/chuỗi lệnh phải phản ánh lỗi thật.
+# Không được vừa có command vừa N/A cho cùng task, hoặc N/A toàn bộ bốn task.
+# Các biến hỗ trợ: gate_skip_build_reason, gate_skip_typecheck_reason,
+# gate_skip_lint_reason, gate_skip_test_reason; tất cả là ngoại lệ cần review.
+# gate_tools chứa tên executable cách nhau bằng khoảng trắng; gate_python_modules
+# chứa tên module Python. Không đưa secret/token vào command vì command được log.
+#
+# Bảo trì (scripts/maintenance-sweep.sh), có thể khai riêng khi tự dò không đúng:
+# export deps_outdated='npm outdated'
+# export deps_audit='npm audit --audit-level=high'

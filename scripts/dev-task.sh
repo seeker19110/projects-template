@@ -8,10 +8,12 @@
 # Thứ tự phân giải (đầu tiên thắng):
 #   1) KHAI BÁO: nếu có .claude/project-commands.sh và định nghĩa biến <task> → chạy.
 #   2) TỰ DÒ: nhận diện hệ sinh thái (node/python/go/rust/make) → chạy lệnh quy ước.
-#   3) NO-OP: không có gì khớp → in thông báo skip, exit 0 (KHÔNG làm gãy dự án nào).
+#   3) Task đơn lẻ chưa có lệnh → skip. RIÊNG gate/doctor: thiếu kiểm tra → BLOCKED.
 #
-# Task hỗ trợ: format | lint | typecheck | test | build | gate
-#   gate = chạy tuần tự build→typecheck→lint→test (cái nào phân giải được), đỏ 1 cái → fail.
+# Task hỗ trợ: format | lint | typecheck | test | build | gate | doctor
+#   gate = tiền kiểm đủ build/typecheck/lint/test, rồi chạy fail-fast; thiếu command → BLOCKED.
+#   doctor = cùng tiền kiểm, chỉ READY (không chạy kiểm tra, không phải PASS).
+#   N/A theo profile: gate_skip_<task>_reason trong config đã review; không được bỏ tất cả.
 #   --print <task> = chỉ IN lệnh sẽ chạy (để test/dò cấu hình), không chạy.
 #
 # Stack tự dò (mỗi stack một hàm _cmd_*, thêm stack = thêm hàm + một tên trong detected_cmd):
@@ -29,17 +31,16 @@ DECL="$ROOT/.claude/project-commands.sh"
 log() { printf '[dev-task] %s\n' "$*" >&2; }
 
 if [ -z "$TASK" ]; then
-  log "thiếu tên task. Dùng: dev-task.sh format|lint|typecheck|test|build|gate"
+  log "thiếu tên task. Dùng: dev-task.sh format|lint|typecheck|test|build|gate|doctor"
   exit 2
 fi
 
 # --- 1) Lệnh KHAI BÁO (escape hatch cho mọi dự án đặc thù) --------------------
 declared_cmd() {
-  # In ra lệnh khai báo cho $1 nếu có, ngược lại rỗng.
+  # Config là shell tin cậy của dự án, không phải input từ PR/provider chưa review.
+  # Shell riêng giữ errexit hoạt động ngay cả khi caller dùng command substitution/if.
   [ -f "$DECL" ] || return 0
-  # Nạp trong subshell để không rò biến; lấy giá trị biến trùng tên task.
-  # shellcheck source=/dev/null  # $DECL là file khai báo của DỰ ÁN ĐÍCH, không tồn tại ở repo khung
-  ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${$1:-}\"" )
+  bash -e -o pipefail -c '. "$1" >/dev/null; key="$2"; printf "%s" "${!key-}"' bash "$DECL" "$1"
 }
 
 # --- 2) TỰ DÒ theo hệ sinh thái ---------------------------------------------
@@ -131,7 +132,7 @@ _cmd_dotnet() {
     *)      return 1 ;;
   esac
 }
-_cmd_dart() {   # Flutter / Dart
+_cmd_dart() {
   [ -f "$ROOT/pubspec.yaml" ] || return 1
   local t="dart test"; command -v flutter >/dev/null 2>&1 && grep -q "^  flutter:" "$ROOT/pubspec.yaml" 2>/dev/null && t="flutter test"
   case "$1" in
@@ -203,13 +204,13 @@ detected_cmd() {
   return 0
 }
 
-resolve() { # $1=task -> in lệnh (khai báo ưu tiên), rỗng nếu không có
-  local c; c="$(declared_cmd "$1")"; [ -n "$c" ] && { echo "$c"; return 0; }
+resolve() {
+  local c; c="$(declared_cmd "$1")" || return 2; [ -n "$c" ] && { echo "$c"; return 0; }
   detected_cmd "$1"
 }
 
-run_task() { # $1=task -> chạy; 0 nếu ok hoặc no-op, khác 0 nếu lệnh fail
-  local cmd; cmd="$(resolve "$1")"
+run_task() {
+  local cmd; cmd="$(resolve "$1")" || return 2
   if [ -z "$cmd" ]; then log "skip: chưa cấu hình/dò được '$1'"; return 0; fi
   log "run [$1]: $cmd"
   ( cd "$ROOT" && bash -c "$cmd" )
@@ -221,7 +222,7 @@ declared_format_file() {
   # shellcheck source=/dev/null  # như trên: đường dẫn chỉ có ở dự án đích
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${format_file:-}\"" )
 }
-resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu không có per-file formatter
+resolve_format_file() {
   local p="$1" tmpl ext
   tmpl="$(declared_format_file)"
   if [ -n "$tmpl" ]; then printf '%s' "${tmpl//\{\}/$p}"; return 0; fi
@@ -232,18 +233,88 @@ resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu khôn
         echo "npx --no-install prettier --write \"$p\""; return 0; fi ;;
     py)
       command -v ruff  >/dev/null 2>&1 && { echo "ruff format \"$p\""; return 0; }
-      command -v black >/dev/null 2>&1 && { echo "black \"$p\"";       return 0; } ;;
+      command -v black >/dev/null 2>&1 && { echo "black \"$p\""; return 0; } ;;
     go)  command -v gofmt   >/dev/null 2>&1 && { echo "gofmt -w \"$p\""; return 0; } ;;
-    rs)  command -v rustfmt >/dev/null 2>&1 && { echo "rustfmt \"$p\"";  return 0; } ;;
+    rs)  command -v rustfmt >/dev/null 2>&1 && { echo "rustfmt \"$p\""; return 0; } ;;
   esac
   return 0
+}
+
+# --- Contract kiểm chứng: thiếu kiểm tra là BLOCKED, không phải PASS ----------
+nonblank() { [[ "$1" == *[![:space:]]* ]]; }
+blocked() { log "BLOCKED: $*"; return 2; }
+gate_context() {
+  local config=absent head=no-commit
+  if [ -f "$DECL" ]; then config="$(git hash-object --no-filters "$DECL")" || return 2; fi
+  head="$(git -C "$ROOT" rev-parse --verify HEAD 2>/dev/null)" || head=no-commit
+  printf '%s:%s' "$head" "$config"
+}
+gate_tools_ready() {
+  local tools modules tool
+  local -a tool_list module_list
+  tools="$(declared_cmd gate_tools)" || { blocked 'không đọc được gate_tools'; return 2; }
+  read -r -a tool_list <<<"bash git jq ${tools//$'\n'/ }"
+  for tool in "${tool_list[@]}"; do
+    command -v "$tool" >/dev/null 2>&1 || { blocked "thiếu công cụ '$tool'"; return 2; }
+  done
+  modules="$(declared_cmd gate_python_modules)" || { blocked 'không đọc được gate_python_modules'; return 2; }
+  if nonblank "$modules"; then
+    command -v python3 >/dev/null 2>&1 || { blocked 'thiếu python3 cho module checks'; return 2; }
+    read -r -a module_list <<<"${modules//$'\n'/ }"
+    python3 -c 'import importlib.util,sys; sys.exit(any(importlib.util.find_spec(m) is None for m in sys.argv[1:]))' "${module_list[@]}" \
+      || { blocked "thiếu hoặc không nạp được Python module: $modules"; return 2; }
+  fi
+}
+gate_add_task() {
+  local task="$1" cmd reason
+  cmd="$(resolve "$task")" || { blocked "không đọc được command '$task'"; return 2; }
+  reason="$(declared_cmd "gate_skip_${task}_reason")" || { blocked "không đọc được lý do N/A '$task'"; return 2; }
+  if nonblank "$reason"; then
+    if nonblank "$cmd"; then blocked "'$task' vừa có command vừa có lý do N/A — phải review lại"; return 2; fi
+    log "N/A [$task]: $reason"
+    return 0
+  fi
+  nonblank "$cmd" || { blocked "chưa cấu hình '$task'; khai command hoặc gate_skip_${task}_reason được review"; return 2; }
+  bash -n -c "$cmd" || { blocked "command '$task' sai cú pháp Bash"; return 2; }
+  GATE_NAMES+=("$task"); GATE_COMMANDS+=("$cmd")
+}
+gate_preflight() {
+  local task after
+  GATE_NAMES=(); GATE_COMMANDS=()
+  command -v git >/dev/null 2>&1 || { blocked 'thiếu git'; return 2; }
+  GATE_CONTEXT="$(gate_context)" || { blocked 'không đọc được context'; return 2; }
+  if [ -f "$DECL" ]; then
+    bash -n "$DECL" || { blocked 'project-commands.sh sai cú pháp'; return 2; }
+  fi
+  gate_tools_ready || return 2
+  for task in build typecheck lint test; do gate_add_task "$task" || return 2; done
+  [ "${#GATE_NAMES[@]}" -gt 0 ] || { blocked 'không có kiểm tra thực thi nào'; return 2; }
+  after="$(gate_context)" || return 2
+  [ "$GATE_CONTEXT" = "$after" ] || { blocked 'HEAD/config đổi trong tiền kiểm'; return 2; }
+}
+verify_contract() {
+  local mode="$1" i after
+  gate_preflight || return 2
+  if [ "$mode" = doctor ]; then
+    log "READY: ${#GATE_NAMES[@]} kiểm tra đã cấu hình; chưa chạy, không phải PASS."
+    return 0
+  fi
+  for i in "${!GATE_NAMES[@]}"; do
+    log "run [${GATE_NAMES[$i]}]: ${GATE_COMMANDS[$i]}"
+    if ! (cd "$ROOT" && bash -e -o pipefail -c "${GATE_COMMANDS[$i]}"); then
+      log "FAIL: kiểm tra '${GATE_NAMES[$i]}' thất bại"; return 1
+    fi
+  done
+  after="$(gate_context)" || return 2
+  [ "$GATE_CONTEXT" = "$after" ] || { blocked 'HEAD/config đổi trong khi kiểm tra; cần chạy lại'; return 2; }
+  log "PASS: ${#GATE_NAMES[@]} kiểm tra đã chạy thành công; context=$GATE_CONTEXT"
 }
 
 # --- Điều phối ---------------------------------------------------------------
 case "$TASK" in
   --print)
     T="${2:-}"; case "$T" in format|lint|typecheck|test|build) ;; *) log "--print: cần tên task hợp lệ"; exit 2 ;; esac
-    C="$(resolve "$T")"; [ -n "$C" ] && printf '%s\n' "$C"; exit 0 ;;
+    C="$(resolve "$T")" || exit 2; [ -n "$C" ] && printf '%s\n' "$C"; exit 0 ;;
   format|lint|typecheck|test|build)
     run_task "$TASK"; exit $? ;;
   format-file)
@@ -252,13 +323,8 @@ case "$TASK" in
     [ -n "$C" ] || { log "skip format-file: không có per-file formatter cho '$P'"; exit 0; }
     log "format-file: $C"; ( cd "$ROOT" && bash -c "$C" ) || true
     exit 0 ;;
-  gate)
-    rc=0
-    for t in build typecheck lint test; do
-      run_task "$t" || { rc=1; log "GATE ĐỎ ở '$t' → dừng"; break; }
-    done
-    [ "$rc" -eq 0 ] && log "GATE XANH (hoặc no-op)"
-    exit "$rc" ;;
+  gate|doctor)
+    verify_contract "$TASK"; exit $? ;;
   *)
-    log "task không hợp lệ: '$TASK' (format|lint|typecheck|test|build|gate)"; exit 2 ;;
+    log "task không hợp lệ: '$TASK' (format|lint|typecheck|test|build|gate|doctor)"; exit 2 ;;
 esac
