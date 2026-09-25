@@ -50,7 +50,18 @@ PASS_ARGS=()
 log() { printf '[maintain-cron] %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 die() { log "LỖI: $*"; exit "${2:-1}"; }
 
+# Kiểm trước shift 2: thiếu giá trị không được thành vòng lặp vô hạn.
+require_cli_value() {
+  if [ "$#" -lt 2 ] || [ -z "${2:-}" ] || [[ "${2:-}" == -* ]]; then
+    printf '[CLI] thiếu giá trị cho %s (cần giá trị không rỗng)\n' "$1" >&2
+    exit 2
+  fi
+}
+
 while [ $# -gt 0 ]; do
+  case "$1" in
+    --base|--lock-dir|--gh-token|--gh-token-file|--repo|--harness|--model|--provider|--mode) require_cli_value "$@" ;;
+  esac
   case "$1" in
     --base)       BASE="${2:-}"; shift 2 ;;
     --no-push)    NO_PUSH=1; shift ;;
@@ -107,17 +118,26 @@ fi
 [ -n "$BASE" ] || BASE=main
 log "nhánh nền: $BASE"
 
+# Working tree sạch KHÔNG có nghĩa là không có commit cục bộ chưa đẩy.
+guard_local_base() {
+  if git show-ref -q --verify "refs/heads/$BASE"; then
+    git merge-base --is-ancestor "$BASE" "origin/$BASE" \
+      || die "nhánh nền $BASE có commit cục bộ/chia nhánh — giữ nguyên, không reset" 6
+  fi
+}
 git fetch origin "$BASE" --quiet || die "git fetch origin $BASE thất bại (mạng/quyền?)" 6
+guard_local_base
 git checkout -q "$BASE" 2>/dev/null || git checkout -q -B "$BASE" "origin/$BASE" || die "không checkout được $BASE" 6
 git reset -q --hard "origin/$BASE" || die "không đồng bộ được với origin/$BASE" 6   # an toàn: base vừa fetch, không phải nhánh có việc dở
 log "đã đồng bộ $BASE = origin/$BASE ($(git rev-parse --short HEAD))"
 
 WORK_BRANCH="maint/auto-$(date -u +%Y-%m-%d)"
-# Fetch ĐÚNG nhánh này (không phải toàn bộ refs) để refs/remotes/origin/$WORK_BRANCH phản ánh tip
-# thật hiện tại trên remote — cần cho --force-with-lease bên dưới. Nhánh chưa từng đẩy thì lệnh này
-# fail vô hại (`|| true`), remote-tracking ref rỗng, --force-with-lease vẫn chạy được (coi như "chưa
-# có gì trên remote").
-git fetch origin "$WORK_BRANCH" --quiet 2>/dev/null || true
+# Chụp SHA kỳ vọng MỘT LẦN; background fetch không được cấp quyền ghi đè mới.
+[ "$WORK_BRANCH" != "$BASE" ] || die "nhánh báo cáo không được trùng nhánh nền" 2
+REMOTE_WORK_REF="$(git ls-remote --heads origin "refs/heads/$WORK_BRANCH")" \
+  || die "không đọc được trạng thái nhánh báo cáo — không đoán là nhánh chưa tồn tại" 6
+EXPECTED_WORK_SHA="${REMOTE_WORK_REF%%[[:space:]]*}"
+readonly EXPECTED_WORK_SHA
 if git show-ref -q --verify "refs/heads/$WORK_BRANCH"; then
   git checkout -q "$WORK_BRANCH"
   git reset -q --hard "$BASE"   # nhánh cùng ngày chạy lại lần 2 → làm lại từ base mới nhất, không cộng dồn
@@ -130,6 +150,18 @@ log "nhánh làm việc: $WORK_BRANCH"
 run_rc=0
 bash scripts/maintain-run.sh "${PASS_ARGS[@]}" || run_rc=$?
 [ "$run_rc" -eq 0 ] || log "maintain-run.sh thoát $run_rc (không phải lỗi chặn — có thể agent chỉ báo 🔴>0, hoặc CLI lỗi; xem log phía trên)"
+
+# Một CLI có thể stage file khác. Chỉ git add báo cáo là CHƯA đủ để giới hạn commit.
+assert_report_only() {
+  local changed
+  while IFS= read -r -d '' changed; do
+    case "$changed" in
+      docs/ops/MAINTENANCE-PLAN.md|docs/ops/MAINTENANCE-LOG.md|docs/ops/MAINTENANCE-REPORT.md) ;;
+      *) die "agent thay đổi file ngoài phạm vi báo cáo: $changed — giữ nguyên để kiểm tra, không publish" 9 ;;
+    esac
+  done < <(git diff --name-only -z; git diff --cached --name-only -z; git ls-files --others --exclude-standard -z)
+}
+assert_report_only
 
 # ── (3) Commit + push CHỈ 3 file MAINTENANCE-*.md, CHỈ vào nhánh riêng ──────
 FILES=(docs/ops/MAINTENANCE-PLAN.md docs/ops/MAINTENANCE-LOG.md docs/ops/MAINTENANCE-REPORT.md)
@@ -158,20 +190,10 @@ if [ "$NO_PUSH" -eq 1 ]; then
   exit "$run_rc"
 fi
 
-# --force-with-lease CHỈ áp cho $WORK_BRANCH (nhánh do chính agent này sở hữu và ghi đè khi chạy
-# lại cùng ngày — KHÔNG BAO GIỜ áp cho $BASE/main, lệnh push ở đây không hề nhắc tới $BASE). An
-# toàn hơn --force thường: nếu ai/tiến trình khác đã đẩy lên $WORK_BRANCH sau lượt `fetch` ở trên
-# (đúng giá trị "lease"), push bị TỪ CHỐI thay vì âm thầm ghi đè. Không có --force-with-lease thì
-# lượt chạy lại cùng ngày CHỈ tình cờ thành công khi hai commit trùng giây hệt nhau (bug đã bắt được
-# khi viết test §7) — mọi lượt chạy thật cách nhau vài giây trở lên sẽ luôn bị remote từ chối
-# "non-fast-forward" vì local đã `reset --hard` về base rồi tạo commit MỚI, không phải hậu duệ của
-# commit cũ trên remote.
-if ! git push --force-with-lease="$WORK_BRANCH" -u origin "$WORK_BRANCH" --quiet; then
-  log "push thất bại lần 1 — thử lại sau 5s (mạng chập chờn, hoặc lease đổi giữa chừng)"
-  sleep 5
-  git fetch origin "$WORK_BRANCH" --quiet 2>/dev/null || true
-  git push --force-with-lease="$WORK_BRANCH" -u origin "$WORK_BRANCH" --quiet \
-    || die "push thất bại sau khi thử lại — nhánh $WORK_BRANCH vẫn nằm cục bộ, không mất dữ liệu. Nếu lỗi là 'stale info', một tiến trình khác vừa đẩy lên đúng nhánh này — kiểm tra tay." 8
+# Lease gắn SHA bất biến (rỗng = nhánh chưa tồn tại). Không fetch/rồi thử lại
+# bằng lease mới: làm vậy có thể ghi đè báo cáo concurrent đã bảo vệ ở lần đầu.
+if ! git push --force-with-lease="refs/heads/$WORK_BRANCH:$EXPECTED_WORK_SHA" -u origin "$WORK_BRANCH" --quiet; then
+  die "push bị từ chối hoặc mạng lỗi — giữ nhánh cục bộ, không tự refresh lease; đối chiếu remote trước khi chạy lại" 8
 fi
 log "đã đẩy $WORK_BRANCH lên origin."
 git checkout -q "$BASE"
