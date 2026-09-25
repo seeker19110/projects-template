@@ -57,7 +57,9 @@ class RuntimeSafety(unittest.TestCase):
         self.env = os.environ.copy()
         for key in ("CLAUDE_PROJECT_DIR", "GITHUB_TOKEN", "GH_TOKEN", "GIT_DIR", "GIT_WORK_TREE"):
             self.env.pop(key, None)
-        self.env.update(GIT_CONFIG_NOSYSTEM="1", GIT_TERMINAL_PROMPT="0")
+        # Use the same Git config as clone/setup; changing core.autocrlf only
+        # for the system under test makes a clean Windows fixture look dirty.
+        self.env.update(GIT_TERMINAL_PROMPT="0")
 
     def test_missing_cli_values_are_rejected_before_side_effects(self):
         flags = {
@@ -88,6 +90,7 @@ class RuntimeSafety(unittest.TestCase):
         seed = self.tmp / "seed"
         init(seed)
         shutil.copytree(ROOT / "scripts", seed / "scripts")
+        write(seed / ".gitattributes", "*.sh text eol=lf\n")
         write(seed / "scripts/maintenance-sweep.sh", "#!/usr/bin/env bash\nexit 0\n")
         write(seed / "scripts/maintain-run.sh", '''#!/usr/bin/env bash
 set -euo pipefail
@@ -127,6 +130,9 @@ fi
         self.assertEqual(result.returncode, 0, result.stderr)
         git(other, "config", "user.name", "Concurrent fixture")
         git(other, "config", "user.email", "concurrent@example.invalid")
+        status = run([GIT, "-C", checkout, "status", "--porcelain"], env=self.env)
+        self.assertEqual(status.returncode, 0, status.stderr)
+        self.assertEqual(status.stdout, "", "Fixture must be clean: " + status.stdout)
         return checkout, remote, other, branch
 
     def cron(self, checkout, **overrides):
