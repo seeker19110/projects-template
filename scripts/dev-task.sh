@@ -132,7 +132,7 @@ _cmd_dotnet() {
     *)      return 1 ;;
   esac
 }
-_cmd_dart() {   # Flutter / Dart
+_cmd_dart() {
   [ -f "$ROOT/pubspec.yaml" ] || return 1
   local t="dart test"; command -v flutter >/dev/null 2>&1 && grep -q "^  flutter:" "$ROOT/pubspec.yaml" 2>/dev/null && t="flutter test"
   case "$1" in
@@ -204,12 +204,12 @@ detected_cmd() {
   return 0
 }
 
-resolve() { # $1=task -> in lệnh (khai báo ưu tiên), rỗng nếu không có
+resolve() {
   local c; c="$(declared_cmd "$1")" || return 2; [ -n "$c" ] && { echo "$c"; return 0; }
   detected_cmd "$1"
 }
 
-run_task() { # $1=task -> chạy; 0 nếu ok hoặc no-op, khác 0 nếu lệnh fail
+run_task() {
   local cmd; cmd="$(resolve "$1")" || return 2
   if [ -z "$cmd" ]; then log "skip: chưa cấu hình/dò được '$1'"; return 0; fi
   log "run [$1]: $cmd"
@@ -222,7 +222,7 @@ declared_format_file() {
   # shellcheck source=/dev/null  # như trên: đường dẫn chỉ có ở dự án đích
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${format_file:-}\"" )
 }
-resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu không có per-file formatter
+resolve_format_file() {
   local p="$1" tmpl ext
   tmpl="$(declared_format_file)"
   if [ -n "$tmpl" ]; then printf '%s' "${tmpl//\{\}/$p}"; return 0; fi
@@ -233,9 +233,9 @@ resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu khôn
         echo "npx --no-install prettier --write \"$p\""; return 0; fi ;;
     py)
       command -v ruff  >/dev/null 2>&1 && { echo "ruff format \"$p\""; return 0; }
-      command -v black >/dev/null 2>&1 && { echo "black \"$p\"";       return 0; } ;;
+      command -v black >/dev/null 2>&1 && { echo "black \"$p\""; return 0; } ;;
     go)  command -v gofmt   >/dev/null 2>&1 && { echo "gofmt -w \"$p\""; return 0; } ;;
-    rs)  command -v rustfmt >/dev/null 2>&1 && { echo "rustfmt \"$p\"";  return 0; } ;;
+    rs)  command -v rustfmt >/dev/null 2>&1 && { echo "rustfmt \"$p\""; return 0; } ;;
   esac
   return 0
 }
@@ -251,14 +251,17 @@ gate_context() {
 }
 gate_tools_ready() {
   local tools modules tool
+  local -a tool_list module_list
   tools="$(declared_cmd gate_tools)" || { blocked 'không đọc được gate_tools'; return 2; }
-  for tool in bash git jq $tools; do
+  read -r -a tool_list <<<"bash git jq ${tools//$'\n'/ }"
+  for tool in "${tool_list[@]}"; do
     command -v "$tool" >/dev/null 2>&1 || { blocked "thiếu công cụ '$tool'"; return 2; }
   done
   modules="$(declared_cmd gate_python_modules)" || { blocked 'không đọc được gate_python_modules'; return 2; }
   if nonblank "$modules"; then
     command -v python3 >/dev/null 2>&1 || { blocked 'thiếu python3 cho module checks'; return 2; }
-    python3 -c 'import importlib.util,sys; sys.exit(any(importlib.util.find_spec(m) is None for m in sys.argv[1:]))' $modules \
+    read -r -a module_list <<<"${modules//$'\n'/ }"
+    python3 -c 'import importlib.util,sys; sys.exit(any(importlib.util.find_spec(m) is None for m in sys.argv[1:]))' "${module_list[@]}" \
       || { blocked "thiếu hoặc không nạp được Python module: $modules"; return 2; }
   fi
 }
@@ -289,7 +292,7 @@ gate_preflight() {
   after="$(gate_context)" || return 2
   [ "$GATE_CONTEXT" = "$after" ] || { blocked 'HEAD/config đổi trong tiền kiểm'; return 2; }
 }
-verify_contract() { # doctor chỉ READY; gate chạy command rồi mới được PASS.
+verify_contract() {
   local mode="$1" i after
   gate_preflight || return 2
   if [ "$mode" = doctor ]; then
