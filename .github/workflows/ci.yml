@@ -85,6 +85,9 @@ jobs:
           bash scripts/test-maintain-run.sh
           bash scripts/test-maintain-cron.sh
 
+      - name: Runtime safety (Git local thật, CLI hữu hạn, upgrade giữ dữ liệu)
+        run: python3 tests/test_runtime_safety.py
+
       # Radar độ phủ cổng (arch-health-radar) chỉ ra usage-estimate.sh là script DUY NHẤT
       # không có test — nó quyết định lúc nào phiên AI bị nhắc sắp hết quota (audit 2026-09-13).
       - name: Ước tính quota chạy đúng (usage-estimate)
@@ -182,7 +185,7 @@ jobs:
         run: bash scripts/test-hooks-gate.sh
 
       # Đây là cổng bắt CRLF: checkout trên Windows với autocrlf mặc định từng đổi
-      # `vendor/shellmetrics` sang CRLF → SHA256 lệch → chính cổng này từ chối chạy (TRAPS mục 27).
+      # `vendor/shellmetrics` sang CRLF → SHA256 lệch → chính cổng CC shell từ chối chạy (TRAPS mục 27).
       # Nếu ai đó gỡ `vendor/** -text` khỏi `.gitattributes`, bước này đỏ ngay.
       - name: Cổng CC shell + tính toàn vẹn bản vendor (TRAPS mục 27)
         run: |
@@ -197,6 +200,11 @@ jobs:
           "$PY" -m pip install --quiet -r scripts/requirements-ci.txt
           bash scripts/check-python-complexity.sh
           bash scripts/test-check-python-complexity.sh
+
+      - name: Runtime safety trên Windows (Git Bash, đường dẫn có khoảng trắng)
+        run: |
+          PY=python3; command -v python3 >/dev/null || PY=python
+          "$PY" tests/test_runtime_safety.py
 
       - name: copy-framework trên Windows thật (cả .sh lẫn .ps1)
         run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh
