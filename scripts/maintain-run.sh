@@ -39,7 +39,18 @@ REPORT="docs/ops/MAINTENANCE-REPORT.md"
 
 log() { printf '[maintain-run] %s\n' "$*" >&2; }
 
+# Kiểm trước shift 2: thiếu giá trị không được thành vòng lặp vô hạn.
+require_cli_value() {
+  if [ "$#" -lt 2 ] || [ -z "${2:-}" ] || [[ "${2:-}" == -* ]]; then
+    printf '[CLI] thiếu giá trị cho %s (cần giá trị không rỗng)\n' "$1" >&2
+    exit 2
+  fi
+}
+
 while [ $# -gt 0 ]; do
+  case "$1" in
+    --harness|--model|--provider|--mode|--prompt-out) require_cli_value "$@" ;;
+  esac
   case "$1" in
     --harness)    HARNESS="${2:-}"; shift 2 ;;
     --model)      MODEL="${2:-}"; shift 2 ;;

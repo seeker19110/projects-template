@@ -30,7 +30,18 @@ STALE_DOC_DAYS="${MAINT_STALE_DOC_DAYS:-30}"
 FRAMEWORK_STALE_DAYS="${MAINT_FRAMEWORK_STALE_DAYS:-90}"   # dự án đích: bản khung đã copy quá cũ → 🟡 (spec 2026-09-23 nâng bản khung)
 TODO_WARN="${MAINT_TODO_WARN:-20}"
 
+# Kiểm trước shift 2: thiếu giá trị không được thành vòng lặp vô hạn.
+require_cli_value() {
+  if [ "$#" -lt 2 ] || [ -z "${2:-}" ] || [[ "${2:-}" == -* ]]; then
+    printf '[CLI] thiếu giá trị cho %s (cần giá trị không rỗng)\n' "$1" >&2
+    exit 2
+  fi
+}
+
 while [ $# -gt 0 ]; do
+  case "$1" in
+    --out) require_cli_value "$@" ;;
+  esac
   case "$1" in
     --out)     OUT="${2:-}"; shift 2 ;;
     --strict)  STRICT=1; shift ;;
