@@ -20,7 +20,7 @@
 #
 # NÂNG BẢN khung ở dự án đích đã có khung:   bash copy-framework.sh /đích --upgrade
 #   Với từng file Lớp 1: chưa sửa ở đích (hash khớp manifest trong FRAMEWORK-VERSION) → cập nhật;
-#   đã sửa + repo khung còn commit cũ → `git merge-file` 3 chiều (marker xung đột nếu có);
+#   đã sửa + có base → merge 3 chiều trên bản tạm; xung đột giữ đích + .framework-conflict (exit 2);
 #   đã sửa + không có base → giữ nguyên đích, để bản mới ở <file>.framework-new. KHÔNG BAO GIỜ mất
 #   nội dung của đích (spec docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md).
 #
@@ -53,7 +53,7 @@ fi
 # ── Nâng bản: đọc dấu bản khung CŨ của đích trước khi ghi đè bất cứ gì ──
 STAMP_REL="docs/framework/FRAMEWORK-VERSION"
 OLD_COMMIT=""; OLD_MANIFEST="$(mktemp)"; trap 'rm -f "$OLD_MANIFEST"' EXIT
-N_UPD=0; N_MERGE=0; N_ASIDE=0
+N_UPD=0; N_MERGE=0; N_ASIDE=0; N_ERROR=0; N_CONFLICT=0
 if [ "$UPGRADE" -eq 1 ]; then
   if [ -f "$TARGET/$STAMP_REL" ]; then
     OLD_COMMIT="$(grep -m1 '^commit-nguon: ' "$TARGET/$STAMP_REL" | awk '{print $2}')"
@@ -71,8 +71,28 @@ elif [ -f "$TARGET/$STAMP_REL" ]; then
 fi
 
 # ── Trợ giúp ──────────────────────────────────────────────
+# Merge vào bản tạm cùng filesystem; file đích chỉ đổi khi merge sạch.
+merge_upgrade_file() {  # $1=rel $2=src $3=dst (base đã có ở dst.framework-base)
+  local rel="$1" src="$2" dst="$3" tmp rc=0
+  tmp="$(mktemp "$dst.framework-merge.XXXXXX")"
+  cp -p "$dst" "$tmp"
+  git merge-file -L "dự án đích" -L "khung cũ ($OLD_COMMIT)" -L "khung mới" "$tmp" "$dst.framework-base" "$src" || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    mv "$tmp" "$dst"
+    N_MERGE=$((N_MERGE+1)); echo "  ~ $rel merge 3 chiều sạch"
+  elif [ "$rc" -le 127 ]; then
+    mv "$tmp" "$dst.framework-conflict"
+    cp "$src" "$dst.framework-new"
+    N_CONFLICT=$((N_CONFLICT+1)); echo "  ! $rel có xung đột — giữ đích; xem .framework-conflict và .framework-new" >&2
+  else
+    rm -f "$tmp"
+    cp "$src" "$dst.framework-new"
+    N_ERROR=$((N_ERROR+1)); echo "  ! $rel merge lỗi $rc — giữ đích và bản incoming .framework-new" >&2
+  fi
+}
+
 upgrade_file() {        # $1 = MỘT file Lớp 1 (đường dẫn tương đối) — chế độ --upgrade
-  local rel="$1" src="$SRC/$1" dst="$TARGET/$1" cur old rc
+  local rel="$1" src="$SRC/$1" dst="$TARGET/$1" cur old
   mkdir -p "$(dirname "$dst")"
   if [ ! -f "$dst" ]; then cp "$src" "$dst"; echo "  + $rel"; N_UPD=$((N_UPD+1)); return 0; fi
   if cmp -s "$src" "$dst"; then echo "  = $rel"; return 0; fi
@@ -82,9 +102,9 @@ upgrade_file() {        # $1 = MỘT file Lớp 1 (đường dẫn tương đố
     cp "$src" "$dst"; echo "  + $rel (đích chưa sửa → cập nhật)"; N_UPD=$((N_UPD+1)); return 0
   fi
   if [ -n "$OLD_COMMIT" ] && git -C "$SRC" show "$OLD_COMMIT:$rel" > "$dst.framework-base" 2>/dev/null; then
-    rc=0; git merge-file -L "dự án đích" -L "khung cũ ($OLD_COMMIT)" -L "khung mới" "$dst" "$dst.framework-base" "$src" || rc=$?
+    merge_upgrade_file "$rel" "$src" "$dst"
     rm -f "$dst.framework-base"
-    if [ "$rc" -ge 0 ] 2>/dev/null; then echo "  ~ $rel merge 3 chiều ($rc xung đột — tìm '<<<<<<<' nếu > 0)"; N_MERGE=$((N_MERGE+1)); return 0; fi
+    return 0
   fi
   rm -f "$dst.framework-base"
   cp "$src" "$dst.framework-new"; echo "  ~ $rel đích đã sửa, không có base → giữ đích, bản khung ở $rel.framework-new"; N_ASIDE=$((N_ASIDE+1))
@@ -156,7 +176,11 @@ copy_if_absent "docs/goals/README.md"
 copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain
 copy_if_absent "docs/adr/0000-template.md"
 
-# ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
+# Không ghi stamp thành công khi còn merge lỗi/xung đột; giữ baseline cũ cho đối chiếu.
+if [ "$N_ERROR" -gt 0 ]; then echo "Nâng bản bị chặn: $N_ERROR lỗi merge; FRAMEWORK-VERSION giữ nguyên." >&2; exit 3; fi
+if [ "$N_CONFLICT" -gt 0 ]; then echo "Nâng bản bị chặn: $N_CONFLICT file xung đột; FRAMEWORK-VERSION giữ nguyên." >&2; exit 2; fi
+
+# ── Dấu bản khung (chỉ cập nhật sau khi merge không còn lỗi/xung đột) ──
 # version (file VERSION của khung) + commit + ngày + MANIFEST hash từng file Lớp 1 vừa copy —
 # để lần --upgrade sau biết file nào đích đã sửa tay (không cần lịch sử git của khung).
 FRAMEWORK_COMMIT="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo 'khong-ro')"
@@ -165,6 +189,8 @@ layer1_files() {        # mọi file Lớp 1 (đúng tập copy_into ở trên),
   find "$SRC/docs/framework" "$SRC/.claude/commands" -type f -print0
   find "$SRC/docs/ops" -maxdepth 1 -name '*.md' ! -name '*-PLAN.md' ! -name '*-LOG.md' ! -name '*-STATUS.md' -print0
 }
+STAMP_TMP="$(mktemp "$TARGET/$STAMP_REL.tmp.XXXXXX")"
+trap 'rm -f "$OLD_MANIFEST" "${STAMP_TMP:-}"' EXIT
 {
   echo "# FRAMEWORK-VERSION — dấu bản khung đã copy (sinh tự động bởi copy-framework.sh — đừng sửa tay)"
   echo "version: $FRAMEWORK_VER"
@@ -173,7 +199,8 @@ layer1_files() {        # mọi file Lớp 1 (đúng tập copy_into ở trên),
   echo "# Nâng bản: clone repo khung mới nhất rồi chạy  bash copy-framework.sh <đích> --upgrade  (giữ chỉnh sửa cục bộ; xem CHANGELOG.md từ ${FRAMEWORK_COMMIT}..HEAD)"
   echo "# manifest: <git hash-object> <file> — file đích có hash KHÁC dòng này = đã sửa tay (--upgrade sẽ merge/để cạnh, không ghi đè)"
   while IFS= read -r -d '' f; do printf 'manifest: %s %s\n' "$(git hash-object "$f")" "${f#"$SRC"/}"; done < <(layer1_files | sort -z)
-} > "$TARGET/$STAMP_REL"
+} > "$STAMP_TMP"
+mv "$STAMP_TMP" "$TARGET/$STAMP_REL"
 echo "  + $STAMP_REL (bản khung: v$FRAMEWORK_VER @ $FRAMEWORK_COMMIT, manifest $(grep -c '^manifest: ' "$TARGET/$STAMP_REL") file)"
 [ "$UPGRADE" -eq 1 ] && echo "  → --upgrade: $N_UPD cập nhật · $N_MERGE merge 3 chiều · $N_ASIDE giữ đích + .framework-new"
 
