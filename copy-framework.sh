@@ -272,6 +272,7 @@ copy_if_absent "scripts/arch-health-radar.py"
 copy_if_absent "scripts/arch-health-radar.sh"
 copy_if_absent "scripts/test-telemetry-and-dispatch.sh"
 copy_if_absent "tests/test_telemetry_integrity.py"  # required by the shipped telemetry self-test
+copy_if_absent "tests/test_runtime_safety.py"  # required by the CI drop-in; copy-only cases are template-scoped
 copy_if_absent "scripts/test-next-gen-engines.sh"
 # Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test (smoke ở dự án đích)
 copy_if_absent "scripts/maintenance-sweep.sh"
