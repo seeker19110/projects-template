@@ -127,6 +127,11 @@ jobs:
           find . -name '*.sh' -not -path './node_modules/*' -print0 \
             | xargs -0 shellcheck --severity=warning
 
+      - name: Contract local chạy đầy đủ (doctor READY rồi gate PASS)
+        run: |
+          bash scripts/dev-task.sh doctor
+          bash scripts/dev-task.sh gate
+
       - name: Cú pháp Python (py_compile — mọi scripts/*.py)
         run: |
           set -e
@@ -183,6 +188,9 @@ jobs:
 
       - name: Hook cổng chặn thật trên Windows (21 ca — cần jq, TRAPS mục 26)
         run: bash scripts/test-hooks-gate.sh
+
+      - name: Strict gate và fixture Node thực trên Windows
+        run: bash scripts/test-dev-task.sh
 
       # Đây là cổng bắt CRLF: checkout trên Windows với autocrlf mặc định từng đổi
       # `vendor/shellmetrics` sang CRLF → SHA256 lệch → chính cổng CC shell từ chối chạy (TRAPS mục 27).
