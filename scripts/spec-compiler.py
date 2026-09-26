@@ -27,6 +27,8 @@ def _parse_metadata_table(content):
     for line in meta_table.group(1).strip().splitlines():
         cols = [c.strip() for c in line.split("|")[1:-1]]
         if len(cols) >= 2:
+            if cols[0] in metadata:
+                raise ValueError("duplicate spec metadata field: " + cols[0])
             metadata[cols[0]] = cols[1]
     return metadata
 
@@ -108,6 +110,14 @@ def parse_spec_markdown(spec_path):
     with open(spec_path, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
 
+    return parse_spec_text(content, spec_path)
+
+
+def parse_spec_text(content, spec_path):
+    """Parse already-read text so a handoff hashes and interprets the SAME bytes."""
+    content = content.replace("\r\n", "\n").replace("\r", "\n")
+    metadata = _parse_metadata_table(content)
+    state = metadata.get("State", "").strip(" *_`").casefold()
     title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     title = title_match.group(1).strip() if title_match else os.path.basename(spec_path)
 
@@ -117,14 +127,15 @@ def parse_spec_markdown(spec_path):
     return {
         "spec_file": _display_path(spec_path),
         "title": title,
-        "metadata": _parse_metadata_table(content),
+        "metadata": metadata,
         "sections": _parse_sections(content),
         "referenced_paths": sorted(referenced_paths),
         "exempt_paths": exempt_paths,
         # Mã định danh yêu cầu / tiêu chí chấp nhận (FR-1, AC-2, W-301...) — dùng để đối chiếu
         # spec có thật sự khai yêu cầu nào không, thay vì chỉ có tiêu đề rỗng.
         "requirement_ids": sorted(set(re.findall(r"\b((?:FR|AC|NFR|W)-\d+)\b", content))),
-        "approved": bool(re.search(r"Approved for implementation", content, re.I)),
+        # Approval language in instructions or unselected template options is NOT a selected state.
+        "approved": state == "approved for implementation",
     }
 
 def generate_python_contract_test(parsed_spec):
