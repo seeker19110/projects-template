@@ -5,16 +5,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #179 đã merge; PR #180 đang nghiệm thu strict gate và doctor, thuộc W-05.
+- Giai đoạn: GĐ 8. PR #181 đã merge (cầu nối delivery opt-in); tiếp tục đối chiếu goal hoàn thiện khung, chưa kết luận Project Complete.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `8cba0e0` (`origin/main`, sau PR #179).
-- Ngày cập nhật: 2026-09-25
+- Default-branch SHA đã đối chiếu: `f42bb5f` (`origin/main`, sau PR #181).
+- Ngày cập nhật: 2026-09-27
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Hoàn thiện khung 2026-09-24 | Đóng F-01..11, gate thực và re-audit | IN_PROGRESS | W-05 nghiệm thu CI và đối chiếu cuối | PR #180 | `docs/goals/2026-09-24-completion.md` |
+| Hoàn thiện khung 2026-09-24 | Đóng F-01..11, gate thực và re-audit | IN_PROGRESS | W-05 đã merge; còn đối chiếu nghiệm thu cuối | Reconcile goal từ main | `docs/goals/2026-09-24-completion.md` |
 
 ## Đã xong
 
@@ -24,9 +24,9 @@ trước merge. Runtime regression có 10 bài, gồm 45 subcase CLI và Git loc
 
 ## Đang làm / chờ
 
-PR #180 bổ sung gate fail-closed, doctor, contract của chính khung và test Node
-thật. Giữ các ca phân giải 13 stack trước đó. Nội dung mới phải qua đầy đủ CI tại
-head cuối; không coi test cục bộ thay cho nghiệm thu tích hợp.
+PR #180 đã merge ngày 2026-09-25 (`071faea`), bổ sung gate fail-closed, doctor,
+contract của chính khung và test Node thật. PR #181 đã merge; còn đối chiếu nghiệm thu
+W-05 với goal trước khi kết luận hoàn tất toàn dự án.
 
 ## Tiếp theo
 
@@ -44,7 +44,7 @@ Không giảm coverage/complexity, không nới branch protection, không rollou
 
 | Mục | Trạng thái / xử lý |
 | --- | --- |
-| W-05 strict gate | Đang nghiệm thu PR #180; READY khác PASS |
+| W-05 strict gate | PR #180 đã merge; còn đối chiếu goal cuối, READY khác PASS |
 | C01 adoption sản phẩm thật | Còn mở; fixture Node không thay thế sản phẩm đầy đủ |
 | C02 toàn bộ CI drop-in | Còn mở; cần đối chiếu phát hành tất cả phụ thuộc trên từng loại dự án |
 | Hook thiếu jq | Còn đường fail-open; doctor phát hiện tool thiếu, không thay mọi cơ chế bypass |
@@ -54,3 +54,14 @@ Không giảm coverage/complexity, không nới branch protection, không rollou
 
 Chi tiết: `docs/framework/strict-gate-contract.md`, `docs/CONVENTIONS.md`,
 `docs/reports/2026-09-25-runtime-safety.md`.
+
+## Bàn giao PR #181 — 2026-09-27
+
+- Đã sửa mô tả PR đủ sáu mục bắt buộc và dẫn approval từ spec; metadata xanh.
+- CI run 36250649109 chạy lại: Linux/Windows, smoke, docs và aggregate gate xanh;
+  dev-task gate PASS đủ 4 kiểm tra, coverage 96%. Progress-freshness skip đúng điều kiện main-only.
+- Review thread về kiểu import unittest đã resolve sau khi rà: dùng TestCase/main và
+  submodule mock có chủ đích, không phát hiện lỗi hành vi; cảnh báo style CodeQL vẫn còn.
+- GitHub xác nhận merge lúc 2026-09-27T02:58:20Z bởi seeker19110, SHA f42bb5f.
+- Bàn giao được ghi nhận trong PR tài liệu riêng theo yêu cầu chủ repo.
+  Không thay trạng thái nghiệm thu goal cũ nếu chưa đối chiếu riêng.
