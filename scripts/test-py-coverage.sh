@@ -110,13 +110,15 @@ cp "$WORK/rates.bak" scripts/model-rates.json
 echo "  ✅ bảng giá hỏng/thiếu 'default' → thoát khác 0 (không ước tính bằng số bịa)"
 
 # Exercise the data-loss/error paths as part of measured coverage, not only the CLI happy path.
-integrity_out="$("$PYTHON_CMD" -m coverage run -a --source=scripts -m unittest discover -s tests -p test_telemetry_integrity.py 2>&1)"
-integrity_rc=$?
-if [ "$integrity_rc" -ne 0 ]; then
-  printf '%s\n' "$integrity_out" >&2
-  echo "FAIL — telemetry integrity tests failed during coverage measurement."
-  exit 1
-fi
+for test_file in test_telemetry_integrity.py test_delivery_handoff_integrity.py; do
+  integrity_out="$("$PYTHON_CMD" -m coverage run -a --source=scripts -m unittest discover -s tests -p "$test_file" 2>&1)"
+  integrity_rc=$?
+  if [ "$integrity_rc" -ne 0 ]; then
+    printf '%s\n' "$integrity_out" >&2
+    echo "FAIL — $test_file failed during coverage measurement."
+    exit 1
+  fi
+done
 
 echo
 echo "== Báo cáo độ phủ dòng (sàn: ${THRESHOLD}%) =="

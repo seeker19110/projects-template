@@ -327,8 +327,13 @@ class TestParseSpecMarkdown(unittest.TestCase):
         self.assertEqual(parsed["requirement_ids"], ["AC-2", "FR-1", "NFR-10", "W-301"])
 
     def test_approved_khong_phan_biet_hoa_thuong(self):
-        self.assertTrue(self.parse("a1.md", "# T\n\napproved FOR implementation\n")["approved"])
+        # PR #181: approval is a selected metadata state, not a phrase in instructions.
+        selected = "# T\n\n| Thuộc tính | Giá trị |\n| --- | --- |\n| State | approved FOR implementation |\n"
+        self.assertTrue(self.parse("a1.md", selected)["approved"])
         self.assertFalse(self.parse("a2.md", "# T\n\nchua duyet\n")["approved"])
+        self.assertFalse(self.parse("a3.md", "# T\n\napproved FOR implementation\n")["approved"])
+        draft = selected.replace("approved FOR implementation", "Draft") + "\nApproved for implementation\n"
+        self.assertFalse(self.parse("a4.md", draft)["approved"])
 
     def test_spec_file_la_duong_dan_tuong_doi_theo_root_dir(self):
         path = write(self.dir, "rel.md", "# T\n")
