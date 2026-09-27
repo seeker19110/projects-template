@@ -82,9 +82,20 @@ Vi phạm mục nào trong 7 mục trên khi đụng dữ liệu người dùng 
 3. **Eval set cố định**, so metric với baseline **trước khi** thay model vào production — không tự tin bằng cảm tính là "model mới chắc tốt hơn".
 4. **Giám sát drift** dữ liệu đầu vào/đầu ra ở production (cảnh báo khi lệch ngưỡng đã chốt) — không chỉ đánh giá một lần lúc launch.
 5. **Không train/serve trên dữ liệu cá nhân chưa ẩn danh hóa** nếu không có sự đồng ý rõ ràng của người dùng (đối chiếu mục "Cổng bổ sung PII" ở đầu file).
-6. Nếu xây ứng dụng dùng LLM: dùng **model Claude mới nhất phù hợp bài toán**, xác minh bằng skill `claude-api` — không đoán tên/giá theo trí nhớ.
+6. Nếu xây ứng dụng dùng LLM: chọn **model và nhà cung cấp phù hợp bài toán** theo chất lượng eval, độ trễ, chi phí, quyền riêng tư và khả năng chuyển đổi; xác minh tên model, giới hạn và giá bằng tài liệu chính thức hiện hành. Ghi lựa chọn và phương án dự phòng trong `PROJECT.md`/ADR; không mặc định một nhà cung cấp cho mọi dự án.
 7. **"Kill-switch" cho tính năng gọi LLM production:** mọi tính năng gọi LLM ở production phải có một cấu hình có thể **TẮT TỨC THÌ không cần deploy lại** (feature flag/cấu hình DB có cache ngắn — vài chục giây, không phải biến môi trường cần redeploy), dùng khi phát hiện chi phí AI tăng bất thường (bug vòng lặp gọi API, spam, prompt injection gây gọi tool lặp) — đây là cầu dao khẩn cấp **runtime**, khác với việc ước tính/dự báo chi phí lúc dev (`.claude/hooks/usage-guard.sh`/`scripts/usage-estimate.sh` của khung chỉ là dự báo trước, không thay được cầu dao runtime này).
 8. **Eval bắt buộc khi đổi prompt/model:** mọi PR đổi system prompt, đổi model, hoặc đổi guardrail của một tính năng AI phải chạy lại một bộ eval offline có **golden fixtures cố định** (input mẫu + kỳ vọng đã chốt) và **dán bảng so sánh với baseline trước đó vào PR** (metric kiểu recall/precision/tỷ lệ đúng, tùy bài toán) — không merge một thay đổi prompt/model mà "cảm tính là chắc tốt hơn" (đối chiếu mục 3 phía trên "Eval set cố định, so metric với baseline trước khi thay model vào production" — mục 8 này áp cùng nguyên tắc đó cho **mọi** thay đổi prompt/model, không chỉ lúc thay model). Tham chiếu mẫu: `docs/framework/templates/AI-EVAL.template.md`.
+
+### Nếu C7 là hệ agent có công cụ hoặc tác vụ chạy dài
+
+Chọn các phép kiểm dưới đây theo rủi ro thật của dự án và ghi đường dẫn test, log hay kịch bản thử vào spec/PR. Đây là các **tiêu chí nghiệm thu của sản phẩm đích**, không phải khẳng định bộ khung đã cung cấp runtime agent. Đối chiếu nguồn và phần đã có: `docs/reports/2026-09-27-agent-frameworks.md`.
+
+1. **Tiếp tục sau gián đoạn:** tạo checkpoint bền trước hoặc sau thao tác có tác dụng phụ; thử dừng tiến trình rồi khởi động lại, xác nhận không mất tác vụ và không lặp thao tác ghi. Nếu không cần chạy dài, ghi lý do không áp dụng.
+2. **Quyền công cụ:** công cụ có schema input/output và phạm vi quyền rõ; thử input sai, lệnh ngoài phạm vi, timeout và lỗi công cụ. Chạy code do model sinh trong môi trường cô lập có giới hạn thời gian, file và mạng theo nhu cầu.
+3. **Duyệt của người:** thao tác phát hành, xóa, thanh toán hoặc thay đổi dữ liệu nhạy cảm phải chờ quyết định từ nguồn quyền thật; replay không được tự biến lời khai của model thành quyết định đã duyệt.
+4. **Quan sát và đánh giá:** liên kết mỗi hành động với run/task ID, model, tool, kết quả, chi phí và trạng thái; bí mật/PII phải được che. Chạy lại ca eval cố định sau khi đổi prompt, model, router hoặc tool; so cùng baseline và ghi số ca chạy thật.
+5. **Trí nhớ:** nếu lưu xuyên phiên, phân định lịch sử tác vụ với ký ức có thể truy hồi; kiểm quyền truy cập, sửa/xóa, thời hạn lưu và khả năng truy lại nguồn. Không coi một bản tóm tắt do model viết là bằng chứng đã làm xong việc.
+6. **Kết nối ngoài:** chỉ bật server MCP, trình duyệt hoặc agent khác khi cần một tác vụ đã chốt; kiểm danh tính, nguồn dữ liệu không tin cậy, quyền từng công cụ và tình huống mất kết nối. Repo tham chiếu MCP chỉ là ví dụ giáo dục, không mặc định sẵn sàng production.
 
 ## C8 — Game
 

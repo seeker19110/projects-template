@@ -13,6 +13,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Đối chiếu 15 repo agent (2026-09-27):** `docs/reports/2026-09-27-agent-frameworks.md` ghi nguồn hiện hành, ba cột tiếp nhận và lý do không đóng gói một runtime mặc định; cổng C7 bổ sung các ca nghiệm thu agent chạy dài, quyền tool, human gate, trace, memory và MCP theo dự án đích.
+
 - **Adapter Impeccable tùy chọn**: contract UI intelligence nay map `pbakaus/impeccable` vào `/ui-ux` theo
   concern (`shape`/`critique`/`audit`/`polish`...), nhưng không cài/vendoring skill, thêm hook hay nhận
   `PRODUCT.md`/`DESIGN.md` như nguồn sự thật song song. Detector chỉ là finding phải triage; quyết định
@@ -66,6 +68,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   12 phát hiện Cao, 18 Trung; đợt 1 (mất dữ liệu / số sai) đang triển khai.
 
 ### Fixed (Sửa)
+
+- **C7 chọn model trung lập provider:** bỏ yêu cầu Claude mặc định trái với quy trình chọn stack theo dự án; chọn bằng eval, độ trễ, giá và quyền riêng tư đã xác minh, ghi fallback.
 
 - **ID model hiện hành ở mọi lệnh/tài liệu**: `claude-opus-4-8`/`claude-fable-5` (không tồn tại) trong `audit-full.md`,
   `completion.md`; `claude-opus-5` (legacy, đắt hơn) → `claude-opus-5-5` ở 4 lệnh, `models-and-automation.md`,
