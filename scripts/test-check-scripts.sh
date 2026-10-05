@@ -330,8 +330,55 @@ EOF
   done
 fi
 
+## ============================================================
+## 5. dependency-review: nhận manifest của khung và monorepo
+## ============================================================
+echo "== 5. dependency-review manifests =="
+awk '
+  /^      - name: Detect project manifest$/ { found=1; next }
+  found && /^        run: \|$/ { body=1; next }
+  body && /^      - name:/ { exit }
+  body && /^          / { sub(/^          /, ""); print }
+' "$ROOT/.github/workflows/dependency-review.yml" > "$WORK/detect-manifest.sh"
+if [ ! -s "$WORK/detect-manifest.sh" ]; then
+  echo 'không tìm thấy thân step Detect project manifest' > "$WORK/check-output"
+  bad "không thể trích step dependency-review từ workflow"
+else
+  for manifest in none scripts/requirements-ci.txt packages/api/package.json services/backend/go.mod; do
+    d="$WORK/manifest-${manifest//\//-}"
+    mkdir -p "$d"
+    git -C "$d" init -q
+    if [ "$manifest" != none ]; then
+      mkdir -p "$d/$(dirname "$manifest")"
+      : > "$d/$manifest"
+      git -C "$d" add "$manifest"
+    fi
+    : > "$WORK/github-output"
+    (cd "$d" && GITHUB_OUTPUT="$WORK/github-output" bash "$WORK/detect-manifest.sh" \
+      > "$WORK/check-output" 2>&1)
+    rc=$?
+    actual=$(sed -n 's/^exists=//p' "$WORK/github-output" | tail -1)
+    expected=true
+    [ "$manifest" = none ] && expected=false
+    [ "$rc" = 0 ] && [ "$actual" = "$expected" ] && \
+      ok "manifest $manifest → exists=$expected" || \
+      bad "manifest $manifest: muốn exists=$expected, nhận '$actual' (rc=$rc)"
+  done
+  d="$WORK/manifest-no-git"
+  mkdir -p "$d"
+  : > "$WORK/github-output"
+  (cd "$d" && GITHUB_OUTPUT="$WORK/github-output" bash "$WORK/detect-manifest.sh" \
+    > "$WORK/check-output" 2>&1)
+  rc=$?
+  if [ "$rc" -ne 0 ] && ! grep -q '^exists=false$' "$WORK/github-output"; then
+    ok "git ls-files lỗi → phát hiện manifest đỏ, không skip dependency review"
+  else
+    bad "git ls-files lỗi nhưng bước phát hiện trả exists=false (rc=$rc)"
+  fi
+fi
+
 if [ "$fails" -eq 0 ]; then
-  echo "OK — cả 3 gate script và protection-guard đều bắt đúng lỗi + không chặn oan."
+  echo "OK — 3 gate script, protection-guard và dependency-review đều bắt đúng lỗi + không chặn oan."
 else
   echo "❌ $fails ca thất bại — xem chi tiết ở trên."
 fi

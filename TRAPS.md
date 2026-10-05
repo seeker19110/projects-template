@@ -841,3 +841,27 @@ cáo không chứa giá trị giả nhưng còn đường dẫn, số dòng và 
 *Cổng chốt chặn:* `scripts/test-maintenance-sweep.sh` khẳng định giá trị giả không
 xuất hiện và vị trí được giữ với nhãn `[credential-like match — redacted]`;
 `scripts/maintenance-sweep.sh` trích riêng số dòng trước khi ghi báo cáo.
+
+## 38. Dependency review chỉ tìm manifest ở gốc → monorepo bị skip im lặng
+
+*Ngày:* 2026-10-05, audit hoàn thiện W-06.
+
+*Khuôn lỗi:* `dependency-review.yml` duyệt danh sách tên manifest bằng `[ -f "$file" ]`
+tại gốc repo. Chính bộ khung có `scripts/requirements-ci.txt` nhưng không có manifest ở gốc,
+nên bước phát hiện ghi `exists=false` và bỏ qua action. Dự án monorepo chỉ có manifest trong
+`packages/` hoặc `services/` cũng bị bỏ qua, dù PR thay đổi dependency.
+
+*Cách rà:* chạy thân step phát hiện với repo thử chỉ có một manifest được Git theo dõi trong
+thư mục con; kiểm `GITHUB_OUTPUT` ghi `exists=true`. Đối chứng repo không có manifest phải
+ghi `false`.
+
+*Cổng chốt chặn:* `scripts/test-check-scripts.sh` chạy đúng thân step với fixture
+scripts/requirements-ci.txt, packages/api/package.json, services/backend/go.mod và
+repo trống; lệnh `git ls-files` lỗi phải đỏ thay vì skip. Bước phát hiện quét
+file Git theo dõi ở mọi độ sâu. Cổng này xác nhận action được
+kích hoạt, còn độ phủ phân tích thật phụ thuộc Dependency graph của GitHub.
+
+**Tái phát trên PR #192:** action chạy thật nhưng đỏ vì Dependency graph/alerts của
+repo chưa bật (`Dependency review is not supported on this repository`). API
+vulnerability-alerts trả 404 trước, 204 sau khi bật; rerun job xanh. Cổng local
+chỉ chứng minh bước phát hiện manifest, nên khi áp khung phải đọc cài đặt live.
