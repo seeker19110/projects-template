@@ -48,6 +48,12 @@ bout="$(CLAUDE_PROJECT_DIR="$bad_repo" bash "$SWEEP" --strict --out "$TMP/bad-re
 [ -s "$TMP/bad-report.md" ] && ok "--out ghi được báo cáo" || bad "--out không ghi file"
 rep="$(cat "$TMP/bad-report.md" 2>/dev/null)"
 chk() { if printf '%s' "$rep" | grep -q -- "$2"; then ok "$1"; else bad "$1 — không thấy '$2'"; fi; }
+if printf '%s' "$rep" | grep -Fq -- "$fake_aws" || printf '%s' "$rep" | grep -Fq -- "$fake_pem"; then
+  bad "báo cáo lộ giá trị chuỗi bí mật"
+else
+  ok "báo cáo không lộ giá trị chuỗi bí mật"
+fi
+chk "báo cáo giữ đường dẫn + dòng, chỉ ghi redacted" "key.pem:1 \[credential-like match — redacted\]"
 chk "🔴 .env trong git"                    "🔴 | Bí mật | file .env"
 chk "🔴 chuỗi giống bí mật (AWS/PEM)"     "🔴 | Bí mật | .* dòng giống khoá"
 chk "🟡 action chưa ghim SHA"             "🟡 | CI | 1 action chưa ghim"

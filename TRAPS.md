@@ -809,7 +809,7 @@ chính sách. File khai và GitHub Settings có thể trôi lệch mà CI không
 **Cổng chốt chặn:** `scripts/test-check-scripts.sh` chạy chính thân step
 `protection-guard` với phản hồi API giả: `strict=true` xanh,
 `strict=false` đỏ. Ruleset live đã được cập nhật và đọc lại qua API
-ngày 2026-10-05; CI của PR phải xác nhận trên head cuối.
+ngày 2026-10-05; CI của PR #188 đã xác nhận trên head cuối.
 
 ## 36. Git pre-commit truyền biến repo nội bộ vào gate làm hỏng test repo tạm
 
@@ -827,3 +827,17 @@ qua nhiều nhánh.
 `GIT_DIR`/`GIT_WORK_TREE`/`GIT_INDEX_FILE` vào hook, yêu cầu gate không
 nhận các biến đó. Test đã đỏ trước sửa và xanh sau khi hook chỉ dọn biến Git
 trong subshell chạy gate; kiểm staged diff vẫn dùng môi trường hook ban đầu.
+
+## 37. Báo cáo bảo trì phát tán giá trị secret đã phát hiện
+
+*Ngày:* 2026-10-05, audit năng lực framework. `maintenance-sweep.sh` lấy các dòng
+khớp mẫu secret từ file được Git theo dõi rồi ghi nguyên nội dung vào báo cáo.
+Workflow bảo trì đưa báo cáo vào job summary và issue GitHub, khiến credential bị
+lặp lại ở thêm nơi lưu trữ/nhóm người đọc sau khi đã lọt vào repo.
+
+*Cách rà:* tạo secret giả trong repo fixture, chạy maintenance sweep, xác nhận báo
+cáo không chứa giá trị giả nhưng còn đường dẫn, số dòng và nhãn loại phát hiện.
+
+*Cổng chốt chặn:* `scripts/test-maintenance-sweep.sh` khẳng định giá trị giả không
+xuất hiện và vị trí được giữ với nhãn `[credential-like match — redacted]`;
+`scripts/maintenance-sweep.sh` trích riêng số dòng trước khi ghi báo cáo.
