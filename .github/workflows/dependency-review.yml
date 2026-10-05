@@ -18,16 +18,27 @@ jobs:
         id: project
         shell: bash
         run: |
-          manifests=(package.json pyproject.toml requirements.txt go.mod Cargo.toml pom.xml build.gradle build.gradle.kts Gemfile composer.json)
-          for file in "${manifests[@]}"; do
-            if [ -f "$file" ]; then
-              echo "exists=true" >> "$GITHUB_OUTPUT"
-              echo "Found $file"
-              exit 0
-            fi
-          done
+          # Checkout only contains tracked files; scan every directory for monorepos.
+          manifest_list="$(mktemp)" || exit 1
+          trap 'rm -f "$manifest_list"' EXIT
+          git ls-files -z > "$manifest_list" || {
+            echo "::error::Cannot list tracked manifests; dependency review must not be skipped."
+            exit 1
+          }
+          while IFS= read -r -d '' file; do
+            case "${file##*/}" in
+              package.json|package-lock.json|pnpm-lock.yaml|yarn.lock|\
+              pyproject.toml|requirements*.txt|Pipfile|Pipfile.lock|poetry.lock|\
+              go.mod|Cargo.toml|Cargo.lock|pom.xml|build.gradle|build.gradle.kts|\
+              Gemfile|Gemfile.lock|composer.json|composer.lock)
+                echo "exists=true" >> "$GITHUB_OUTPUT"
+                echo "Found $file"
+                exit 0
+                ;;
+            esac
+          done < "$manifest_list"
           echo "exists=false" >> "$GITHUB_OUTPUT"
-          echo "::notice::Framework source has no project manifest; dependency review activates after copy into a project."
+          echo "::notice::No tracked dependency manifest found; dependency review is skipped."
 
       - name: Review dependency changes
         if: steps.project.outputs.exists == 'true'

@@ -12,6 +12,17 @@
 - artifact có version, digest và retention;
 - release notes, license/notice và rollback/revoke procedure.
 
+Workflow `dependency-review.yml` chạy action khi cây Git có manifest ở bất kỳ thư mục nào,
+kể cả `scripts/requirements-ci.txt` và manifest trong monorepo; bước phát hiện không chỉ
+nhìn gốc repo. Bật Dependency graph của GitHub và kiểm trang Dependencies xem từng manifest
+được nhận diện; bước phát hiện chỉ quyết định có chạy action, không chứng minh GitHub đã phân
+tích được mọi dependency. Với định dạng GitHub chưa hỗ trợ, cần nộp dependency snapshot qua API.
+Khi action báo `Dependency review is not supported on this repository`, kiểm cài đặt
+Dependency graph/Dependabot alerts trước khi sửa workflow. Trong PR #192, API
+`GET /repos/{owner}/{repo}/vulnerability-alerts` trả 404 trước khi bật, rồi trả 204
+sau khi bật; job dependency-review chạy lại đã xanh. Cài đặt live này phải được
+kiểm riêng khi áp khung sang repo khác.
+
 ## SBOM
 
 Release artifact phân phối ra ngoài hoặc production nên có SBOM CycloneDX/SPDX sinh từ dependency
