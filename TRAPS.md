@@ -795,3 +795,18 @@ cùng workflow. Mỗi PR riêng làm CodeQL `init` và `analyze` khác version; 
 một nhóm update; PR #185 cập nhật `init` và `analyze` cùng SHA v4.38.2, sau đó
 phải có `Analyze (python)` và `Analyze (actions)` xanh trên đúng head. Việc nhóm
 PR chỉ áp dụng cho các lượt Dependabot tương lai, không tự sửa PR #186 đã mở.
+
+## 35. Ruleset live có thể yếu hơn file dù protection-guard vẫn xanh
+
+*Ngày/PR:* 2026-10-05, PR #188. `.github/rulesets/main.json` khai
+`strict_required_status_checks_policy: true`, nhưng API ruleset đang áp
+trả `false`. `protection-guard` trước đó chỉ kiểm loại rule và tên required
+check nên vẫn xanh; PR không cần cập nhật với `main` mới để merge.
+
+**Khuôn lỗi:** kiểm sự hiện diện của rule nhưng bỏ qua tham số quyết định
+chính sách. File khai và GitHub Settings có thể trôi lệch mà CI không báo.
+
+**Cổng chốt chặn:** `scripts/test-check-scripts.sh` chạy chính thân step
+`protection-guard` với phản hồi API giả: `strict=true` xanh,
+`strict=false` đỏ. Ruleset live đã được cập nhật và đọc lại qua API
+ngày 2026-10-05; CI của PR phải xác nhận trên head cuối.

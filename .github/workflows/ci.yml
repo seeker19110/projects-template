@@ -275,7 +275,7 @@ jobs:
           rules=$(curl -sS --fail \
             -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/rules/branches/$BRANCH")
-          echo "$rules" > /tmp/live-rules.json
+          echo "$rules" > "$RUNNER_TEMP/live-rules.json"
           has_rule()  { jq -e --arg t "$1" 'map(select(.type == $t)) | length > 0' <<<"$rules" >/dev/null; }
           has_check() { jq -e --arg c "$1" '[.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context] | index($c) != null' <<<"$rules" >/dev/null; }
           fail=0
@@ -286,16 +286,24 @@ jobs:
                             | .parameters.required_status_checks[].context' .github/rulesets/main.json); do
             has_check "$c" || { echo "::error::Status check '$c' chưa được bắt buộc trên $BRANCH"; fail=1; }
           done
+          want_strict=$(jq -r '[.rules[] | select(.type == "required_status_checks")
+            | .parameters.strict_required_status_checks_policy] | unique | join(",")' .github/rulesets/main.json)
+          live_strict=$(jq -r '[.[] | select(.type == "required_status_checks")
+            | .parameters.strict_required_status_checks_policy] | unique | join(",")' <<<"$rules")
+          if [ "$want_strict" != "$live_strict" ]; then
+            echo "::error::strict_required_status_checks_policy trên $BRANCH là '$live_strict', file khai '$want_strict'. Import lại .github/rulesets/main.json."
+            fail=1
+          fi
           if [ "$fail" = 1 ]; then
             echo "::error::Bảo vệ nhánh CHƯA có hiệu lực. Import .github/rulesets/main.json: Settings → Rules → Rulesets → New ruleset → Import a ruleset. Chi tiết: docs/ops/repository-settings.md."
             exit 1
           fi
-          echo "OK — $BRANCH đang được bảo vệ, và mọi required status check khai trong file đều đã bắt buộc."
+          echo "OK — $BRANCH đang được bảo vệ; required status checks và strict policy khớp file."
 
       - name: File và ruleset thật phải khớp (đối chiếu hai chiều)
         run: |
           set -euo pipefail
-          live=$(jq -r '[.[].type] | sort | unique | .[]' /tmp/live-rules.json)
+          live=$(jq -r '[.[].type] | sort | unique | .[]' "$RUNNER_TEMP/live-rules.json")
           want=$(jq -r '[.rules[].type] | sort | unique | .[]' .github/rulesets/main.json)
           fail=0
           for t in $want; do
