@@ -142,14 +142,14 @@ copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì đ�
   fi
 }
 stage() {               # đưa vào _framework-dropins/ (không đụng file đang chạy)
-  local rel="$1"
-  [ -e "$SRC/$rel" ] || return 0
-  if [ -d "$SRC/$rel" ]; then
+  local rel="$1" source_rel="${2:-$1}"
+  [ -e "$SRC/$source_rel" ] || return 0
+  if [ -d "$SRC/$source_rel" ]; then
     mkdir -p "$TARGET/_framework-dropins/$rel"
-    cp -R "$SRC/$rel/." "$TARGET/_framework-dropins/$rel/"
+    cp -R "$SRC/$source_rel/." "$TARGET/_framework-dropins/$rel/"
   else
     mkdir -p "$TARGET/_framework-dropins/$(dirname "$rel")"
-    cp "$SRC/$rel" "$TARGET/_framework-dropins/$rel"
+    cp "$SRC/$source_rel" "$TARGET/_framework-dropins/$rel"
   fi
   echo "  → _framework-dropins/$rel"
 }
@@ -292,8 +292,9 @@ chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
 echo "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
+stage ".github/workflows/ci.yml" "docs/framework/templates/ci-target.yml"
 for f in \
-  .github/workflows/ci.yml .github/workflows/stale-pr-alert.yml .github/workflows/maintenance.yml \
+  .github/workflows/stale-pr-alert.yml .github/workflows/maintenance.yml \
   .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
   .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/workflows/codeql.yml .github/workflows/scorecard.yml \
@@ -315,6 +316,8 @@ cat <<'NEXT'
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
+     → Nếu CI cần file lệnh này: rà không có secret rồi `git add -f .claude/project-commands.sh`;
+       file được ignore mặc định nên checkout CI sẽ không thấy nếu chưa track có chủ đích.
      ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.

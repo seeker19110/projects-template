@@ -241,6 +241,8 @@ jobs:
       # REQUIRE_PWSH=1 (audit 2026-09-12, F-015): trên CI bản .ps1 PHẢI được kiểm thật.
       # Không có cờ này, runner mất pwsh sẽ làm test âm thầm bỏ qua nửa phạm vi mà job vẫn xanh.
       - run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh
+      - name: Node/Python target adoption smoke (copy, real gate, offline CI boundary)
+        run: bash scripts/test-adoption-smoke.sh
 
   # CHỈ chạy khi push thẳng vào main (một PR vừa merge) — lúc PR còn mở, nhánh của nó vẫn tồn tại
   # là bình thường, kiểm lúc đó sẽ báo oan. fetch-depth: 0 bắt buộc để đối chiếu ancestor (PF-1).
