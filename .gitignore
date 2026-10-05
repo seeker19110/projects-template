@@ -1,6 +1,13 @@
 # Biến môi trường
 .env
 .env*.local
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+!.env.*.sample
+!.env.*.template
 
 # Linh tinh
 .DS_Store
