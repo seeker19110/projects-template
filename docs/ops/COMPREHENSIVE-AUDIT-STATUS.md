@@ -1,3 +1,24 @@
+# Trạng thái audit hiện hành của repo khung — 2026-10-05
+
+> Người dùng chọn hoàn thiện chính bộ khung. Audit 12 nhóm theo năng lực khung,
+> các phát hiện F-K01..10 và căn cứ kiểm chứng nằm trong
+> `docs/reports/2026-10-05-framework-audit.md`. Bản 2026-09-12 bên dưới là
+> snapshot lịch sử của một lượt khác; không dùng để tuyên bố Project Complete.
+
+## Re-audit hiện hành — 2026-10-05
+
+Main nguồn đã đối chiếu: `6702994d90ad318142715aa172d79916c71e5b9d` (#196).
+12 nhóm đã quét lại; không phát hiện Cao/Trung mới trong phần code/cổng đã rà.
+F-K01..07/F-K09/F-K10 đóng trên main; F-K08/F-11 bàn giao trong PR tài liệu này.
+Chu kỳ WAITING, còn cổng PR tài liệu và xác nhận đóng của người dùng.
+W-06 chứng minh copy/gate runtime Node/Python tối thiểu; các resolver fixture
+khác không chứng minh runtime toàn stack, Go/Make chưa có ca resolver độc lập,
+CI hosted của repo đích chưa kiểm. C01 ngoài phạm vi repo khung đã chọn.
+Revisit triggers và bảng 12 nhóm/F-K nằm trong
+`docs/reports/2026-10-05-framework-audit.md`; không dùng snapshot cũ để nghiệm thu.
+
+---
+
 # COMPREHENSIVE-AUDIT-STATUS — trạng thái quét audit toàn diện
 
 > Chủ thể: **chính bộ khung** `project-template` (không phải app web) — xem `docs/FEATURE-MAP.md`.
