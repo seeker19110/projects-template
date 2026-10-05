@@ -97,6 +97,7 @@ jobs:
       # cổng 100% mà độ phủ dòng ~ 0. Sàn 95%, nâng khi thêm ca — hạ phải nêu lý do trong PR.
       - name: Độ phủ dòng của 4 engine Python (coverage.py)
         run: |
+          bash scripts/test-py-coverage-exit.sh
           bash scripts/test-py-coverage.sh
 
       # Ngưỡng CC 12 đã được nhắc ở ADR-0005 + characterization test nhưng CHƯA có cổng nào
