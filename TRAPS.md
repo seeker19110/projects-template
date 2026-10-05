@@ -883,3 +883,18 @@ với probe thành công bị làm lỗi và kiểm exit 1. Test còn gây lỗi
 fixture tạm và sau khi bảng giá bị ghi hỏng để xác nhận trap dọn/khôi phục.
 Helper `run_expected_failure()` chỉ dùng cho các lời gọi được xác minh trả exit
 khác 0; spec không tồn tại của spec-compiler trả 0 theo contract hiện tại.
+
+## 40. Maintenance sweep chỉ quét dependency của stack đầu tiên ở root
+
+*Ngày:* 2026-10-05, F-K03 audit. `detect_deps_cmd` dừng ở hệ sinh thái root đầu tiên
+có mặt; monorepo đa stack không chạy kiểm tra những stack còn lại và không phát hiện
+manifest dependency trong `apps/*` hoặc `packages/*`.
+
+*Cách rà:* fixture có Go ở root, Node trong `apps/site` và Rust trong
+`packages/rust-core`; xác nhận lệnh outdated/audit chạy với working directory từng
+thành phần, đồng thời tên thành phần xuất hiện trong báo cáo.
+
+*Cổng chốt chặn:* `scripts/test-maintenance-sweep.sh` kiểm tra log lời gọi công cụ
+trong cả ba thư mục và nội dung báo cáo. Tự dò giới hạn ở root cùng một cấp trực tiếp
+`apps/*`/`packages/*`; manifest sâu hơn phải khai báo `deps_outdated`/`deps_audit`
+trong `.claude/project-commands.sh` cho đến khi có yêu cầu quét sâu hơn.
