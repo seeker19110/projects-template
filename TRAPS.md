@@ -777,3 +777,21 @@ Test cũ khẳng định `0.2`, tức bảo vệ chính lỗi sai đơn vị.
 *Cổng chốt chặn:* `scripts/test-hooks-session.sh` khẳng định 720/1080 giây.
 Không nhân toàn bộ log lịch sử: CLI cũng ghi cùng schema nên không xác định an
 toàn entry cũ nào thực sự dùng giờ.
+
+## 34. Dependabot tách các bước CodeQL thành PR riêng làm CI đỏ vì lệch phiên bản
+
+*Ngày/PR:* 2026-10-05, PR #185/#186. Cả hai job `Analyze (python)` và
+`Analyze (actions)` lỗi `Loaded a configuration file for version '4.38.1',
+but running version '4.38.2'` khi chỉ một trong `init`/`analyze` được nâng.
+
+**Khuôn lỗi:** Dependabot tạo PR riêng cho từng `github/codeql-action/*` trong
+cùng workflow. Mỗi PR riêng làm CodeQL `init` và `analyze` khác version; required
+`gate` của khung vẫn xanh nhưng CodeQL đỏ, nên không đủ cổng trước merge.
+
+**Cách rà:** khi nâng một sub-action CodeQL, đối chiếu toàn bộ `uses:` của
+`github/codeql-action/*` trong cùng workflow và các check CodeQL trên PR.
+
+**Cổng chốt chặn:** `.github/dependabot.yml` gom `github/codeql-action/*` vào
+một nhóm update; PR #185 cập nhật `init` và `analyze` cùng SHA v4.38.2, sau đó
+phải có `Analyze (python)` và `Analyze (actions)` xanh trên đúng head. Việc nhóm
+PR chỉ áp dụng cho các lượt Dependabot tương lai, không tự sửa PR #186 đã mở.
