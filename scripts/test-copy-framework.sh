@@ -134,6 +134,30 @@ targetA="$(new_target)"
 run_logged "bash / đích trống" bash "$REPO_ROOT/copy-framework.sh" "$targetA"
 check_structure "bash / đích trống" "$targetA"
 
+echo "== .gitignore drop-in: chặn biến thể môi trường, giữ tệp mẫu =="
+env_target="$(new_target)"
+if cp "$targetA/_framework-dropins/.gitignore" "$env_target/.gitignore"; then
+  for env_file in .env .env.production .env.staging; do
+    if git -C "$env_target" check-ignore --no-index -q -- "$env_file"; then
+      echo "  ok: $env_file được ignore"
+    else
+      echo "  FAIL: $env_file chưa được ignore"
+      fail=1
+    fi
+  done
+  for env_file in .env.example .env.sample .env.template .env.production.example .env.staging.sample; do
+    if git -C "$env_target" check-ignore --no-index -q -- "$env_file"; then
+      echo "  FAIL: $env_file bị ignore oan"
+      fail=1
+    else
+      echo "  ok: $env_file vẫn được phép commit"
+    fi
+  done
+else
+  echo "  FAIL: thiếu .gitignore drop-in"
+  fail=1
+fi
+
 echo ""
 echo "== bash / đích đã có CLAUDE.md + .claude/settings.json + .claude/hooks (không được đè) =="
 targetB="$(new_target)"
