@@ -813,7 +813,7 @@ ngày 2026-10-05; CI của PR phải xác nhận trên head cuối.
 
 ## 36. Git pre-commit truyền biến repo nội bộ vào gate làm hỏng test repo tạm
 
-*Ngày/PR:* 2026-10-05, PR chờ mở. Khi chạy `git commit` với
+*Ngày/PR:* 2026-10-05, PR #189. Khi chạy `git commit` với
 `core.hooksPath=scripts/githooks`, hook gọi `dev-task.sh gate` khi còn
 `GIT_DIR`/`GIT_INDEX_FILE` do Git truyền vào. Các test tạo repo tạm dùng nhầm
 repo gốc: `test-check-scripts.sh` đỏ oan và `core.bare` trong config chung
