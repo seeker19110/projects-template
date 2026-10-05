@@ -12,6 +12,7 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
