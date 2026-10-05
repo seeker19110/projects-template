@@ -810,3 +810,20 @@ chính sách. File khai và GitHub Settings có thể trôi lệch mà CI không
 `protection-guard` với phản hồi API giả: `strict=true` xanh,
 `strict=false` đỏ. Ruleset live đã được cập nhật và đọc lại qua API
 ngày 2026-10-05; CI của PR phải xác nhận trên head cuối.
+
+## 36. Git pre-commit truyền biến repo nội bộ vào gate làm hỏng test repo tạm
+
+*Ngày/PR:* 2026-10-05, PR chờ mở. Khi chạy `git commit` với
+`core.hooksPath=scripts/githooks`, hook gọi `dev-task.sh gate` khi còn
+`GIT_DIR`/`GIT_INDEX_FILE` do Git truyền vào. Các test tạo repo tạm dùng nhầm
+repo gốc: `test-check-scripts.sh` đỏ oan và `core.bare` trong config chung
+từng bị đổi thành `true`. Đã khôi phục `false` trước khi tiếp tục.
+
+**Khuôn lỗi:** chạy test có lệnh `git init`/`git -C` từ hook nhưng giữ biến
+Git nội bộ của repo gọi hook. Mọi worktree chia sẻ config nên tác động lan
+qua nhiều nhánh.
+
+**Cổng chốt chặn:** `scripts/test-hooks-gate.sh` truyền giả
+`GIT_DIR`/`GIT_WORK_TREE`/`GIT_INDEX_FILE` vào hook, yêu cầu gate không
+nhận các biến đó. Test đã đỏ trước sửa và xanh sau khi hook chỉ dọn biến Git
+trong subshell chạy gate; kiểm staged diff vẫn dùng môi trường hook ban đầu.

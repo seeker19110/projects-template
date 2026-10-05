@@ -19,7 +19,9 @@ HOOK="$ROOT/.claude/hooks/pre-commit-gate.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
+# shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # _test-lib.sh cũng khởi tạo; khai rõ để ShellCheck kiểm được file độc lập.
 skips=0
 skip() { echo "  ⏭  BỎ QUA (thiếu jq): $1"; skips=$((skips+1)); }
 
@@ -222,6 +224,18 @@ rc="$( cd "$g2" && bash "$GH" >/dev/null 2>&1; echo $? )"
 g3="$(setup_project 1)"; echo hi > "$g3/a.txt"; git -C "$g3" add a.txt
 rc="$( cd "$g3" && bash "$GH" >/dev/null 2>&1; echo $? )"
 [ "$rc" = "1" ] && ok "githooks: gate đỏ → 1" || bad "githooks: gate đỏ mà cho qua (exit $rc)"
+g4="$(setup_project 0)"; echo hi > "$g4/a.txt"; git -C "$g4" add a.txt
+cat > "$g4/scripts/dev-task.sh" <<'EOF'
+#!/usr/bin/env bash
+[ "${1:-}" = gate ] || exit 2
+for name in GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR; do
+  [ -z "${!name+x}" ] || exit 42
+done
+exit 0
+EOF
+chmod +x "$g4/scripts/dev-task.sh"
+rc="$( cd "$g4" && GIT_DIR="$g4/.git" GIT_WORK_TREE="$g4" GIT_INDEX_FILE="$g4/.git/index" bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "0" ] && ok "githooks: gate không kế thừa biến Git của hook" || bad "githooks: gate kế thừa biến Git của hook (exit $rc)"
 
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then

@@ -26,6 +26,17 @@ done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/
 [ -z "$big" ] || { echo "pre-commit: file staged > 1 MB:$big — Git LFS hoặc loại khỏi repo." >&2; exit 1; }
 
 if [ -x "$ROOT/scripts/dev-task.sh" ]; then
-  "$ROOT/scripts/dev-task.sh" gate || { echo "pre-commit: cổng build/typecheck/lint/test ĐỎ — sửa rồi commit lại." >&2; exit 1; }
+  # Git truyền GIT_DIR/GIT_INDEX_FILE/... vào hook. Gate tạo repo tạm để kiểm thử;
+  # giữ các biến đó sẽ khiến lệnh git trong repo tạm trỏ ngược về repo thật.
+  git_local_vars="$(git -C "$ROOT" rev-parse --local-env-vars)" || {
+    echo "pre-commit: không xác định được biến Git nội bộ để chạy gate an toàn." >&2
+    exit 1
+  }
+  (
+    while IFS= read -r name; do
+      [ -n "$name" ] && unset "$name"
+    done <<< "$git_local_vars"
+    "$ROOT/scripts/dev-task.sh" gate
+  ) || { echo "pre-commit: cổng build/typecheck/lint/test ĐỎ — sửa rồi commit lại." >&2; exit 1; }
 fi
 exit 0
