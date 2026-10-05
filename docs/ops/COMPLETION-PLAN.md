@@ -1,3 +1,29 @@
+# COMPLETION-PLAN — trạng thái hiện hành 2026-10-05
+
+> Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
+> `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:
+> `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới
+> là lịch sử, không dùng các ô chưa tick của lượt cũ để suy ra trạng thái hiện tại.
+
+## Chu kỳ 2026-10-05
+
+| Slice | Finding / outcome | Trạng thái | Bằng chứng cần có |
+| --- | --- | --- | --- |
+| W-01 | Reconcile goal F-01..11, FEATURE-MAP, PROGRESS | Bàn giao trong PR tài liệu này | Main nguồn `6702994d90ad318142715aa172d79916c71e5b9d`; bản đồ đếm đúng 16/11/9/9, truy vết F→PR→regression |
+| W-02 | Audit 12 nhóm năng lực khung | DONE | Snapshot và re-audit trong `docs/reports/2026-10-05-framework-audit.md`; nhóm N/A và giới hạn có lý do |
+| W-03 | CodeQL #185/#186, grouping | DONE | #185 `8f4a181` merged, hai Analyze xanh; #186 trùng đóng |
+| W-04 | Ruleset strict và regression guard | DONE | #188 `bec5795`; live strict=true, required gate+metadata; false đỏ/true xanh |
+| W-05 | F-K01..05/F-K09/F-K10 | DONE | #189–194 và #196 merged; test hồi quy và required CI xanh trên head cuối; progress-freshness skip theo main-only |
+| W-06 | Ma trận adoption/copy/gate | DONE đối chiếu, runtime giới hạn | #195: Node/Python tối thiểu chạy thật, các resolver fixture được liệt kê; Go/Make, stack runtime khác, CI hosted chưa kiểm; C01 ngoài phạm vi khung |
+| W-07 | Re-audit và Definition of Complete | WAITING | Không phát hiện Cao/Trung mới trong phần code/cổng đã rà; F-K08/F-11 bàn giao ở PR này. Cổng PR phải đạt trước merge; người dùng xác nhận đóng chu kỳ theo Pha 4 |
+
+Bằng chứng source: CI #196 run 37323540706 trên head `8b97ee6`: Linux/Windows,
+docs/copy/protection/gate SUCCESS; metadata, CodeQL, dependency-review và gitleaks
+SUCCESS. `progress-freshness` SKIPPED trên PR theo main-only. Cổng cuối của hồ sơ
+nằm trong PR bàn giao này; không suy ra hosted CI hoặc UAT của sản phẩm thật.
+
+---
+
 # COMPLETION-PLAN — Kế hoạch hoàn thiện khung (lượt 2026-09-12)
 
 > Lượt trước (01/09, 22 việc W-101→W-406) đã ĐÓNG — không mở lại. Đây là **chu kỳ mới**.

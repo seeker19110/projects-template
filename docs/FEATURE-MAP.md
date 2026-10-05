@@ -8,7 +8,7 @@
 > đó. "Dữ liệu đụng tới" = file/thư mục nó đọc-ghi. Lập từ việc đọc file thật (`ls`, `copy-framework.sh`,
 > `scripts/*.sh`, `.github/workflows/*`) — không đoán.
 
-## A. Slash command (13) — `.claude/commands/`
+## A. Slash command (16; `/maintain` được ghi cùng agent ở mục B) — `.claude/commands/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -24,8 +24,11 @@
 | FT-10 | Xử lý sự cố production | `/incident` | `docs/ops/incident-response.md` | ✅ | như trên |
 | FT-11 | Phỏng vấn dồn dập làm rõ yêu cầu | `/grill` | `CONTEXT.md` (dự án đích) | ✅ | như trên |
 | FT-12 | Chẩn đoán bug khó | `/debug` | `TRAPS.md` | ✅ | như trên |
+| FT-53 | Thiết kế hợp đồng dữ liệu/API trước khi code | `/contract` | `docs/specs/` | ✅ | kiểm liên kết với CLAUDE.md; nghiệm thu hợp đồng trong spec |
+| FT-54 | Nâng dependency theo yêu cầu cụ thể | `/deps-upgrade` | manifest/lockfile của dự án đích | ✅ | kiểm liên kết với CLAUDE.md; gate theo stack đích |
+| FT-55 | Review diff trước PR | `/review` | diff của nhánh đang làm | ✅ | kiểm liên kết với CLAUDE.md; review thủ công |
 
-## B. Subagent 3 tầng (9) — `.claude/agents/`
+## B. Subagent 3 tầng (11) — `.claude/agents/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -38,17 +41,23 @@
 | FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | ❌ không có |
 | FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | ❌ không có |
 | FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 5 harness) — job `framework-lint` + smoke dự án đích |
+| FT-56 | Kiểm thử độc lập trước tích hợp | `tester` | lệnh gate và output test | ✅ | frontmatter/route được kiểm; nghiệm thu test cụ thể theo PR |
+| FT-57 | Review vùng nhạy cảm | `security-reviewer` | diff và threat model liên quan | ✅ | frontmatter/route được kiểm; review thủ công |
 | FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy nhánh + tự mở PR (GitHub REST API) để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md`, PR trên GitHub | ✅ | `test-maintain-cron.sh` (bare-repo remote thật + curl giả) — job `framework-lint` + smoke dự án đích |
 
-## C. Hook tự động (5) — `.claude/hooks/`
+## C. Hook tự động (9) — `.claude/hooks/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
-| FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | như trên |
-| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | như trên |
-| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | như trên |
-| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | như trên |
+| FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
+| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | chỉ kiểm copy; chưa có test chạy hook |
+| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm chọn trạng thái và giới hạn ngữ cảnh |
+| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | chỉ kiểm copy hook; `test-usage-estimate.sh` kiểm engine, chưa chạy hook guard |
+| FT-58 | Chặn lệnh Git nguy hiểm | `block-dangerous-git.sh` | lệnh Git sắp chạy | ✅ | `scripts/test-hooks-gate.sh` có ca chặn và không chặn oan |
+| FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |
+| FT-60 | Ghi telemetry khi dừng phiên/subagent | `telemetry-record.sh` | transcript và `.ai-telemetry/` | ✅ | `scripts/test-hooks-session.sh` |
+| FT-61 | Trí tuệ UI opt-in | `ui-intelligence.sh` | cấu hình provider của dự án đích | ✅ | `scripts/test-hooks-session.sh` kiểm tắt/bật/lỗi provider |
 
 ## D. Cổng tự kiểm của CHÍNH repo khung (3 script) — `scripts/`
 
@@ -64,9 +73,9 @@
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-30 | Copy khung sang dự án đích (POSIX) | `copy-framework.sh` | Lớp 1 copy thẳng · file gốc `copy_if_absent` · Lớp 2 `stage` → `_framework-dropins/` · `FRAMEWORK-VERSION` | ✅ | `test-copy-framework.sh` |
-| FT-31 | Bản Windows | `copy-framework.ps1` | như trên | ✅ | `test-copy-framework.sh` (chỉ chạy khi có `pwsh` — máy local bỏ qua, CI ubuntu có) |
+| FT-31 | Bản Windows | `copy-framework.ps1` | như trên | ✅ | `test-copy-framework.sh` (chạy khi có `pwsh`; CI yêu cầu phải có và lượt nghiệm thu local này đã chạy) |
 
-## F. Tài liệu khung (Lớp 1) — 13 file `docs/framework/` + 7 file `docs/ops/`
+## F. Tài liệu khung (Lớp 1) — `docs/framework/` và `docs/ops/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -76,17 +85,17 @@
 | FT-35 | Research-first chọn công nghệ | `03-tech-selection-and-proactive-advice.md` | `docs/research/` | ✅ | link-check |
 | FT-36 | Điều phối 3 tầng | `orchestration-3-tier.md` | `.claude/agents/` | ✅ | link-check |
 | FT-37 | Bổ sung chất lượng (Nhóm 1+2, theme, i18n/PWA/SEO) | `quality-supplements.md` | dropins | ✅ | link-check |
-| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ | link-check |
+| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ cho copy/gate Node và Python tối thiểu; các stack khác chưa nghiệm thu | `test-adoption-smoke.sh` (đỏ/xanh Node/Python, clone sạch, CI offline); báo cáo `docs/reports/2026-10-05-adoption-smoke.md` |
 | FT-39 | Model + tự động hoá + tối ưu token | `models-and-automation.md` | `.claude/settings*.json` | ✅ | link-check |
 | FT-40 | Spec-driven tuỳ chọn (OpenSpec) | `spec-driven-openspec.md` | `openspec/` | ✅ | link-check |
 | FT-41 | Case-study greenfield chạy thật | `case-study-greenfield-dry-run.md` | — | 🚧 Bước 6–8 chưa kiểm chứng (cần tài khoản thật) | ❌ |
-| FT-42 | Vận hành: sự cố, post-mortem, release, repo settings, chuỗi cung ứng | `docs/ops/*` | GitHub settings thật | ⚠️ branch protection chưa bật thật (việc người dùng) | `check-ci-policy.sh` cho phần required checks |
+| FT-42 | Vận hành: sự cố, post-mortem, release, repo settings, chuỗi cung ứng | `docs/ops/*` | GitHub settings thật | ✅ ruleset active, `strict=true` qua API 2026-10-05 | `protection-guard` kiểm live; W-04 bổ sung kiểm tham số `strict` và negative test |
 
-## G. Bản mẫu (12) — `docs/framework/templates/`
+## G. Bản mẫu (13 Markdown + 1 CI) — `docs/framework/templates/`
 
 | ID | Tính năng / luồng | Điểm vào | Trạng thái | Test hiện có |
 |----|-------------------|----------|-----------|--------------|
-| FT-43 | 12 bản mẫu: FEATURE-MAP, CONVENTIONS, CODEMAP, COMPLETION-PLAN, FEATURE-SPEC, GOAL, GOLDEN-TEST, TRAPS, THREAT-MODEL, DATA-GOVERNANCE, GOVERNANCE, SUPPORT | copy thủ công / theo pha | ✅ | link-check; ❌ không kiểm "mẫu ↔ tài liệu hướng dẫn còn khớp" |
+| FT-43 | 13 bản mẫu Markdown: AI-EVAL, FEATURE-MAP, CONVENTIONS, CODEMAP, COMPLETION-PLAN, FEATURE-SPEC, GOAL, GOLDEN-TEST, TRAPS, THREAT-MODEL, DATA-GOVERNANCE, GOVERNANCE, SUPPORT | copy thủ công / theo pha | ✅ | link-check; ❌ chưa kiểm toàn bộ "mẫu ↔ tài liệu hướng dẫn còn khớp" |
 
 ## H. Dropins Lớp 2 (CI/quy ước GitHub tổng quát — KHÔNG đè dự án đích)
 
@@ -96,13 +105,14 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-44 | Cổng CI dự án đích (7 workflow tổng quát) | `.github/workflows/*` | ci (3 job tự kiểm khung), secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance (quét bảo trì tuần → 1 issue) | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins — cần Node ở dự án đích để chạy) |
-| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh` (kiểm copy) |
+| FT-44 | Cổng CI dự án đích (9 workflow nguồn; `ci.yml` phát bản riêng) | `.github/workflows/*`, `docs/framework/templates/ci-target.yml` | ci, secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance, codeql, scorecard | ✅ cho template Node/Python offline; hosted CI của repo đích chưa nghiệm thu | `check-ci-policy.sh`, `test-adoption-smoke.sh`; `ci-workflow-policy.test.ts` chưa chạy trên fixture |
+| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh`, `test-dev-task.sh` (resolver/doctor/gate fixture; một số binary giả), `test-usage-estimate.sh`; Node/Python runtime thật trong adoption smoke |
+| FT-62 | Cầu nối delivery opt-in | `scripts/delivery-handoff.py` | spec/goal và contract từ consumer đã pin | ✅ | `tests/test_delivery_handoff_integrity.py`; CI Linux/Windows |
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)
 
-1. **Copy khung → dự án đích chạy được** (FT-30/31 → FT-44, FT-50): `test-copy-framework.sh`. ✅ có test thật (không còn dropins chạy thật để kiểm — ADR-0004).
-2. **Cổng chặn commit/merge đỏ** (FT-04, FT-22, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; ⚠️ dự án đích tự thêm cổng build/test theo stack đã chọn, chưa có test "thử vi phạm phải bị chặn" cho phần đó (không có ở repo khung).
+1. **Copy khung → dự án đích chạy được** (FT-30/31 → FT-44, FT-50): `test-copy-framework.sh` và `test-adoption-smoke.sh` kiểm Node/Python thật, CI drop-in offline và bản PowerShell; hosted CI của một repo đích vẫn chưa có bằng chứng.
+2. **Cổng chặn commit/merge đỏ** (FT-04, FT-52, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; smoke Node/Python bắt phép cộng sai ở `test` rồi xanh sau sửa. Stack khác cần bằng chứng riêng.
 3. **Tài liệu ↔ code khung không lệch** (FT-26, FT-27): ✅ có test 2 chiều + negative test.
-4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): ❌ **không có test/nghiệm thu nào**; chỉ có case-study thủ công.
+4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): `test-telemetry-and-dispatch.sh` kiểm CLI dispatcher, payload và định tuyến; ❌ chưa có test chạy PLAN đầu-cuối qua ba tầng agent thật. Case-study thủ công chỉ là bằng chứng giới hạn.
 5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung nhưng **chưa chạy trên dự án đích thật**.
