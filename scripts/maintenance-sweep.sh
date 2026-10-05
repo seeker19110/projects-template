@@ -249,12 +249,25 @@ sweep_docs() {
 sweep_hygiene() {
   sec "4. Vệ sinh repo & bí mật"
   is_git || { line "n-a — không phải git repo"; return; }
-  local envs big hits
+  local envs big hits file line_no line_nums safe_path hit_count=0
   envs="$(tracked | grep -zE '(^|/)\.env(\.[a-z]+)?$' | grep -zvE '\.example$|\.sample$|\.template$' | tr '\0' ' ')"
   line "- File .env đang được git theo dõi: ${envs:-không}"
   [ -n "$envs" ] && red "Bí mật" "file .env nằm trong git: $envs" "git rm --cached <file> + thêm vào .gitignore + xoay vòng bí mật"
-  hits="$(tracked | grep -zvE '\.(example|sample)$|maintenance-sweep\.sh$' \
-    | xargs -0 grep -nIE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})' 2>/dev/null | head -n 10 || true)"
+  local secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
+  hits=""
+  while IFS= read -r -d '' file; do
+    # Keep only line numbers from grep output: the matched line may contain the actual credential.
+    line_nums="$(grep -nIEh "$secret_re" -- "$file" 2>/dev/null | cut -d: -f1 | sort -nu || true)"
+    [ -n "$line_nums" ] || continue
+    printf -v safe_path '%q' "$file"
+    while IFS= read -r line_no; do
+      [ -n "$line_no" ] || continue
+      hits+="${safe_path}:${line_no} [credential-like match — redacted]"$'\n'
+      hit_count=$((hit_count + 1))
+      [ "$hit_count" -lt 10 ] || break 2
+    done <<< "$line_nums"
+  done < <(tracked | grep -zvE '\.(example|sample)$|maintenance-sweep\.sh$')
+  hits="${hits%$'\n'}"
   if [ -n "$hits" ]; then
     line "- Chuỗi giống bí mật:"; block <<<"$(printf '%s\n' "$hits" | cut -c1-160)"
     red "Bí mật" "$(printf '%s\n' "$hits" | wc -l | tr -d ' ') dòng giống khoá/token thật trong file được git theo dõi" "xoá khỏi lịch sử + xoay vòng khoá; cân nhắc gitleaks"
