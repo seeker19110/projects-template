@@ -906,3 +906,21 @@ thành phần, đồng thời tên thành phần xuất hiện trong báo cáo.
 trong cả ba thư mục và nội dung báo cáo. Tự dò giới hạn ở root cùng một cấp trực tiếp
 `apps/*`/`packages/*`; manifest sâu hơn phải khai báo `deps_outdated`/`deps_audit`
 trong `.claude/project-commands.sh` cho đến khi có yêu cầu quét sâu hơn.
+
+## 41. Lint ghép bằng dấu chấm phẩy báo xanh dù ShellCheck lỗi
+
+*Ngày:* 2026-10-05, audit hoàn thiện F-K10. `lint` của repo khung nối ShellCheck,
+kiểm tài liệu và kiểm CI bằng `;`, nên mã thoát của bước cuối che lỗi bước đầu.
+Gọi ShellCheck một lần cho cả danh sách file còn che cảnh báo SC2154 có thể thấy
+khi kiểm riêng `scripts/test-hooks-gate.sh`.
+
+*Cách rà:* chạy ShellCheck riêng từng file và cố ý cài một file `.sh` có biến chưa
+khai báo vào fixture. Khi ShellCheck đỏ, lint phải đỏ và hai kiểm tiếp theo không
+được chạy; khi file sạch, cả ba bước phải chạy và lint xanh.
+
+*Cổng chốt chặn:* `.claude/project-commands.sh` dùng `xargs -n1` và `&&` giữa
+ba bước; `scripts/test-dev-task.sh` kiểm cả đường lỗi và đường sạch của chuỗi
+lint thật. Cảnh báo SC2154 ở test hook được sửa trong cùng đợt trước khi gate xanh.
+CI Windows không cài ShellCheck: lần đầu test đỏ với exit 127 ở đường sạch,
+vì fixture gọi binary thật. Test dùng ShellCheck giả chỉ trong fixture để kiểm
+đường gọi từng file và mã thoát; cổng Linux vẫn chạy ShellCheck thật trên source.

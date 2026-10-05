@@ -17,6 +17,7 @@ PROBE="$ROOT/scripts/zz-probe-shcc-$$.sh"
 trap 'rm -f "$PROBE"' EXIT
 
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 GATE="scripts/check-shell-complexity.sh"
 run_gate() { ( cd "$ROOT" && env "$@" bash "$GATE" >/dev/null 2>&1 ); echo $?; }

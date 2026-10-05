@@ -5,16 +5,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #181 đã merge (cầu nối delivery opt-in); tiếp tục đối chiếu goal hoàn thiện khung, chưa kết luận Project Complete.
+- Giai đoạn: GĐ 8, Reconcile. Các PR sửa khung đến #195 đã merge; đang nghiệm thu #196 và bản đồ/trạng thái cuối.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `f42bb5f` (`origin/main`, sau PR #181).
-- Ngày cập nhật: 2026-09-27
+- Default-branch SHA đã đối chiếu: `430b4b96626433e481a13da2a0f2b2e4a2b3b3de` (`origin/main`, sau PR #195).
+- Ngày cập nhật: 2026-10-05
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Hoàn thiện khung 2026-09-24 | Đóng F-01..11, gate thực và re-audit | IN_PROGRESS | W-05 đã merge; còn đối chiếu nghiệm thu cuối | Reconcile goal từ main | `docs/goals/2026-09-24-completion.md` |
+| Hoàn thiện khung 2026-09-24 | Đóng F-01..11, gate thực và re-audit | IN_PROGRESS | F-11 chờ PR tài liệu; F-K10 chờ CI #196 | Nghiệm thu #196, re-audit và merge bản đồ/trạng thái | `docs/goals/2026-09-24-completion.md` |
 
 ## Đã xong
 
@@ -24,15 +24,20 @@ trước merge. Runtime regression có 10 bài, gồm 45 subcase CLI và Git loc
 
 ## Đang làm / chờ
 
-PR #180 đã merge ngày 2026-09-25 (`071faea`), bổ sung gate fail-closed, doctor,
-contract của chính khung và test Node thật. PR #181 đã merge; còn đối chiếu nghiệm thu
-W-05 với goal trước khi kết luận hoàn tất toàn dự án.
+PR #180 đã merge (`071faea`), bổ sung gate fail-closed, doctor và test Node thật.
+Các PR #188–195 đã sửa ruleset strict, môi trường Git của hook, báo cáo secret,
+ignore môi trường, nhận diện manifest lồng, probe coverage, quét đa stack và
+CI mẫu cho dự án đích. #185 đồng bộ CodeQL/grouping; #186 trùng đã đóng.
+F-01..10 có regression/CI; bản đồ được cập nhật theo file thật nhưng F-11 chỉ
+đóng khi PR tài liệu merge. #196 sửa lint nuốt lỗi; Windows CI đầu tiên bắt
+fixture phụ thuộc ShellCheck không được cài, bản sửa fixture đang nghiệm thu.
 
 ## Tiếp theo
 
-Nghiệm thu W-05 và đối chiếu phát hiện còn lại; không tuyên bố Project Complete
-chỉ vì hai PR an toàn/gate đã merge. Các phần proof spec, evidence theo AC và
-adoption thực tế cần bằng chứng riêng trước khi đánh dấu hoàn tất.
+Merge #196 sau gate và CI cuối; đối chiếu lại 12 nhóm trên `main`, hoàn tất PR
+tài liệu F-11/F-K08 và báo cáo nghiệm thu. Kế hoạch 2026-10-05 chờ người dùng
+xác nhận đóng sau khi có bằng chứng. Adoption sản phẩm thật và CI hosted của
+repo đích chưa được chứng minh.
 
 ## Quyết định quan trọng
 
@@ -44,13 +49,15 @@ Không giảm coverage/complexity, không nới branch protection, không rollou
 
 | Mục | Trạng thái / xử lý |
 | --- | --- |
-| W-05 strict gate | PR #180 đã merge; còn đối chiếu goal cuối, READY khác PASS |
-| C01 adoption sản phẩm thật | Còn mở; fixture Node không thay thế sản phẩm đầy đủ |
-| C02 toàn bộ CI drop-in | Còn mở; cần đối chiếu phát hành tất cả phụ thuộc trên từng loại dự án |
-| Hook thiếu jq | Còn đường fail-open; doctor phát hiện tool thiếu, không thay mọi cơ chế bypass |
-| PowerShell native upgrade | Dùng Git Bash; chưa có engine merge riêng |
-| Upgrade transaction toàn cây | Chỉ bảo toàn từng file; không hứa atomic toàn thư mục |
-| Spec approval / evidence / UX | Không suy ra đã đủ chỉ từ metadata, CI hay điểm tự động |
+| W-05 strict gate | #180 và #188 đã merge; còn nghiệm thu F-11/re-audit |
+| F-11 / F-K08 bản đồ tính năng | Đã đối chiếu 16 command, 11 agent, 9 hook, 9 workflow; 13 mẫu Markdown + 1 CI. Chờ PR tài liệu merge |
+| C01 adoption sản phẩm thật | Ngoài phạm vi repo khung đã chọn; xem lại khi người dùng chỉ định repo sản phẩm và quyền thử |
+| C02 toàn bộ CI drop-in | #195 chứng minh copy/gate Node/Python tối thiểu và CI offline. Xem lại khi có repo đích để chạy hosted CI hoặc cần stack khác |
+| Quét dependency tự dò | #194 quét root + một cấp `apps/*`/`packages/*`; khai lệnh riêng cho cây sâu hơn. Xem lại khi gặp workspace lồng sâu |
+| Hook thiếu jq | Còn đường fail-open có cảnh báo; xem lại khi yêu cầu chặn cứng ngay cả trên máy chưa cài jq |
+| PowerShell native upgrade | Dùng Git Bash; xem lại khi cần nâng cấp mà không có Git Bash |
+| Upgrade transaction toàn cây | Bảo toàn từng file; xem lại khi có yêu cầu atomic cho toàn cây |
+| Spec approval / evidence / UX | Metadata không chứng thực phê duyệt hay UAT; xem lại trên sản phẩm có AC/UX thật |
 
 Chi tiết: `docs/framework/strict-gate-contract.md`, `docs/CONVENTIONS.md`,
 `docs/reports/2026-09-25-runtime-safety.md`.

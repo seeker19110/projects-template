@@ -18,6 +18,7 @@ WORK="$(mktemp -d)"
 trap 'rm -f "$ROOT/scripts/zz-probe-cc-$$.py"; rm -rf "$WORK"' EXIT
 
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 GATE="scripts/check-python-complexity.sh"
 run_gate() { ( cd "$ROOT" && "$@" bash "$GATE" >/dev/null 2>&1 ); echo $?; }

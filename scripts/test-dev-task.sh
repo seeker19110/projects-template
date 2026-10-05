@@ -16,6 +16,7 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
+fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 FAKEBIN="$WORK/bin"; mkdir -p "$FAKEBIN"
 for b in ruff mypy pytest uv poetry flutter; do printf '#!/usr/bin/env bash\nexit 0\n' > "$FAKEBIN/$b"; chmod +x "$FAKEBIN/$b"; done
@@ -165,6 +166,54 @@ contract_tests
 skip_and_failure_tests
 head_drift_test
 real_node_fixture
+
+echo "== 8. Lint của chính repo khung fail-closed ở từng bước =="
+lint_cmd="$(CLAUDE_PROJECT_DIR="$ROOT" bash "$DT" --print lint)"
+d="$(fx framework-lint)"; mkdir -p "$d/scripts"
+lint_bin="$WORK/lint-bin"; mkdir -p "$lint_bin"
+# Windows CI không cài ShellCheck: giả lập đúng mã thoát để kiểm chuỗi lệnh,
+# và chỉ báo lỗi khi mỗi file được kiểm riêng (bắt mất cờ xargs -n1).
+cat > "$lint_bin/shellcheck" <<'SHELLCHECK_STUB'
+#!/usr/bin/env bash
+files=()
+for arg in "$@"; do
+  [[ "$arg" == *.sh ]] && files+=("$arg")
+done
+if [ "${#files[@]}" -eq 1 ] && grep -Fq '$missing_var' "${files[0]}"; then exit 1; fi
+exit 0
+SHELLCHECK_STUB
+chmod +x "$lint_bin/shellcheck"
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$missing_var"\n' > "$d/scripts/bad.sh"
+printf '#!/usr/bin/env bash\ntouch docs-ran\n' > "$d/scripts/check-docs-consistency.sh"
+printf '#!/usr/bin/env bash\ntouch ci-ran\n' > "$d/scripts/check-ci-policy.sh"
+if PATH="$lint_bin:$PATH" shellcheck --severity=warning "$d/scripts/bad.sh" >"$WORK/lint-fixture-output" 2>&1; then
+  bad "fixture ShellCheck không tạo được cảnh báo"
+else
+  ok "fixture ShellCheck đỏ trước khi chạy chuỗi lint"
+fi
+(cd "$d" && PATH="$lint_bin:$PATH" bash -c "$lint_cmd") >"$WORK/lint-output" 2>&1; rc=$?
+if [ "$rc" -ne 0 ] && [ ! -e "$d/docs-ran" ] && [ ! -e "$d/ci-ran" ]; then
+  ok "ShellCheck đỏ → lint đỏ, không chạy hai bước sau"
+else
+  bad "ShellCheck đỏ nhưng lint exit $rc / docs-ran=$([ -e "$d/docs-ran" ] && echo yes || echo no) / ci-ran=$([ -e "$d/ci-ran" ] && echo yes || echo no)"
+fi
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" clean\n' > "$d/scripts/bad.sh"
+rm -f "$d/docs-ran" "$d/ci-ran"
+printf '#!/usr/bin/env bash\ntouch docs-ran\nexit 7\n' > "$d/scripts/check-docs-consistency.sh"
+(cd "$d" && PATH="$lint_bin:$PATH" bash -c "$lint_cmd") >"$WORK/lint-output" 2>&1; rc=$?
+if [ "$rc" -ne 0 ] && [ -e "$d/docs-ran" ] && [ ! -e "$d/ci-ran" ]; then
+  ok "kiểm tài liệu đỏ → lint đỏ, không chạy kiểm CI"
+else
+  bad "kiểm tài liệu đỏ nhưng lint exit $rc / docs-ran=$([ -e "$d/docs-ran" ] && echo yes || echo no) / ci-ran=$([ -e "$d/ci-ran" ] && echo yes || echo no)"
+fi
+printf '#!/usr/bin/env bash\ntouch docs-ran\n' > "$d/scripts/check-docs-consistency.sh"
+rm -f "$d/docs-ran" "$d/ci-ran"
+(cd "$d" && PATH="$lint_bin:$PATH" bash -c "$lint_cmd") >"$WORK/lint-output" 2>&1; rc=$?
+if [ "$rc" -eq 0 ] && [ -e "$d/docs-ran" ] && [ -e "$d/ci-ran" ]; then
+  ok "ba bước xanh → lint xanh và đều đã chạy"
+else
+  bad "ba bước sạch nhưng lint exit $rc hoặc thiếu bước"
+fi
 
 if [ "$fails" -eq 0 ]; then echo "OK — dev-task.sh phân giải đúng lệnh cho 13 stack, alias Node, môi trường Python."; exit 0; fi
 echo "FAIL — $fails ca hỏng."; exit 1
