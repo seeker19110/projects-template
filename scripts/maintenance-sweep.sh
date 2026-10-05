@@ -155,36 +155,63 @@ _deps_rust() {
   esac
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
 }
-detect_deps_cmd() { # $1=outdated|audit → in lệnh hoặc rỗng
-  # THỨ TỰ LÀ HÀNH VI: hệ sinh thái đầu tiên CÓ MẶT thắng, kể cả khi nó không có lệnh cho
-  # loại quét này (bản cũ cũng `return 0` ngay tại đó, không rơi xuống hệ sinh thái sau).
-  local eco
-  for eco in _deps_node _deps_python _deps_go _deps_rust; do
-    "$eco" "$1" && return 0
+dep_manifest_dirs() { # root + trực tiếp apps/* và packages/*; không đệ quy vào vendor/build output
+  # DEBT: chỉ quét root và một cấp apps/*, packages/* | trần: manifest sâu hơn không được dò tự động | xem lại khi: dự án đích có workspace lồng sâu cần báo cáo dependency đầy đủ
+  local base dir
+  printf '%s\0' .
+  for base in apps packages; do
+    [ -d "$base" ] || continue
+    for dir in "$base"/*; do
+      [ -d "$dir" ] && printf '%s\0' "$dir"
+    done
   done
+}
+detect_deps_cmd() { # $1=outdated|audit → in các dòng dir<TAB>lệnh
+  local dir eco cmd target_root="$ROOT"
+  while IFS= read -r -d '' dir; do
+    for eco in _deps_node _deps_python _deps_go _deps_rust; do
+      cmd="$(cd "$target_root/$dir" && ROOT="$target_root/$dir" "$eco" "$1")"
+      [ -n "$cmd" ] && printf '%s\t%s\n' "$dir" "$cmd"
+    done
+  done < <(dep_manifest_dirs)
   return 0
 }
 sweep_deps() {
   sec "2. Dependency"
   if [ "$DO_DEPS" -eq 0 ]; then line "bỏ qua (--no-deps)"; info Dependency "bỏ qua theo --no-deps" "—"; return; fi
-  local kind cmd out rc
+  local kind cmd specs dep_dir dep_cmd safe_dir dep_prefix dep_label out rc
   for kind in outdated audit; do
-    cmd="$(declared_var "deps_$kind")"; [ -n "$cmd" ] || cmd="$(detect_deps_cmd "$kind")"
-    if [ -z "$cmd" ]; then
+    cmd="$(declared_var "deps_$kind")"
+    if [ -n "$cmd" ]; then
+      specs=".$(printf '\t%s' "$cmd")"  # lệnh khai báo tiếp tục chạy ở root, như hợp đồng hiện tại
+    else
+      specs="$(detect_deps_cmd "$kind")"
+    fi
+    if [ -z "$specs" ]; then
       line "- $kind: n-a (không dò được lệnh cho stack này — khai \`deps_$kind\` ở \`.claude/project-commands.sh\`)"
       info Dependency "$kind: chưa có lệnh cho stack này" "khai deps_$kind trong .claude/project-commands.sh"
       continue
     fi
-    out="$(run_capture "$DEPS_TIMEOUT" "$cmd")"; rc=$?
-    line "- $kind: \`$cmd\` → exit $rc"
-    if [ "$rc" -eq 124 ]; then
-      yel Dependency "$kind: hết giờ sau ${DEPS_TIMEOUT}s (mạng/proxy?)" "chạy tay: $cmd"
-    elif [ "$rc" -ne 0 ] && [ "$kind" = audit ]; then
-      red Dependency "audit báo lỗ hổng (exit $rc)" "chạy tay: $cmd — nâng gói bị ảnh hưởng"
-    elif [ "$rc" -ne 0 ]; then
-      yel Dependency "có gói lỗi thời (exit $rc)" "chạy tay: $cmd — lên kế hoạch nâng theo lô"
-    fi
-    [ -n "$out" ] && block <<<"$(printf '%s\n' "$out" | tail -n 25)"
+    while IFS=$'\t' read -r dep_dir dep_cmd; do
+      [ -n "$dep_cmd" ] || continue
+      printf -v safe_dir '%q' "$dep_dir"
+      dep_prefix=""; dep_label="$kind"
+      if [ "$dep_dir" != . ]; then dep_prefix="$safe_dir: "; dep_label="$kind ($safe_dir)"; fi
+      out="$(cd "$ROOT/$dep_dir" && run_capture "$DEPS_TIMEOUT" "$dep_cmd")"; rc=$?
+      if [ "$dep_dir" = . ]; then
+        line "- $kind: \`$dep_cmd\` → exit $rc"
+      else
+        line "- $kind ($safe_dir): \`$dep_cmd\` → exit $rc"
+      fi
+      if [ "$rc" -eq 124 ]; then
+        yel Dependency "$dep_label: hết giờ sau ${DEPS_TIMEOUT}s (mạng/proxy?)" "chạy tay trong $safe_dir: $dep_cmd"
+      elif [ "$rc" -ne 0 ] && [ "$kind" = audit ]; then
+        red Dependency "${dep_prefix}audit báo lỗ hổng (exit $rc)" "chạy tay trong $safe_dir: $dep_cmd — nâng gói bị ảnh hưởng"
+      elif [ "$rc" -ne 0 ]; then
+        yel Dependency "${dep_prefix}có gói lỗi thời (exit $rc)" "chạy tay trong $safe_dir: $dep_cmd — lên kế hoạch nâng theo lô"
+      fi
+      [ -n "$out" ] && block <<<"$(printf '%s\n' "$out" | tail -n 25)"
+    done <<< "$specs"
   done
 }
 

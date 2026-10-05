@@ -106,6 +106,32 @@ mk_fake pip ':'
 PATH="$FAKEBIN:$PATH" CLAUDE_PROJECT_DIR="$pyrepo" bash "$SWEEP" --out "$TMP/py2.md" >/dev/null 2>&1
 has_outdated "$TMP/py2.md" && bad "pip: sạch mà vẫn 🟡" || ok "pip: sạch → không 🟡"
 
+echo "== 3d. Monorepo: chạy mọi hệ sinh thái ở root và apps/* / packages/* =="
+multi_repo="$TMP/multi"; mkdir -p "$multi_repo/apps/site" "$multi_repo/packages/rust-core" "$TMP/multi-bin"
+(
+  cd "$multi_repo" && "${GIT[@]}" init -q -b main
+  : > go.mod
+  printf '{"name":"site"}\n' > apps/site/package.json
+  : > packages/rust-core/Cargo.toml
+  "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
+)
+multi_log="$TMP/multi-calls.log"
+for tool in go npm govulncheck cargo cargo-outdated cargo-audit; do
+  cat > "$TMP/multi-bin/$tool" <<'EOF'
+#!/usr/bin/env bash
+printf '%s|%s|%s\n' "$(basename "$0")" "$PWD" "$*" >> "$MULTI_LOG"
+EOF
+  chmod +x "$TMP/multi-bin/$tool"
+done
+PATH="$TMP/multi-bin:$PATH" MULTI_LOG="$multi_log" CLAUDE_PROJECT_DIR="$multi_repo" \
+  bash "$SWEEP" --out "$TMP/multi-report.md" >/dev/null 2>&1
+multi_report="$(cat "$TMP/multi-report.md")"
+for target in "$multi_repo" "$multi_repo/apps/site" "$multi_repo/packages/rust-core"; do
+  if grep -Fq "$target" "$multi_log"; then ok "chạy kiểm tra trong ${target#"$multi_repo"/}"; else bad "bỏ sót thành phần $target"; fi
+done
+printf '%s' "$multi_report" | grep -Fq "govulncheck ./..." && ok "báo cáo giữ lệnh audit đa stack" || bad "báo cáo thiếu lệnh audit đa stack"
+printf '%s' "$multi_report" | grep -Fq "packages/rust-core" && ok "báo cáo nêu thành phần con" || bad "báo cáo thiếu tên thành phần con"
+
 echo "== 4. POSITIVE: repo tạm sạch → 0 🔴, --strict thoát 0 =="
 good_repo="$TMP/good"; mkdir -p "$good_repo/.github"
 (
