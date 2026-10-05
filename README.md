@@ -54,9 +54,8 @@ một quy trình song song bằng cảm tính.
 - `.gitignore`, `.gitattributes` — vệ sinh Git tối thiểu, không phụ thuộc stack.
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
-  `ci.yml` (7 job tự kiểm chính bộ khung: `framework-lint`, `framework-lint-windows`, `docs-consistency`,
-  `copy-framework-smoke`, `progress-freshness`, `protection-guard`, `gate` tổng hợp; dự án đích tự thêm job
-  build/test/lint theo stack đã chọn vào cùng file), `codeql.yml`, `scorecard.yml`,
+  `ci.yml` (bản đích riêng: `doctor` + `gate` qua `scripts/dev-task.sh`; dự án đích khai lệnh thật,
+  cài dependency và bổ sung cổng theo stack), `codeql.yml`, `scorecard.yml`,
   `secret-scan.yml` (gitleaks), `dependency-review.yml`,
   `pr-policy.yml` (spec/evidence), `release.yml` (release-please),
   `stale-pr-alert.yml` (cảnh báo PR kẹt vì required check không thể xanh),
@@ -114,9 +113,11 @@ pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 
 ### Bước 2 — Merge phần CI/quy ước GitHub
 Soát thư mục `_framework-dropins/` trong dự án đích: so/merge từng workflow, PR template, dependabot,
-CODEOWNERS với cấu hình CI đã có (nếu có) — đừng đè cấu hình đang chạy. Với `ci.yml`: thêm job
-build/lint/type/test theo đúng stack đã chọn (research-first, `/consult`) vào file, giữ nguyên các job
-tự kiểm của khung (bản kê ở `docs/ops/repository-settings.md`) và thêm job mới vào `needs:` của `gate`. Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc
+CODEOWNERS với cấu hình CI đã có (nếu có) — đừng đè cấu hình đang chạy. Với `ci.yml`: khai lệnh
+build/lint/type/test đã review trong `.claude/project-commands.sh`, thêm bước cài dependency và cổng
+theo stack. File lệnh bị ignore mặc định; nếu CI cần, rà không có secret rồi
+`git add -f .claude/project-commands.sh` để checkout nhận nó. Chạy PR thật trước khi xem CI hosted
+là đã xác nhận. Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc
 rồi gộp phần cần, sau đó xóa.
 
 ### Bước 3 — Mở Claude Code trong dự án đích

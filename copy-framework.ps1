@@ -109,9 +109,9 @@ function Copy-IfAbsent {        # chỉ copy nếu đích chưa có; nếu có t
 }
 
 function Add-Dropin {           # đưa vào _framework-dropins/ (không đụng file đang chạy)
-  param([string] $Rel)
+  param([string] $Rel, [string] $SourceRel = $Rel)
   $relN = Resolve-Rel $Rel
-  $srcFull = Join-Path $Src $relN
+  $srcFull = Join-Path $Src (Resolve-Rel $SourceRel)
   if (-not (Test-Path -LiteralPath $srcFull)) { return }
   Copy-Tree -SrcFull $srcFull -DestFull (Join-Path (Join-Path $Target '_framework-dropins') $relN)
   Write-Host "  → _framework-dropins/$Rel"
@@ -242,8 +242,9 @@ Copy-IfAbsent ".claude/usage-budget.example.sh"
 
 Write-Host ""
 Write-Host "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
+Add-Dropin '.github/workflows/ci.yml' 'docs/framework/templates/ci-target.yml'
 $dropins = @(
-  '.github/workflows/ci.yml', '.github/workflows/stale-pr-alert.yml', '.github/workflows/maintenance.yml',
+  '.github/workflows/stale-pr-alert.yml', '.github/workflows/maintenance.yml',
   '.github/workflows/secret-scan.yml', '.github/workflows/dependency-review.yml',
   '.github/workflows/pr-policy.yml', '.github/workflows/release.yml',
   '.github/workflows/codeql.yml', '.github/workflows/scorecard.yml',
@@ -264,6 +265,8 @@ Write-Host @'
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
+     → Nếu CI cần file lệnh này: rà không có secret rồi `git add -f .claude/project-commands.sh`;
+       file được ignore mặc định nên checkout CI sẽ không thấy nếu chưa track có chủ đích.
      ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.

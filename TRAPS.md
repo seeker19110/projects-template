@@ -42,6 +42,14 @@ pwsh 7), và kiểm byte đầu file là `EF BB BF`. *Chốt chặn*: ghi chú "
 một thư mục scratch, đếm số file, kiểm không lồng. *Chốt chặn*: `scripts/test-copy-framework.sh`
 (chạy cả `.sh` và `.ps1`, chạy lại lần hai để bắt đúng lỗi lồng thư mục này). (2026-07-02, PR #27, commit `6a4ac40`)
 
+**Tái phát 2026-10-05 (CI drop-in):** hai bản copy phát nguyên `ci.yml` nội bộ của repo khung,
+nhưng CI đó gọi `scripts/test-check-scripts.sh` và các suite khác không được copy sang đích.
+Smoke Node/Python với ca đỏ-trước bắt cả hai đích thất bại. *Chốt chặn*: CI đích có template
+riêng `docs/framework/templates/ci-target.yml`; `scripts/test-adoption-smoke.sh` xác nhận mọi
+script được CI gọi tồn tại sau copy và bản Bash/PowerShell phát cùng nội dung.
+Config `.claude/project-commands.sh` còn bị ignore mặc định: smoke clone sạch
+kiểm `doctor` BLOCKED trước khi track, rồi READY/gate PASS sau khi review và force-add.
+
 ## 4. Job CI mới thiếu `permissions:` tường minh → 403 im lặng đến khi chạy PR thật
 
 `gitleaks-action` liệt kê commit của PR qua GitHub API; `GITHUB_TOKEN` mặc định (workflow-level

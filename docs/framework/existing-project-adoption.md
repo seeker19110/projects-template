@@ -21,9 +21,11 @@
   Nhóm 1 & 2 (mobile, hiệu năng, a11y, UI/UX, **chống lỗi logic**). → **Dùng được ngay, bất kể bạn dùng công nghệ gì.**
 - **Lớp 2 — CI/quy ước GitHub tổng quát (không đặc thù stack):** `.github/workflows/{ci,pr-policy,
   secret-scan,dependency-review,release,stale-pr-alert}.yml`, PR template, dependabot, CODEOWNERS,
-  `.gitignore`/`.gitattributes`. → **So/merge với CI đã có** — `ci.yml` chỉ mang sẵn 3 job tự kiểm của
-  khung (`framework-lint`, `docs-consistency`, `copy-framework-smoke`) + `gate`; bạn tự thêm job
-  build/lint/type/test theo đúng stack đã chọn vào cùng file (xem PHẦN D).
+  `.gitignore`/`.gitattributes`. → **So/merge với CI đã có** — `ci.yml` phát cho dự án đích
+  chạy `dev-task.sh doctor` rồi `gate`. Khai lệnh thật trong `.claude/project-commands.sh`, bổ sung
+  bước cài dependency và cổng riêng theo stack trước khi bật required check (xem PHẦN D).
+  File lệnh bị ignore mặc định: nếu CI cần, rà không có secret rồi
+  `git add -f .claude/project-commands.sh` để checkout CI nhận đúng lệnh đã review.
 
 ---
 
@@ -161,7 +163,7 @@ Dự án bạn đã có i18n → **đừng thay nếu đang chạy tốt.** Đá
 ## PHẦN C — Bản đồ "dùng ngay vs cần thay" theo stack
 | Bạn đang dùng | Lớp 1 (quy trình) | Lớp 2 (CI/quy ước GitHub) |
 |---------------|-------------------|------------------------|
-| **Bất kỳ stack nào** | Dùng ngay | `ci.yml` dùng thẳng 3 job tự kiểm của khung + `gate`; tự thêm job build/lint/type/test theo đúng stack (research-first, KHUNG-3 PHẦN C) vào cùng file. Các workflow còn lại (`pr-policy`, `secret-scan`, `dependency-review`, `release`, `stale-pr-alert`) tổng quát, dùng thẳng. |
+| **Bất kỳ stack nào** | Dùng ngay | `ci.yml` phát riêng cho đích chạy `doctor` + `gate`; tự thêm bước cài dependency và cổng riêng theo đúng stack (research-first, KHUNG-3 PHẦN C). Các workflow khác phải so/merge với nhu cầu dự án. |
 | **Không phải web** | Dùng phần lớn (cổng, DoR/DoD, ADR, logic) | Như trên — thay job build/test bằng lệnh của hệ đó (vd `go test`, `pytest`, `cargo test`) |
 
 > Điểm mấu chốt: **giá trị lớn nhất của khung là Lớp 1 (kỷ luật + cổng + chống lỗi logic) — áp được ngay
