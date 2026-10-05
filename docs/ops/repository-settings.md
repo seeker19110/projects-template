@@ -20,16 +20,16 @@ xoá/force-push `main`, **required status checks = `gate` + `metadata`** (chỉ 
 khi repo chỉ có một người, xem case PR #40 của Claude-Agents nếu tò mò tại sao). Đặt lại thành ≥ 1
 khi repo có thêm collaborator khác. **`strict_required_status_checks_policy: true`** (từ 2026-09-23, audit T1):
 nhánh phải cập nhật với `main` trước khi merge — đúng CLAUDE.md §6; với trần WIP 3 + auto-merge, PR sau merge
-của PR trước phải "Update branch" (GitHub tự làm khi bật auto-merge, hoặc tay) rồi CI chạy lại. **Đổi file này
-thì chủ repo phải import lại ruleset** — `protection-guard` chỉ đối chiếu rule/check có mặt, không đối chiếu
-tham số `strict`.
+của PR trước phải cập nhật nhánh theo lịch sử commit hợp lệ rồi CI chạy lại (tránh merge commit có tiêu đề không đạt cổng metadata). **Đổi file này
+thì chủ repo phải import lại ruleset**. `protection-guard` đối chiếu `strict` giữa ruleset đang áp và file;
+CI sẽ đỏ nếu cấu hình live vẫn là `false`.
 
 `gate` là job tổng hợp `needs:` mọi job cổng của `ci.yml`, nên thêm job cổng mới **không cần**
 sửa cấu hình GitHub nữa — chỉ thêm vào `needs:` của `gate` trong cùng PR.
 
 **Job `protection-guard` trong `ci.yml` xác nhận ruleset đã import THẬT SỰ có hiệu lực** (không chỉ
 là lời hứa trong tài liệu này) và **khớp file `.github/rulesets/main.json`** theo hai chiều: thiếu
-rule/check khai trong file → lỗi (bảo vệ yếu hơn thứ repo khai); có rule đang áp nhưng không khai
+rule/check hoặc giá trị `strict` khai trong file → lỗi (bảo vệ yếu hơn hoặc khác thứ repo khai); có rule đang áp nhưng không khai
 trong file → cảnh báo (không yếu đi, nhưng import lại sẽ xoá mất). Lý do cần vế hai: sửa ruleset qua
 UI có thể làm rơi một rule mà không báo gì — CI vẫn xanh nếu không có đối chiếu này.
 

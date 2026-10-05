@@ -291,8 +291,47 @@ git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn b�
 rc="$(run_check "$d" check-progress-freshness.sh)"
 [ "$rc" = "0" ] && ok "PF-3 XANH khi 'Giai đoạn' >= PR của SHA (không đỏ oan)" || bad "PF-3 đỏ oan dù 'Giai đoạn' đã khớp (rc=$rc)"
 
+## ============================================================
+## 4. protection-guard: tham số strict của ruleset thật
+## ============================================================
+echo "== 4. protection-guard strict =="
+
+# Chạy đúng thân step CI với phản hồi API giả lập; không gọi GitHub hoặc thay ruleset thật.
+awk '
+  /^      - name: Bảo vệ nhánh đã có hiệu lực chưa$/ { found=1; next }
+  found && /^        run: \|$/ { body=1; next }
+  body && /^      - name:/ { exit }
+  body && /^          / { sub(/^          /, ""); print }
+' "$ROOT/.github/workflows/ci.yml" > "$WORK/protection-guard.sh"
+if [ ! -s "$WORK/protection-guard.sh" ]; then
+  echo 'không tìm thấy thân step protection-guard' > "$WORK/check-output"
+  bad "không thể trích step protection-guard từ ci.yml"
+else
+  mkdir -p "$WORK/bin"
+  cat > "$WORK/bin/curl" <<'EOF'
+#!/usr/bin/env bash
+cat "$TEST_LIVE_RULES"
+EOF
+  chmod +x "$WORK/bin/curl"
+  for live_strict in true false; do
+    jq --argjson strict "$live_strict" \
+      '[.rules[] | {type, parameters: ((.parameters // {}) | if has("strict_required_status_checks_policy") then .strict_required_status_checks_policy = $strict else . end)}]' \
+      "$ROOT/.github/rulesets/main.json" > "$WORK/live-rules-$live_strict.json"
+    (cd "$ROOT" && PATH="$WORK/bin:$PATH" TEST_LIVE_RULES="$WORK/live-rules-$live_strict.json" \
+      RUNNER_TEMP="$WORK" GH_TOKEN=test REPO=test/repo BRANCH=main bash "$WORK/protection-guard.sh" \
+      > "$WORK/check-output" 2>&1)
+    rc=$?
+    if [ "$live_strict" = true ]; then
+      [ "$rc" = 0 ] && ok "ruleset live strict=true khớp file → xanh" || bad "ruleset khớp bị chặn oan (rc=$rc)"
+    else
+      [ "$rc" = 1 ] && grep -q 'strict_required_status_checks_policy' "$WORK/check-output" && \
+        ok "ruleset live strict=false lệch file → đỏ" || bad "KHÔNG bắt được ruleset strict=false (rc=$rc)"
+    fi
+  done
+fi
+
 if [ "$fails" -eq 0 ]; then
-  echo "OK — cả 3 gate (docs-consistency, ci-policy, progress-freshness) đều bắt đúng lỗi + không chặn oan."
+  echo "OK — cả 3 gate script và protection-guard đều bắt đúng lỗi + không chặn oan."
 else
   echo "❌ $fails ca thất bại — xem chi tiết ở trên."
 fi
