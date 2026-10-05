@@ -26,9 +26,24 @@ if ! "$PYTHON_CMD" -m coverage --version >/dev/null 2>&1; then
 fi
 
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+trap 'rm -r "$WORK"' EXIT
 
-run() { "$PYTHON_CMD" -m coverage run -a --source=scripts "$@" >/dev/null 2>&1 || true; }
+run() {
+  "$PYTHON_CMD" -m coverage run -a --source=scripts "$@" >"$WORK/probe-output" 2>&1
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "::error::Success probe failed (exit $rc): $*" >&2
+    cat "$WORK/probe-output" >&2
+    exit 1
+  fi
+}
+
+run_expected_failure() {
+  if "$PYTHON_CMD" -m coverage run -a --source=scripts "$@" >"$WORK/probe-output" 2>&1; then
+    echo "::error::Expected failure probe succeeded: $*" >&2
+    exit 1
+  fi
+}
 
 "$PYTHON_CMD" -m coverage erase >/dev/null 2>&1
 
@@ -38,8 +53,9 @@ echo "== Chạy 4 engine qua các luồng chính + đường lỗi =="
 run scripts/spec-compiler.py --compile-all
 run scripts/spec-compiler.py --compile-all --json
 run scripts/spec-compiler.py --spec docs/specs/2026-09-13-quickstart-adoption.md --out-dir "$WORK/c1"
+# Missing spec is an empty compile result (exit 0) in this CLI, not an error exit.
 run scripts/spec-compiler.py --spec "$WORK/khong-ton-tai.md" --out-dir "$WORK/c2"
-run scripts/spec-compiler.py
+run_expected_failure scripts/spec-compiler.py
 
 # --- arch-health-radar: báo cáo Markdown + JSON ---
 run scripts/arch-health-radar.py --scan
@@ -56,7 +72,12 @@ PROBE_LONG="scripts/zz-probe-long-$$.sh"
 PROBE_DOC="docs/zz-probe-doc-$$.md"
 PROBE_SPEC="docs/specs/2099-12-31-zz-probe-$$.md"
 cleanup_probes() { rm -f "$ROOT/$PROBE_SCRIPT" "$ROOT/$PROBE_LONG" "$ROOT/$PROBE_DOC" "$ROOT/$PROBE_SPEC"; }
-trap 'cleanup_probes; rm -rf "$WORK"' EXIT
+cleanup_all() {
+  cleanup_probes
+  if [ -f "$WORK/rates.bak" ]; then cp "$WORK/rates.bak" scripts/model-rates.json; fi
+  rm -r "$WORK"
+}
+trap cleanup_all EXIT
 
 printf '#!/usr/bin/env bash\nexit 0\n' > "$ROOT/$PROBE_SCRIPT"
 { printf '#!/usr/bin/env bash\n# TODO: dau hieu no ky thuat gia lap\n'; for _ in $(seq 1 420); do printf 'true\n'; done; } > "$ROOT/$PROBE_LONG"
@@ -73,15 +94,15 @@ run scripts/subagent-dispatch.py --list --json
 # --tier: đa nhà cung cấp (ADR-0006) — happy path text + JSON, và cấp không tồn tại (đường lỗi)
 run scripts/subagent-dispatch.py --tier standard
 run scripts/subagent-dispatch.py --tier standard --json
-run scripts/subagent-dispatch.py --tier khong-ton-tai
+run_expected_failure scripts/subagent-dispatch.py --tier khong-ton-tai
 for h in claude hermes codex generic; do
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h"
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h" --json
 done
 printf 'ngu canh gia lap\n' > "$WORK/ctx.txt"
 run scripts/subagent-dispatch.py --agent reviewer --task "T" --harness generic --context-file "$WORK/ctx.txt"
-run scripts/subagent-dispatch.py --agent khong-ton-tai --task "T"
-run scripts/subagent-dispatch.py
+run_expected_failure scripts/subagent-dispatch.py --agent khong-ton-tai --task "T"
+run_expected_failure scripts/subagent-dispatch.py
 
 # --- telemetry-log: record (nhiều model), summary, widget, và ĐƯỜNG LỖI bảng giá ---
 for m in claude-opus-5 claude-sonnet-5 claude-haiku-4-5 gpt-4o model-la-hoac-gi-do; do

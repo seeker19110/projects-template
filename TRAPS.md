@@ -865,3 +865,21 @@ kích hoạt, còn độ phủ phân tích thật phụ thuộc Dependency graph
 repo chưa bật (`Dependency review is not supported on this repository`). API
 vulnerability-alerts trả 404 trước, 204 sau khi bật; rerun job xanh. Cổng local
 chỉ chứng minh bước phát hiện manifest, nên khi áp khung phải đọc cài đặt live.
+
+## 39. Coverage đạt sàn nhưng probe thành công đã lỗi
+
+*Ngày:* 2026-10-05, audit hoàn thiện F-K05.
+
+*Khuôn lỗi:* helper `run()` của `test-py-coverage.sh` thêm `|| true` cho mọi CLI.
+Một probe radar cố ý truyền cờ sai vẫn làm suite thoát 0 và báo độ phủ 96%, vì
+probe khác chạm đủ dòng. Sàn coverage đo phần code được chạy, không xác nhận
+những luồng thành công đã chạy đúng.
+
+*Cách rà:* thay một lời gọi thành công bằng cờ CLI không hợp lệ nhưng giữ các
+lời gọi khác; suite phải đỏ ngay tại probe đó, kể cả khi coverage vẫn ≥ 95%.
+
+*Cổng chốt chặn:* `scripts/test-py-coverage-exit.sh` thực thi bản sao của suite
+với probe thành công bị làm lỗi và kiểm exit 1. Test còn gây lỗi giữa lúc có
+fixture tạm và sau khi bảng giá bị ghi hỏng để xác nhận trap dọn/khôi phục.
+Helper `run_expected_failure()` chỉ dùng cho các lời gọi được xác minh trả exit
+khác 0; spec không tồn tại của spec-compiler trả 0 theo contract hiện tại.
