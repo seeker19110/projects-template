@@ -1,9 +1,63 @@
-# COMPLETION-PLAN — trạng thái hiện hành 2026-10-05
+# COMPLETION-PLAN — trạng thái hiện hành 2026-10-06
 
 > Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
 > `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:
 > `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới
 > là lịch sử, không dùng các ô chưa tick của lượt cũ để suy ra trạng thái hiện tại.
+
+## Chu kỳ 2026-10-06 — Pha 2: KẾ HOẠCH, **CHỜ NGƯỜI DÙNG DUYỆT** (chưa sửa gì)
+
+Chu kỳ 2026-10-05 đã đóng theo xác nhận của người dùng ngày 2026-10-06 (lựa chọn "đóng chu kỳ cũ, mở chu kỳ mới").
+Base: `origin/main` `e2b70bf`; nhánh làm việc `claude/beautiful-albattani-f55ar3` (commit `de01523`, chưa có PR).
+Quét Pha 1 (chỉ đọc/đo) 2026-10-06 — bằng chứng đo trong phiên: `maintenance-sweep --strict` 0 đỏ; ShellCheck `-S warning`
+sạch trên mọi `.sh`; 9 bộ `scripts/test-*.sh` + `test-copy-framework.sh` (có cả `.ps1`, pwsh 7.4.6) + `test-py-coverage.sh`
+(96%, sàn 95%) xanh; `dev-task.sh gate` PASS 4 kiểm tra; CI `main@e2b70bf` xanh; 0 PR mở.
+
+### Phát hiện (F-N)
+
+| ID | Nhóm | Mức | Phát hiện (bằng chứng) |
+| --- | --- | --- | --- |
+| F-N01 | 12 | Trung | `docs/FEATURE-MAP.md` (nguồn thống nhất chéo) **không nhắc** các engine/cổng thật: `spec-compiler`, `arch-health-radar`, `subagent-dispatch`, `telemetry-log`, `check-progress-freshness`, `check-python/shell-complexity`, `githooks`, và 6 test (`test-check-scripts`, `test-engine-characterization`, `test-next-gen-engines`, `test-py-coverage*`, `test-check-*-complexity`); mục D ghi "(3 script)" nhưng chỉ 3 hàng thật. Không cổng nào đối chiếu FEATURE-MAP ↔ `scripts/` (docs-consistency mục 6 chỉ canh CODEMAP). |
+| F-N02 | 4/9 | Thấp | `arch-health-radar` báo sai "thiếu test" cho `scripts/delivery-handoff.py` dù `tests/test_delivery_handoff_integrity.py` chạy trong `test-py-coverage.sh` (CI). Radar chỉ ánh xạ `scripts/test-*.sh`→`ci.yml`; công cụ đo nói sai thì điểm 96/100 mất 1 phần oan. |
+| F-N03 | 9 | Thấp | 3 spec thiếu mục 11 touchpoints: `2026-09-24-impeccable-optional-adapter.md`, `2026-09-25-runtime-safety.md`, `2026-09-25-strict-gate-contract.md` (radar). |
+| F-N04 | 3 | Thấp | `scripts/test-engine-characterization.sh` 455 dòng (> 400; radar). |
+| F-N05 | 8 | Thấp | Nhánh remote tồn đọng: `claude/kind-darwin-a8v4uy` (2026-09-15, +183/-50 so với main), `feature-that-exists` (nhánh dependabot codeql 4.38.2, +1/-13, đã superseded bởi #185; tên trùng nhãn fixture PF-2 dễ gây nhầm), `feat/figma-context-handoff` (**tác giả khác**, 2026-10-05, +1/-13, chưa có PR, đụng `delivery-handoff.py`). Xoá nhánh là thao tác không hoàn tác → cần chủ repo quyết (W-308 chu kỳ cũ cũng bị chặn đúng chỗ này). |
+| F-N06 | 7 | Thấp | `maintenance-sweep` báo dependency `n-a` cho chính repo khung (chỉ có `scripts/requirements-ci.txt`, đã có dependabot pip); dò lệnh chỉ ở gốc + `apps/*`/`packages/*`. Chấp nhận được; chỉ cần ghi quyết định + điều kiện xem lại. |
+| F-N07 | 8 | Thấp | 3/9 workflow (`dependency-review`, `pr-policy`, `scorecard`) không có `concurrency`; `ci-workflow-policy.test.ts` chưa chạy trên fixture (đã biết, FT-44). |
+| F-N08 | 8/9 | Thông tin | Chưa từng cắt release: `VERSION` 0.1.0, 0 git tag, release-please chưa tạo release nào. Quyết định phát hành thuộc chủ dự án — không tự làm. |
+| F-N09 | 4 | Thông tin | Coverage Python 96% sát sàn 95% (`telemetry-log.py` 96%, dòng 92-93/100/107/324-325 chưa phủ). Không hạ sàn; chỉ theo dõi. |
+
+Nhóm 1, 2, 3, 5, 6, 10, 11: không phát hiện mới (secret scan sạch, mọi action ghim SHA, quyền workflow tối thiểu,
+5/6/10 N/A vì repo khung không có runtime/UI/data). **Cao: 0 · Trung: 1 · Thấp: 6 · Thông tin: 2.**
+Giới hạn trung thực: không chạy được CI hosted Windows/macOS tại phiên này; Go/Make và stack runtime khác chưa có ca
+runtime độc lập (đã ghi ở chu kỳ trước).
+
+### Definition of Complete (đề xuất cho chu kỳ này)
+
+1. F-N01 đóng bằng **cổng tự động** (FEATURE-MAP ↔ `scripts/` hai chiều, có negative test), không chỉ sửa văn xuôi.
+2. F-N02/F-N03/F-N04 đóng hoặc có quyết định ghi nhận (radar không còn báo sai; điểm radar ≥ 98 hoặc lý do).
+3. F-N05 chỉ thực thi sau khi chủ repo chọn từng nhánh; F-N06/F-N07 có quyết định + điều kiện xem lại; F-N08/N09 ghi nhận, không sửa.
+4. Re-audit lại nhóm 4, 8, 9, 12 sau các đợt: 0 phát hiện Cao/Trung mở; `gate` + CI `main` xanh.
+
+### Đợt và việc (mỗi việc một PR nhỏ, FIFO, ≤ 3 PR mở; bug có test đỏ trước)
+
+| ID | F gốc | Việc | Tiêu chí nghiệm thu | Sức | Trạng thái |
+| --- | --- | --- | --- | --- | --- |
+| W-01 | — | Mở PR cho commit `de01523` (đợt X-Agents lần 2) | CI xanh, mô tả đủ mục template, squash merge | S | ⬜ chờ duyệt |
+| W-02 | F-N02 | Radar: nhận test Python trong `tests/` mà `test-py-coverage.sh` chạy; test đỏ trước (fixture script `.py` + test) | `delivery-handoff.py` không còn trong `scripts_uncovered`; ca âm: `.py` không test vẫn bị báo | S | ⬜ |
+| W-03 | F-N01 | Cổng docs-consistency mục 11: mọi `scripts/*` (trừ `_*`, `__pycache__`) và `test-*.sh` phải có mặt trong FEATURE-MAP; sau đó bổ sung các hàng thiếu bằng cách đọc code thật + sửa nhãn "(3 script)" | Negative test: thêm script giả → đỏ; FEATURE-MAP đủ; CODEMAP khớp | M | ⬜ (phụ thuộc W-02 không) |
+| W-04 | F-N03 | Bổ sung mục 11 touchpoints cho 3 spec (đọc diff PR tương ứng, không bịa) | Radar hết cảnh báo spec | S | ⬜ |
+| W-05 | F-N04 | Tách `test-engine-characterization.sh` ≤ 400 dòng, **không đổi hành vi** (test chạy trước/sau cùng kết quả) | Radar hết cảnh báo file dài; 9 test xanh | M | ⬜ |
+| W-06 | F-N07 | Thêm `concurrency` cho 3 workflow; cập nhật `check-ci-policy` nếu cần | `check-ci-policy.sh` xanh, CI xanh | S | ⬜ |
+| W-07 | F-N05 | Dọn nhánh remote theo lựa chọn của chủ repo (từng nhánh) | Danh sách còn lại khớp quyết định; không đụng nhánh của người khác nếu chưa hỏi | S | ⬜ cần quyết định người dùng |
+| W-08 | F-N06/N08/N09 | Ghi quyết định + điều kiện xem lại vào báo cáo audit | Có mục trong `docs/reports/2026-10-06-framework-audit.md` | S | ⬜ |
+| W-09 | — | Re-audit nhóm 4/8/9/12 và nghiệm thu DoC | Bảng bằng chứng, `gate` xanh | S | ⬜ |
+
+Truy vết: F-N01→W-03 · F-N02→W-02 · F-N03→W-04 · F-N04→W-05 · F-N05→W-07 · F-N06/N08/N09→W-08 · F-N07→W-06.
+
+**DỪNG ở đây — chờ người dùng duyệt kế hoạch + Definition of Complete.** Chưa duyệt thì chưa sửa gì (Pha 3).
+
+---
 
 ## Chu kỳ 2026-10-05
 
@@ -15,7 +69,7 @@
 | W-04 | Ruleset strict và regression guard | DONE | #188 `bec5795`; live strict=true, required gate+metadata; false đỏ/true xanh |
 | W-05 | F-K01..05/F-K09/F-K10 | DONE | #189–194 và #196 merged; test hồi quy và required CI xanh trên head cuối; progress-freshness skip theo main-only |
 | W-06 | Ma trận adoption/copy/gate | DONE đối chiếu, runtime giới hạn | #195: Node/Python tối thiểu chạy thật, các resolver fixture được liệt kê; Go/Make, stack runtime khác, CI hosted chưa kiểm; C01 ngoài phạm vi khung |
-| W-07 | Re-audit và Definition of Complete | WAITING | Không phát hiện Cao/Trung mới trong phần code/cổng đã rà; F-K08/F-11 bàn giao ở PR này. Cổng PR phải đạt trước merge; người dùng xác nhận đóng chu kỳ theo Pha 4 |
+| W-07 | Re-audit và Definition of Complete | DONE — người dùng xác nhận đóng chu kỳ 2026-10-06 | Không phát hiện Cao/Trung mới trong phần code/cổng đã rà; F-K08/F-11 bàn giao ở PR này. Cổng PR phải đạt trước merge; người dùng xác nhận đóng chu kỳ theo Pha 4 |
 
 Bằng chứng source: CI #196 run 37323540706 trên head `8b97ee6`: Linux/Windows,
 docs/copy/protection/gate SUCCESS; metadata, CodeQL, dependency-review và gitleaks

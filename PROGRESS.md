@@ -5,7 +5,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8, Reconcile. Các PR sửa khung đến #197 đã merge; hồ sơ reconciliation cuối sẵn sàng nghiệm thu sau CI của PR tài liệu này.
+- Giai đoạn: GĐ 8, Reconcile — chu kỳ hoàn thiện 2026-10-05 đã đóng; chu kỳ 2026-10-06 ở Pha 2 (kế hoạch chờ duyệt). Các PR sửa khung đến #197 đã merge.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
 - Default-branch SHA đã đối chiếu: `e2b70bffd8f6adadd14b96b31d7b0ab62f63cc61` (`origin/main`, sau PR #197).
 - Ngày cập nhật: 2026-10-06
