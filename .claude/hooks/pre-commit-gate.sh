@@ -51,17 +51,42 @@ fi
 # --- Bí mật / file lớn trong diff STAGED (cùng mẫu với scripts/maintenance-sweep.sh — sweep chỉ chạy
 # định kỳ, tới lúc đó khoá đã nằm trong lịch sử git; chặn ở đây là chặn TRƯỚC khi vào lịch sử). ---
 secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
-if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then
-  echo "🚫 Diff staged chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi staged, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
+
+# Hook chạy TRƯỚC lệnh nên index còn CŨ: `git add X && git commit` hay `commit -a` tự stage thứ hook chưa thấy
+# (đối chiếu X-Agents #368; đo lại ở repo này: bí mật/file lớn đi lọt). Lệnh tự stage → xét cả thay đổi chưa
+# stage; `git add` còn kéo cả file chưa theo dõi. Commit thường vẫn chỉ xét index (không chặn oan).
+self_stage=0; add_untracked=0
+if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?add([[:space:]]|$)'; then self_stage=1; add_untracked=1; fi
+if printf '%s' "$cmd_scan" | grep -Eq 'commit[^|&;]*[[:space:]](-[A-Za-z]*a[A-Za-z]*|--all)([[:space:]]|$)'; then self_stage=1; fi
+candidates() {   # NUL-separated, đường dẫn tương đối gốc repo
+  git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null
+  [ "$self_stage" = 1 ] && git -C "$ROOT" diff --name-only --diff-filter=AM -z -- 2>/dev/null
+  [ "$add_untracked" = 1 ] && git -C "$ROOT" ls-files -o --exclude-standard -z -- 2>/dev/null
+  return 0
+}
+secret_hit=0
+diff_text() {   # luôn return 0: pipefail sẽ biến trạng thái 1 của `[ ] &&` cuối nhóm thành "pipeline lỗi" và bỏ lọt ca
+  git -C "$ROOT" diff --cached -U0 -- 2>/dev/null
+  [ "$self_stage" = 1 ] && git -C "$ROOT" diff -U0 -- 2>/dev/null
+  return 0
+}
+if diff_text | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then secret_hit=1; fi
+if [ "$secret_hit" = 0 ] && [ "$add_untracked" = 1 ]; then
+  while IFS= read -r -d '' f; do
+    grep -IEq "$secret_re" "$ROOT/$f" 2>/dev/null && { secret_hit=1; break; }
+  done < <(git -C "$ROOT" ls-files -o --exclude-standard -z -- 2>/dev/null)
+fi
+if [ "$secret_hit" = 1 ]; then
+  echo "🚫 Diff (staged hoặc sắp được stage) chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi diff, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
   exit 2
 fi
 big=""
 while IFS= read -r -d '' f; do
   sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"
   [ "$sz" -gt 1048576 ] && big="$big $f($((sz/1024))KB)"
-done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
+done < <(candidates | sort -zu)
 if [ -n "$big" ]; then
-  echo "🚫 File staged > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
+  echo "🚫 File staged (hoặc sắp stage) > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
   exit 2
 fi
 

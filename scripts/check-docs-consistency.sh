@@ -319,6 +319,30 @@ if [ -f CLAUDE.md ]; then
   fi
 fi
 
+# ── 10. Bảng Markdown không hàng nào THỪA Ô (đối chiếu X-Agents 2026-10-06; lỗi thật ở repo này). ──
+# GitHub lặng lẽ BỎ ô thừa, và `|` trong backtick VẪN tách ô (phải viết `\|`) — nên chữ biến mất mà không cổng
+# nào báo. Đã gặp: `Analyze (python|actions)` ở repository-settings.md, `|| true` ở báo cáo audit 2026-10-05.
+echo "== 10. Bảng Markdown không hàng nào thừa ô =="
+while IFS= read -r mdfile; do
+  [ -f "$mdfile" ] || continue
+  bad_rows="$(awk '
+    function cells(l,   t) { t = l; gsub(/\\\|/, "", t); sub(/^[ \t]*\|/, "", t); sub(/\|[ \t]*$/, "", t); return gsub(/\|/, "|", t) + 1 }
+    /^[ \t]*```/ { fence = !fence; intable = 0; next }
+    fence { next }
+    {
+      if (intable) {
+        if ($0 ~ /^[ \t]*\|/) { if (cells($0) > n) print NR; next }
+        intable = 0
+      }
+      if (prev ~ /^[ \t]*\|/ && $0 ~ /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/) { intable = 1; n = cells(prev) }
+      prev = $0
+    }' "$mdfile")"
+  if [ -n "$bad_rows" ]; then
+    echo "::error file=$mdfile,line=$(printf '%s' "$bad_rows" | head -1)::Hàng bảng nhiều ô hơn dòng tiêu đề — GitHub bỏ ô thừa, chữ mất im lặng. '|' trong backtick vẫn tách ô: viết \`\\|\`. Các dòng: $(printf '%s' "$bad_rows" | tr '\n' ' ')"
+    fail=1
+  fi
+done < <(git ls-files '*.md' ':!:vendor/*')
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi

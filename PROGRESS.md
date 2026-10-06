@@ -5,10 +5,10 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8, Reconcile. Các PR sửa khung đến #196 đã merge; hồ sơ reconciliation cuối sẵn sàng nghiệm thu sau CI của PR tài liệu này.
+- Giai đoạn: GĐ 8, Reconcile. Các PR sửa khung đến #197 đã merge; hồ sơ reconciliation cuối sẵn sàng nghiệm thu sau CI của PR tài liệu này.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `6702994d90ad318142715aa172d79916c71e5b9d` (`origin/main`, sau PR #196).
-- Ngày cập nhật: 2026-10-05
+- Default-branch SHA đã đối chiếu: `e2b70bffd8f6adadd14b96b31d7b0ab62f63cc61` (`origin/main`, sau PR #197).
+- Ngày cập nhật: 2026-10-06
 
 ## Goal đang active
 
@@ -23,6 +23,9 @@ safety #179 đã merge. PR #179 đạt CI Linux/Windows, metadata và các scan 
 trước merge. Runtime regression có 10 bài, gồm 45 subcase CLI và Git local thật.
 
 ## Đang làm / chờ
+
+PR đối chiếu X-Agents lần 2 (2026-10-06): sửa mode hook, cổng commit tự-stage, cổng bảng Markdown thừa ô;
+báo cáo `docs/reports/2026-10-06-doi-chieu-x-agents-v2.md`. Kế hoạch 2026-10-05 vẫn chờ xác nhận đóng.
 
 PR #180 đã merge (`071faea`), bổ sung gate fail-closed, doctor và test Node thật.
 Các PR #188–195 đã sửa ruleset strict, môi trường Git của hook, báo cáo secret,

@@ -11,6 +11,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed: `.claude/hooks/ui-intelligence.sh` mode 100644 làm hook chết im (exit 126) ngoài Windows; nay 100755.
+  `scripts/test-hooks-gate.sh` mục 14 canh mode index của mọi hook nối trong `settings*.json` (kèm negative test).
+  Rút từ đối chiếu X-Agents: `docs/reports/2026-10-06-doi-chieu-x-agents-v2.md`.
+- Fixed: `pre-commit-gate.sh` xét cả thay đổi chưa stage khi lệnh tự stage (`git add … && git commit`, `commit -a`) —
+  trước đó bí mật/file >1 MB đi lọt (3 ca đỏ → xanh); commit thường vẫn chỉ xét index.
+- Added: `check-docs-consistency.sh` mục 10 bắt hàng bảng Markdown thừa ô (`|` trong backtick tách ô, GitHub bỏ chữ);
+  sửa 2 hàng đã mất chữ ở `docs/ops/repository-settings.md` và báo cáo audit 2026-10-05.
 - Added: exporter delivery offline nhận policy/schema từ native X-Agents; ghim bytes spec,
   map đủ AC tới test, JSON có giới hạn và đường dẫn không thoát root. Không chạy command hoặc cấp quyền.
 - Fixed: spec-compiler chỉ nhận State được chọn trong metadata; không nhận câu Approved trong Draft,

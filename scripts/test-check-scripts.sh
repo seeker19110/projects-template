@@ -111,6 +111,19 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được CLAUDE.md có dòng > 2000 ký tự (mục 9)" || bad "KHÔNG bắt được dòng dài trong CLAUDE.md (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mục 10: bảng Markdown có hàng THỪA Ô. GitHub lặng lẽ bỏ ô thừa và `|` trong backtick VẪN tách ô, nên chữ
+# sau đó biến mất (đã gặp thật ở docs/ops/repository-settings.md và báo cáo audit 2026-10-05).
+printf '\n| Cot A | Cot B |\n| --- | --- |\n| `a|b` | c |\n' >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được hàng bảng thừa ô do | trong backtick (mục 10)" || bad "KHÔNG bắt được hàng bảng thừa ô (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+# Đối chứng: `\|` đã escape, và bảng nằm trong khối code, đều hợp lệ — chặn là chặn oan.
+printf '\n| Cot A | Cot B |\n| --- | --- |\n| `a\\|b` | c |\n\n```\n| x |\n| --- |\n| a | b | c |\n```\n' >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "bảng escape đúng + bảng trong code fence → cho qua (mục 10)" || bad "chặn OAN bảng hợp lệ (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
 # Mục 8: ký tự điều khiển vô hình trong *.md. Chèn BACKSPACE (0x08) — đúng ca đã gặp thật khi
 # một chuỗi Python thường chứa  sinh ra tài liệu (2026-09-15). Ký tự được DỰNG LÚC CHẠY bằng
 # printf, không viết thẳng vào source của test này: một ký tự điều khiển nằm trong chính file test
