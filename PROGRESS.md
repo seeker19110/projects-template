@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200) và LD-03 (#204) đã merge, LD-02 mở ở #203.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203) đã merge; tiếp theo LD-04.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `f800f312f59e8ee5c57801effa3b2c970851f751` (`origin/main`, sau PR #204).
+- Default-branch SHA đã đối chiếu: `3cee6a7be1aa3ee203bd0a52d4f3e29641ec1c8c` (`origin/main`, sau PR #203).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -20,10 +20,10 @@
 LD-01 (CI parity, mỗi suite Linux chạy đúng một lần) đã merge ở #200.
 LD-03 (evidence gắn HEAD/config/working tree, `evidence-check`, chặn no-op/0 ca test,
 C-4 + `--trace` nối AC tới bằng chứng) đã merge ở #204.
-LD-02 mở ở #203 (nhánh `claude/bold-wozniak-44li1x`): mức quy trình S/M/L theo rủi ro
-(`standard-delivery.md` §3c), spec gọn cho mức M, agent chính tự làm, 3 tầng là tùy chọn
-cho mức L (ADR-0010); AC-2 trong bản đồ spec lean-delivery nối tới
-`tests/test_adaptive_process.py`. Chưa coi là tích hợp trước khi PR merge và cổng của đúng head xanh.
+LD-02 (mức quy trình S/M/L theo rủi ro — `standard-delivery.md` §3c, spec gọn mức M,
+agent chính tự làm, 3 tầng tùy chọn cho mức L, ADR-0010) đã merge ở #203; AC-2 nối tới
+`tests/test_adaptive_process.py`. TRAPS mục 48 (commit do công cụ sinh làm đỏ `metadata`)
+đi PR riêng vì đẩy sau khi #203 đã merge.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
@@ -42,7 +42,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Sau LD-02: LD-04 review/repair, LD-05 context/harness, LD-06 profile sản phẩm,
+Theo goal: LD-04 review/repair, LD-05 context/harness, LD-06 profile sản phẩm,
 LD-07 telemetry, LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
