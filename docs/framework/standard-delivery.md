@@ -130,7 +130,8 @@ Một iteration = một outcome + một PR. Không xây code phụ thuộc lên 
 ## 6. Definition of Done
 
 - implementation khớp spec; deviation được review;
-- AC có bằng chứng; test mới chứng minh behavior/bug;
+- AC có bằng chứng; test mới chứng minh behavior/bug (`spec-compiler.sh --trace` COMPLETE; kết quả gắn
+  đúng phiên bản qua CI hoặc `dev-task.sh gate --evidence` + `evidence-check`, không qua lời tự khai);
 - targeted và full quality gates xanh;
 - authorization, validation, privacy, concurrency/idempotency và error recovery được xử lý;
 - không secret/production data/debug/dead/generated output ngoài ý muốn;

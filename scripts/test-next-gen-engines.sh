@@ -89,6 +89,14 @@ cat > "$scratch/docs/specs/2099-01-01-ca-am.md" <<SPEC
 
 - **FR-1** Phải có file không tồn tại.
 
+## 9. Acceptance criteria
+
+AC-1 Có file thật. (Spec Approved từ 2026-10-07 phải nối mọi AC tới bằng chứng — C-4.)
+
+| AC | Bằng chứng |
+| --- | --- |
+| AC-1 | \`scripts/file-co-that.sh\` |
+
 ## 11. Architecture và code touchpoints
 
 - \`$MISSING_PATH\`
@@ -149,6 +157,78 @@ if [ "$sc1_rc" -eq 0 ] && [ "$out_sc1" = "OK" ]; then
 else
   bad "SC-1: _display_path vẫn vỡ khi relpath ném ValueError — $out_sc1"
 fi
+
+echo "== 1b. Bản đồ AC → bằng chứng (C-4, --trace; LD-03) =="
+# Truy vết ≠ nghiệm thu: C-4 chỉ chặn AC bị BỎ SÓT hoặc trỏ tới bằng chứng không tồn tại. AC "chưa có"
+# hợp lệ ở C-4 nhưng làm --trace thoát 1 — tức chưa thể gọi là nghiệm thu đủ.
+trace_root="$scratch/trace"; mkdir -p "$trace_root/docs/specs" "$trace_root/tests/contracts" "$trace_root/scripts"
+printf '#!/usr/bin/env bash\nkiem_tra_that() { exit 0; }\n' > "$trace_root/scripts/file-co-that.sh"
+GONE_REF="scripts/file-$(printf 'khong')-ton-tai-trace.sh"
+trace_spec() {  # $1=tên file  $2=State  $3=các dòng bảng bằng chứng (đã định dạng)
+  cat > "$trace_root/docs/specs/$1" <<SPEC
+# Feature spec: truy vết
+
+| Thuộc tính | Giá trị |
+| --- | --- |
+| State | $2 |
+| Approver / date | Fixture, 2026-10-08 |
+
+## 9. Acceptance criteria
+
+AC-1 Given/When/Then thứ nhất. AC-2 Given/When/Then thứ hai.
+
+## 16. Test/eval plan
+
+| AC | Bằng chứng | Ghi chú |
+| --- | --- | --- |
+$3
+SPEC
+}
+c4_case() {  # $1=tên spec  $2=0 (C-4 xanh) | 1 (C-4 đỏ)  $3=mô tả
+  local out rc
+  rm -f "$trace_root/tests/contracts"/*.py
+  "$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$trace_root/docs/specs/$1" --out-dir "$trace_root/tests/contracts" >/dev/null 2>&1
+  out="$("$PYTHON_CMD" -m unittest discover -s "$trace_root/tests/contracts" 2>&1)"; rc=$?
+  if [ "$2" = 0 ] && [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q '^Ran [1-9]'; then ok "C-4 xanh: $3"
+  elif [ "$2" = 1 ] && [ "$rc" -ne 0 ] && printf '%s\n' "$out" | grep -q '^FAIL: test_c4_'; then ok "C-4 đỏ đúng lý do: $3"
+  else bad "C-4 sai ($3): rc=$rc"; printf '%s\n' "$out" | tail -n 8 >&2; fi
+}
+trace_case() {  # $1=tên spec  $2=exit mong đợi  $3=dấu hiệu  $4=mô tả
+  local out rc
+  out="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --trace "$trace_root/docs/specs/$1" 2>&1)"; rc=$?
+  if [ "$rc" -eq "$2" ] && printf '%s\n' "$out" | grep -q "$3"; then ok "--trace exit $rc: $4"
+  else bad "--trace sai ($4): rc=$rc"; printf '%s\n' "$out" >&2; fi
+}
+APPROVED='**Approved for implementation**'
+ROW1='| AC-1 | `scripts/file-co-that.sh::kiem_tra_that` | |'
+trace_spec 2026-10-08-du.md "$APPROVED" "$ROW1
+| AC-2 | thủ công: quan sát luồng trên staging, ghi link vào PR | |"
+c4_case 2026-10-08-du.md 0 "mọi AC có bằng chứng tồn tại (test + quan sát thủ công)"
+trace_case 2026-10-08-du.md 0 'TRACE COMPLETE' "đủ bằng chứng khai báo"
+trace_spec 2026-10-08-thieu.md "$APPROVED" "$ROW1"
+c4_case 2026-10-08-thieu.md 1 "AC-2 bị bỏ sót khỏi bản đồ"
+trace_case 2026-10-08-thieu.md 1 'AC-2.*UNMAPPED' "AC bỏ sót"
+trace_spec 2026-10-08-cho.md "$APPROVED" "$ROW1
+| AC-2 | chưa có — slice sau | |"
+c4_case 2026-10-08-cho.md 0 "AC 'chưa có' được khai minh bạch"
+trace_case 2026-10-08-cho.md 1 'AC-2.*PENDING' "AC chưa có bằng chứng không được gọi là đủ"
+trace_spec 2026-10-08-gay.md "$APPROVED" "$ROW1
+| AC-2 | \`$GONE_REF\` | |"
+c4_case 2026-10-08-gay.md 1 "bằng chứng trỏ tới file không tồn tại"
+trace_case 2026-10-08-gay.md 1 'AC-2.*BROKEN' "bằng chứng gãy"
+trace_spec 2026-10-08-ham.md "$APPROVED" "$ROW1
+| AC-2 | \`scripts/file-co-that.sh::ham_khong_co\` | |"
+c4_case 2026-10-08-ham.md 1 "bằng chứng trỏ tới test/hàm không có trong file"
+trace_spec 2026-10-08-la.md "$APPROVED" "$ROW1
+| AC-2 | thủ công: quan sát | |
+| AC-9 | \`scripts/file-co-that.sh\` | |"
+c4_case 2026-10-08-la.md 1 "bản đồ khai AC không có trong mục Acceptance criteria"
+trace_spec 2026-10-08-nhap.md 'Draft' "$ROW1"
+c4_case 2026-10-08-nhap.md 0 "spec Draft chưa bắt buộc bản đồ đủ"
+sed '/^| AC /,$d' "$trace_root/docs/specs/2026-10-08-du.md" > "$trace_root/docs/specs/2026-10-08-khong-bang.md"
+c4_case 2026-10-08-khong-bang.md 1 "spec mới Approved không có bảng AC → bằng chứng"
+trace_spec 2026-09-01-cu.md "$APPROVED" ""
+c4_case 2026-09-01-cu.md 0 "spec trước mốc 2026-10-07 (legacy) không bị bắt hồi tố"
 
 echo "== 2. Architectural Health & Tech Debt Radar Engine =="
 

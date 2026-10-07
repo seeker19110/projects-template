@@ -131,7 +131,7 @@ cp "$WORK/rates.bak" scripts/model-rates.json
 echo "  ✅ bảng giá hỏng/thiếu 'default' → thoát khác 0 (không ước tính bằng số bịa)"
 
 # Exercise the data-loss/error paths as part of measured coverage, not only the CLI happy path.
-for test_file in test_telemetry_integrity.py test_delivery_handoff_integrity.py; do
+for test_file in test_telemetry_integrity.py test_delivery_handoff_integrity.py test_acceptance_trace.py; do
   integrity_out="$("$PYTHON_CMD" -m coverage run -a --source=scripts -m unittest discover -s tests -p "$test_file" 2>&1)"
   integrity_rc=$?
   if [ "$integrity_rc" -ne 0 ]; then

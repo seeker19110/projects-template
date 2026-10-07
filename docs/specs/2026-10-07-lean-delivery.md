@@ -89,8 +89,21 @@ Các helper/test mới sẽ được khai trong slice triển khai tương ứng
 
 ## 12. Test và evidence
 
-AC-1: `tests/test_ci_suite_parity.py`, red-before/green-after, full local gate và CI.
-AC còn lại: regression gắn cùng PR triển khai; chưa có output thì chưa được gọi đạt.
+Bản đồ dưới khai **cái gì chứng minh** từng AC (`spec-compiler.sh --trace`, C-4); kết quả chạy
+của đúng commit nằm ở CI và `dev-task.sh evidence-check`, không chép vào spec. "chưa có" là trạng thái
+thật: AC đó chưa được gọi là đạt.
+
+| AC | Bằng chứng | Ghi chú |
+| --- | --- | --- |
+| AC-1 | `tests/test_ci_suite_parity.py::test_every_linux_suite_runs_exactly_once` | LD-01, #200; full local gate và CI |
+| AC-2 | `tests/test_adaptive_process.py::test_compact_approved_spec_passes_compiler_contract`, `tests/test_adaptive_process.py::test_main_agent_codes_and_rights_stay_separate`, `tests/test_adaptive_process.py::test_feature_gate_still_enforced_by_pr_policy` | LD-02, #203; đỏ trước, xanh sau |
+| AC-3 | `scripts/test-dev-task.sh::evidence_tests`, `scripts/test-dev-task.sh::noop_tests`, `scripts/test-next-gen-engines.sh::c4_case`, `tests/test_acceptance_trace.py::test_every_gap_is_reported_and_blocks_completion` | LD-03; đỏ trước, xanh sau |
+| AC-4 | chưa có — LD-04 | |
+| AC-5 | chưa có — LD-05 | |
+| AC-6 | chưa có — LD-06 | |
+| AC-7 | chưa có — LD-07 | |
+| AC-8 | chưa có — LD-08 | |
+
 Issue #198 giữ các link PR/CI và phần chưa kiểm; không nhân bản kết quả CI trong spec.
 
 ## 13. Rollout và rollback

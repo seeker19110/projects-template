@@ -182,8 +182,19 @@ echo "== bash / --upgrade: giữ chỉnh sửa của đích, cập nhật file c
 targetU="$(new_target)"
 run_logged "upgrade / copy lần đầu" bash "$REPO_ROOT/copy-framework.sh" "$targetU"
 echo "USER-EDIT-GIU-LAI" >> "$targetU/docs/framework/quickstart.md"
-echo "KHONG-PHAI-BAN-KHUNG" > "$targetU/docs/framework/standard-delivery.md"
-cp "$targetU/docs/framework/standard-delivery.md" "$targetU/docs/framework/standard-delivery.md.usercopy"
+# File "đích viết lại toàn bộ" phải là file khung CHƯA sửa so với HEAD: --upgrade lấy base từ HEAD còn nguồn là
+# working tree, nên một file khung đang sửa dở xung đột THẬT (đúng hành vi) và làm suite đỏ oan (TRAPS mục 47).
+rewrite_rel=docs/framework/standard-delivery.md
+if git -C "$REPO_ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
+  rewrite_rel=""
+  for cand in docs/framework/standard-delivery.md docs/framework/industry-standards.md \
+              docs/framework/01-process-and-standards.md docs/framework/adopt-from-outside.md; do
+    git -C "$REPO_ROOT" diff --quiet HEAD -- "$cand" && { rewrite_rel="$cand"; break; }
+  done
+  [ -n "$rewrite_rel" ] || { echo "  FAIL [upgrade]: mọi file ứng viên đều đang sửa dở — không dựng được ca viết lại"; fail=1; rewrite_rel=docs/framework/standard-delivery.md; }
+fi
+echo "KHONG-PHAI-BAN-KHUNG" > "$targetU/$rewrite_rel"
+cp "$targetU/$rewrite_rel" "$targetU/$rewrite_rel.usercopy"
 # Giả lập file "chưa sửa" nhưng khung có bản mới: đích giữ nguyên hash manifest → phải được ghi đè.
 run_logged "upgrade / lần 2 --upgrade" bash "$REPO_ROOT/copy-framework.sh" "$targetU" --upgrade
 if grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md" || grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md.framework-new" 2>/dev/null; then
@@ -192,10 +203,10 @@ if grep -q "USER-EDIT-GIU-LAI" "$targetU/docs/framework/quickstart.md" || grep -
 else
   echo "  FAIL [upgrade]: --upgrade làm MẤT chỉnh sửa của đích trong quickstart.md"; fail=1
 fi
-if grep -q "KHONG-PHAI-BAN-KHUNG" "$targetU/docs/framework/standard-delivery.md"; then
+if grep -q "KHONG-PHAI-BAN-KHUNG" "$targetU/$rewrite_rel"; then
   echo "  ok [upgrade]: file đích viết lại toàn bộ → nội dung đích được giữ (merge 3 chiều hoặc .framework-new)"
 else
-  echo "  FAIL [upgrade]: --upgrade ghi đè file đích đã sửa (standard-delivery.md)"; fail=1
+  echo "  FAIL [upgrade]: --upgrade ghi đè file đích đã sửa ($rewrite_rel)"; fail=1
 fi
 cmp -s "$REPO_ROOT/docs/framework/new-project-runbook.md" "$targetU/docs/framework/new-project-runbook.md" \
   && echo "  ok [upgrade]: file chưa sửa được cập nhật bằng bản khung" \
