@@ -80,6 +80,33 @@ def _scripts_covered_by(test_name, scripts_dir, all_scripts):
     return covered
 
 
+def _scripts_covered_by_python_tests(test_name, scripts_dir, all_scripts):
+    """Script được test Python (`tests/*.py`) mà MỘT test cổng trong CI nhắc tới.
+
+    Test Python không nằm ở scripts/ nên luật đọc-thân-`test-*.sh` không thấy nó (F-N02). Chỉ tính test Python
+    mà thân một test CHẠY TRONG CI gọi bằng đường dẫn `tests/<tên>.py`; test không ai gọi thì không phải cổng.
+    Script được coi là phủ khi tên file (`x-y.py`) hoặc tên module nạp động (`"x-y"`) xuất hiện trong thân nó.
+    """
+    covered = set()
+    try:
+        with open(os.path.join(scripts_dir, test_name), encoding="utf-8", errors="ignore") as fp:
+            body = fp.read()
+    except OSError:
+        return covered
+    tests_dir = os.path.join(os.path.dirname(scripts_dir), "tests")
+    for ref in set(re.findall(r"tests/([\w.-]+\.py)", body)) | set(re.findall(r"\b(test_[\w-]+\.py)\b", body)):
+        try:
+            with open(os.path.join(tests_dir, ref), encoding="utf-8", errors="ignore") as fp:
+                tbody = fp.read()
+        except OSError:
+            continue
+        for cand in all_scripts:
+            stem, ext = os.path.splitext(cand)
+            if ext == ".py" and (cand in tbody or f'"{stem}"' in tbody or f"'{stem}'" in tbody):
+                covered.add(cand)
+    return covered
+
+
 def _scripts_inventory():
     """Kiểm kê script + xem cái nào được một test CHẠY TRONG CI gọi tới.
 
@@ -94,6 +121,7 @@ def _scripts_inventory():
     covered = set()
     for t in ci_tests:
         covered |= _scripts_covered_by(t, scripts_dir, all_scripts)
+        covered |= _scripts_covered_by_python_tests(t, scripts_dir, all_scripts)
     return all_scripts, covered, set(ci_tests)
 
 

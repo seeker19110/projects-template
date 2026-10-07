@@ -924,3 +924,33 @@ lint thật. Cảnh báo SC2154 ở test hook được sửa trong cùng đợt 
 CI Windows không cài ShellCheck: lần đầu test đỏ với exit 127 ở đường sạch,
 vì fixture gọi binary thật. Test dùng ShellCheck giả chỉ trong fixture để kiểm
 đường gọi từng file và mã thoát; cổng Linux vẫn chạy ShellCheck thật trên source.
+
+## 42. Hook không có bit thực thi chết im lặng ngoài Windows
+
+*Ngày:* 2026-10-06, đối chiếu X-Agents (họ H6 ở TRAPS của nó). `settings.json` gọi thẳng đường dẫn hook;
+`ui-intelligence.sh` được commit mode `100644` (từ Windows) nên `sh` trả 126 "Permission denied" — Claude Code coi
+là lỗi không chặn, hook không bao giờ chạy. Test mục 9 chạy hook qua `bash <file>` nên xanh giả.
+
+*Cách rà:* với mọi lệnh trong `settings*.json`, hỏi "chạy đúng như harness gọi (không qua `bash`) có được không?"
+và xét mode trong git index (`git ls-files -s`), không xét mode trên đĩa Windows.
+
+*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 14 (có negative test hạ về 100644).
+
+## 43. Hook chạy trước lệnh nên không thấy thứ lệnh sắp stage
+
+*Ngày:* 2026-10-06 (X-Agents #368). `pre-commit-gate.sh` chỉ đọc `git diff --cached`; `git add X && git commit` hay
+`commit -a` stage X *sau* khi hook đã chạy → bí mật và file >1 MB lọt (đo: 3 ca exit 0). Phụ: trong hook có
+`set -o pipefail`, một nhóm `{ …; [ cond ] && cmd; } | grep` trả 1 làm cả pipeline "lỗi" và bỏ lọt ca thật.
+
+*Cách rà:* mọi hook PreToolUse đọc trạng thái repo — hỏi "lệnh này có tự đổi trạng thái đó trước khi commit không?".
+Không dùng `[ ] && cmd` làm lệnh cuối của nhóm đưa vào pipeline; bọc hàm và `return 0`.
+
+*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 11 (5 ca: 3 chặn, 2 không chặn oan).
+
+## 44. Bảng Markdown thừa ô mất chữ im lặng
+
+*Ngày:* 2026-10-06 (X-Agents `test_bang_markdown_khong_hang_nao_thua_o`). GitHub bỏ ô thừa; `|` trong backtick vẫn tách ô.
+Đo: 2 hàng thật (`Analyze (python|actions)`, `|| true`) mất chữ mà mọi cổng cũ xanh.
+
+*Cách rà:* `|` trong ô bảng luôn viết `\|`. *Cổng chốt chặn:* `check-docs-consistency.sh` mục 10.
+

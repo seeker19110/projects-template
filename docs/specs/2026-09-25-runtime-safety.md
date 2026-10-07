@@ -28,6 +28,13 @@ không scheduler thứ hai, không đổi ruleset hay triển khai vào repo d�
 Mọi sửa đổi qua PR. CI chỉ chạy kiểm thử, không tự sửa hoặc push mã nguồn.
 Atomicity theo từng file, không tuyên bố transaction nguyên tử toàn cây.
 
+## Architecture và code touchpoints
+
+Điểm chạm (đối chiếu diff PR #179, `8cba0e0`): `scripts/maintain-cron.sh`, `scripts/maintain-run.sh`,
+`scripts/maintenance-sweep.sh`, `copy-framework.sh` (và `copy-framework.ps1` một dòng), job tương ứng trong
+`.github/workflows/ci.yml`. Test: `tests/test_runtime_safety.py` (10 bài, 45 subcase CLI, Git local thật) chạy qua
+`scripts/test-py-coverage.sh`. Không đổi schema dữ liệu; không chạm journal hay ruleset.
+
 ## Validation, rollout và rollback
 
 Kiểm thử CLI hữu hạn, concurrent push, background fetch, staged file ngoài phạm vi,

@@ -189,6 +189,26 @@ clean="$(setup_project 0)"; echo "hello" > "$clean/a.txt"; git -C "$clean" add a
 rc="$(run_hook "$clean" 'git commit -m "x"')"
 [ "$rc" = "0" ] && ok "diff sạch trên nhánh riêng → cho qua" || bad "chặn OAN diff sạch (exit $rc)"
 
+# Lệnh TỰ STAGE (`git add … && git commit`, `commit -a`): hook chạy TRƯỚC lệnh nên index còn cũ — bản trước chỉ
+# đọc `diff --cached` nên bí mật/file lớn đi qua. Đối chiếu X-Agents #368 (TRAPS §3 của nó), đo lại ở repo này.
+fakekey="AKIA$(printf 'ABCDEFGHIJKLMNOP')"   # dựng lúc chạy: file test không tự chứa khoá giả nguyên khối
+c1="$(setup_project 0)"; head -c 1100000 /dev/zero > "$c1/blob.bin"
+rc="$(run_hook "$c1" 'git add blob.bin && git commit -m "x"')"
+[ "$rc" = "2" ] && ok "chặn: git add file >1MB && git commit (tự stage)" || bad "LỌT file lớn khi lệnh tự stage (exit $rc, kỳ vọng 2)"
+c2="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$c2/conf.txt"
+rc="$(run_hook "$c2" 'git add -A && git commit -m "x"')"
+[ "$rc" = "2" ] && ok "chặn: git add -A && git commit có bí mật chưa stage" || bad "LỌT bí mật khi lệnh tự stage (exit $rc, kỳ vọng 2)"
+c3="$(setup_project 0)"; echo ok > "$c3/t.txt"; git -C "$c3" add t.txt; git -C "$c3" -c user.email=t@t -c user.name=t commit -q -m init --no-verify
+printf 'key=%s\n' "$fakekey" > "$c3/t.txt"
+rc="$(run_hook "$c3" 'git commit -am "x"')"
+[ "$rc" = "2" ] && ok "chặn: git commit -am có bí mật ở file đã theo dõi" || bad "LỌT bí mật với commit -a (exit $rc, kỳ vọng 2)"
+c4="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$c4/conf.txt"
+rc="$(run_hook "$c4" 'git commit -m "x"')"
+[ "$rc" = "0" ] && ok "cho qua: commit thường khi bí mật chỉ nằm ngoài index (không chặn oan)" || bad "chặn OAN commit thường (exit $rc)"
+c5="$(setup_project 0)"; echo hello > "$c5/a.txt"
+rc="$(run_hook "$c5" 'git add a.txt && git commit -m "x"')"
+[ "$rc" = "0" ] && ok "cho qua: git add file sạch && git commit" || bad "chặn OAN add file sạch (exit $rc)"
+
 echo "== 12. block-dangerous-git: khuôn 5 — push xoá / ép ghi đè nhánh chính không có --force =="
 for pair in \
   "git push origin +main|refspec +main" \
@@ -236,6 +256,30 @@ EOF
 chmod +x "$g4/scripts/dev-task.sh"
 rc="$( cd "$g4" && GIT_DIR="$g4/.git" GIT_WORK_TREE="$g4" GIT_INDEX_FILE="$g4/.git/index" bash "$GH" >/dev/null 2>&1; echo $? )"
 [ "$rc" = "0" ] && ok "githooks: gate không kế thừa biến Git của hook" || bad "githooks: gate kế thừa biến Git của hook (exit $rc)"
+
+echo "== 14. hook nối trong settings*.json phải có bit thực thi trong git index =="
+# VÌ SAO (đối chiếu X-Agents 2026-10-06, TRAPS họ H6): settings gọi THẲNG đường dẫn nên file mode 100644
+# (commit từ Windows) → `sh` trả 126 "Permission denied" — Claude Code coi là lỗi KHÔNG chặn, hàng rào chết
+# im lặng ngoài Windows. Đo thật ở repo này: `ui-intelligence.sh` 100644 chết rc=126; test mục 9 chạy nó qua
+# `bash` nên không thấy. Phép thử phải xét MODE TRONG INDEX (mode trên đĩa Windows luôn "chạy được").
+check_hook_modes() {   # $1 = root git; in từng đường dẫn hook không chạy được, mỗi dòng một đường dẫn
+  local root="$1" f p mode
+  for f in "$root"/.claude/settings.json "$root"/.claude/settings-shared-default.json; do
+    [ -f "$f" ] || continue
+    grep -oE '\$\{CLAUDE_PROJECT_DIR\}/[^" ]+' "$f" | sed 's|^\${CLAUDE_PROJECT_DIR}/||' | sort -u | while read -r p; do
+      mode="$(git -C "$root" ls-files -s -- "$p" 2>/dev/null | awk '{print $1}')"
+      if [ -z "$mode" ]; then [ -x "$root/$p" ] || echo "$p"; else [ "$mode" = "100755" ] || echo "$p"; fi
+    done
+  done
+}
+dead="$(check_hook_modes "$ROOT")"
+[ -z "$dead" ] && ok "mọi hook trong settings*.json có mode 100755" || bad "hook KHÔNG chạy được ngoài Windows (cần 100755): $(echo "$dead" | tr '\n' ' ')"
+# NEGATIVE TEST: hạ một hook về 100644 trong repo giả → phép thử phải đỏ (không thì nó xanh giả).
+neg="$WORK/modes-neg"; mkdir -p "$neg/.claude/hooks"; git -C "$neg" init -q
+printf '{"c":"${CLAUDE_PROJECT_DIR}/.claude/hooks/a.sh"}\n' > "$neg/.claude/settings.json"
+printf '#!/usr/bin/env bash\n' > "$neg/.claude/hooks/a.sh"
+git -C "$neg" add -A; git -C "$neg" update-index --chmod=-x .claude/hooks/a.sh
+[ -n "$(check_hook_modes "$neg")" ] && ok "negative: hook 100644 bị phát hiện" || bad "negative: hook 100644 KHÔNG bị phát hiện (phép thử xanh giả)"
 
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then

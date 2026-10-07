@@ -6,7 +6,7 @@ Người dùng duyệt inventory ngày 2026-09-24 và tiếp tục yêu cầu n�
 chất lượng, ủy quyền quyết định ngày 2026-09-25. Phạm vi repo khung này; không tự
 triển khai vào repo dẫn xuất hoặc dữ liệu production, không hạ cổng để xanh.
 
-State: WAITING. Main nguồn đã đối chiếu: `6702994d90ad318142715aa172d79916c71e5b9d` (PR #196).
+State: DONE (người dùng xác nhận đóng 2026-10-06; chu kỳ kế tiếp ở `docs/ops/COMPLETION-PLAN.md`). Main nguồn đã đối chiếu: `6702994d90ad318142715aa172d79916c71e5b9d` (PR #196).
 PR #196 đã merge sau CI trên head `8b97ee6`; F-K10 đóng. F-11/F-K08 và re-audit
 được bàn giao trong PR tài liệu này, có hiệu lực khi bản này vào main và cổng PR đạt.
 Mỗi outcome một PR, FIFO, tối đa 3 PR mở. Xác nhận đóng chu kỳ còn chờ người dùng.
