@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 đang mở PR, rồi LD-08.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 triển khai regression/protocol, chờ CI và nghiệm thu chủ repo.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `c522839` (`origin/main`, sau PR #208).
+- Default-branch SHA đã đối chiếu: `fb05bd5` (`origin/main`, sau PR #209).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -29,10 +29,15 @@ evidence/input không sinh yêu cầu sửa code; ca jq CRLF của Windows) đã
 LD-07 (telemetry `telemetry-record/2`: token thiếu = unknown, lần thử ≠ công việc nghiệm thu,
 chi phí gồm cả lần thất bại) đã merge ở #207.
 LD-05 (`subagent-dispatch` prepare-only, context thiếu/rỗng/không UTF-8/quá lớn → exit 2) đã merge ở #208.
-LD-06 trên nhánh `codex/lean-delivery-profiles`: ma trận bằng chứng hồ sơ C1–C10 × hành vi/UX-DX/
-dữ liệu/bảo mật/release ở `quality-gates-by-profile.md` + độ sâu theo mức S/M/L. Bằng chứng
-`tests/test_profile_quality_matrix.py` (gate cục bộ + CI Linux).
-LD-08 tiếp tục sau khi LD-06 merge; chưa xác minh bản code được nhắc ở checkpoint cũ.
+LD-06 (#209) đã merge ở `fb05bd5`: ma trận bằng chứng hồ sơ C1–C10 × hành vi/UX-DX/
+dữ liệu/bảo mật/release và độ sâu S/M/L; `tests/test_profile_quality_matrix.py`, CI Linux/Windows xanh.
+Blocker tạo PR GitHub đã được xử lý sau khi chủ repo cho phép thử lại; không hạ cổng.
+LD-08 bổ sung `tests/test_lean_adoption.py`: Node/Python runtime thật, copy → evidence → upgrade
+bảo toàn config/ghi chú → từ chối evidence cũ và FAIL. Test đăng ký ở gate cục bộ và CI Linux.
+`docs/framework/lean-delivery-benchmark.md` đo baseline 17 suite/34 lời gọi so với 17/17 ở c522839;
+đây là giảm lời gọi, không phải số đo tiết kiệm token/thời gian. AC-1..8 đã có ánh xạ evidence;
+map đầy đủ không thay thế kết quả CI của đúng commit. Chủ repo nghiệm thu sau khi required checks
+và merge LD-08 đạt; pilot/hosted CI dự án đích/model benchmark chưa chạy, ngoài scope hiện tại.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
@@ -51,7 +56,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Theo goal: hoàn tất LD-06 profile sản phẩm, rồi LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
+Theo goal: kiểm required checks và merge LD-08, rồi trình bằng chứng AC-1..8 để chủ repo nghiệm thu. Không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
 
