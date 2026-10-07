@@ -139,6 +139,9 @@ jobs:
       - name: Adaptive process contract (LD-02)
         run: python3 tests/test_adaptive_process.py
 
+      - name: Profile quality matrix (LD-06)
+        run: python3 tests/test_profile_quality_matrix.py
+
       - name: Cú pháp Python (py_compile — scripts và tests)
         run: |
           set -e

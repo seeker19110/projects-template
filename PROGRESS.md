@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207) đã merge; LD-05 đang mở PR, rồi LD-06 → LD-08.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 đang mở PR, rồi LD-08.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `082f1e4` (`origin/main`, sau PR #207).
+- Default-branch SHA đã đối chiếu: `c522839` (`origin/main`, sau PR #208).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -28,10 +28,11 @@ LD-04 (`dev-task.sh review-check`, `review-findings/1`: finding không căn cứ
 evidence/input không sinh yêu cầu sửa code; ca jq CRLF của Windows) đã merge ở #205.
 LD-07 (telemetry `telemetry-record/2`: token thiếu = unknown, lần thử ≠ công việc nghiệm thu,
 chi phí gồm cả lần thất bại) đã merge ở #207.
-LD-05 trên nhánh `claude/jolly-ramanujan-g6sj70`: `subagent-dispatch` nói rõ prepare-only
-(`mode`/`executed=false`, không chạy agent, không cưỡng chế quyền); context thiếu/rỗng/không UTF-8/
-vượt `--max-context-bytes` → exit 2. Bằng chứng `tests/engine_characterization/test_dispatch.py`.
-LD-06, LD-08 đã code và qua gate cục bộ; mở PR lần lượt sau khi PR trước merge.
+LD-05 (`subagent-dispatch` prepare-only, context thiếu/rỗng/không UTF-8/quá lớn → exit 2) đã merge ở #208.
+LD-06 trên nhánh `codex/lean-delivery-profiles`: ma trận bằng chứng hồ sơ C1–C10 × hành vi/UX-DX/
+dữ liệu/bảo mật/release ở `quality-gates-by-profile.md` + độ sâu theo mức S/M/L. Bằng chứng
+`tests/test_profile_quality_matrix.py` (gate cục bộ + CI Linux).
+LD-08 tiếp tục sau khi LD-06 merge; chưa xác minh bản code được nhắc ở checkpoint cũ.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
@@ -50,8 +51,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Theo goal: LD-04 review/repair, LD-05 context/harness, LD-06 profile sản phẩm,
-LD-07 telemetry, LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
+Theo goal: hoàn tất LD-06 profile sản phẩm, rồi LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
 
