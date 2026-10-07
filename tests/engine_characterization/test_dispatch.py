@@ -102,7 +102,38 @@ class TestDispatchMain(unittest.TestCase):
         _, out, _ = self.run_main("--agent", "alpha", "--task", "T", "--context-file", ctx)
         self.assertIn("T\n\nNOI DUNG DIFF", out)
 
-    def test_context_file_khong_ton_tai_thi_bo_qua_khong_vo(self):
-        _, out, _ = self.run_main("--agent", "alpha", "--task", "T",
-                                  "--context-file", os.path.join(self.dir, "khong-co.txt"))
-        self.assertIn("=== TASK CONTEXT ===\nT\n", out)
+    # LD-05/AC-5: context thiếu/hỏng/quá lớn KHÔNG được bỏ im lặng (bản cũ bỏ qua file thiếu,
+    # nuốt byte không phải UTF-8 và nối file mọi kích thước) — báo lỗi, thoát 2, không in prompt.
+    def assert_context_error(self, marker, *extra):
+        code, out, err = self.run_main("--agent", "alpha", "--task", "T", *extra)
+        self.assertEqual(code, 2, err)
+        self.assertIn(marker, err)
+        self.assertEqual(out, "")
+
+    def test_context_file_khong_ton_tai_thi_bao_loi_thoat_2(self):
+        self.assert_context_error("không tồn tại", "--context-file", os.path.join(self.dir, "khong-co.txt"))
+
+    def test_context_file_la_thu_muc_hoac_rong_thi_bao_loi(self):
+        self.assert_context_error("không tồn tại", "--context-file", self.dir)
+        self.assert_context_error("rỗng", "--context-file", write(self.dir, "rong.txt", ""))
+
+    def test_context_file_qua_gioi_han_khong_cat_im_lang(self):
+        ctx = write(self.dir, "lon.txt", "MUOI-MOT-B")
+        self.assert_context_error("vượt giới hạn", "--context-file", ctx, "--max-context-bytes", "5")
+        _, out, _ = self.run_main("--agent", "alpha", "--task", "T", "--context-file", ctx,
+                                  "--max-context-bytes", "10")
+        self.assertIn("MUOI-MOT-B", out)
+
+    def test_context_file_khong_utf8_bao_loi(self):
+        ctx = os.path.join(self.dir, "nhi-phan.bin")
+        with open(ctx, "wb") as f:
+            f.write(b"ok\xff")
+        self.assert_context_error("UTF-8", "--context-file", ctx)
+
+    def test_moi_harness_noi_ro_prepare_only(self):
+        for harness in ("claude", "hermes", "codex", "generic"):
+            code, out, err = self.run_main("--agent", "alpha", "--task", "T", "--harness", harness, "--json")
+            self.assertIsNone(code, err)
+            self.assertIn("prepare-only", err)
+            data = json.loads(out)
+            self.assertEqual((data["mode"], data["executed"]), ("prepare-only", False), harness)

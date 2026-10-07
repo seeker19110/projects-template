@@ -102,6 +102,8 @@ done
 printf 'ngu canh gia lap\n' > "$WORK/ctx.txt"
 run scripts/subagent-dispatch.py --agent reviewer --task "T" --harness generic --context-file "$WORK/ctx.txt"
 run_expected_failure scripts/subagent-dispatch.py --agent khong-ton-tai --task "T"
+run_expected_failure scripts/subagent-dispatch.py --agent reviewer --task "T" --context-file "$WORK/khong-co.txt"
+run_expected_failure scripts/subagent-dispatch.py --agent reviewer --task "T" --context-file "$WORK/ctx.txt" --max-context-bytes 1
 run_expected_failure scripts/subagent-dispatch.py
 
 # --- telemetry-log: record (nhiều model), summary, widget, và ĐƯỜNG LỖI bảng giá ---
