@@ -954,3 +954,16 @@ Không dùng `[ ] && cmd` làm lệnh cuối của nhóm đưa vào pipeline; b�
 
 *Cách rà:* `|` trong ô bảng luôn viết `\|`. *Cổng chốt chặn:* `check-docs-consistency.sh` mục 10.
 
+## 45. Hook cổng đọc CLAUDE_PROJECT_DIR thay vì cây đang commit (worktree)
+
+*Ngày:* 2026-10-07 (X-Agents `pt.10`, TRAPS §3 của nó; đo lại ở repo này). `pre-commit-gate.sh` lấy nhánh, index và cổng
+từ `CLAUDE_PROJECT_DIR` = checkout chính. Phiên chạy trong `git worktree` thì `git commit` chạy ở worktree: hook chặn oan
+commit hợp lệ ("đang đứng trên main") và buông bí mật staged lẫn cổng đỏ của worktree (đọc index rỗng của checkout chính).
+Đo: 3 ca đỏ (exit 2/0/0, kỳ vọng 0/2/2).
+
+*Cách rà:* mọi hook/script đọc trạng thái git — hỏi "đường dẫn này là cây ĐANG làm việc hay checkout chính?". Gốc cây lấy từ
+`git rev-parse --show-toplevel` ở cwd của hook; `CLAUDE_PROJECT_DIR` chỉ là chỗ lùi về. Test hook phải chạy với cwd = thư mục
+dự án giả, không phải cwd của test.
+
+*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 15 (3 ca worktree) + `run_hook` đặt cwd = dự án.
+

@@ -77,9 +77,10 @@ run_hook() {        # $1 = project dir, $2 = lệnh bash, [$3 = "no-jq"], [$4 = 
     fi
   fi
   if [ -n "$path_override" ]; then
-    printf '%s' "$payload" | env -i PATH="$path_override" CLAUDE_PROJECT_DIR="$dir" bash "$hook" 2>"$WORK/stderr.txt"
+    ( cd "$dir" && printf '%s' "$payload" | env -i PATH="$path_override" CLAUDE_PROJECT_DIR="$dir" bash "$hook" 2>"$WORK/stderr.txt" )
   else
-    printf '%s' "$payload" | CLAUDE_PROJECT_DIR="$dir" bash "$hook" 2>"$WORK/stderr.txt"
+    # cwd = thư mục dự án: đúng thực tế (cwd của hook là cwd của lệnh commit); hook đọc cây từ cwd (mục 15).
+    ( cd "$dir" && printf '%s' "$payload" | CLAUDE_PROJECT_DIR="$dir" bash "$hook" 2>"$WORK/stderr.txt" )
   fi
   echo $?
 }
@@ -175,7 +176,7 @@ echo "== 11. pre-commit-gate: commit trên main/master bị chặn; bí mật / 
 onmain="$(setup_project 0)"; git -C "$onmain" switch -q -c main 2>/dev/null || git -C "$onmain" checkout -q -b main
 rc="$(run_hook "$onmain" 'git commit -m "x"')"
 [ "$rc" = "2" ] && ok "chặn commit khi đang ở main (TRAPS 14)" || bad "KHÔNG chặn commit trên main (exit $rc)"
-rc="$(printf '{"tool_input":{"command":"git commit -m x"}}' | ALLOW_COMMIT_ON_MAIN=1 CLAUDE_PROJECT_DIR="$onmain" bash "$HOOK" >/dev/null 2>&1; echo $?)"
+rc="$(cd "$onmain" && printf '{"tool_input":{"command":"git commit -m x"}}' | ALLOW_COMMIT_ON_MAIN=1 CLAUDE_PROJECT_DIR="$onmain" bash "$HOOK" >/dev/null 2>&1; echo $?)"
 [ "$rc" = "0" ] && ok "ALLOW_COMMIT_ON_MAIN=1 cho qua" || bad "cờ ALLOW_COMMIT_ON_MAIN không hoạt động (exit $rc)"
 sec="$(setup_project 0)"
 # Khoá giả dựng lúc chạy (không viết literal — kẻo chính test này bị sweep/hook bắt).
@@ -280,6 +281,30 @@ printf '{"c":"${CLAUDE_PROJECT_DIR}/.claude/hooks/a.sh"}\n' > "$neg/.claude/sett
 printf '#!/usr/bin/env bash\n' > "$neg/.claude/hooks/a.sh"
 git -C "$neg" add -A; git -C "$neg" update-index --chmod=-x .claude/hooks/a.sh
 [ -n "$(check_hook_modes "$neg")" ] && ok "negative: hook 100644 bị phát hiện" || bad "negative: hook 100644 KHÔNG bị phát hiện (phép thử xanh giả)"
+
+echo "== 15. pre-commit-gate: cây ĐANG COMMIT (worktree) ≠ CLAUDE_PROJECT_DIR (checkout chính) =="
+# VÌ SAO (đối chiếu X-Agents 2026-09-15 `pt.10`, đo lại ở repo này): hook đọc nhánh/index/cổng từ CLAUDE_PROJECT_DIR.
+# Phiên chạy trong `git worktree` thì lệnh `git commit` chạy ở worktree còn biến vẫn trỏ checkout chính → hỏng CẢ HAI
+# chiều: chặn oan commit hợp lệ ("đang đứng trên main") và buông bí mật/cổng đỏ của worktree (đọc index rỗng của main).
+wt_main="$(setup_project 0)"
+git -C "$wt_main" add -A; git -C "$wt_main" -c user.email=t@t -c user.name=t commit -q -m init --no-verify
+git -C "$wt_main" branch -M main
+git -C "$wt_main" worktree add -q "$WORK/wt-tree" -b feat/wt 2>/dev/null
+run_wt() {   # $1 = cwd của lệnh commit (worktree), $2 = lệnh; CLAUDE_PROJECT_DIR luôn là checkout chính
+  local payload; payload="$(printf '{"tool_input":{"command":%s}}' "$(printf '%s' "$2" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")"
+  ( cd "$1" && printf '%s' "$payload" | CLAUDE_PROJECT_DIR="$wt_main" bash "$HOOK" 2>"$WORK/stderr.txt"; echo $? )
+}
+echo "ok" > "$WORK/wt-tree/a.txt"; git -C "$WORK/wt-tree" add a.txt
+rc="$(run_wt "$WORK/wt-tree" 'git commit -m "x"')"
+[ "$rc" = "0" ] && ok "worktree feat/wt, checkout chính ở main → cho qua (không chặn oan)" || bad "chặn OAN commit trong worktree vì đọc nhánh của checkout chính (exit $rc, kỳ vọng 0)"
+printf 'KEY=AKIA%s\n' "$(printf 'W%.0s' $(seq 16))" > "$WORK/wt-tree/cfg.txt"; git -C "$WORK/wt-tree" add cfg.txt
+git -C "$wt_main" switch -q -c scratch   # main không còn là nhánh hiện tại → chỉ còn lỗi "đọc index checkout chính"
+rc="$(run_wt "$WORK/wt-tree" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "bí mật staged trong worktree vẫn bị chặn" || bad "LỌT bí mật staged ở worktree vì đọc index checkout chính (exit $rc, kỳ vọng 2)"
+git -C "$WORK/wt-tree" reset -q cfg.txt; rm -f "$WORK/wt-tree/cfg.txt"
+printf '#!/usr/bin/env bash\n[ "${1:-}" = "gate" ] && exit 1\nexit 0\n' > "$WORK/wt-tree/scripts/dev-task.sh"   # cổng của WORKTREE đỏ, của checkout chính xanh
+rc="$(run_wt "$WORK/wt-tree" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "cổng đỏ của worktree chặn commit (cổng chạy trên cây đang commit)" || bad "cổng chạy trên checkout chính thay vì worktree (exit $rc, kỳ vọng 2)"
 
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
