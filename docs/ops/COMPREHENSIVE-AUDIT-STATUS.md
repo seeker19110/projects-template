@@ -5,10 +5,10 @@
 > `docs/reports/2026-10-05-framework-audit.md`. Bản 2026-09-12 bên dưới là
 > snapshot lịch sử của một lượt khác; không dùng để tuyên bố Project Complete.
 
-## Re-audit 2026-10-06 (chu kỳ mới, Pha 1 xong — chờ duyệt kế hoạch)
+## Re-audit 2026-10-07 (chu kỳ 2026-10-06 — Pha 3 xong)
 
 Base `e2b70bf`. 12 nhóm quét lại: Cao 0 · Trung 1 (F-N01 FEATURE-MAP thiếu engine, không có cổng đối chiếu) ·
-Thấp 6 · Thông tin 2. Chi tiết, bằng chứng đo và kế hoạch W-01..W-09 ở `docs/ops/COMPLETION-PLAN.md`.
+Thấp 6 · Thông tin 2. Sau xử lý: Cao 0 · Trung 0 · Thấp mở 1 (F-N05). Chi tiết ở `docs/reports/2026-10-06-framework-audit.md`, kế hoạch ở `docs/ops/COMPLETION-PLAN.md`.
 
 ## Re-audit — 2026-10-05 (chu kỳ đã đóng 2026-10-06)
 
