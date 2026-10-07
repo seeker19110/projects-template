@@ -8,14 +8,14 @@
 ## Re-audit 2026-10-07 (chu kỳ 2026-10-06 — Pha 3 xong)
 
 Base `e2b70bf`. 12 nhóm quét lại: Cao 0 · Trung 1 (F-N01 FEATURE-MAP thiếu engine, không có cổng đối chiếu) ·
-Thấp 6 · Thông tin 2. Sau xử lý: Cao 0 · Trung 0 · Thấp mở 1 (F-N05). Chi tiết ở `docs/reports/2026-10-06-framework-audit.md`, kế hoạch ở `docs/ops/COMPLETION-PLAN.md`.
+Thấp 6 · Thông tin 2. Sau xử lý: Cao 0 · Trung 0 · Thấp mở 0 (F-N05 đã ghi nhận theo quyết định giữ nhánh của chủ repo). Chi tiết ở `docs/reports/2026-10-06-framework-audit.md`, kế hoạch ở `docs/ops/COMPLETION-PLAN.md`.
 
 ## Re-audit — 2026-10-05 (chu kỳ đã đóng 2026-10-06)
 
 Main nguồn đã đối chiếu: `6702994d90ad318142715aa172d79916c71e5b9d` (#196).
 12 nhóm đã quét lại; không phát hiện Cao/Trung mới trong phần code/cổng đã rà.
 F-K01..07/F-K09/F-K10 đóng trên main; F-K08/F-11 bàn giao trong PR tài liệu này.
-Chu kỳ WAITING, còn cổng PR tài liệu và xác nhận đóng của người dùng.
+WAITING là trạng thái tại thời điểm báo cáo; chu kỳ đã được người dùng xác nhận đóng ngày 2026-10-06 (xem goal và kế hoạch hiện hành).
 W-06 chứng minh copy/gate runtime Node/Python tối thiểu; các resolver fixture
 khác không chứng minh runtime toàn stack, Go/Make chưa có ca resolver độc lập,
 CI hosted của repo đích chưa kiểm. C01 ngoài phạm vi repo khung đã chọn.

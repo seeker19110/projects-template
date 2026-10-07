@@ -51,7 +51,7 @@ runtime độc lập (đã ghi ở chu kỳ trước).
 | W-06 | F-N07 | Thêm `concurrency` cho 3 workflow; cập nhật `check-ci-policy` nếu cần | `check-ci-policy.sh` xanh, CI xanh | S | ✅ `92a1959` |
 | W-07 | F-N05 | Dọn nhánh remote theo lựa chọn của chủ repo (từng nhánh) | Danh sách còn lại khớp quyết định; không đụng nhánh của người khác nếu chưa hỏi | S | ➖ chủ repo chọn giữ lại cả 3 nhánh (2026-10-07) — không xoá; ghi nhận ở báo cáo audit |
 | W-08 | F-N06/N08/N09 | Ghi quyết định + điều kiện xem lại vào báo cáo audit | Có mục trong `docs/reports/2026-10-06-framework-audit.md` | S | ✅ báo cáo cùng PR |
-| W-09 | — | Re-audit nhóm 4/8/9/12 và nghiệm thu DoC | Bảng bằng chứng, `gate` xanh | S | ✅ 2026-10-07: 0 Cao/Trung mở; còn F-N05 chờ chủ repo |
+| W-09 | — | Re-audit nhóm 4/8/9/12 và nghiệm thu DoC | Bảng bằng chứng, `gate` xanh | S | ✅ 2026-10-07: 0 Cao/Trung mở; F-N05 ghi nhận theo quyết định giữ nhánh của chủ repo |
 
 Truy vết: F-N01→W-03 · F-N02→W-02 · F-N03→W-04 · F-N04→W-05 · F-N05→W-07 · F-N06/N08/N09→W-08 · F-N07→W-06.
 

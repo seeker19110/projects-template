@@ -2,11 +2,11 @@
 
 | Thuộc tính | Giá trị |
 | --- | --- |
-| Issue / Goal | Yêu cầu chủ repo trong cuộc trò chuyện 2026-10-07; hồ sơ `docs/work/2026-10-07-pr-dispatch-work-memory/working.md` |
+| Issue / Goal | Yêu cầu chủ repo trong cuộc trò chuyện 2026-10-07; hồ sơ `docs/work/2026-10-07-pr-dispatch-work-memory/done.md` (rename sau PR #213 merge) |
 | Spec owner | Phiên chính |
 | State | **Approved for implementation** |
 | Approver / date | Phiên chính duyệt theo ủy quyền toàn cục của chủ repo; 2026-10-07 |
-| Last updated | 2026-10-07 |
+| Last updated | 2026-10-08 |
 
 ## 1. Problem, user và evidence
 
