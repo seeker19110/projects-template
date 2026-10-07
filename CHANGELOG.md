@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed: `pre-commit-gate.sh` đọc nhánh/index/cổng từ cây đang commit (`git rev-parse --show-toplevel` ở cwd của hook) thay vì
+  `CLAUDE_PROJECT_DIR`; trước đó phiên trong `git worktree` bị chặn oan hoặc lọt bí mật/cổng đỏ (3 ca đỏ → xanh,
+  `test-hooks-gate.sh` mục 15, TRAPS 45). Rút từ đối chiếu X-Agents lần 3: `docs/reports/2026-10-07-doi-chieu-x-agents-v3.md`.
 - Fixed: `.claude/hooks/ui-intelligence.sh` mode 100644 làm hook chết im (exit 126) ngoài Windows; nay 100755.
   `scripts/test-hooks-gate.sh` mục 14 canh mode index của mọi hook nối trong `settings*.json` (kèm negative test).
   Rút từ đối chiếu X-Agents: `docs/reports/2026-10-06-doi-chieu-x-agents-v2.md`.

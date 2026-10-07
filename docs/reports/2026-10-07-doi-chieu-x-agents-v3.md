@@ -3,7 +3,7 @@
 Nguồn: `seeker19110/X-Agents` @ `2dd4750` — **cùng commit với lần 2** (`2026-10-06-doi-chieu-x-agents-v2.md`), nên không có
 thay đổi mới ở nguồn. Lần này đọc phần lần 2 chưa đụng: `.claude/agents/ecc-*`, `/no-ky-thuat`, mục "Compact
 Instructions" của `CLAUDE.md`, luật 11 của `AGENTS.md`. Đích: `projects-template` @ `3ab7a7b`.
-Kết quả: **không có hạng mục nào qua cổng §2 → không lấy gì.** Đây là kết quả, không phải thiếu sót.
+Kết quả: bản đọc đầu (chỉ hàng rào/tài liệu) không lấy gì; sau khi đọc tiếp `TRAPS.md` của nguồn và **đo** từng khuôn lỗi trên template, **lấy 1 hạng mục** (hook đọc nhầm cây khi dùng worktree) — xem cuối file.
 
 ## Ba cột
 
@@ -31,5 +31,17 @@ tin lời khai — chưa có phiên mất ngữ cảnh nào tái hiện được
 Ban đầu coi #186 là bằng chứng "PR trùng" (PROGRESS.md ghi "#186 trùng đã đóng"). Đọc PR thật: bot dependabot, thay bởi
 #185 — loại ứng viên. Chữ "trùng" trong PROGRESS.md chỉ đúng nghĩa dependabot, không phải sự cố quy trình.
 
+## Đọc tiếp nguồn (lượt 2 của lần 3) — đo từng khuôn lỗi trong TRAPS của X-Agents trên template
+Đo bằng lệnh, không đọc văn xuôi:
+| Khuôn của X-Agents | Phép đo ở template | Kết quả |
+| --- | --- | --- |
+| Nhãn miễn cổng mà workflow thiếu `labeled` | `pr-policy.yml` không có miễn bằng nhãn | Không áp dụng |
+| `subprocess(input=…, text=True)` không `encoding=` treo Windows | `grep subprocess scripts/*.py` | 0 chỗ dùng, không dính |
+| Quyết định bảo mật bằng `startswith` | `grep startswith scripts/*.py` | Chỉ phân tích cú pháp, không phải quyết định bảo mật |
+| PR không chạy check vì xung đột (DIRTY) | không có trong pr-flow, không có sự cố ở template | Chưa cần; xem lại khi PR của khung kẹt vì lý do này |
+| **Hook cổng đọc `CLAUDE_PROJECT_DIR` thay vì cây đang commit** | dựng worktree + checkout chính, chạy hook | **ĐỎ: 3 ca (chặn oan; lọt bí mật; cổng chạy sai cây)** |
+
 ## Thực sự lấy
-Không có.
+1 hạng mục: hook đọc cây đang commit (cột "đã có nhưng nông hơn"). Test đỏ trước (mục 15, 3 ca), sửa
+`pre-commit-gate.sh`, xanh toàn bộ `test-hooks-gate.sh`; TRAPS 45. Đính chính: kết luận "không có gì" ở bản đầu sai vì chưa
+đo khuôn này — chính người dùng nghi ngờ đã dẫn tới lượt đọc thứ hai.
