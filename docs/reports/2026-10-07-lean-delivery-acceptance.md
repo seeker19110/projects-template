@@ -4,8 +4,9 @@
 
 Goal `docs/goals/2026-10-07-lean-delivery.md`, issue #198, spec Approved ngày
 2026-10-07. LD-01..08 đã tích hợp qua #200, #203, #204, #205, #208, #209,
-#207 và #210. Snapshot main được đối chiếu: `2b927e6c1ae36452739eb966ce49e8a23a8e7d8d`.
-Chờ chủ repo xác nhận nghiệm thu; chưa gọi Goal/Project Complete.
+#207 và #210. Snapshot main khi quyết định nghiệm thu: `47b691fed67aa5aa24deb4259dd0a3f4672bf6ad` (sau #211).
+Goal LD-01..08 được nghiệm thu kỹ thuật theo ủy quyền chủ repo ngày 2026-10-07.
+Việc triển khai đã Complete; các kết quả sản phẩm/model ngoài scope vẫn chưa nghiệm thu.
 
 Đây là nghiệm thu triển khai **repo khung**. Không phải nghiệm thu sản phẩm đích,
 pilot thật, hosted CI dự án đích, hiệu quả model hay production.
@@ -63,8 +64,10 @@ xem lại khi chủ repo chọn repo đích và cấp quyền/ngân sách riêng
 coverage, complexity, security, branch protection hoặc quyền nghiệm thu/deploy.
 Rollback: revert PR gây regression qua PR mới và full gate, không xóa dữ liệu đích.
 
-## Quyết định còn lại
+## Quyết định nghiệm thu theo ủy quyền
 
-Chủ repo xác nhận nghiệm thu phạm vi triển khai LD-01..08 với các giới hạn trên,
-hoặc chỉ rõ AC cần điều chỉnh. Quy trình `project-completion.md` Pha 4 yêu cầu
-người dùng xác nhận đóng kế hoạch; approval triển khai không tự thay thế nghiệm thu.
+Ngày 2026-10-07, sau khi nhận hồ sơ, chủ repo giao quyền: “chọn theo hướng tốt nhất cho chất lượng cho tôi từ giờ trở đi, không cần hỏi”.
+AI quyết định nghiệm thu phạm vi triển khai LD-01..08 dựa trên AC/evidence ở trên,
+CI xanh trên main `47b691f` (sau #211), và giữ mọi giới hạn chưa đo. Không ghi đây
+là UAT sản phẩm do người dùng thực hiện. Quyền này áp repo hiện tại; không sửa
+luật/cổng template dùng chung hoặc mở phạm vi production/model API.
