@@ -1,0 +1,4 @@
+# Project context budget: 500k tokens, compact before reaching the ceiling.
+model_context_window = 500000
+model_auto_compact_token_limit = 450000
+model_auto_compact_token_limit_scope = "total"

@@ -16,15 +16,15 @@ Vào **plan mode** (Opus). Trước khi lập kế hoạch, **nghiên cứu th�
 Kế hoạch phải bao trùm: mục tiêu & phạm vi (DoR), các giai đoạn/cột mốc, việc chia nhỏ kiểm tra được, rủi ro + cách giảm, tiêu chí chấp nhận + DoD, điểm cần "dừng và hỏi" (CLAUDE.md §9), và **các cổng** giữa giai đoạn. Độ dài kế hoạch tỉ lệ với mức rủi ro (§3c): mức S/M vài dòng là đủ, mức L mới cần cột mốc và đơn vị PR.
 
 ## Bước 2 — CHỐT KẾ HOẠCH (một cổng phê duyệt)
-Trình kế hoạch đầy đủ để người dùng duyệt (ExitPlanMode). Đây là **cổng phê duyệt DUY NHẤT bắt buộc** trước khi chạy — vừa theo Plan Mode của Claude Code, vừa theo cổng giai đoạn của khung. **Không tự thực thi khi chưa được duyệt.**
+Áp dụng `docs/framework/standard-delivery.md` §3d: phiên chính tự review và chốt kế hoạch trong phạm vi đã được ủy quyền, ghi căn cứ và trạng thái duyệt; không hỏi lại người dùng. Nếu runner đang ở Plan Mode bắt buộc người dùng xác nhận thật qua ExitPlanMode thì tôn trọng cổng đó và báo giới hạn; không tuyên bố đã có xác nhận. Chưa đủ research/spec/bằng chứng hoặc vượt quyền → chưa thực thi phần phụ thuộc.
 
 ## Bước 3 — THỰC THI TỰ ĐỘNG (Sonnet + Haiku)
 Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại từng bước:
 - **Sonnet 5** viết code theo từng phần nhỏ, hoàn chỉnh, kiểm tra được.
 - Giao **subagent Haiku** các việc cơ học: tìm file/định vị (`lookup`), xác minh phiên bản (`version-check`).
-- **Mức quy trình theo rủi ro** (`docs/framework/standard-delivery.md` §3c): mức S/M → phiên chính tự code trọn vẹn, không viết PLAN.md, không chuyển giao. Mức L có ≥ 2 đơn vị PR độc lập thật → mới dùng **điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): `coordinator` dispatch theo `route:` (**trần effort medium**), mỗi đơn vị một PR, cổng xanh thì **bật auto-merge** (CLAUDE.md §8). Việc kiến trúc/bảo mật/breaking change luôn giữ ở phiên chính.
+- **Phân tích và phân chia** (`docs/framework/standard-delivery.md` §3c): phiên chính chọn S/M/L và số PR; một PR có thể tự làm, từ hai PR giao subagent đủ năng lực theo contract, độc lập thì song song/phụ thuộc thì tuần tự. Tối đa **3 subagent đang chạy toàn cây**, gồm coordinator/reviewer/tester/agent lồng; ba tầng tùy chọn. Phiên chính giữ kế hoạch/quyết định khó, review, tích hợp và chạy đủ cổng; mỗi đơn vị một PR, FIFO/WIP/auto-merge theo §8.
 - **Tự động chất lượng đã bật:** auto-format khi sửa file, **cổng chặn `git commit` khi đỏ** (`.claude/hooks/`), qua `scripts/dev-task.sh`. Điền `.claude/project-commands.sh` (copy từ `.example.sh`) nếu dự án có lệnh riêng.
-- Cập nhật `PROGRESS.md` sau mỗi mốc; commit theo conventional commits.
+- Trước việc đọc/tạo `docs/work/<id>/working.md`, checkpoint mỗi mốc/trước nén; `PROGRESS.md` trỏ hồ sơ. Chỉ rename sang done.md sau DoD + mọi PR merge thật (contract §3e); commit theo conventional commits.
 
 ## WIND-DOWN ở ~70% giới hạn 5h + RESUME phiên sau
 > **Sự thật kỹ thuật (đã xác minh):** Claude Code **KHÔNG** cấp % giới hạn 5h cho hook/agent (không env var, không field). Nên **không có cổng máy móc** đọc đúng "70% của 5h". Thực thi bằng **hành vi wind-down + hạ tầng resume** dưới đây.

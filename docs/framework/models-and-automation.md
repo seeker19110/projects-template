@@ -205,6 +205,37 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 - **Việc tìm kiếm/đọc dài → subagent** (`lookup`, `version-check`, `standard-worker` — bản kê §6): output dài nằm trong ngữ cảnh CỦA SUBAGENT, phiên chính chỉ nhận kết luận. Lợi kép: token rẻ hơn VÀ ngữ cảnh phiên chính không phình — ngữ cảnh gọn thì chất lượng lý luận cũng tốt hơn.
 - **Đừng kéo một phiên lê thê:** phiên càng dài, mỗi lượt càng đắt (trả tiền cho cả lịch sử phía trước) và lý luận càng loãng. Hết một mảng việc → `/gate` → commit → cập nhật PROGRESS.md → **mở phiên mới** ("tiếp tục" nối lại tự động nhờ `session-resume.sh`).
 
+#### 5.2.1 Trần ngữ cảnh chung cho mọi nhà cung cấp
+
+Theo yêu cầu chủ repo ngày **2026-10-07**, mỗi phiên chính và mỗi subagent dùng tối đa
+**500.000 token ngữ cảnh đang hoạt động**. Áp dụng cùng luật cho Claude Code, Codex,
+Hermes (kể cả Gemini qua bridge), Gemini CLI, OpenCode, Cursor, Copilot và runner khác.
+Đây không phải giới hạn tổng token tiêu thụ hay độ dài lịch sử lưu trên đĩa.
+
+- Ngân sách thực tế là `min(500.000, cửa sổ model)`; không tăng giới hạn của model nhỏ hơn.
+- Bắt đầu nén/checkpoint trước `min(450.000, 90% ngân sách thực tế)`; giữ phần còn lại
+  cho phản hồi và lượt công cụ. Nén sớm hơn vẫn hợp lệ.
+- Trước khi nén hoặc chuyển phiên, lưu mục tiêu, quyết định, nhánh/SHA, thay đổi chưa commit,
+  bằng chứng kiểm thử, việc tiếp theo vào `docs/work/<id>/working.md` (contract §3e); PROGRESS trỏ hồ sơ.
+  Subagent giữ bàn giao trong artifact thuộc phạm vi ghi của mình, tránh ghi đè tiến độ chung.
+- Runner không tự nén phải checkpoint và chuyển phiên theo cùng luật. Không có số đo token
+  thì ghi rõ chưa xác minh; không dùng số ký tự/byte như số token chính xác. Cấu hình ngưỡng
+  nén không bảo đảm từng request dưới trần nếu một output lớn vượt phần dự phòng.
+
+| Runner | Cấu hình / cách áp dụng | Bằng chứng và giới hạn |
+| --- | --- | --- |
+| Claude Code | `env.CLAUDE_CODE_AUTO_COMPACT_WINDOW="500000"`, `env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE="90"` trong `.claude/settings.json` và `.claude/settings-shared-default.json` | [Tài liệu Anthropic](https://code.claude.com/docs/en/env-vars): cửa sổ nén bị chặn bởi cửa sổ model; phần trăm áp cho phiên chính và subagent có hỗ trợ. Runner phải bật tự nén; bản cũ/ghi đè settings cần kiểm tra lại. Status line vẫn tính theo cửa sổ model đầy đủ. |
+| Codex | `.codex/config.toml`: `model_context_window=500000`, `model_auto_compact_token_limit=450000`, scope `total` | [Tài liệu OpenAI](https://learn.chatgpt.com/docs/config-file/config-reference); cấu hình riêng repo chỉ được nạp khi repo được tin cậy. Không mở rộng khả năng model; cờ CLI hoặc cấu hình gần thư mục chạy hơn có thể ghi đè. |
+| Hermes / Gemini qua Hermes | Trong profile Hermes dùng cho dự án: `compression.enabled: true`, `compression.threshold_tokens: 450000` | [Tài liệu Hermes](https://hermes-agent.nousresearch.com/docs/developer-guide/context-compression-and-caching): token cap chặn ngưỡng tỉ lệ. Repo chưa cài/kiểm chứng profile Hermes; không giả định `.hermes/config.yaml` trong repo tự được nạp. Đọc `AGENTS.md` và thực hiện checkpoint khi chưa có cấu hình runtime. |
+| Gemini CLI | `GEMINI.md` hiện có dẫn tới luật chung; nếu cấu hình tự nén, đặt `model.compressionThreshold` theo cửa sổ model đã xác minh | [Tài liệu Gemini CLI](https://geminicli.com/docs/reference/configuration/): ngưỡng là tỉ lệ, không phải token cap tuyệt đối. Chọn tỉ lệ ≤ `min(450000, 0.9 × min(500000, W)) / W`, với `W` là cửa sổ model; kiểm lại khi đổi model. Repo chưa đặt tỉ lệ cố định cho mọi model. |
+| OpenCode | Đọc `AGENTS.md`; chỉ đặt `provider.<id>.models.<id>.limit.context` ≤ 500000 sau khi xác minh model/provider thực tế và bật tự nén | [Tài liệu OpenCode](https://docs.opencode.ai/docs/config/): cấu hình model phụ thuộc provider; không có cấu hình token cap chung đã xác minh trong repo. Tuân thủ checkpoint/chuyển phiên cho tới khi kiểm chứng runtime. |
+| Cursor / Copilot / runner khác | Cầu nối luật hiện có → `AGENTS.md` → `CLAUDE.md`; lưu bàn giao rồi nén hoặc chuyển phiên trước ngưỡng | Luật chung có hiệu lực cho agent đọc chỉ dẫn; chưa có bằng chứng cưỡng chế tự động ở các runner này. Không suy ra đã cấu hình runtime từ việc thêm một dòng luật. |
+
+Các phiên đang mở cần nạp lại luật/cấu hình; khởi động lại runner khi không xác minh được
+hot reload. Khi copy khung, settings Claude đã tồn tại được giữ nguyên: so/merge bản
+`settings.json.framework-new` để nhận ngưỡng mới. Cấu hình Codex hiện áp tại repo này;
+runner ở dự án đích phải được cấu hình và kiểm chứng riêng.
+
 ### 5.3 Một phiên chuẩn trông thế nào (checklist)
 1. **Mở phiên:** hook tự nạp PROGRESS.md; `session-guide.sh` hiện model phiên hiện tại (chỉ để tham khảo, không còn so khớp đúng/sai với một alias cố định).
 2. **Việc lớn/mơ hồ** → `/model` sang model cao cấp nhất sẵn có rồi vào plan mode một lần; **việc rõ phạm vi** → làm thẳng (Sonnet).

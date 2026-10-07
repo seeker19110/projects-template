@@ -43,6 +43,16 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Điều phối và hồ sơ nối phiên (2026-10-07)
+
+- Phiên chính phân tích số PR: một PR có thể tự làm; từ hai PR giao subagent đủ năng lực,
+  tối đa ba subagent chạy trong toàn cây, kể cả coordinator/reviewer/tester.
+- Mỗi việc có `docs/work/<id>/working.md`; checkpoint trước bàn giao/nén, chỉ rename thành
+  `done.md` sau nghiệm thu và merge thật. SessionStart liệt kê active trước PROGRESS,
+  giữ trần byte và không nạp nội dung/lịch sử done; regression đỏ 4 ca → xanh.
+- Đồng bộ ủy quyền toàn cục chọn phương án tối giản đạt chất lượng cao nhất; cấu hình
+  ngữ cảnh Claude/Codex 500k, ngưỡng nén 450k; runner khác áp contract checkpoint.
+
 ### Lean delivery (2026-10-07, issue #198)
 
 - CI Linux giữ đủ 17 shell suite nhưng bỏ lượt chạy lặp qua full local gate; local gate vẫn chạy đủ.

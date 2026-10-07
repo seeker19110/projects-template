@@ -3,6 +3,7 @@
 # Nạp trạng thái phiên trước vào ngữ cảnh để người dùng chỉ cần nhắn "tiếp tục":
 # CHỈ 4 mục cần cho việc nối tiếp của PROGRESS.md (Giai đoạn hiện tại · Đang làm / chờ · Tiếp theo ·
 # Bàn giao phiên) + tóm tắt git (branch, chưa commit, commit gần nhất). Chỉ ĐỌC, không đổi gì.
+# Hồ sơ active docs/work/*/working.md được liệt kê TRƯỚC PROGRESS để không bị che bởi lịch sử dài.
 #
 # VÌ SAO KHÔNG `cat` cả file (audit 2026-09-23, C5): bản cũ nạp NGUYÊN PROGRESS.md — repo khung lúc đó
 # 58 KB (~15k token, 57% ngữ cảnh khởi đầu) vì file tích 21 khối "Giai đoạn trước đó" trái luật
@@ -31,6 +32,16 @@ progress_excerpt() {
 }
 
 ctx="$(
+  work_list_started=0
+  for work_file in "$ROOT"/docs/work/*/working.md; do
+    [ -f "$work_file" ] || continue
+    if [ "$work_list_started" -eq 0 ]; then
+      echo "===== Hồ sơ công việc đang mở ====="
+      echo "Đọc đầy đủ từng working.md trước khi làm; đối chiếu Git/PR/CI. Lịch sử liên quan: docs/work/*/done.md."
+      work_list_started=1
+    fi
+    printf -- '- %s\n' "${work_file#"$ROOT"/}"
+  done
   if [ -f "$ROOT/PROGRESS.md" ]; then
     echo "===== PROGRESS.md (4 mục để 'tiếp tục' — bản đầy đủ: đọc file; lịch sử: docs/changelog/) ====="
     progress_excerpt "$ROOT/PROGRESS.md"
@@ -48,7 +59,7 @@ ctx="$(
 
 if [ "$(printf '%s' "$ctx" | wc -c)" -gt "$MAX" ]; then
   ctx="$(printf '%s' "$ctx" | head -c "$MAX")
-… (ĐÃ CẮT ở ${MAX} byte — PROGRESS.md quá dài so với luật 'một khối hiện tại'; đọc file trực tiếp nếu cần, và chuyển lịch sử sang docs/changelog/)"
+… (ĐÃ CẮT ở ${MAX} byte — đọc trực tiếp PROGRESS.md và liệt kê docs/work/*/working.md để không bỏ sót việc; lịch sử PROGRESS chuyển sang docs/changelog/)"
 fi
 
 jq -n --arg c "$ctx" '{
