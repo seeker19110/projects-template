@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: Lean delivery đã nghiệm thu theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01..08 đã merge và đạt nghiệm thu kỹ thuật, hồ sơ #211 và đóng goal ở #212. Đang hoàn thiện luật chung và hồ sơ nối phiên theo yêu cầu mới.
+- Giai đoạn: Lean delivery đã nghiệm thu theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01..08 đã merge và đạt nghiệm thu kỹ thuật, hồ sơ #211 và đóng goal ở #212. Luật chung và hồ sơ nối phiên đã merge ở #213; đang tích hợp bản sửa lỗi ghi evidence của gate.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `661f7f6` (`origin/main`, sau PR #212).
+- Default-branch SHA đã đối chiếu: `661f7f6` (`origin/main`, sau PR #212; checkpoint trước commit tích hợp #213).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -18,8 +18,13 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Hồ sơ đang mở:** `docs/work/2026-10-07-pr-dispatch-work-memory/working.md` — thêm luật
-phân chia theo số PR/trần ba subagent và hồ sơ working → done; chưa có PR merge cho việc này.
+**Hồ sơ đang mở:** `docs/work/2026-10-08-gate-evidence-write/working.md` — tích hợp bản sửa gate
+bỏ qua thất bại ghi `--evidence`; ba kịch bản regression kiểm exit 2/BLOCKED,
+không báo PASS và không để lại file tạm. Trạng thái PR/CI giữ trong hồ sơ và trên GitHub.
+
+Luật phân chia PR và hồ sơ working → done đã merge ở #213. Hồ sơ
+`docs/work/2026-10-07-pr-dispatch-work-memory/working.md` đang được phiên chủ trì
+việc đó reconcile sau merge; phiên này giữ nguyên phần bàn giao riêng.
 
 **Ngữ cảnh chung (2026-10-07):** chủ repo yêu cầu trần 500.000 token cho mọi phiên,
 mọi nhà cung cấp và subagent; checkpoint/nén trước 450.000 hoặc thấp hơn theo cửa sổ model.

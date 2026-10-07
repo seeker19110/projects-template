@@ -1008,3 +1008,18 @@ rồi `git push --force-with-lease=<nhánh>:<sha-cũ>` lên nhánh PR (không ba
 *Khuôn:* commit không do mình gõ tiêu đề (autofix, suggestion, merge, revert của nền tảng) vẫn phải theo
 `<type>(<scope>): …`. Phòng trước: merge base bằng `git merge -m "chore(merge): đồng bộ main (…)"`;
 autofix/suggestion thì sửa tiêu đề ngay ở hộp commit. Cổng chốt chặn: job `metadata`.
+
+## 49. Gate báo PASS dù không lưu được evidence đã yêu cầu
+
+*Ngày:* 2026-10-07, rà sau LD-08. Các kiểm tra xanh nhưng thư mục evidence bị xóa
+trong lúc chạy: `evidence_finish` chỉ ghi log lỗi rồi trả 0, gate vẫn báo PASS.
+Đích trở thành thư mục còn làm `mv` chuyển file JSON tạm vào thư mục đó và trả 0.
+Test đỏ trước sửa: hai ca gate exit 0; ca thư mục còn để lại file tạm.
+
+*Cách sửa:* truyền lỗi tạo/ghi evidence thành BLOCKED (exit 2); từ chối đích là
+thư mục trước `mv -f`, dọn file tạm khi thất bại. Giữ lệnh tương thích BSD/GNU;
+không thêm cờ `mv -T` chỉ có trên GNU. Không thay kết quả kiểm tra bằng lời tự khai.
+
+*Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 7b: thư mục cha mất, đích thành
+thư mục và kiểm tra thất bại kèm lỗi ghi evidence đều phải exit 2, không báo PASS
+và không để lại file tạm; đường ghi PASS/FAIL/BLOCKED thành công vẫn có regression.
