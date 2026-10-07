@@ -5,7 +5,7 @@
 > `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới
 > là lịch sử, không dùng các ô chưa tick của lượt cũ để suy ra trạng thái hiện tại.
 
-## Chu kỳ 2026-10-06 — đã duyệt 2026-10-07; Pha 3 xong, W-07 đã quyết định (giữ nhánh); chờ xác nhận đóng chu kỳ
+## Chu kỳ 2026-10-06 — ĐÃ ĐÓNG 2026-10-07 (nghiệm thu: `docs/reports/2026-10-06-framework-audit.md`)
 
 Chu kỳ 2026-10-05 đã đóng theo xác nhận của người dùng ngày 2026-10-06 (lựa chọn "đóng chu kỳ cũ, mở chu kỳ mới").
 Base: `origin/main` `e2b70bf`; nhánh làm việc `claude/beautiful-albattani-f55ar3` (commit `de01523`, chưa có PR).

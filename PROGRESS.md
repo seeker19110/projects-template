@@ -5,7 +5,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8, Reconcile — chu kỳ hoàn thiện 2026-10-05 đã đóng; chu kỳ 2026-10-06 đã duyệt, Pha 3 xong (F-N01..04, N07 đóng; F-N05 chủ repo chọn giữ nhánh), đã merge qua #199. Các PR sửa khung đến #201 đã merge.
+- Giai đoạn: GĐ 8, Reconcile — chu kỳ hoàn thiện 2026-10-05 đã đóng; chu kỳ 2026-10-06 đã ĐÓNG 2026-10-07 (F-N01..04, N07 đóng; F-N05 chủ repo chọn giữ nhánh; đã merge qua #199). Các PR sửa khung đến #201 đã merge.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
 - Default-branch SHA đã đối chiếu: `3310d2ac2aca3ffa07bbf64c05f330614b6870ab` (`origin/main`, sau PR #201).
 - Ngày cập nhật: 2026-10-07

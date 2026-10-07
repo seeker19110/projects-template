@@ -25,3 +25,16 @@ ShellCheck `-S warning` sạch · `maintenance-sweep --strict` 🔴 0 · 🟡 0 
 
 Giới hạn trung thực: không chạy CI hosted Windows/macOS ở phiên này; chưa mở PR nên CI hosted chưa chạy trên các commit mới;
 Go/Make và stack runtime khác vẫn chưa có ca runtime độc lập; đây không phải chứng nhận không có lỗi trên mọi dự án dẫn xuất.
+
+## Nghiệm thu Definition of Complete (2026-10-07)
+
+Người dùng xác nhận đóng chu kỳ 2026-10-07 ("làm theo đề xuất của bạn"). Base `origin/main` `3310d2a`.
+
+| DoC | Kết quả | Bằng chứng |
+| --- | --- | --- |
+| 1. F-N01 đóng bằng cổng tự động | ĐẠT | `check-docs-consistency.sh` mục 11 + negative test; chạy lại xanh 2026-10-07 |
+| 2. F-N02/N03/N04 đóng | ĐẠT | radar 100/100 (`maintenance-sweep --strict`: 🔴 0, 🟡 0) |
+| 3. F-N05 có quyết định; N06/N07 quyết định + điều kiện xem lại; N08/N09 ghi nhận | ĐẠT | bảng kết cục ở trên; F-N05 chủ repo chọn giữ lại 3 nhánh |
+| 4. Re-audit nhóm 4/8/9/12: 0 Cao/Trung; gate + CI main xanh | ĐẠT | `dev-task.sh gate` PASS 4 kiểm tra trên `3310d2a`; py-coverage 96%; CI hosted run 37563213324 trên `main@3310d2a`: toàn bộ job (framework-lint, framework-lint-windows, protection-guard, docs-consistency, progress-freshness, copy-framework-smoke, `gate` tổng) success |
+
+Giới hạn: CodeQL của `main@3310d2a` chưa được kiểm lúc nghiệm thu; chưa có CI macOS; Go/Make và stack runtime khác chưa có ca runtime độc lập. Phát sinh sau đây là chu kỳ mới (PR #200 lean-delivery nằm ngoài kế hoạch này).
