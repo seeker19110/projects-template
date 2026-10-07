@@ -101,7 +101,7 @@ thật: AC đó chưa được gọi là đạt.
 | AC-4 | `scripts/test-dev-task.sh::review_tests` | LD-04; `dev-task.sh review-check`: finding không căn cứ bị loại, thiếu evidence/input không sinh REPAIR-CODE |
 | AC-5 | chưa có — LD-05 | |
 | AC-6 | chưa có — LD-06 | |
-| AC-7 | chưa có — LD-07 | |
+| AC-7 | `tests/test_telemetry_integrity.py::test_missing_usage_is_unknown_not_zero`, `tests/test_telemetry_integrity.py::test_failed_attempts_count_in_cost_of_accepted_work`, `tests/test_telemetry_integrity.py::test_accepted_requires_pass_gate_evidence`, `scripts/test-hooks-session.sh` mục 4b | LD-07; đỏ trước, xanh sau |
 | AC-8 | chưa có — LD-08 | |
 
 Issue #198 giữ các link PR/CI và phần chưa kiểm; không nhân bản kết quả CI trong spec.

@@ -118,5 +118,124 @@ with open(sys.argv[1], "a+b") as lock:
             process.communicate(timeout=5)
 
 
+class AttemptOutcomeTests(TestCase):
+    """LD-07 / AC-7: usage thiếu là unknown (không phải 0); lần thử khác công việc được nghiệm thu."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.directory = Path(self.temp.name)
+        self.log = self.directory / "telemetry.json"
+        self.engine = load_engine()
+        self.engine.LOG_DIR = str(self.directory)
+        self.engine.LOG_FILE = str(self.log)
+
+    def cli(self, *args):
+        code = (
+            "import importlib.util,sys;"
+            "s=importlib.util.spec_from_file_location('t',sys.argv[1]);"
+            "m=importlib.util.module_from_spec(s);s.loader.exec_module(m);"
+            "m.LOG_DIR=sys.argv[2];m.LOG_FILE=sys.argv[3];sys.argv=['telemetry-log.py']+sys.argv[4:];m.main()"
+        )
+        return subprocess.run(
+            [sys.executable, "-c", code, str(ENGINE), str(self.directory), str(self.log), *args],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+
+    def evidence(self, status="PASS", schema="gate-evidence/1"):
+        path = self.directory / f"ev-{status}-{schema.replace('/', '_')}.json"
+        path.write_text(json.dumps({"schema": schema, "status": status, "head": "abc",
+                                    "config_sha": "def", "worktree": "123"}), encoding="utf-8")
+        return str(path)
+
+    def entries(self):
+        return json.loads(self.log.read_text(encoding="utf-8")) if self.log.exists() else []
+
+    def test_missing_usage_is_unknown_not_zero(self):
+        result = self.cli("--record", "--model", "claude-sonnet-5", "--task", "t")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entry = self.entries()[-1]
+        self.assertIsNone(entry["input_tokens"])
+        self.assertIsNone(entry["output_tokens"])
+        self.assertIsNone(entry["est_cost_usd"])
+        self.assertEqual(entry["usage_status"], "unknown")
+        self.assertEqual(entry["schema"], "telemetry-record/2")
+        self.assertIn("unknown", result.stderr)
+
+    def test_explicit_zero_is_measured(self):
+        entry = self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t", 1, 0, "PASSED", 0, 0)
+        self.assertEqual(entry["usage_status"], "measured")
+        self.assertEqual(entry["est_cost_usd"], 0)
+
+    def test_partial_usage_has_no_cost(self):
+        entry = self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t", 1, 0, "PASSED", 10, None)
+        self.assertEqual(entry["usage_status"], "partial")
+        self.assertIsNone(entry["est_cost_usd"])
+
+    def test_summary_reports_unknown_as_lower_bound(self):
+        self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t1", 1, 0, "PASSED", 1_000_000, 0)
+        self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t2", 1, 0, "PASSED", None, None)
+        summary = self.engine.generate_markdown_summary(self.engine.load_logs())
+        self.assertIn("usage unknown: 1", summary)
+        self.assertIn("≥ $2.0000", summary)
+        self.assertNotIn("$0.0000", summary.split("### ")[1] if "### " in summary else "")
+
+    def test_failed_attempts_count_in_cost_of_accepted_work(self):
+        self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "fix", 1, 0, "FAILED",
+                                 1_000_000, 0, work_id="W1")
+        self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "fix", 1, 0, "PASSED",
+                                 500_000, 0, work_id="W1", outcome="accepted", evidence_path=self.evidence())
+        stats = self.engine.aggregate(self.engine.load_logs())
+        self.assertEqual(stats["attempts"], 2)
+        self.assertEqual(stats["works"], 1)
+        self.assertEqual(stats["accepted"], 1)
+        self.assertAlmostEqual(stats["cost_per_accepted"], 3.0)
+        self.assertFalse(stats["cost_per_accepted_partial"])
+        summary = self.engine.generate_markdown_summary(self.engine.load_logs())
+        self.assertIn("Lần thử (attempts):** `2`", summary)
+        self.assertIn("được nghiệm thu (có evidence): `1`", summary)
+
+    def test_accepted_requires_pass_gate_evidence(self):
+        cases = [(), ("--evidence", self.evidence("FAIL")),
+                 ("--evidence", self.evidence(schema="other/1")),
+                 ("--evidence", str(self.directory / "khong-co.json"))]
+        for extra in cases:
+            result = self.cli("--record", "--outcome", "accepted", "--input-tokens", "1", "--output-tokens", "1", *extra)
+            self.assertEqual(result.returncode, 2, (extra, result.stdout, result.stderr))
+        self.assertEqual(self.entries(), [])
+        ok = self.cli("--record", "--outcome", "accepted", "--work-id", "W9", "--evidence", self.evidence())
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        entry = self.entries()[-1]
+        self.assertEqual(entry["outcome"], "accepted")
+        self.assertEqual(entry["evidence"]["status"], "PASS")
+        self.assertEqual(entry["evidence"]["head"], "abc")
+
+    def test_self_reported_pass_is_not_acceptance(self):
+        self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t", 1, 0, "PASSED", 1, 1)
+        stats = self.engine.aggregate(self.engine.load_logs())
+        self.assertEqual((stats["attempts"], stats["accepted"]), (1, 0))
+        self.assertIsNone(stats["cost_per_accepted"])
+
+    def test_v1_records_are_read_without_crash(self):
+        legacy = [{"task": "old"},
+                  {"id": "tel-1", "harness": "claude", "agent": "a", "task": "v1", "duration_sec": 1,
+                   "diff_loc": 0, "test_status": "N/A", "input_tokens": 0, "output_tokens": 0, "est_cost_usd": 0.0}]
+        self.log.write_text(json.dumps(legacy), encoding="utf-8")
+        logs = self.engine.load_logs()
+        stats = self.engine.aggregate(logs)
+        self.assertEqual((stats["attempts"], stats["unknown"], stats["v1"]), (2, 2, 2))
+        self.assertIn("v1", self.engine.generate_markdown_summary(logs))
+        self.engine.generate_html_widget(logs)
+        self.assertEqual(json.loads(self.log.read_text(encoding="utf-8")), legacy)
+
+    def test_record_keeps_only_declared_fields(self):
+        entry = self.engine.record_entry("claude", "anthropic", "claude-sonnet-5", "a", "t", 1, 0, "PASSED", 1, 1)
+        self.assertEqual(set(entry), {
+            "schema", "id", "timestamp", "harness", "provider", "model", "agent", "task", "work_id",
+            "outcome", "duration_sec", "diff_loc", "test_status", "input_tokens", "output_tokens",
+            "usage_status", "est_cost_usd", "evidence",
+        })
+
+
 if __name__ == "__main__":
     main()

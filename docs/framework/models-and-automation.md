@@ -297,7 +297,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
-| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy |
+| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy. Transcript không có `usage` → token `null` (unknown), không ghi 0. Mỗi bản ghi là một **lần thử**; công việc chỉ tính là **được nghiệm thu** khi có bản ghi `--outcome accepted --evidence <gate-evidence PASS>` (gom bằng `--work-id`). `--summary` báo chi phí gồm cả lần thất bại, usage unknown đếm riêng và tổng thành cận dưới `≥` (LD-07) |
 
 **Script — `scripts/`**
 

@@ -137,22 +137,22 @@ py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-r
 [ "$(py_rate fable-5-1)" = "10.0 50.0" ] && ok "fable-5-1 = 10/50" || bad "fable-5-1 phải là 10/50 (đang: $(py_rate fable-5-1))"
 [ "$(py_rate sonnet)" = "2.0 10.0" ] && ok "sonnet = 2/10" || bad "sonnet phải là 2/10 (đang: $(py_rate sonnet))"
 
-# --- Không có token thật → chi phí 0 + cảnh báo, KHÔNG bịa 1000/500 (C4, CLAUDE.md §4) ---
+# --- Không có token thật → unknown (null) + cảnh báo, KHÔNG bịa 1000/500 (C4) và KHÔNG ghi 0 (LD-07/AC-7) ---
 echo "== 4. Không bịa token khi không được cấp =="
 err0="$(bash "$ROOT/scripts/telemetry-log.sh" --record --model claude-sonnet-5 --agent zero-check --task "zero" 2>&1 >/dev/null)"
 last_cost="$(python3 -c "import json; l=json.load(open('$ROOT/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['est_cost_usd'], l[-1]['input_tokens'], l[-1]['output_tokens'])")"
-if [ "$last_cost" = "0.0 0 0" ] || [ "$last_cost" = "0 0 0" ]; then
-  ok "record không token → input=0, output=0, est_cost=0"
+if [ "$last_cost" = "None None None" ]; then
+  ok "record không token → input/output/est_cost = null (unknown), không phải 0"
 else
   bad "record không token vẫn ghi số bịa: $last_cost"
 fi
-echo "$err0" | grep -q "không có số token" && ok "có cảnh báo stderr khi thiếu token" || bad "thiếu cảnh báo stderr khi không có token"
+echo "$err0" | grep -q "unknown" && ok "có cảnh báo stderr khi thiếu token" || bad "thiếu cảnh báo stderr khi không có token"
 
 echo "== 5. Nhật ký telemetry giữ dữ liệu khi lỗi và khi ghi song song =="
 integrity_out="$(cd "$ROOT" && python3 -m unittest discover -s tests -p test_telemetry_integrity.py 2>&1)"
 integrity_rc=$?
-if [ "$integrity_rc" -eq 0 ] && printf '%s\n' "$integrity_out" | grep -q '^Ran 6 tests'; then
-  ok "6 ca toàn vẹn telemetry: JSON lỗi, schema, ghi lỗi, ghi đồng thời và chờ khoá"
+if [ "$integrity_rc" -eq 0 ] && printf '%s\n' "$integrity_out" | grep -q '^Ran 15 tests'; then
+  ok "15 ca toàn vẹn telemetry: JSON lỗi, schema, ghi lỗi, ghi đồng thời, chờ khoá, usage unknown, lần thử/nghiệm thu"
 else
   bad "telemetry integrity thất bại (rc=$integrity_rc)"
   printf '%s\n' "$integrity_out" >&2

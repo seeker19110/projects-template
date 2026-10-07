@@ -50,7 +50,7 @@ try:
 except OSError:
     pass
 
-model, inp, out, first, last = "", 0, 0, None, None
+model, inp, out, first, last, seen = "", 0, 0, None, None, False
 with open(path, encoding="utf-8", errors="replace") as f:
     for line in f:
         try:
@@ -67,6 +67,7 @@ with open(path, encoding="utf-8", errors="replace") as f:
             continue
         u = msg.get("usage")
         if isinstance(u, dict):
+            seen = True
             # cache_creation/cache_read tính vào input: giá cache khác giá input thường, nhưng
             # gộp vào input là ước lượng TRÊN (không âm thầm thấp hơn thật).
             inp += (u.get("input_tokens", 0) or 0) + (u.get("cache_creation_input_tokens", 0) or 0) \
@@ -78,17 +79,19 @@ if last is None:
     sys.exit(0)
 start = since or first
 seconds = max(0.0, (last - start).total_seconds())
-print(model or "unknown", inp, out, f"{seconds:.4f}", last.isoformat())
+# Không có message.usage nào → token KHÔNG BIẾT ("-"), không ghi 0 (LD-07/AC-7).
+print(model or "unknown", inp if seen else "-", out if seen else "-", f"{seconds:.4f}", last.isoformat())
 PY
 )"
 [ -n "$stats" ] || exit 0
 read -r model in_tok out_tok seconds last_ts <<<"$stats"
 
+tokens=()
+[ "$in_tok" = - ] || tokens=(--input-tokens "$in_tok" --output-tokens "$out_tok")
 bash "$ROOT/scripts/telemetry-log.sh" --record \
   --harness claude-code --provider anthropic --model "$model" \
   --agent "$agent" --task "Stop hook tu dong" \
-  --duration "$seconds" --test-status N/A \
-  --input-tokens "$in_tok" --output-tokens "$out_tok" >/dev/null 2>&1 || exit 0
+  --duration "$seconds" --test-status N/A "${tokens[@]}" >/dev/null 2>&1 || exit 0
 
 printf '%s\n' "$last_ts" > "$STATE" 2>/dev/null || true
 exit 0
