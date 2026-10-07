@@ -11,6 +11,7 @@ import json
 import time
 import html
 import errno
+import hashlib
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -123,26 +124,60 @@ def save_logs(logs):
         if temporary and os.path.exists(temporary):
             os.unlink(temporary)
 
-def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, test_status, input_tokens=0, output_tokens=0):
+RECORD_SCHEMA = "telemetry-record/2"
+OUTCOMES = ("attempt", "accepted", "rejected", "abandoned")
+
+
+def usage_fields(model, input_tokens, output_tokens):
+    """Token thiếu là KHÔNG BIẾT (None), không phải 0 (AC-7). 0 tường minh vẫn là số đo thật.
+    Bảng giá luôn được nạp: hỏng/thiếu 'default' vẫn dừng hẳn, kể cả khi usage unknown."""
     rates, _ = load_rates()
+    known = [t for t in (input_tokens, output_tokens) if t is not None]
+    if len(known) < 2:
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens,
+                "usage_status": "partial" if known else "unknown", "est_cost_usd": None}
     rate = resolve_rate(model, rates)
-    est_cost = ((input_tokens / 1_000_000) * rate["input"]) + ((output_tokens / 1_000_000) * rate["output"])
-    
+    cost = (input_tokens / 1_000_000) * rate["input"] + (output_tokens / 1_000_000) * rate["output"]
+    return {"input_tokens": input_tokens, "output_tokens": output_tokens,
+            "usage_status": "measured", "est_cost_usd": round(cost, 4)}
+
+
+def load_evidence(path):
+    """Nghiệm thu cần evidence PASS của `dev-task.sh gate` (gate-evidence/1). Chỉ kiểm schema/status;
+    evidence cũ so với cây hiện tại do `dev-task.sh evidence-check` bắt, không lặp ở đây."""
+    if not path:
+        raise ValueError("--outcome accepted cần --evidence <file gate-evidence/1>")
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict) or data.get("schema") != "gate-evidence/1" or data.get("status") != "PASS":
+        raise ValueError(f"evidence không phải gate-evidence/1 PASS: {path}")
+    digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
+    return {"schema": data["schema"], "status": data["status"], "head": data.get("head"),
+            "config_sha": data.get("config_sha"), "sha256": digest}
+
+
+def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, test_status,
+                 input_tokens=None, output_tokens=None, work_id=None, outcome="attempt", evidence_path=None):
+    if outcome not in OUTCOMES:
+        raise ValueError(f"outcome không hợp lệ: {outcome}")
+    evidence = load_evidence(evidence_path) if outcome == "accepted" else None
     entry = {
+        "schema": RECORD_SCHEMA,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "harness": harness,
         "provider": provider,
         "model": model,
         "agent": agent,
         "task": task,
+        "work_id": work_id,
+        "outcome": outcome,
         "duration_sec": round(duration_sec, 2),
         "diff_loc": diff_loc,
         "test_status": test_status,
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "est_cost_usd": round(est_cost, 4)
+        **usage_fields(model, input_tokens, output_tokens),
+        "evidence": evidence,
     }
-    
+
     with log_lock():
         logs = load_logs()
         entry["id"] = f"tel-{int(time.time())}-{len(logs)+1}"
@@ -150,41 +185,93 @@ def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, 
         save_logs(logs)
     return entry
 
+
+def normalize_record(entry):
+    """Đọc mọi phiên bản bản ghi, KHÔNG ghi lại file. v1 (không có `schema`): mọi bản ghi là một lần
+    thử chưa nghiệm thu; token 0/0 của v1 là unknown vì v1 không phân biệt được "thiếu" với "0"."""
+    rec = {"id": "?", "harness": "?", "agent": "?", "task": "?", "duration_sec": 0, "diff_loc": 0,
+           "test_status": "?", "work_id": None, "outcome": "attempt", "evidence": None, **entry}
+    if entry.get("schema") != RECORD_SCHEMA:
+        tokens = (entry.get("input_tokens"), entry.get("output_tokens"))
+        measured = all(isinstance(t, int) for t in tokens) and any(tokens)
+        rec.update(schema="v1", outcome="attempt", evidence=None,
+                   usage_status="measured" if measured else "unknown",
+                   est_cost_usd=entry.get("est_cost_usd") if measured else None)
+    rec["work_key"] = rec["work_id"] or str(rec["task"])
+    return rec
+
+
+def _known_cost(recs):
+    return sum(r["est_cost_usd"] for r in recs if r["est_cost_usd"] is not None)
+
+
+def _unknown(recs):
+    return sum(1 for r in recs if r["est_cost_usd"] is None)
+
+
+def _acceptance(recs):
+    """Công việc được nghiệm thu = có bản ghi accepted kèm evidence; chi phí gồm mọi lần thử của nó."""
+    accepted = {r["work_key"] for r in recs if r["outcome"] == "accepted" and r["evidence"]}
+    in_accepted = [r for r in recs if r["work_key"] in accepted]
+    per_work = _known_cost(in_accepted) / len(accepted) if accepted else None
+    return {"accepted": len(accepted), "cost_per_accepted": per_work,
+            "cost_per_accepted_partial": _unknown(in_accepted) > 0}
+
+
+def aggregate(logs):
+    """Lần thử ≠ công việc được nghiệm thu. Chi phí của một công việc gồm MỌI lần thử của nó,
+    kể cả lần thất bại; usage unknown được đếm riêng và biến tổng thành cận dưới (≥)."""
+    recs = [normalize_record(e) for e in logs]
+    status = [str(r["test_status"]).upper() for r in recs]
+    return {
+        "records": recs,
+        "attempts": len(recs),
+        "passed": status.count("PASSED"),
+        "failed": status.count("FAILED"),
+        "works": len({r["work_key"] for r in recs}),
+        "known_cost": _known_cost(recs),
+        "unknown": _unknown(recs),
+        "v1": sum(1 for r in recs if r["schema"] == "v1"),
+        "duration": sum(r["duration_sec"] or 0 for r in recs),
+        **_acceptance(recs),
+    }
+
+
+def fmt_cost(value, partial=False):
+    if value is None:
+        return "unknown"
+    return f"{'≥ ' if partial else ''}${value:.4f}"
+
+
 def generate_markdown_summary(logs):
     if not logs:
         return "### AI Telemetry Summary\n*Chưa có dữ liệu thực thi được ghi nhận.*"
-
-    total_tasks = len(logs)
-    passed_tasks = sum(1 for l in logs if l["test_status"].upper() == "PASSED")
-    total_cost = sum(l.get("est_cost_usd", 0) for l in logs)
-    total_duration = sum(l.get("duration_sec", 0) for l in logs)
-    total_loc = sum(l.get("diff_loc", 0) for l in logs)
-
+    st = aggregate(logs)
     lines = [
         "## 📊 AI Execution & Observability Summary",
-        f"- **Tổng số tác vụ AI:** `{total_tasks}`",
-        f"- **Tỷ lệ thành công (Quality Gate):** `{passed_tasks}/{total_tasks}` ({(passed_tasks/total_tasks)*100:.1f}%)",
-        f"- **Tổng thời gian chạy:** `{total_duration:.1f}s`",
-        f"- **Tổng mã nguồn thay đổi (LOC):** `{total_loc} dòng`",
-        f"- **Ước tính Chi phí API:** `${total_cost:.4f} USD`",
+        f"- **Lần thử (attempts):** `{st['attempts']}` — PASSED tự khai `{st['passed']}`, FAILED `{st['failed']}`, khác `{st['attempts'] - st['passed'] - st['failed']}`",
+        f"- **Công việc:** `{st['works']}` — được nghiệm thu (có evidence): `{st['accepted']}`; chưa/không: `{st['works'] - st['accepted']}`",
+        f"- **Tổng thời gian chạy:** `{st['duration']:.1f}s`",
+        f"- **Chi phí đã biết:** `{fmt_cost(st['known_cost'], st['unknown'] > 0)} USD` trên `{st['attempts']}` lần thử (gồm cả lần thất bại/bị từ chối); usage unknown: {st['unknown']}",
+        f"- **Chi phí / công việc nghiệm thu:** `{fmt_cost(st['cost_per_accepted'], st['cost_per_accepted_partial'])}`",
+    ]
+    if st["v1"]:
+        lines.append(f"- *{st['v1']} bản ghi v1: usage tự khai, không kiểm được; 0/0 coi là unknown, không tính là nghiệm thu.*")
+    lines += [
         "",
         "### Nhật ký tác vụ gần nhất",
-        "| ID | Harness | Agent | Task | Thời gian | Status | LOC | Est. Cost |",
-        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |"
+        "| ID | Harness | Agent | Task | Outcome | Thời gian | Status | Est. Cost |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
     ]
-
-    for l in logs[-10:]:
-        task_cell = str(l['task'])[:30].replace("|", "\\|")
-        lines.append(f"| `{l['id']}` | `{l['harness']}` | `{l['agent']}` | {task_cell} | {l['duration_sec']}s | `{l['test_status']}` | {l['diff_loc']} | ${l['est_cost_usd']:.4f} |")
-
+    for r in st["records"][-10:]:
+        task_cell = str(r["task"])[:30].replace("|", "\\|")
+        lines.append(f"| `{r['id']}` | `{r['harness']}` | `{r['agent']}` | {task_cell} | `{r['outcome']}` | "
+                     f"{r['duration_sec']}s | `{r['test_status']}` | {fmt_cost(r['est_cost_usd'])} |")
     return "\n".join(lines)
 
 def generate_html_widget(logs):
-    total_tasks = len(logs)
-    passed_tasks = sum(1 for l in logs if l["test_status"].upper() == "PASSED")
-    total_cost = sum(l.get("est_cost_usd", 0) for l in logs)
-    total_duration = sum(l.get("duration_sec", 0) for l in logs)
-    pass_rate = round((passed_tasks/total_tasks)*100, 1) if total_tasks > 0 else 0
+    st = aggregate(logs)
+    cost_card = fmt_cost(st["known_cost"], st["unknown"] > 0) + (f" (+{st['unknown']} unknown)" if st["unknown"] else "")
 
     widget_html = f"""<!DOCTYPE html>
 <html>
@@ -239,21 +326,23 @@ def generate_html_widget(logs):
 </head>
 <body>
   <div class="grid">
-    <div class="card"><div class="title">TỔNG TÁC VỤ</div><div class="value">{total_tasks}</div></div>
-    <div class="card"><div class="title">TỶ LỆ ĐẠT (PASS)</div><div class="value">{pass_rate}%</div></div>
-    <div class="card"><div class="title">THỜI GIAN CHẠY</div><div class="value">{total_duration:.1f}s</div></div>
-    <div class="card"><div class="title">EST. COST</div><div class="value">${total_cost:.4f}</div></div>
+    <div class="card"><div class="title">LẦN THỬ</div><div class="value">{st['attempts']}</div></div>
+    <div class="card"><div class="title">NGHIỆM THU (EVIDENCE)</div><div class="value">{st['accepted']}/{st['works']}</div></div>
+    <div class="card"><div class="title">THỜI GIAN CHẠY</div><div class="value">{st['duration']:.1f}s</div></div>
+    <div class="card"><div class="title">EST. COST</div><div class="value">{html.escape(cost_card)}</div></div>
   </div>
   <table>
     <thead>
-      <tr><th>Harness</th><th>Agent</th><th>Task</th><th>Duration</th><th>Status</th><th>Est Cost</th></tr>
+      <tr><th>Harness</th><th>Agent</th><th>Task</th><th>Outcome</th><th>Duration</th><th>Status</th><th>Est Cost</th></tr>
     </thead>
     <tbody>
 """
-    for l in logs[-8:]:
-        badge_cls = "badge-passed" if l['test_status'].upper() == "PASSED" else "badge-failed"
-        e = lambda v: html.escape(str(v), quote=True)
-        widget_html += f"      <tr><td>{e(l['harness'])}</td><td>{e(l['agent'])}</td><td>{e(l['task'][:35])}</td><td>{e(l['duration_sec'])}s</td><td class=\"{badge_cls}\">{e(l['test_status'])}</td><td>${l['est_cost_usd']:.4f}</td></tr>\n"
+    e = lambda v: html.escape(str(v), quote=True)
+    for r in st["records"][-8:]:
+        badge_cls = "badge-passed" if str(r['test_status']).upper() == "PASSED" else "badge-failed"
+        widget_html += (f"      <tr><td>{e(r['harness'])}</td><td>{e(r['agent'])}</td><td>{e(str(r['task'])[:35])}</td>"
+                        f"<td>{e(r['outcome'])}</td><td>{e(r['duration_sec'])}s</td><td class=\"{badge_cls}\">{e(r['test_status'])}</td>"
+                        f"<td>{e(fmt_cost(r['est_cost_usd']))}</td></tr>\n")
 
     widget_html += """    </tbody>
   </table>
@@ -279,18 +368,27 @@ def main():
     parser.add_argument("--duration", type=float, default=1.0)
     parser.add_argument("--diff-loc", type=int, default=0)
     parser.add_argument("--test-status", type=str, default="PASSED")
-    # Mặc định 0, KHÔNG phải một con số "trông hợp lý": không được cấp token thật thì chi phí
-    # phải là 0 kèm cảnh báo, không bịa (CLAUDE.md §4; audit 2026-09-23 C4 — bản cũ mặc định
-    # 1000/500 khiến mọi entry từ hook Stop mang chi phí giả).
-    parser.add_argument("--input-tokens", type=int, default=0)
-    parser.add_argument("--output-tokens", type=int, default=0)
+    # Mặc định None = KHÔNG BIẾT, không phải 0 và không phải số "trông hợp lý" (CLAUDE.md §4;
+    # audit 2026-09-23 C4 bịa 1000/500; LD-07/AC-7: 0 làm tổng chi phí trông như đầy đủ).
+    parser.add_argument("--input-tokens", type=int, default=None)
+    parser.add_argument("--output-tokens", type=int, default=None)
+    parser.add_argument("--work-id", type=str, default=None, help="Gom các lần thử của cùng một công việc")
+    parser.add_argument("--outcome", choices=OUTCOMES, default="attempt",
+                        help="accepted cần --evidence (gate-evidence/1 PASS)")
+    parser.add_argument("--evidence", type=str, default=None, help="File evidence của dev-task.sh gate")
 
     args = parser.parse_args()
 
     if args.record:
-        if args.input_tokens == 0 and args.output_tokens == 0:
-            print("CẢNH BÁO: --record không có số token thật (--input-tokens/--output-tokens = 0) "
-                  "→ est_cost_usd = 0; hook nên đọc message.usage từ transcript.", file=sys.stderr)
+        if args.input_tokens is None or args.output_tokens is None:
+            print("CẢNH BÁO: --record không có đủ số token thật → usage/est_cost_usd = unknown "
+                  "(không phải 0); hook nên đọc message.usage từ transcript.", file=sys.stderr)
+        if args.outcome == "accepted":
+            try:
+                load_evidence(args.evidence)
+            except (OSError, ValueError) as exc:
+                print(f"LỖI: không ghi bản ghi nghiệm thu: {exc}", file=sys.stderr)
+                sys.exit(2)
         entry = record_entry(
             harness=args.harness,
             provider=args.provider,
@@ -301,7 +399,10 @@ def main():
             diff_loc=args.diff_loc,
             test_status=args.test_status,
             input_tokens=args.input_tokens,
-            output_tokens=args.output_tokens
+            output_tokens=args.output_tokens,
+            work_id=args.work_id,
+            outcome=args.outcome,
+            evidence_path=args.evidence,
         )
         print(f"Recorded telemetry entry: {entry['id']}")
         sys.exit(0)

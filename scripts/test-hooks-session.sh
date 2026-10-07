@@ -63,8 +63,14 @@ printf '{}' | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-rec
 n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
 [ "$rc" -eq 0 ] && [ "$n" = "2" ] && ok "payload rỗng: thoát 0, không ghi" || bad "payload rỗng: rc=$rc, entry=$n"
 
+echo "== 4b. Lượt mới không có message.usage → token null (unknown), không ghi 0 (LD-07) =="
+echo '{"type":"assistant","timestamp":"2026-09-23T10:40:00.000Z","message":{"model":"claude-sonnet-5"}}' >> "$TR"
+run_hook
+e="$(last_entry -1)"
+[ "$e" = "claude-sonnet-5 None None 600.0 3" ] && ok "không có usage → input/output null, entry 3" || bad "không có usage bị ghi thành số: '$e'"
+
 echo "== 5. NEGATIVE: engine đổi mặc định token về số bịa thì test này phải ĐỎ =="
-sed 's/default=0)/default=777)/' "$ROOT/scripts/telemetry-log.py" > "$PROJ/scripts/telemetry-log.py"
+sed 's/type=int, default=None)/type=int, default=777)/' "$ROOT/scripts/telemetry-log.py" > "$PROJ/scripts/telemetry-log.py"
 rm -f "$PROJ/.ai-telemetry/last-stop-ts" "$PROJ/.ai-telemetry/telemetry.json"
 printf '{"transcript_path":"%s"}' "$WORK/none.jsonl" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"
 # transcript không tồn tại → hook không ghi; gọi engine trực tiếp không token → phải lộ 777
