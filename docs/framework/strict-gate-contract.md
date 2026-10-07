@@ -62,6 +62,9 @@ task với `status` PASS/FAIL/N/A/NOT_RUN, command, exit code, số giây; `test
 khai `gate_test_count_regex` (ERE có một nhóm bắt số, vd `'([0-9]+) passed'`), còn lại là `null` —
 không biết, không phải 0. File cũ bị xoá ngay đầu lượt nên lượt BLOCKED/FAIL không để lại PASS cũ.
 File evidence phải nằm ngoài repo hoặc trong thư mục đã ignore; nằm trong cây đang kiểm → BLOCKED.
+Khi đã yêu cầu evidence, lỗi tạo/ghi/đổi tên file → BLOCKED (exit 2), không báo PASS dù
+các kiểm tra đã xanh. Đích phải là file; không chuyển file tạm vào một thư mục cùng tên.
+File tạm được dọn khi ghi thất bại; khắc phục đường dẫn/quyền ghi rồi chạy lại gate.
 
 `bash scripts/dev-task.sh evidence-check <file>` chỉ trả 0 (VERIFIED) khi evidence là PASS, đủ
 build/typecheck/lint/test (mỗi task PASS hoặc N/A có lý do) **và** HEAD, config, working tree hiện

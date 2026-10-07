@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: Đã nghiệm thu phạm vi triển khai lean delivery theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 (#210) đã merge; LD-01..08 đã tích hợp và đạt nghiệm thu kỹ thuật theo ủy quyền; hồ sơ ở #211.
+- Giai đoạn: Đã nghiệm thu phạm vi triển khai lean delivery theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 (#210) đã merge; LD-01..08 đã tích hợp và đạt nghiệm thu kỹ thuật theo ủy quyền; hồ sơ ở #211, đóng goal ở #212.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `47b691f` (`origin/main`, sau PR #211).
+- Default-branch SHA đã đối chiếu: `661f7f6` (`origin/main`, sau PR #212).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đã nghiệm thu
@@ -17,6 +17,11 @@
 ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng giới hạn chưa kiểm chứng.
 
 ## Đang làm / chờ
+
+Bản sửa gate bỏ qua thất bại ghi `--evidence` có regression thư mục đích mất,
+đích trở thành thư mục và kiểm tra đỏ kèm lỗi ghi evidence. Cổng trả BLOCKED (exit 2)
+và không báo PASS khi không lưu được bằng chứng; `scripts/test-dev-task.sh` mục 7b.
+Trạng thái tích hợp và bằng chứng CI thuộc PR của bản sửa này.
 
 **Ủy quyền áp riêng repo này (2026-10-07):** chủ repo yêu cầu “chọn theo hướng tốt nhất cho chất lượng cho tôi từ giờ trở đi, không cần hỏi”.
 AI tự quyết các phương án và nghiệm thu trong phạm vi dự án đã giao, ưu tiên tính đúng,

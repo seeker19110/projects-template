@@ -260,11 +260,33 @@ evidence_binding_tests() {
   CLAUDE_PROJECT_DIR="$d" bash "$DT" gate --evidence "$WORK/nogit.json" >"$WORK/gate-output" 2>&1
   ev_check "$d" "$WORK/nogit.json" 2 BLOCKED "ngoài git → không gắn được phiên bản"
 }
+evidence_write_failure_tests() {
+  local d rc scenario
+  for scenario in missing-parent destination-directory failed-check; do
+    d="$(git_fixture "gate-evidence-write-$scenario")"
+    if [ "$scenario" = missing-parent ]; then
+      printf "test='rmdir out'\n" >> "$d/.claude/project-commands.sh"
+    elif [ "$scenario" = destination-directory ]; then
+      printf "test='mkdir out/gate.json'\n" >> "$d/.claude/project-commands.sh"
+    else
+      printf "test='rmdir out; exit 7'\n" >> "$d/.claude/project-commands.sh"
+    fi
+    CLAUDE_PROJECT_DIR="$d" bash "$DT" gate --evidence "$d/out/gate.json" >"$WORK/gate-output" 2>&1; rc=$?
+    if [ "$rc" -eq 2 ] && grep -q 'BLOCKED.*evidence' "$WORK/gate-output" && ! grep -q 'PASS:' "$WORK/gate-output"; then
+      ok "$scenario: không lưu được evidence → BLOCKED, không báo PASS"
+    else
+      bad "$scenario: evidence không ghi được nhưng exit $rc"
+      cat "$WORK/gate-output"
+    fi
+    [ -z "$(find "$d" -name 'gate.json.tmp.*' -print)" ] && ok "$scenario: không để lại evidence tạm" || bad "$scenario: còn evidence tạm"
+  done
+}
 echo "== 7b. Bằng chứng: lệnh giả, zero-test, evidence gắn phiên bản (LD-03) =="
 noop_tests
 count_tests
 evidence_tests
 evidence_binding_tests
+evidence_write_failure_tests
 
 rv_check() {  # $1=fixture $2=findings $3=exit mong đợi $4=dấu hiệu $5=mô tả
   local rc; CLAUDE_PROJECT_DIR="$1" bash "$DT" review-check "$2" >"$WORK/rv-output" 2>&1; rc=$?

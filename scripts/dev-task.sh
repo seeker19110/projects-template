@@ -404,8 +404,10 @@ check_json() {  # $1=task → một phần tử JSON theo trạng thái đã ghi
 }
 evidence_finish() {  # $1=PASS|FAIL|BLOCKED — ghi nguyên tử; jq là công cụ bắt buộc của gate
   local status="$1" path="${GATE_EVIDENCE_PATH:-}" tmp checks task head config
-  [ -n "$path" ] && command -v jq >/dev/null 2>&1 || return 0
-  checks="$(for task in build typecheck lint test; do check_json "$task"; done | jq -cs .)" || return 0
+  [ -n "$path" ] || return 0
+  command -v jq >/dev/null 2>&1 || { blocked "thiếu jq để ghi evidence: $path"; return 2; }
+  checks="$(for task in build typecheck lint test; do check_json "$task" || exit 2; done | jq -cs .)" \
+    || { blocked "không tạo được nội dung evidence: $path"; return 2; }
   head="${GATE_CONTEXT%%:*}"; config="${GATE_CONTEXT#*:}"
   tmp="$path.tmp.$$"
   jq -n --arg st "$status" --arg reason "${GATE_REASON:-}" --arg head "$head" --arg config "$config" \
@@ -415,8 +417,8 @@ evidence_finish() {  # $1=PASS|FAIL|BLOCKED — ghi nguyên tử; jq là công c
     '{schema:"gate-evidence/1", producer:"scripts/dev-task.sh gate", status:$st,
       reason:(if $reason == "" then null else $reason end), head:$head, config_sha:$config, worktree:$wt,
       started_at:$started, finished_at:$finished, checks:$checks, test_cases:$cases,
-      untracked_changed_during_run:($created | split("\n") | map(select(. != "")))}' >"$tmp" && mv -f "$tmp" "$path" \
-    || { rm -f "$tmp"; log "không ghi được evidence: $path"; }
+      untracked_changed_during_run:($created | split("\n") | map(select(. != "")))}' >"$tmp" && [ ! -d "$path" ] && mv -f "$tmp" "$path" \
+    || { rm -f "$tmp"; blocked "không ghi được evidence: $path"; return 2; }
 }
 
 run_check() {  # $1=index; ghi trạng thái/exit/thời gian; return 1 khi FAIL
@@ -470,10 +472,10 @@ verify_contract() {
   fi
   run_checks; rc=$?
   case "$rc" in
-    0) evidence_finish PASS
+    0) evidence_finish PASS || return 2
        log "PASS: ${#GATE_NAMES[@]} kiểm tra đã chạy thành công; context=$GATE_CONTEXT:$(worktree_id)" ;;
-    1) evidence_finish FAIL ;;
-    *) evidence_finish BLOCKED ;;
+    1) evidence_finish FAIL || return 2 ;;
+    *) evidence_finish BLOCKED || return 2 ;;
   esac
   return "$rc"
 }
