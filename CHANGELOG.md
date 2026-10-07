@@ -11,6 +11,15 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Added (LD-03, nghiệm thu bằng bằng chứng): `dev-task.sh gate --evidence <file>` ghi JSON `gate-evidence/1`
+  (trạng thái từng task PASS/FAIL/N/A/NOT_RUN, HEAD, hash config, vân tay working tree, số ca test hoặc `null`);
+  `dev-task.sh evidence-check <file>` từ chối evidence cũ/thiếu task/không PASS. `spec-compiler` thêm C-4 (spec
+  Approved từ 2026-10-07 phải nối mọi AC tới bằng chứng có thật) và `--trace <spec>`.
+- Changed (**hành vi gate, cần rà khi nâng bản**): command no-op nguyên văn (`true`, `:`, `echo`, `printf`, `exit 0`)
+  và test có `--passWithNoTests` giờ BLOCKED — khai `gate_skip_<task>_reason` có lý do thay cho lệnh giả. File đã theo dõi
+  bị sửa/xoá trong lúc gate chạy → BLOCKED; file chưa theo dõi sinh/ghi lại (output build chưa ignore) chỉ bị cảnh báo kèm tên. Tuỳ chọn mới
+  `gate_test_count_regex` biến test chạy 0 ca thành FAIL.
+
 - Fixed: `pre-commit-gate.sh` đọc nhánh/index/cổng từ cây đang commit (`git rev-parse --show-toplevel` ở cwd của hook) thay vì
   `CLAUDE_PROJECT_DIR`; trước đó phiên trong `git worktree` bị chặn oan hoặc lọt bí mật/cổng đỏ (3 ca đỏ → xanh,
   `test-hooks-gate.sh` mục 15, TRAPS 45). Rút từ đối chiếu X-Agents lần 3: `docs/reports/2026-10-07-doi-chieu-x-agents-v3.md`.

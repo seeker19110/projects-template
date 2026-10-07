@@ -85,6 +85,160 @@ def _parse_exemptions(content):
     }
 
 
+# --- Bản đồ AC → bằng chứng (LD-03) -------------------------------------------------------------
+# Spec đặt tên từ ngày này trở đi (đã Approved) phải khai bản đồ; spec cũ hơn không bị bắt hồi tố.
+EVIDENCE_MAP_REQUIRED_FROM = "2026-10-07"
+_PENDING = re.compile(r"chưa có|pending", re.IGNORECASE)
+_MANUAL = re.compile(r"^(thủ công|manual)\s*:\s*\S", re.IGNORECASE)
+
+
+def _ac_sort_key(ac_id):
+    return int(ac_id.split("-")[1])
+
+
+def _acceptance_ids(content):
+    """AC bắt buộc = mã AC trong mục "Acceptance criteria"; không có mục đó thì lấy cả file."""
+    m = re.search(
+        r"^##\s*\d*\.?\s*Acceptance criteria\s*$(.*?)(?=^##\s|\Z)",
+        content,
+        re.M | re.S | re.I,
+    )
+    source = m.group(1) if m else content
+    return sorted(set(re.findall(r"\bAC-\d+\b", source)), key=_ac_sort_key)
+
+
+def _cells(line):
+    stripped = line.strip()
+    if not stripped.startswith("|"):
+        return None
+    return [c.strip() for c in stripped.strip("|").split("|")]
+
+
+def _evidence_entry(cells, col):
+    """Một dòng bảng → {acceptance_id, refs, kind}. kind: test | manual | pending | empty."""
+    ac = re.fullmatch(r"(AC-\d+)", cells[0].strip("*` "))
+    if not ac:
+        return None
+    cell = cells[col] if col < len(cells) else ""
+    refs = [r.strip() for r in re.findall(r"`([^`\n]+)`", cell) if r.strip()]
+    if refs:
+        kind = "test"
+    elif _MANUAL.search(cell):
+        kind = "manual"
+    elif _PENDING.search(cell):
+        kind = "pending"
+    else:
+        kind = "empty"
+    return {"acceptance_id": ac.group(1), "refs": refs, "kind": kind}
+
+
+def _evidence_map(content):
+    """Bảng đầu tiên có cột đầu `AC` và một cột `Bằng chứng`/`Evidence`. Không có bảng → None."""
+    lines = content.split("\n")
+    for idx, line in enumerate(lines):
+        header = _cells(line)
+        if not header or header[0].upper() != "AC":
+            continue
+        cols = [
+            i
+            for i, c in enumerate(header)
+            if re.search(r"bằng chứng|evidence", c, re.I)
+        ]
+        if not cols:
+            continue
+        entries = []
+        for row in lines[idx + 2 :]:
+            cells = _cells(row)
+            if cells is None:
+                break
+            entry = _evidence_entry(cells, cols[0])
+            if entry:
+                entries.append(entry)
+        return entries
+    return None
+
+
+def _evidence_map_required(spec_path, approved):
+    date = re.match(r"(\d{4}-\d{2}-\d{2})-", os.path.basename(spec_path))
+    return approved and (date is None or date.group(1) >= EVIDENCE_MAP_REQUIRED_FROM)
+
+
+def _ref_problem(root, ref):
+    """None nếu `path` hoặc `path::ký hiệu` có thật dưới root; ngược lại là lý do."""
+    path, _, symbol = ref.partition("::")
+    target = os.path.join(root, path)
+    if not os.path.isfile(target):
+        return "không có file " + path
+    if symbol:
+        with open(target, encoding="utf-8", errors="ignore") as f:
+            if symbol not in f.read():
+                return "không thấy '" + symbol + "' trong " + path
+    return None
+
+
+def _trace_status(entry, root):
+    if entry is None:
+        return "UNMAPPED", "không có dòng trong bản đồ AC → bằng chứng"
+    if entry["kind"] == "test":
+        problems = [p for p in (_ref_problem(root, r) for r in entry["refs"]) if p]
+        if problems:
+            return "BROKEN", "; ".join(problems)
+        return "MAPPED", ", ".join(entry["refs"])
+    labels = {
+        "manual": ("MANUAL", "quan sát thủ công đã khai"),
+        "pending": ("PENDING", "khai minh bạch là chưa có bằng chứng"),
+        "empty": ("EMPTY", "ô bằng chứng trống"),
+    }
+    return labels[entry["kind"]]
+
+
+def trace_acceptance(parsed, root):
+    """Truy vết từng AC. Đây là traceability (đã khai CÁI GÌ chứng minh), KHÔNG phải nghiệm thu:
+    kết quả chạy của đúng commit nằm ở CI / `dev-task.sh evidence-check`."""
+    by_id = {}
+    for entry in parsed["evidence_map"] or []:
+        merged = by_id.setdefault(entry["acceptance_id"], dict(entry, refs=[]))
+        merged["refs"] += entry["refs"]
+        if entry["kind"] == "test":
+            merged["kind"] = "test"
+    rows = [
+        (ac,) + _trace_status(by_id.get(ac), root) for ac in parsed["acceptance_ids"]
+    ]
+    rows += [
+        (ac, "UNKNOWN", "AC không có trong mục Acceptance criteria")
+        for ac in sorted(set(by_id) - set(parsed["acceptance_ids"]), key=_ac_sort_key)
+    ]
+    return rows
+
+
+def _project_root(spec_path):
+    norm = os.path.abspath(spec_path).replace("\\", "/")
+    marker = "/docs/specs/"
+    return norm[: norm.rindex(marker)] if marker in norm else ROOT_DIR
+
+
+def print_trace(spec_path):
+    parsed = parse_spec_markdown(spec_path)
+    if parsed is None:
+        print("Không có spec: " + spec_path, file=sys.stderr)
+        return 2
+    rows = trace_acceptance(parsed, _project_root(spec_path))
+    for ac, status, detail in rows:
+        print(f"{ac:<7} {status:<9} {detail}")
+    complete = rows and all(status in ("MAPPED", "MANUAL") for _, status, _ in rows)
+    if complete:
+        print(
+            "TRACE COMPLETE — mọi AC đã khai bằng chứng có thật. Chưa phải nghiệm thu: cần kết quả "
+            "chạy của đúng commit (CI / dev-task.sh evidence-check)."
+        )
+        return 0
+    print(
+        "TRACE INCOMPLETE — còn AC thiếu/gãy/chưa có bằng chứng (hoặc spec không có AC); "
+        "không được gọi là đã nghiệm thu hành vi."
+    )
+    return 1
+
+
 def _display_path(path, start=None):
     """Duong dan de HIEN THI, uu tien tuong doi so voi ROOT_DIR.
 
@@ -136,6 +290,9 @@ def parse_spec_text(content, spec_path):
         "requirement_ids": sorted(set(re.findall(r"\b((?:FR|AC|NFR|W)-\d+)\b", content))),
         # Approval language in instructions or unselected template options is NOT a selected state.
         "approved": state == "approved for implementation",
+        "acceptance_ids": _acceptance_ids(content),
+        "evidence_map": _evidence_map(content),
+        "evidence_map_required": _evidence_map_required(spec_path, state == "approved for implementation"),
     }
 
 def generate_python_contract_test(parsed_spec):
@@ -174,6 +331,9 @@ def generate_python_contract_test(parsed_spec):
         f"    REFERENCED_PATHS = {json.dumps(parsed_spec['referenced_paths'], ensure_ascii=False)}",
         f"    EXEMPT_PATHS = {json.dumps(parsed_spec['exempt_paths'], ensure_ascii=False)}",
         f"    APPROVED = {parsed_spec['approved']!r}",
+        f"    EVIDENCE_MAP_REQUIRED = {parsed_spec['evidence_map_required']!r}",
+        f"    ACCEPTANCE_IDS = {json.dumps(parsed_spec['acceptance_ids'], ensure_ascii=False)}",
+        f"    EVIDENCE_MAP = {parsed_spec['evidence_map']!r}",  # repr: None/list là literal Python hợp lệ
         "",
         "    @staticmethod",
         "    def _exists(rel):",
@@ -221,6 +381,32 @@ def generate_python_contract_test(parsed_spec):
         "                         f'{self.SPEC_FILE}: spec da Approved nhung cac duong dan sau khong ton tai: '",
         "                         + ', '.join(missing))",
         "",
+        "    @staticmethod",
+        "    def _ref_ok(ref):",
+        "        path, _, symbol = ref.partition('::')",
+        "        target = os.path.join(ROOT_DIR, path)",
+        "        if not os.path.isfile(target):",
+        "            return False",
+        "        with open(target, encoding='utf-8', errors='ignore') as f:",
+        "            return not symbol or symbol in f.read()",
+        "",
+        "    def test_c4_ac_co_ban_do_bang_chung(self):",
+        "        \"\"\"C-4: spec Approved (tu 2026-10-07) phai noi MOI AC toi bang chung co that.",
+        "        Day la truy vet, khong phai nghiem thu: ket qua chay nam o CI / evidence-check.\"\"\"",
+        "        if not self.EVIDENCE_MAP_REQUIRED:",
+        "            self.skipTest(f'{self.SPEC_FILE}: chua Approved hoac spec truoc moc ban do AC')",
+        "        entries = self.EVIDENCE_MAP or []",
+        "        mapped = {e['acceptance_id'] for e in entries}",
+        "        problems = {",
+        "            'khong co AC nao': [] if self.ACCEPTANCE_IDS else ['<spec>'],",
+        "            'AC thieu dong ban do': [a for a in self.ACCEPTANCE_IDS if a not in mapped],",
+        "            'AC la (khong co trong Acceptance criteria)': sorted(mapped - set(self.ACCEPTANCE_IDS)),",
+        "            'o bang chung trong': [e['acceptance_id'] for e in entries if e['kind'] == 'empty'],",
+        "            'bang chung khong ton tai': [r for e in entries for r in e['refs'] if not self._ref_ok(r)],",
+        "        }",
+        "        problems = {k: v for k, v in problems.items() if v}",
+        "        self.assertEqual(problems, {}, f'{self.SPEC_FILE}: ban do AC -> bang chung loi: {problems}')",
+        "",
         "if __name__ == '__main__':",
         "    unittest.main()",
         "",
@@ -233,8 +419,13 @@ def main():
     parser.add_argument("--out-dir", type=str, default="tests/contracts", help="Output directory for generated contract tests")
     parser.add_argument("--compile-all", action="store_true", help="Compile all specs in docs/specs/")
     parser.add_argument("--json", action="store_true", help="Output JSON structure of compiled spec")
+    parser.add_argument("--trace", type=str, metavar="SPEC",
+                        help="Truy vết AC → bằng chứng của một spec; exit 0 chỉ khi mọi AC có bằng chứng thật")
 
     args = parser.parse_args()
+
+    if args.trace:
+        sys.exit(print_trace(os.path.abspath(args.trace)))
 
     specs_dir = os.path.join(ROOT_DIR, "docs", "specs")
     target_specs = []

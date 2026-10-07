@@ -17,6 +17,7 @@ Chạy **cổng chất lượng trước khi commit/merge** rồi xuất **Báo 
    - **Lệnh chạy khác CI thật** — không tự đoán lệnh "gần giống" (vd chạy `npm test` trong khi CI thật chạy `npm run test:coverage` hay lệnh có flag khác). Có file workflow CI thật (`.github/workflows/*.yml` hoặc tương đương GitLab/CircleCI…) → **đọc đúng lệnh trong đó**, không chỉ dò `package.json` rồi đoán tên gần đúng.
 
 ## Bước 2 — Chạy & ĐỌC output thật
+Repo có `scripts/dev-task.sh` → đó là nguồn kết quả: `bash scripts/dev-task.sh gate --evidence <file ngoài repo hoặc đã ignore>` (BLOCKED/FAIL/PASS, lệnh giả và test 0 ca bị chặn — `docs/framework/strict-gate-contract.md`); Bước 1 chỉ để đối chiếu với lệnh CI thật. Kết quả của lượt trước hoặc của subagent chỉ được dùng khi `bash scripts/dev-task.sh evidence-check <file>` trả VERIFIED (khớp HEAD/config/working tree hiện tại).
 Chạy từng cổng dò được, **đọc kết quả thật** (không suy đoán). Phạm vi test: trước **commit** chạy test liên quan; trước **merge** chạy **toàn bộ** test (CLAUDE.md §6). Nếu người dùng gõ `/gate merge` → chế độ merge (toàn bộ test + các mục §6).
 
 ## Bước 3 — Tự rà diff (CLAUDE.md §5)
@@ -36,6 +37,8 @@ Tự review diff ✅ | Không bí mật/rác ✅ | Tiêu chí chấp nhận ✅ 
 Rủi ro/ảnh hưởng: .. | Góp ý cải tiến: ..
 KẾT LUẬN: Sẵn sàng  /  Cần xử lý: [..]
 ```
+`Tiêu chí chấp nhận ✅` với tính năng có spec chỉ khi `bash scripts/spec-compiler.sh --trace <spec>` báo TRACE COMPLETE **và** các test đó xanh trên đúng commit; AC còn "chưa có" → ghi rõ AC nào, không đánh ✅.
+
 **Bất kỳ mục ❌ → sửa trước, chạy lại TOÀN BỘ, KHÔNG commit/merge** (CLAUDE.md §7). Lint phải **0 cảnh báo**. `Test tái hiện` và `Đỏ-trước cho code mới có logic` là cảnh báo mềm (xem trên — không cổng máy nào đọc được "test này từng đỏ") — mọi mục khác vẫn chặn cứng như trước.
 
 ## Chế độ merge (`/gate merge`) — thêm các mục §6

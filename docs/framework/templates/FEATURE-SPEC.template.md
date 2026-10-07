@@ -42,7 +42,7 @@ Security/privacy/a11y/performance/reliability/compatibility/cost/safety.
 
 ## 9. Acceptance criteria
 
-AC-1 Given/When/Then; map từng AC tới test/evidence.
+AC-1 Given/When/Then; mỗi AC có một dòng trong bảng AC → bằng chứng (§16).
 
 ## 10. UX/content/accessibility
 
@@ -65,6 +65,15 @@ Metric/event/log không PII, dashboard/alert/health/runbook/owner.
 ## 16. Test/eval plan
 
 Unit/integration/E2E/a11y/performance/concurrent/retry/migration/manual/UAT/AI eval phù hợp profile.
+
+| AC | Bằng chứng | Ghi chú |
+| --- | --- | --- |
+| AC-1 | `tests/<file>::<tên test>` hoặc `thủ công: <cách quan sát>` hoặc `chưa có — <lý do>` | |
+
+Bằng chứng phải chứng minh **hành vi** của AC (vd "không xem được dữ liệu tài khoản khác" → test
+phân quyền), không phải file tồn tại hay HTTP 200. Contract C-4 đỏ khi AC thiếu dòng hoặc tham chiếu
+không có thật; `scripts/spec-compiler.sh --trace <spec>` chỉ xanh khi không còn "chưa có". Spec gọn
+không có §16 thì đặt bảng ngay dưới §9. Kết quả chạy nằm ở CI/evidence của đúng commit, không chép vào đây.
 
 ## 17. Slice/PR plan
 

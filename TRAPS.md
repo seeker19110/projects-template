@@ -980,3 +980,17 @@ mất kiểm tra vốn có trong full gate. Local gate vẫn chạy đủ mọi 
 *Cổng:* `tests/test_ci_suite_parity.py` đếm lệnh chạy, không đếm tên step/comment;
 thiếu hoặc trùng một suite phải đỏ. Không dùng kết quả này để suy ra mức giảm thời
 lượng hoặc token: đó cần số đo thực tế riêng.
+
+## 47. Test nâng bản lấy base từ HEAD nhưng nguồn là working tree
+
+*Ngày:* 2026-10-07, LD-03 (#198). `scripts/test-copy-framework.sh` dựng ca "đích viết lại toàn bộ
+`standard-delivery.md`" rồi chạy `--upgrade`. `copy-framework.sh` lấy base ba chiều từ commit HEAD của
+repo khung còn bản mới từ working tree; khi chính file đó đang sửa dở (mọi PR chạm `standard-delivery.md`,
+gồm LD-02/LD-03), base ≠ nguồn nên xung đột là THẬT và suite đỏ ở full gate cục bộ/hook pre-commit —
+trong khi CI trên cây sạch vẫn xanh. Tái hiện: cùng commit, `git stash` riêng file đó → rc 0; bỏ stash → rc 1.
+
+*Cách sửa:* ca viết lại chọn một file khung CHƯA sửa so với HEAD trong danh sách ứng viên; tất cả đều đang
+sửa → FAIL nói rõ, không âm thầm bỏ ca. Không đổi hành vi của `copy-framework.sh`.
+
+*Khuôn:* test dùng repo khung làm nguồn phải độc lập với trạng thái working tree của chính repo đó; kiểm bằng
+cách chạy suite khi một file nó dùng đang sửa dở.
