@@ -232,24 +232,28 @@ def _print_agent_list(as_json):
         print(f"  - {a['name']:<20} [{a['model']:<8}] : {a['description'][:80]}...")
 
 
-def _fail_context(message):
-    print(f"Error: context-file: {message}", file=sys.stderr)
-    sys.exit(2)
+def _context_problem(path, limit):
+    """Lý do context không dùng được (trước khi đọc), hoặc None."""
+    if not os.path.isfile(path):
+        return f"không tồn tại hoặc không phải file: {path}"
+    size = os.path.getsize(path)
+    if size == 0:
+        return f"rỗng: {path}"
+    if size > limit:
+        return f"{size} byte vượt giới hạn {limit} (--max-context-bytes); không tự cắt: {path}"
+    return None
 
 
 def _read_context_file(path, limit):
-    if not os.path.isfile(path):
-        _fail_context(f"không tồn tại hoặc không phải file: {path}")
-    size = os.path.getsize(path)
-    if size == 0:
-        _fail_context(f"rỗng: {path}")
-    if size > limit:
-        _fail_context(f"{size} byte vượt giới hạn {limit} (--max-context-bytes); không tự cắt: {path}")
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-    except UnicodeDecodeError:
-        _fail_context(f"không phải UTF-8 hợp lệ: {path}")
+    problem = _context_problem(path, limit)
+    if problem is None:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        except UnicodeDecodeError:
+            problem = f"không phải UTF-8 hợp lệ: {path}"
+    print(f"Error: context-file: {problem}", file=sys.stderr)
+    raise SystemExit(2)
 
 
 def _load_task_text(task, context_file, limit=DEFAULT_MAX_CONTEXT_BYTES):
