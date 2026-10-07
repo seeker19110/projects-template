@@ -126,17 +126,20 @@ jobs:
       - name: ShellCheck (mức warning — đúng luật "0 cảnh báo" của CLAUDE.md §5)
         run: |
           find . -name '*.sh' -not -path './node_modules/*' -print0 \
-            | xargs -0 shellcheck --severity=warning
+            | xargs -0 -n1 shellcheck --severity=warning
 
-      - name: Contract local chạy đầy đủ (doctor READY rồi gate PASS)
-        run: |
-          bash scripts/dev-task.sh doctor
-          bash scripts/dev-task.sh gate
+      # Tất cả suite đã có step riêng ở Linux; gate ở đây sẽ chạy lại cả 17 suite.
+      # Doctor chỉ tiền kiểm. test-dev-task chứng minh gate; parity giữ đủ suite, đúng một lần.
+      - name: Contract preflight (READY, not PASS)
+        run: bash scripts/dev-task.sh doctor
 
-      - name: Cú pháp Python (py_compile — mọi scripts/*.py)
+      - name: Linux suite parity with the full local gate
+        run: python3 tests/test_ci_suite_parity.py
+
+      - name: Cú pháp Python (py_compile — scripts và tests)
         run: |
           set -e
-          find scripts -name '*.py' -print0 | xargs -0 -n1 python3 -m py_compile
+          find scripts tests -name '*.py' -print0 | xargs -0 -n1 python3 -m py_compile
           echo "OK: cú pháp Python sạch"
 
       - name: JSON cấu hình hợp lệ (jq)

@@ -1,28 +1,26 @@
 # PROGRESS.md — Trạng thái dự án
 
-> Goal giữ đơn vị công việc; PR/CI giữ bằng chứng theo commit. Không dùng audit cũ
-> hoặc lời báo DONE của worker để kết luận trạng thái hiện tại.
+> Goal giữ phạm vi; Issue/PR/CI giữ kết quả thực thi theo commit. Không suy ra
+> đã merge, đã nghiệm thu hoặc đã deploy từ trạng thái trong tài liệu.
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8, Reconcile — chu kỳ hoàn thiện 2026-10-05 đã đóng; chu kỳ 2026-10-06 đã ĐÓNG 2026-10-07 (F-N01..04, N07 đóng; F-N05 chủ repo chọn giữ nhánh; đã merge qua #199). Các PR sửa khung đến #201 đã merge.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`) trên nền chu kỳ hoàn thiện 2026-10-06 đã đóng (các PR sửa khung đến #202).
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `3310d2ac2aca3ffa07bbf64c05f330614b6870ab` (`origin/main`, sau PR #201).
+- Default-branch SHA đã đối chiếu: `c5012c623c8726c76488e0c2612993d0c03229ab` (`origin/main`, sau PR #202).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
 
-| Goal | Outcome | State | Current gap | Next slice | Link |
-| --- | --- | --- | --- | --- | --- |
-| Hoàn thiện khung 2026-09-24 | Đóng F-01..11, gate thực và re-audit | WAITING | Reconciliation F-11/F-K08 nằm trong PR tài liệu này; xác nhận đóng kế hoạch còn chờ | CI/merge hồ sơ cuối, rồi nghiệm thu của người dùng | `docs/goals/2026-09-24-completion.md` |
-
-## Đã xong
-
-W-01 dependency #169, W-02 UI/contract #177, W-03 telemetry #178 và W-04 runtime
-safety #179 đã merge. PR #179 đạt CI Linux/Windows, metadata và các scan liên quan
-trước merge. Runtime regression có 10 bài, gồm 45 subcase CLI và Git local thật.
+`docs/goals/2026-10-07-lean-delivery.md`, spec đã được chủ repo duyệt ngày
+2026-10-07. Issue #198 theo dõi các slice, PR/CI và phần chưa được kiểm chứng.
 
 ## Đang làm / chờ
+
+LD-01 giảm chạy lặp CI, giữ parity với full local gate và ma trận Windows.
+Chưa coi thay đổi là tích hợp trước khi PR merge và cổng của đúng head xanh.
+Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
+không được tự thay đổi bởi việc bắt đầu goal mới.
 
 Đã merge #199: đối chiếu X-Agents lần 2 và chu kỳ hoàn thiện 2026-10-06
 (radar, FEATURE-MAP↔scripts, specs, concurrency). PR #200 (lean-delivery CI, ngoài kế hoạch này) đang mở. Báo cáo `docs/reports/2026-10-06-framework-audit.md`; F-N05: chủ repo chọn giữ lại 3 nhánh remote (ghi nhận).
@@ -39,41 +37,12 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Sau khi CI/merge hồ sơ cuối đạt, người dùng xác nhận đóng kế hoạch 2026-10-05
-(theo Pha 4 của `docs/framework/project-completion.md`). C01 ngoài phạm vi repo
-khung; C02 còn giới hạn hosted CI và runtime các stack chưa thử. Chi tiết nằm
-trong `docs/reports/2026-10-05-framework-audit.md`.
+Theo phụ thuộc trong goal: quy trình thích ứng, evidence, review/context,
+profile sản phẩm và telemetry. Không thêm scheduler hay gọi model trả phí.
 
-## Quyết định quan trọng
+## Rủi ro, blocker và giới hạn
 
-Ưu tiên chất lượng theo ủy quyền ngày 2026-09-25. Giữ framework đa dự án, không
-scaffold mặc định, không scheduler thứ hai. CI chỉ kiểm thử, không tự sửa/push mã.
-Không giảm coverage/complexity, không nới branch protection, không rollout repo dẫn xuất.
-
-## Rủi ro, blocker và nợ kỹ thuật
-
-| Mục | Trạng thái / xử lý |
-| --- | --- |
-| W-05 strict gate | #180, #188 và #196 đã merge; hồ sơ F-11/re-audit trong PR tài liệu này |
-| F-11 / F-K08 bản đồ tính năng | Đã đối chiếu 16 command, 11 agent, 9 hook, 9 workflow; 13 mẫu Markdown + 1 CI. Reconciliation trong PR tài liệu này; có hiệu lực khi merge |
-| C01 adoption sản phẩm thật | Ngoài phạm vi repo khung đã chọn; xem lại khi người dùng chỉ định repo sản phẩm và quyền thử |
-| C02 toàn bộ CI drop-in | #195 chứng minh copy/gate Node/Python tối thiểu và CI offline. Xem lại khi có repo đích để chạy hosted CI hoặc cần stack khác |
-| Quét dependency tự dò | #194 quét root + một cấp `apps/*`/`packages/*`; khai lệnh riêng cho cây sâu hơn. Xem lại khi gặp workspace lồng sâu |
-| Hook thiếu jq | Còn đường fail-open có cảnh báo; xem lại khi yêu cầu chặn cứng ngay cả trên máy chưa cài jq |
-| PowerShell native upgrade | Dùng Git Bash; xem lại khi cần nâng cấp mà không có Git Bash |
-| Upgrade transaction toàn cây | Bảo toàn từng file; xem lại khi có yêu cầu atomic cho toàn cây |
-| Spec approval / evidence / UX | Metadata không chứng thực phê duyệt hay UAT; xem lại trên sản phẩm có AC/UX thật |
-
-Chi tiết: `docs/framework/strict-gate-contract.md`, `docs/CONVENTIONS.md`,
-`docs/reports/2026-09-25-runtime-safety.md`.
-
-## Bàn giao PR #181 — 2026-09-27
-
-- Đã sửa mô tả PR đủ sáu mục bắt buộc và dẫn approval từ spec; metadata xanh.
-- CI run 36250649109 chạy lại: Linux/Windows, smoke, docs và aggregate gate xanh;
-  dev-task gate PASS đủ 4 kiểm tra, coverage 96%. Progress-freshness skip đúng điều kiện main-only.
-- Review thread về kiểu import unittest đã resolve sau khi rà: dùng TestCase/main và
-  submodule mock có chủ đích, không phát hiện lỗi hành vi; cảnh báo style CodeQL vẫn còn.
-- GitHub xác nhận merge lúc 2026-09-27T02:58:20Z bởi seeker19110, SHA f42bb5f.
-- Bàn giao được ghi nhận trong PR tài liệu riêng theo yêu cầu chủ repo.
-  Không thay trạng thái nghiệm thu goal cũ nếu chưa đối chiếu riêng.
+C01 pilot sản phẩm thật và C02 hosted CI các stack chưa thử vẫn cần bằng chứng
+riêng; Node/Python fixture không chứng minh tất cả dự án. Chi tiết lịch sử ở
+`docs/reports/2026-10-05-framework-audit.md` và
+`docs/framework/strict-gate-contract.md`. Không hạ quality gate để vượt blocker.
