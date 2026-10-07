@@ -3,6 +3,13 @@
 - **Trạng thái:** Đã chấp nhận (chủ repo duyệt spec `docs/specs/2026-10-07-lean-delivery.md`, 2026-10-07)
 - **Ngày:** 2026-10-07
 
+**Bổ sung theo yêu cầu chủ repo 2026-10-07:** quyết định 3 bên dưới được thay bằng phân công
+theo số PR: một PR phiên chính có thể tự làm; từ hai PR phải giao subagent đủ năng lực,
+độc lập chạy song song/phụ thuộc chạy tuần tự, tối đa ba subagent đang chạy toàn cây
+(gồm coordinator/reviewer/tester/agent lồng). Ba tầng vẫn tùy chọn; sàn chất lượng,
+mức rủi ro và quyền tách bạch không đổi. Contract hiện hành: `standard-delivery.md` §3c;
+spec: `docs/specs/2026-10-07-pr-dispatch-work-memory.md`. Phần dưới giữ lý do ban đầu.
+
 ## Bối cảnh
 
 Goal LD-2026-10 (slice LD-02, FR-2/AC-2): mọi thay đổi đang đi cùng một bộ thủ tục — đổi model trước

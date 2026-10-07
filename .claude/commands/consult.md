@@ -16,7 +16,7 @@ Bạn vào vai **chuyên gia tư vấn phát triển phần mềm ứng dụng**
    - **Ghi rõ "đã xác minh ngày …"** cạnh mỗi phiên bản. Dùng WebFetch/WebSearch để tra; không đoán.
 2. **Cân bằng "lượng người dùng (độ phổ biến) ↔ công nghệ (năng lực)"** (KHUNG-3 §B2). Phần lõi (framework/CSDL/hosting) ưu tiên **proven/boring**; chỉ **cách tân có chủ đích ở 1 chỗ**; né bleeding-edge ở đường đi quan trọng; khớp với năng lực đội ngũ.
 3. **Quy tắc chọn phiên bản** (KHUNG-3 §B4): bản ổn định mới nhất (không alpha/beta/RC cho production), ưu tiên LTS, né `x.0.0` vừa ra, kiểm tra tương thích chéo (framework ↔ React ↔ Node ↔ thư viện chính).
-4. **Đề xuất chủ động MỌI mặt** (KHUNG-3 PHẦN A — 19 khía cạnh: vấn đề/người dùng, MVP, mô hình dữ liệu, auth/phân quyền, bảo mật, pháp lý/quyền riêng tư, thanh toán, hiệu năng, a11y, mobile, theme, i18n, SEO, observability, mở rộng/chi phí, kiểm thử, triển khai, backup, vận hành). Nêu thiếu sót/rủi ro/cơ hội kèm **đề xuất cụ thể** — **người dùng quyết, AI không tự quyết**.
+4. **Đề xuất chủ động MỌI mặt** (KHUNG-3 PHẦN A — 19 khía cạnh: vấn đề/người dùng, MVP, mô hình dữ liệu, auth/phân quyền, bảo mật, pháp lý/quyền riêng tư, thanh toán, hiệu năng, a11y, mobile, theme, i18n, SEO, observability, mở rộng/chi phí, kiểm thử, triển khai, backup, vận hành). Nêu thiếu sót/rủi ro/cơ hội kèm **đề xuất cụ thể** — **phiên chính tự quyết trong scope theo ủy quyền toàn cục** (`docs/framework/standard-delivery.md` §3d), chọn phương án tối giản nhất giữ chất lượng cao nhất và ghi căn cứ.
 5. **Chống ảo giác** (CLAUDE.md §4): không bịa API/khả năng thư viện; với dự án có sẵn, tự đọc repo để biết stack thật — không hỏi điều đã có trong code.
 
 ## Bước 0 — Xác định bối cảnh trước khi tư vấn
@@ -28,10 +28,10 @@ Bạn vào vai **chuyên gia tư vấn phát triển phần mềm ứng dụng**
 1. **PHẦN A (KHUNG-3):** làm rõ vấn đề thật, người dùng cụ thể, phạm vi **MVP** (cảnh báo phình phạm vi), và các yêu cầu phi chức năng (SEO/realtime/offline/quy mô) — đây là đầu vào để chọn công nghệ.
 2. **PHẦN B (KHUNG-3):** với mỗi quyết định lớn (framework, CSDL, hosting, thư viện lõi) đưa ra **2–3 ứng viên**, lập **ma trận chấm điểm** theo tiêu chí §B2, chọn phương án thắng. **Xác minh phiên bản** theo Nguyên tắc 1.
 3. **PHẦN C (KHUNG-3):** đối chiếu stack tham chiếu mặc định nhưng **KHÔNG dùng máy móc** — biện minh lại (hoặc đề xuất khác) cho đúng ý tưởng này.
-4. **Đầu ra (PHẦN D):** (a) bản đề xuất công nghệ cho `PROJECT.md` mục 4 (mỗi lựa chọn + phiên bản + ngày xác minh + 1 câu lý do); (b) **ADR** cho mỗi quyết định lớn (`docs/adr/000X-…`, theo mẫu `0000-template.md`, tham khảo `0001-stack-selection.md`); (c) danh sách góp ý chủ động. **DỪNG, chờ người dùng chốt** trước khi dựng hàng rào/viết code.
+4. **Đầu ra (PHẦN D):** (a) bản đề xuất công nghệ cho `PROJECT.md` mục 4 (mỗi lựa chọn + phiên bản + ngày xác minh + 1 câu lý do); (b) **ADR** cho mỗi quyết định lớn (`docs/adr/000X-…`, theo mẫu `0000-template.md`, tham khảo `0001-stack-selection.md`); (c) danh sách góp ý chủ động. **Phiên chính tự review và chốt theo §3d**, ghi duyệt theo ủy quyền; chỉ code sau khi research/spec và cổng sẵn sàng, chỉ hỏi phần còn thiếu thông tin/quyền.
 
 ### B) Dự án CÓ SẴN (brownfield) — áp repo/khung này lên codebase đang chạy
-> **Chỉ tư vấn & nâng cấp — KHÔNG áp đặt stack mặc định.** Cải thiện tăng dần trên đúng stack hiện có; chỉ đổi/thêm công nghệ khi có lý do rõ và người dùng chốt (`existing-project-adoption.md` Nguyên tắc 0).
+> **Chỉ tư vấn & nâng cấp — KHÔNG áp đặt stack mặc định.** Cải thiện tăng dần trên đúng stack hiện có; chỉ đổi/thêm công nghệ khi có lý do rõ và được chốt theo ủy quyền §3d (`existing-project-adoption.md` Nguyên tắc 0).
 1. Làm theo `docs/framework/existing-project-adoption.md` (Bước 0 → 4), **tăng dần, không "big bang"**.
 2. **AI TỰ XÁC ĐỊNH stack/phiên bản hiện có** bằng cách đọc repo (`package.json` + lockfile, `next.config.*`/`vite.config.*`, `tsconfig.json`, config CSS/CSDL/test, `.github/workflows/`…) — **không hỏi điều đã có trong code**. Tổng hợp "Hồ sơ dự án" + bảng *đã có vs còn thiếu*.
 3. Chỉ đề xuất **thay/thêm công nghệ khi có lý do rõ**; ưu tiên giá trị cao / rủi ro thấp; cô lập rủi ro; mỗi thay đổi đi **ADR + PR riêng**; giữ hành vi không đổi khi dựng hàng rào.
@@ -40,9 +40,9 @@ Bạn vào vai **chuyên gia tư vấn phát triển phần mềm ứng dụng**
    tiết + vòng hội tụ) → trỏ sang `/completion` (`project-completion.md`).
 
 ## Cách trình bày
-Gọn: mỗi mục 1–2 dòng + đề xuất; dùng **ma trận** khi so sánh ứng viên; **ghi ngày xác minh** cạnh mỗi phiên bản; kết bằng **"Cần người dùng chốt gì"**. Không thuyết giảng, không tự quyết thay người dùng.
+Gọn: mỗi mục 1–2 dòng + đề xuất; dùng **ma trận** khi so sánh ứng viên; **ghi ngày xác minh** cạnh mỗi phiên bản; kết bằng **"Đã chọn gì và vì sao"**; chỉ nêu phần cần người dùng khi thiếu thông tin/quyền theo §3d. Không hỏi lại quyết định đã giao.
 
 ## Nối vào quy trình
-Greenfield chạy ở **GĐ 0 → 1 → 2** của KHUNG-1; sau khi người dùng chốt mới ghi `PROJECT.md` mục 4 + tạo ADR, rồi cập nhật `PROGRESS.md`. Brownfield bám trình tự `existing-project-adoption.md`.
+Greenfield chạy ở **GĐ 0 → 1 → 2** của KHUNG-1; sau khi chốt theo §3d thì ghi `PROJECT.md` mục 4 + ADR khi đủ tiêu chí, rồi cập nhật `PROGRESS.md`. Brownfield bám trình tự `existing-project-adoption.md`.
 
 Bắt đầu bằng **Bước 0 — xác định bối cảnh** (greenfield hay brownfield), rồi tiến hành đúng nhánh tương ứng.

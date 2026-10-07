@@ -106,6 +106,28 @@ out="$(printf '{}' | SESSION_RESUME_MAX_BYTES=2000 CLAUDE_PROJECT_DIR="$P2" bash
 n="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' | wc -c)"
 [ "$n" -le 2600 ] && ok "trần tuỳ chỉnh SESSION_RESUME_MAX_BYTES=2000 có hiệu lực (đo: $n)" || bad "trần tuỳ chỉnh không hiệu lực ($n)"
 
+echo "== 6b. session-resume: tìm hồ sơ active khi thiếu/đầy PROGRESS, không nạp done hoặc nội dung =="
+P3="$WORK/work records"; mkdir -p "$P3/.claude" "$P3/docs/work/01-active" "$P3/docs/work/02-active" "$P3/docs/work/03-closed"
+printf 'WORK-CONTENT-MUST-NOT-LOAD\n' > "$P3/docs/work/01-active/working.md"
+printf 'NEXT-WORK-CONTENT\n' > "$P3/docs/work/02-active/working.md"
+printf 'DONE-CONTENT-MUST-NOT-LOAD\n' > "$P3/docs/work/03-closed/done.md"
+before="$(cksum "$P3/docs/work/01-active/working.md")"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$P3" bash "$SR")"
+ctx="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')"
+for want in docs/work/01-active/working.md docs/work/02-active/working.md; do
+  printf '%s' "$ctx" | grep -qF "$want" && ok "không PROGRESS vẫn có: $want" || bad "mất hồ sơ khi không PROGRESS: $want"
+done
+for nowant in docs/work/03-closed/done.md WORK-CONTENT-MUST-NOT-LOAD DONE-CONTENT-MUST-NOT-LOAD; do
+  printf '%s' "$ctx" | grep -qF "$nowant" && bad "nạp lịch sử/nội dung ngoài scope: $nowant" || ok "không nạp: $nowant"
+done
+[ "$(cksum "$P3/docs/work/01-active/working.md")" = "$before" ] && ok "hook không sửa hồ sơ" || bad "hook sửa hồ sơ"
+{ echo '## Đang làm / chờ'; yes -- '- oversized progress'; } | head -n 3000 > "$P3/PROGRESS.md"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$P3" SESSION_RESUME_MAX_BYTES=1200 bash "$SR")"
+ctx="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')"
+for want in docs/work/01-active/working.md docs/work/02-active/working.md 'ĐÃ CẮT'; do
+  printf '%s' "$ctx" | grep -qF "$want" && ok "PROGRESS dài vẫn có: $want" || bad "PROGRESS dài che hồ sơ/cảnh báo: $want"
+done
+
 echo "== 7. SubagentStop: --agent = agent_type, mốc riêng theo transcript (không lẫn với phiên chính) =="
 TR2="$WORK/sub-transcript.jsonl"
 printf '{"type":"assistant","timestamp":"2026-09-23T11:00:00.000Z","message":{"model":"claude-haiku-4-5","usage":{"input_tokens":10,"output_tokens":5}}}\n' > "$TR2"

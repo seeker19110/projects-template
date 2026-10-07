@@ -18,6 +18,7 @@ research và ghi ADR; mọi quality gate phải có công cụ tương đương 
 | --- | --- | --- |
 | `PROJECT.md` | Outcome/phạm vi/kiến trúc/Project DoD | file gốc |
 | `PROGRESS.md` | Tóm tắt trạng thái toàn dự án | `PROGRESS.template.md` |
+| `docs/work/<id>/working.md` → `done.md` | Hồ sơ nối phiên của từng yêu cầu: chủ trì, checkpoint, bước tiếp theo, bằng chứng gộp | `docs/framework/templates/WORK.template.md` |
 | `docs/goals/<id>.md` | Checkpoint goal nhiều PR | `docs/framework/templates/GOAL.template.md` |
 | `docs/specs/<date>-<slug>.md` | Research + feature contract | `docs/framework/templates/FEATURE-SPEC.template.md` |
 | ADR | Quyết định khó đảo ngược | `docs/adr/0000-template.md` |
@@ -57,13 +58,13 @@ giữ tóm tắt; Goal giữ iteration state; Spec giữ contract capability; Gi
 
 Cùng 9 cổng ở trên, nhìn theo **5 câu hỏi vòng đời**. "Tầng" ở đây là *tầng vòng đời*, khác "Tầng 1/2/3"
 của `orchestration-3-tier.md` (*tầng điều phối*) — cột "Ai làm" nói rõ ánh xạ. Không có agent nào mới:
-tầng ①②⑤ là **vai của phiên chính**; ③④ cũng do phiên chính làm, chỉ spawn subagent khi có lợi rõ (§3c).
+tầng ①②⑤ là **vai của phiên chính**; tầng ③ giao theo số PR ở §3c, tầng ④ do phiên chính nghiệm thu.
 
 | Tầng vòng đời | Câu hỏi | Cổng | Ai làm (lệnh / agent) | Artifact ra | Cổng máy kiểm | Fail ở tầng sau → quay về đây khi |
 | --- | --- | --- | --- | --- | --- | --- |
 | ① Product & UX | Xây gì, tại sao? | Frame · Research · Approve | Phiên chính: `/consult`, `/grill`, `lookup`/`version-check` (tra cứu) | `docs/goals/<id>.md`, `docs/specs/<ngày>-<slug>.md` **Approved** | `pr-policy.yml` (PR `feat` chưa Approved → đỏ) | acceptance criteria sai/thiếu, scope lệch, edge case chưa nêu |
 | ② Design | Hoạt động / trông thế nào? | Approve (spec §6, §10, §11) · Plan | Phiên chính: `/ui-ux` (UI) hoặc thiết kế CLI/API/DX theo hồ sơ C4/C5 | Mục journeys-mọi-state, UX/a11y, kiến trúc & điểm chạm **trong cùng spec** | axe/E2E a11y, Lighthouse CI (hồ sơ C1); cổng hồ sơ khác ở `quality-gates-by-profile.md` | thiếu state (tải/rỗng/lỗi), luồng không khớp, contract API/DDL chưa chốt |
-| ③ Engineering | Xây bằng cách nào? | Plan · Build | Agent chính tự làm (mặc định, §3c); mức L có ≥ 2 đơn vị độc lập mới dùng PLAN.md → `coordinator` → worker `route:` (`subagent-dispatch.sh --tier`) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
+| ③ Engineering | Xây bằng cách nào? | Plan · Build | Một PR: phiên chính có thể tự làm; ≥ 2 PR: subagent thực thi theo contract/dependency; coordinator là tùy chọn (§3c) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
 | ④ Verify & Operate | Đúng, an toàn, chạy tốt không? | Verify · Integrate · Observe | `/gate` (§5–§7), `tester`, `reviewer`, `security-reviewer`; `release-readiness.md`; `/incident`; `/maintain` | Báo cáo xác thực §7, PR xanh + auto-merge, post-mortem, `MAINTENANCE-*.md` | `ci.yml` job `gate`, `secret-scan`, `dependency-review`, `maintenance.yml` | cổng/CI/hạ tầng sai (máy xanh giả, lockfile lệch — xem `gate.md` Bước 1) |
 | ⑤ Knowledge | Hệ thống biết gì, đã đổi gì? | Reconcile (+ mọi PR, §8 bước 0/5) | Phiên chính: `/adr`, cập nhật `PROGRESS.md`, `CONTEXT.md`, `TRAPS.md`, `CODEMAP.md`, `docs/changelog/` | ADR, TRAPS mục mới, PROGRESS mốc + SHA, changelog đợt việc | `progress-freshness` (PF-1..3), `docs-consistency`, `maintenance-sweep` 🟡 `DEBT:` thiếu `xem lại khi:` | (không có tầng sau) — tri thức sai làm ① của chu kỳ kế lệch: sửa tại ADR/TRAPS, không sửa code |
 
@@ -82,20 +83,122 @@ nghi ngờ thì chọn mức cao hơn. Mức chỉ đổi **lượng giấy tờ
 | --- | --- | --- | --- |
 | S | `fix`/`chore`/`docs`/`refactor`/`test`, một PR, không đổi schema, API công khai, auth hay dữ liệu thật | Issue hoặc mô tả PR (vấn đề, bằng chứng, rủi ro) — không cần spec | Agent chính tự làm |
 | M | Tính năng gọn trong một PR, không chạm mốc §9 | Spec gọn Approved: mục 1, 2, 5, 9, 11 + Approval của `FEATURE-SPEC.template.md` | Agent chính tự làm |
-| L | Nhiều PR/phiên, schema/API phá vỡ, auth/thanh toán/dữ liệu thật, quyết định khó đảo | Spec đầy đủ Approved + `docs/goals/<id>.md`; ADR/threat model khi §9 yêu cầu | Agent chính lập kế hoạch và làm phần lõi; tách worker khi có ≥ 2 đơn vị độc lập thật |
+| L | Nhiều PR/phiên, schema/API phá vỡ, auth/thanh toán/dữ liệu thật, quyết định khó đảo | Spec đầy đủ Approved + `docs/goals/<id>.md`; ADR/threat model khi §9 yêu cầu | Phiên chính lập kế hoạch/nghiệm thu; từ 2 PR giao subagent thực thi, một PR có thể tự làm |
 
 **Không mức nào nới:** test đỏ-trước cho `fix:` và code mới có logic (ADR-0005); `scripts/dev-task.sh gate`
 xanh trước commit; required checks CI; feature gate "Approved for implementation" cho mọi PR `feat`
 (`pr-policy.yml`); dừng và hỏi ở mốc §9 của `CLAUDE.md`; báo cáo có bằng chứng (§7).
 
-**Agent chính tự làm** là mặc định: đọc, sửa, test, mở PR trong cùng ngữ cảnh. Chỉ giao subagent khi có lợi
-đo được — đọc/tra cứu song song nhiều nơi, cô lập ngữ cảnh rất lớn, hoặc đơn vị độc lập thật ở mức L
-(khi đó dùng `orchestration-3-tier.md`). Không chuyển giao, đổi model hay viết `PLAN.md` chỉ cho đủ nghi thức;
-mỗi lần bàn giao làm mất ngữ cảnh và tốn token.
+**Phân chia theo số PR, tách khỏi mức rủi ro:** phiên chính phân tích yêu cầu, outcome,
+scope, rủi ro, số PR cần thiết và dependency trước khi làm. **Agent chính tự làm** được
+phép với một PR; **từ 2 PR trở lên phải giao subagent đủ năng lực** thực thi từng đơn vị,
+kể cả các PR phụ thuộc cần chạy tuần tự. Không chia PR giả tạo để kích hoạt subagent.
+Giữ quyết định khó/contract và nghiệm thu ở phiên chính; không phải mọi mức L đều cần nhiều PR.
+
+- **Tối đa 3 subagent đang chạy trong toàn cây**, tính cả coordinator, reviewer, tester
+  và agent do subagent tạo. Coordinator đang chạy thì còn tối đa hai slot cho agent khác.
+  Một phiên chính quản lý ngân sách slot; không để mỗi coordinator tự cấp thêm ba slot.
+- Mỗi đơn vị có owner, cấp năng lực/model đã xác minh, input/output, acceptance/test,
+  phạm vi ghi, nhánh/worktree và PR riêng. Nếu brief chưa đủ kín cho worker đủ năng lực,
+  phiên chính chốt thiết kế trước; không hạ chất lượng hoặc mặc định chọn model rẻ nhất.
+- Đơn vị độc lập → chạy song song trong ngân sách; có dependency/chung file, migration,
+  dependency cài đặt hay lockfile → tuần tự. Đợi PR phụ thuộc merge rồi reconcile base.
+- Phiên chính đọc diff, tích hợp và chạy đủ cổng; lời subagent không thay bằng chứng.
+  Ba tầng `orchestration-3-tier.md` là tùy chọn; phiên chính → worker là mặc định gọn.
+  Runner không có subagent phù hợp phải ghi rõ giới hạn/blocked của phần phân công,
+  không âm thầm giả đã giao việc. Trần ba PR mở/FIFO là cổng riêng, không phải số slot agent.
 
 **Quyền tách bạch — quyền code ≠ quyền merge ≠ quyền deploy.** Được duyệt spec chỉ mở quyền code. Merge chỉ
 khi người dùng/quy tắc repo cho phép và cổng của đúng head xanh; deploy/production luôn cần quyền riêng,
 không suy ra từ hai quyền trước.
+
+### 3d. Ủy quyền quyết định: chất lượng cao nhất, phương án tối giản nhất
+
+**Mặc định toàn cục của khung, theo yêu cầu chủ repo ngày 2026-10-07:** phiên chính
+tự quyết mọi lựa chọn trong phạm vi công việc được giao, áp cho mọi phiên, nhà cung cấp,
+runner và agent. Mục tiêu là **phương án tối giản nhất đạt chất lượng cao nhất có thể**;
+người dùng có thể giới hạn hoặc thu hồi ủy quyền cho công việc cụ thể.
+
+1. **Hiểu trước, chọn sau:** lần đúng luồng thật; tự tra dữ kiện; nêu giả thuyết và cách
+   kiểm chứng. Chốt outcome, ràng buộc và tiêu chí chấp nhận từ yêu cầu/ngữ cảnh đã có.
+   Không thay thế bằng cảm tính, điểm số tự bịa hay lời khai của model.
+2. **Chất lượng là điều kiện chọn:** giữ tính đúng, bảo mật, validate biên tin cậy,
+   xử lý lỗi chống mất dữ liệu, logic nhất quán, a11y theo hồ sơ, khả năng kiểm thử,
+   vận hành và bảo trì. Chứng minh bằng kiểm tra phù hợp rủi ro; không hạ tiêu chí,
+   bỏ test hay bỏ cổng để đạt ít dòng code hoặc nhanh hơn.
+3. **Tối giản mọi mặt trong các phương án đạt chất lượng:** theo thang `CLAUDE.md` §3.4;
+   ưu tiên tái sử dụng, thư viện chuẩn, nền tảng, dependency đã cài và lời giải nhỏ đủ dùng.
+   Giảm code, nhánh logic, coupling, dependency, cấu hình, artifact trùng, công cụ,
+   bước bàn giao, chi phí vận hành và việc bảo trì. Ít dòng nhưng khó đọc/ẩn rủi ro
+   không phải tối giản. Không thêm abstraction, tầng, tính năng hoặc nghi thức chưa cần.
+4. **TDD và bằng chứng giữ nguyên:** bug/code mới có logic làm đỏ → sửa → xanh theo
+   ADR-0005; ngoại lệ đóng ở `CLAUDE.md` §3.6. Research, spec Approved cho M/L,
+   review diff, gate/CI, DoD và báo cáo xác thực vẫn bắt buộc. Độ sâu tỉ lệ với rủi ro;
+   chất lượng cao không đồng nghĩa dùng nhiều công cụ/model/agent hay mở rộng scope.
+5. **Phiên chính chốt và chịu trách nhiệm:** quyết định kỹ thuật, trade-off, kế hoạch,
+   lựa chọn công nghệ, duyệt spec, nghiệm thu và chuyển giai đoạn trong scope đã giao
+   được tự quyết sau khi có đủ bằng chứng. Báo ngắn phương án + lý do; ghi vào artifact
+   hiện có, ADR chỉ khi đúng tiêu chí. Subagent làm trong contract được giao;
+   phiên chính review và tích hợp, không dùng ủy quyền để bỏ qua kiểm tra.
+
+**Cách áp dụng các cổng phê duyệt:** mọi chỉ dẫn "người dùng quyết", "dừng chờ duyệt",
+"xin xác nhận" trong tài liệu/lệnh của khung phải đọc cùng §3d. Khi quyết định đã được
+ủy quyền, phiên chính tự review rồi ghi **"Approved for implementation — phiên chính
+duyệt theo ủy quyền của chủ repo ngày 2026-10-07"**, kèm ngày duyệt thực tế, phạm vi và
+bằng chứng. Không giả người dùng đã duyệt tay. Cổng máy vẫn phải xanh; chế độ runner
+bắt buộc người dùng xác nhận thật vẫn phải được tôn trọng và báo đúng giới hạn.
+
+**Chỉ hỏi phần thực sự thiếu:** mục tiêu/dữ kiện không thể tự xác minh; không có phương án
+đạt chất lượng trong scope/budget; hoặc hành động cần quyền chưa được cấp. Không suy
+quyền xóa dữ liệu, thay đổi phá vỡ dữ liệu thật, thanh toán hay deploy/production từ
+ủy quyền lựa chọn kỹ thuật. Quyền code/merge/deploy đã được cấp riêng tiếp tục có hiệu lực;
+không hỏi lại quyền đó. Công việc bảo mật phòng thủ, sửa bug và trade-off kỹ thuật
+trong scope được tự xử lý. Cổng đỏ hoặc thiếu bằng chứng → sửa/thu hẹp đúng scope;
+không tự giảm chất lượng để tránh hỏi. Luật dừng sau 3 lần cùng failure vẫn giữ nguyên.
+
+### 3e. Hồ sơ công việc bền vững: working.md → done.md
+
+**Trước mọi công việc**, phiên chính đọc `PROGRESS.md`, liệt kê
+`docs/work/*/working.md` và `docs/work/*/done.md`, đọc đầy đủ hồ sơ active và lịch sử
+liên quan, đối chiếu `git status`, nhánh/SHA, PR/CI thật. Nối hồ sơ đúng ID nếu đang dở;
+không tạo lại công việc đã có chỉ vì một phiên mới không nhớ. Nếu đã done nhưng hồi quy
+hoặc yêu cầu thay đổi, tạo work ID mới và liên kết hồ sơ cũ, không ghi đè lịch sử.
+
+**Một yêu cầu một thư mục** `docs/work/<ngày>-<slug>/`; tạo `working.md` từ
+`docs/framework/templates/WORK.template.md` trước research/thực thi. Đây là hồ sơ
+nối phiên, không thay Project/spec/goal/Issue/PR. Với goal nhiều PR, dẫn tới checklist
+goal; không sao chép cùng checklist/trạng thái vào nhiều file. `PROGRESS.md` giữ tóm tắt
+và đường dẫn active; Git/PR/CI là nguồn sự thật về commit, test và merge.
+
+- Ghi yêu cầu/outcome, scope/non-goal, owner, phân loại S/M/L, số PR dự kiến,
+  kế hoạch/contract/dependency, nhánh/base SHA, quyết định, bằng chứng, failure/lần thử,
+  blocker và **một bước tiếp theo cụ thể**. Chưa biết thì ghi unknown, không điền số bịa.
+- Cập nhật ngay sau mốc có ý nghĩa, test quan trọng, thay đổi kế hoạch/PR, blocker;
+  bắt buộc trước nén, đổi phiên, giao việc hoặc kết thúc lượt còn công việc dở.
+  Bằng chứng gắn với head/base/thời điểm, không biến test của code cũ thành test code mới.
+- Phiên chính là writer của hồ sơ tổng. Subagent chỉ ghi checkpoint vào hồ sơ đơn vị
+  riêng `docs/work/<work-id>-<unit-id>/working.md` hoặc artifact thuộc phạm vi ghi;
+  phiên chính reconcile, không để ba agent cùng sửa sổ tổng. Hồ sơ và mã phải được
+  giữ trong cùng nhánh/PR hoặc commit bàn giao qua đúng cổng; không tự discard file dở.
+- Trạng thái `Planned`, `Active`, `Blocked`, `Ready` đều giữ tên `working.md`.
+  Worker báo xong, test xanh hoặc PR đã mở **chưa phải Done**. Không có PR cho công việc
+  chỉ nghiên cứu thì phải ghi rõ no-code/no-PR và bằng chứng nghiệm thu; không bịa merge.
+- Chỉ khi DoD đạt và **mọi PR của đơn vị đã MERGED**, phiên chính kiểm bằng chứng
+  PR/merge SHA/base/main và unresolved review/CI trước khi rename `working.md` thành
+  `done.md` trong chính thư mục đó. Không overwrite done có sẵn; giữ ID, quyết định,
+  scope, link test và kết quả cuối. Hồ sơ tổng chờ đủ mọi đơn vị. PR bị đóng không merge,
+  hủy việc hoặc blocked không được biến thành done.
+- Reconcile sau merge trên main; ghi rename vào PR kế tiếp hoặc PR tài liệu nhỏ nếu
+  cần chốt phiên. Không thể đưa bằng chứng merge thật của chính PR vào PR trước khi nó
+  merge; không vì muốn khép hồ sơ mà giả trạng thái hoặc push thẳng main.
+
+**Khôi phục đầu phiên:** SessionStart của Claude Code liệt kê hồ sơ active trước
+PROGRESS trong trần byte hiện có, không nạp nội dung hồ sơ hay lịch sử done. Agent phải
+đọc full file và đối chiếu Git/PR/CI; khi output bị cắt, liệt kê/đọc file trực tiếp.
+Runner không có hook thực hiện cùng bước đọc theo CLAUDE/AGENTS. PreCompact hiện có
+chụp Git/PROGRESS; checkpoint công việc vẫn phải ghi vào working.md trước nén.
+Không hứa "không bao giờ quên": file/Git giúp phục hồi, còn mất chưa lưu, runner không
+đọc chỉ dẫn hoặc bằng chứng bên ngoài không truy cập được phải được báo rõ.
 
 ## 4. AI Goal Loop
 

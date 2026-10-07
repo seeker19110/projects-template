@@ -63,6 +63,9 @@ class RiskTiers(TestCase):
     def test_main_agent_codes_and_rights_stay_separate(self):
         tiers = section(read(DELIVERY), "### 3c. Mức quy trình theo rủi ro")
         self.assertIn("Agent chính tự làm", tiers)
+        self.assertIn("từ 2 PR trở lên phải giao subagent đủ năng lực", tiers)
+        self.assertIn("Tối đa 3 subagent đang chạy trong toàn cây", tiers)
+        self.assertIn("tuần tự", tiers)
         self.assertIn("quyền code ≠ quyền merge ≠ quyền deploy", tiers)
 
     def test_three_tier_orchestration_is_opt_in(self):
