@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203) đã merge; tiếp theo LD-04.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203) đã merge; LD-04 ở #205.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `3cee6a7be1aa3ee203bd0a52d4f3e29641ec1c8c` (`origin/main`, sau PR #203).
+- Default-branch SHA đã đối chiếu: `30dc004` (`origin/main`, sau PR #206).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -24,6 +24,11 @@ LD-02 (mức quy trình S/M/L theo rủi ro — `standard-delivery.md` §3c, spe
 agent chính tự làm, 3 tầng tùy chọn cho mức L, ADR-0010) đã merge ở #203; AC-2 nối tới
 `tests/test_adaptive_process.py`. TRAPS mục 48 (commit do công cụ sinh làm đỏ `metadata`)
 đi PR riêng vì đẩy sau khi #203 đã merge.
+LD-04 ở #205 (nhánh `claude/jolly-ramanujan-g6sj70`): `dev-task.sh review-check` đọc `review-findings/1`,
+loại finding không căn cứ (thiếu kịch bản/bằng chứng, `defect` không trỏ được `path:line` có thật),
+định tuyến `defect`→REPAIR-CODE, `missing-evidence`→RERUN-EVIDENCE, `missing-input`→ASK-UPSTREAM
+(hai loại sau không sinh yêu cầu sửa code). Bằng chứng: `scripts/test-dev-task.sh` mục 7c.
+LD-05..08 đã code và qua gate cục bộ trên nhánh tích hợp; mở PR lần lượt sau khi #205 merge.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 

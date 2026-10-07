@@ -10,7 +10,7 @@
 #   2) TỰ DÒ: nhận diện hệ sinh thái (node/python/go/rust/make) → chạy lệnh quy ước.
 #   3) Task đơn lẻ chưa có lệnh → skip. RIÊNG gate/doctor: thiếu kiểm tra → BLOCKED.
 #
-# Task hỗ trợ: format | lint | typecheck | test | build | gate | doctor
+# Task hỗ trợ: format | lint | typecheck | test | build | gate | doctor | evidence-check | review-check
 #   gate = tiền kiểm đủ build/typecheck/lint/test, rồi chạy fail-fast; thiếu command → BLOCKED.
 #   doctor = cùng tiền kiểm, chỉ READY (không chạy kiểm tra, không phải PASS).
 #   N/A theo profile: gate_skip_<task>_reason trong config đã review; không được bỏ tất cả.
@@ -512,6 +512,45 @@ evidence_check() {
   log "VERIFIED: evidence PASS khớp HEAD/config/working tree hiện tại. Không phải chữ ký; CI của đúng commit là nguồn nghiệm thu tích hợp."
 }
 
+# --- review-check: finding phải có căn cứ, repair theo đúng nguyên nhân (LD-04) --
+# Schema review-findings/1: {findings:[{id,kind,location,scenario,evidence}]}. kind:
+#   defect           → REPAIR-CODE: lỗi code thật; bắt buộc path:line có trong repo, test đỏ trước khi sửa
+#   missing-evidence → RERUN-EVIDENCE: bằng chứng thiếu/cũ (vd evidence-check STALE) — chạy lại, KHÔNG sửa code
+#   missing-input    → ASK-UPSTREAM: spec/AC/thiết kế thiếu — hỏi hoặc sửa tầng trên, KHÔNG sửa code
+#   cleanup          → OPTIONAL: gợi ý không chặn
+# Finding thiếu kịch bản/bằng chứng, kind lạ, hoặc defect không trỏ được dòng có thật → UNSUPPORTED (exit 1).
+location_exists() {  # $1=path:line → true nếu path nằm trong ROOT và có dòng đó
+  local path="${1%:*}" line="${1##*:}" n
+  case "$path" in ''|/*|../*|*/../*) return 1 ;; esac
+  [[ "$line" =~ ^[1-9][0-9]*$ ]] && [ -f "$ROOT/$path" ] || return 1
+  n="$(awk 'END { print NR }' "$ROOT/$path")"; [ "$line" -le "$n" ]
+}
+review_action() {  # $1=kind $2=location → nhãn hành động; rỗng nếu finding không có căn cứ
+  case "$1" in
+    defect) location_exists "$2" && echo REPAIR-CODE ;;
+    missing-evidence) echo RERUN-EVIDENCE ;;
+    missing-input) echo ASK-UPSTREAM ;;
+    cleanup) echo OPTIONAL ;;
+  esac
+}
+review_check() {
+  local f="${1:-}" id kind loc action rejected=0 total=0
+  [ -n "$f" ] && [ -f "$f" ] || { blocked "không có file findings: ${f:-<thiếu đường dẫn>}"; return 2; }
+  command -v jq >/dev/null 2>&1 || { blocked 'thiếu jq để đọc findings'; return 2; }
+  jq -e '.schema == "review-findings/1" and (.findings | type == "array")' "$f" >/dev/null 2>&1 \
+    || { blocked "findings hỏng hoặc sai schema (cần review-findings/1): $f"; return 2; }
+  while IFS=$'\x1f' read -r id kind loc; do   # \x1f không phải khoảng trắng: trường rỗng không bị gộp
+    total=$((total + 1)); action="$(review_action "$kind" "$loc")"
+    [ "$id" != '-' ] && [ -n "$action" ] || { rejected=$((rejected + 1)); log "UNSUPPORTED $id: thiếu căn cứ (kind/kịch bản/bằng chứng/path:line có thật)"; continue; }
+    log "$action $id${loc:+ @ $loc}"
+  done < <(jq -r '.findings[] | [(if ((.id // "") | tostring) == "" then "-" else .id end),
+      (if ((.scenario // "") | length) > 0 and ((.evidence // "") | length) > 0 then (.kind // "") else "" end),
+      (.location // "")] | map(tostring | gsub("[\u001f\r\n]"; " ")) | join("\u001f")' "$f" | tr -d '\r')
+  # tr: jq trên Windows in CRLF; `$(...)` của Git Bash bỏ \r nhưng `read` từ process substitution thì không.
+  [ "$rejected" -eq 0 ] || { log "REJECTED: $rejected/$total finding không có căn cứ — bổ sung bằng chứng, không sửa code theo chúng"; return 1; }
+  [ "$total" -gt 0 ] || log 'CLEAN: không có finding'
+}
+
 # --- Điều phối ---------------------------------------------------------------
 case "$TASK" in
   --print)
@@ -529,6 +568,8 @@ case "$TASK" in
     verify_contract "$@"; exit $? ;;
   evidence-check)
     evidence_check "${2:-}"; exit $? ;;
+  review-check)
+    review_check "${2:-}"; exit $? ;;
   *)
-    log "task không hợp lệ: '$TASK' (format|lint|typecheck|test|build|gate|doctor|evidence-check)"; exit 2 ;;
+    log "task không hợp lệ: '$TASK' (format|lint|typecheck|test|build|gate|doctor|evidence-check|review-check)"; exit 2 ;;
 esac
