@@ -105,7 +105,7 @@ Làm đúng mục 'Bạn LÀM' theo thứ tự: báo cáo quét ĐÃ có sẵn �
 Triage từng phát hiện, rồi viết docs/ops/MAINTENANCE-PLAN.md theo mẫu và DỪNG chờ duyệt. Không sửa source, không commit. \
 Kết thúc bằng khối 'Trả kết quả' đúng định dạng."
 if ! bash scripts/subagent-dispatch.sh --agent maintainer --harness generic --task "$TASK" --context-file "$REPORT" > "$PROMPT_FILE"; then
-  log "subagent-dispatch thất bại (cần Python 3)"; exit 3
+  log "subagent-dispatch thất bại (cần Python 3; báo cáo sweep phải là UTF-8, không rỗng, ≤ 256 KiB)"; exit 3
 fi
 log "prompt: $PROMPT_FILE ($(wc -c <"$PROMPT_FILE") byte)"
 

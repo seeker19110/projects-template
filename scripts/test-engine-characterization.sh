@@ -25,6 +25,6 @@ PYTHON_CMD="python3"
 command -v python3 >/dev/null 2>&1 || PYTHON_CMD="python"
 
 # Thân test nằm ở tests/engine_characterization/ (tách 2026-10-06, W-05: file .sh cũ 455 dòng > ngưỡng 400);
-# gồm test_radar.py, test_compiler.py, test_dispatch.py, common.py — hành vi và số ca test không đổi (35).
+# gồm test_radar.py, test_compiler.py, test_dispatch.py, common.py — hành vi và số ca test không đổi (42 sau LD-05: context thiếu/hỏng/quá lớn báo lỗi thay vì bỏ im lặng).
 # PYTHONIOENCODING: console Windows mặc định cp1252 → in tiếng Việt sẽ UnicodeEncodeError (TRAPS.md bẫy 24).
 PYTHONIOENCODING=utf-8 "$PYTHON_CMD" -m unittest discover -s tests/engine_characterization -t . -v

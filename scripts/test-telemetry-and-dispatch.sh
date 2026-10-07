@@ -84,6 +84,17 @@ else
   ok "subagent-dispatch --tier chặn giá trị không hợp lệ"
 fi
 
+echo "== 1b. Dispatcher chỉ chuẩn bị, context không bị bỏ im lặng (LD-05/AC-5) =="
+err_prep="$(bash "$ROOT/scripts/subagent-dispatch.sh" --agent tester --task t --harness codex 2>&1 >/dev/null)"
+echo "$err_prep" | grep -q "prepare-only" && ok "dispatch nói rõ prepare-only (không chạy agent, không cấp quyền)" || bad "dispatch không nói rõ prepare-only"
+json_prep="$(bash "$ROOT/scripts/subagent-dispatch.sh" --agent tester --task t --harness claude --json 2>/dev/null)"
+echo "$json_prep" | grep -q '"executed": false' && ok "payload JSON có executed=false" || bad "payload JSON thiếu executed=false"
+if bash "$ROOT/scripts/subagent-dispatch.sh" --agent tester --task t --context-file "$ROOT/khong-co-file-nay.txt" >/dev/null 2>&1; then
+  bad "--context-file thiếu vẫn thoát 0 (context bị bỏ im lặng)"
+else
+  ok "--context-file thiếu → thoát khác 0"
+fi
+
 echo "== 2. Telemetry & Observability Engine =="
 
 out_rec="$(bash "$ROOT/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"

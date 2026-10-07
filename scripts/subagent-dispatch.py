@@ -8,8 +8,12 @@ KHÔNG kê tên harness chưa có nhánh xử lý — bản đầu ghi cả Curs
 docstring dù `--harness` chỉ nhận 4 giá trị, khiến người đọc tưởng đã hỗ trợ (A-03).
 Harness chưa có nhánh riêng dùng `generic`: trả về system prompt thô để tự dán.
 
-Cho phép MỌI AI Coding Harness nạp và điều phối các subagent trong `.claude/agents/*.md`
-theo đúng quy ước 3-Tier Architecture (docs/framework/orchestration-3-tier.md).
+CHỈ CHUẨN BỊ (prepare-only): đọc vai trong `.claude/agents/*.md` và in prompt/lời gọi cho từng
+harness theo quy ước 3-Tier (docs/framework/orchestration-3-tier.md). KHÔNG gọi harness, KHÔNG
+chạy agent, KHÔNG cấp hay cưỡng chế quyền: `tools`/`model`/`effort` trong payload chỉ là gợi ý
+từ frontmatter — harness/người gọi mới là bên thực thi và giới hạn quyền (LD-05, AC-5).
+Context (`--context-file`) thiếu, rỗng, không phải UTF-8 hoặc vượt `--max-context-bytes` → lỗi
+thoát 2; không bao giờ bỏ qua hay cắt im lặng.
 """
 
 import sys
@@ -27,6 +31,12 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AGENTS_DIR = os.path.join(ROOT_DIR, ".claude", "agents")
 CAPABILITY_MAP_FILE = os.path.join(ROOT_DIR, "scripts", "model-capability-tiers.json")
+PREPARE_ONLY_NOTICE = (
+    "subagent-dispatch: CHỈ CHUẨN BỊ (prepare-only) — không gọi harness, không chạy agent, "
+    "không cấp/cưỡng chế quyền; tools/model/effort chỉ là gợi ý từ frontmatter."
+)
+# Trần theo BYTE (không phải token): chặn nối nhầm file khổng lồ, không phải giới hạn của model.
+DEFAULT_MAX_CONTEXT_BYTES = 262144
 
 # Nhãn route: -> cấp năng lực trong CAPABILITY_MAP_FILE (đa nhà cung cấp, xem
 # docs/framework/orchestration-3-tier.md). "planning" không gắn với agent nào (là Tầng 1).
@@ -107,6 +117,8 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
     if harness_type == "hermes":
         return {
             "harness": "hermes",
+            "mode": "prepare-only",
+            "executed": False,
             "delegate_task_call": {
                 "tasks": [
                     {"goal": f"[{name}] {task_text[:200]}...", "context": full_prompt}
@@ -120,6 +132,8 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
         # subagent_type = tên file trong .claude/agents/. Trả về đúng hình dạng lời gọi đó.
         return {
             "harness": "claude",
+            "mode": "prepare-only",
+            "executed": False,
             "tool_call": {
                 "tool": "Task",
                 "subagent_type": name,
@@ -129,9 +143,11 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
             "agent": agent_info,
         }
     elif harness_type == "codex":
-        return {"harness": "codex", "prompt": full_prompt, "agent": agent_info}
+        return {"harness": "codex", "mode": "prepare-only", "executed": False,
+                "prompt": full_prompt, "agent": agent_info}
     else:
-        return {"harness": "generic", "prompt": full_prompt, "agent": agent_info}
+        return {"harness": "generic", "mode": "prepare-only", "executed": False,
+                "prompt": full_prompt, "agent": agent_info}
 
 
 def _build_parser():
@@ -156,6 +172,12 @@ def _build_parser():
         choices=["hermes", "claude", "codex", "generic"],
         default="generic",
         help="Target AI Harness",
+    )
+    parser.add_argument(
+        "--max-context-bytes",
+        type=int,
+        default=DEFAULT_MAX_CONTEXT_BYTES,
+        help="Trần byte của --context-file; vượt → lỗi thoát 2, không tự cắt",
     )
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
     parser.add_argument(
@@ -210,11 +232,34 @@ def _print_agent_list(as_json):
         print(f"  - {a['name']:<20} [{a['model']:<8}] : {a['description'][:80]}...")
 
 
-def _load_task_text(task, context_file):
-    if context_file and os.path.exists(context_file):
-        with open(context_file, "r", encoding="utf-8", errors="ignore") as f:
-            return task + "\n\n" + f.read()
-    return task
+def _context_problem(path, limit):
+    """Lý do context không dùng được (trước khi đọc), hoặc None."""
+    if not os.path.isfile(path):
+        return f"không tồn tại hoặc không phải file: {path}"
+    size = os.path.getsize(path)
+    if size == 0:
+        return f"rỗng: {path}"
+    if size > limit:
+        return f"{size} byte vượt giới hạn {limit} (--max-context-bytes); không tự cắt: {path}"
+    return None
+
+
+def _read_context_file(path, limit):
+    problem = _context_problem(path, limit)
+    if problem is None:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        except UnicodeDecodeError:
+            problem = f"không phải UTF-8 hợp lệ: {path}"
+    print(f"Error: context-file: {problem}", file=sys.stderr)
+    raise SystemExit(2)
+
+
+def _load_task_text(task, context_file, limit=DEFAULT_MAX_CONTEXT_BYTES):
+    if context_file is None:
+        return task
+    return task + "\n\n" + _read_context_file(context_file, limit)
 
 
 def _print_payload(payload, harness, as_json):
@@ -259,9 +304,9 @@ def main():
         print(f"Error: Agent '{args.agent}' not found at {agent_file}", file=sys.stderr)
         sys.exit(1)
 
-    payload = build_dispatch_payload(
-        agent_info, _load_task_text(args.task, args.context_file), args.harness
-    )
+    task_text = _load_task_text(args.task, args.context_file, args.max_context_bytes)
+    payload = build_dispatch_payload(agent_info, task_text, args.harness)
+    print(PREPARE_ONLY_NOTICE, file=sys.stderr)
     _print_payload(payload, args.harness, args.json)
 
 

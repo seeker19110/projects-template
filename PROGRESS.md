@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205) đã merge; LD-07 đang mở PR, rồi LD-05 → LD-06 → LD-08.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207) đã merge; LD-05 đang mở PR, rồi LD-06 → LD-08.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `9e84011` (`origin/main`, sau PR #205).
+- Default-branch SHA đã đối chiếu: `082f1e4` (`origin/main`, sau PR #207).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -26,10 +26,12 @@ agent chính tự làm, 3 tầng tùy chọn cho mức L, ADR-0010) đã merge �
 đi PR riêng vì đẩy sau khi #203 đã merge.
 LD-04 (`dev-task.sh review-check`, `review-findings/1`: finding không căn cứ bị loại, thiếu
 evidence/input không sinh yêu cầu sửa code; ca jq CRLF của Windows) đã merge ở #205.
-LD-07 trên nhánh `claude/jolly-ramanujan-g6sj70`: telemetry `telemetry-record/2` — token thiếu = unknown,
-lần thử ≠ công việc nghiệm thu (cần evidence gate PASS), chi phí gồm cả lần thất bại. Bằng chứng
-`tests/test_telemetry_integrity.py` + `scripts/test-hooks-session.sh` mục 4b.
-LD-05, LD-06, LD-08 đã code và qua gate cục bộ; mở PR lần lượt sau khi PR trước merge.
+LD-07 (telemetry `telemetry-record/2`: token thiếu = unknown, lần thử ≠ công việc nghiệm thu,
+chi phí gồm cả lần thất bại) đã merge ở #207.
+LD-05 trên nhánh `claude/jolly-ramanujan-g6sj70`: `subagent-dispatch` nói rõ prepare-only
+(`mode`/`executed=false`, không chạy agent, không cưỡng chế quyền); context thiếu/rỗng/không UTF-8/
+vượt `--max-context-bytes` → exit 2. Bằng chứng `tests/engine_characterization/test_dispatch.py`.
+LD-06, LD-08 đã code và qua gate cục bộ; mở PR lần lượt sau khi PR trước merge.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
