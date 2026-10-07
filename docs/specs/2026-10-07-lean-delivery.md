@@ -96,7 +96,7 @@ thật: AC đó chưa được gọi là đạt.
 | AC | Bằng chứng | Ghi chú |
 | --- | --- | --- |
 | AC-1 | `tests/test_ci_suite_parity.py::test_every_linux_suite_runs_exactly_once` | LD-01, #200; full local gate và CI |
-| AC-2 | chưa có — LD-02 (#203 mang test hợp đồng quy trình) | cập nhật khi #203 vào main |
+| AC-2 | `tests/test_adaptive_process.py::test_compact_approved_spec_passes_compiler_contract`, `tests/test_adaptive_process.py::test_main_agent_codes_and_rights_stay_separate`, `tests/test_adaptive_process.py::test_feature_gate_still_enforced_by_pr_policy` | LD-02, #203; đỏ trước, xanh sau |
 | AC-3 | `scripts/test-dev-task.sh::evidence_tests`, `scripts/test-dev-task.sh::noop_tests`, `scripts/test-next-gen-engines.sh::c4_case`, `tests/test_acceptance_trace.py::test_every_gap_is_reported_and_blocks_completion` | LD-03; đỏ trước, xanh sau |
 | AC-4 | chưa có — LD-04 | |
 | AC-5 | chưa có — LD-05 | |

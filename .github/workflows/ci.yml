@@ -136,6 +136,9 @@ jobs:
       - name: Linux suite parity with the full local gate
         run: python3 tests/test_ci_suite_parity.py
 
+      - name: Adaptive process contract (LD-02)
+        run: python3 tests/test_adaptive_process.py
+
       - name: Cú pháp Python (py_compile — scripts và tests)
         run: |
           set -e
