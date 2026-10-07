@@ -93,7 +93,7 @@
 | FT-35 | Research-first chọn công nghệ | `03-tech-selection-and-proactive-advice.md` | `docs/research/` | ✅ | link-check |
 | FT-36 | Điều phối 3 tầng | `orchestration-3-tier.md` | `.claude/agents/` | ✅ | link-check |
 | FT-37 | Bổ sung chất lượng (Nhóm 1+2, theme, i18n/PWA/SEO) | `quality-supplements.md` | dropins | ✅ | link-check |
-| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ cho copy/gate Node và Python tối thiểu; các stack khác chưa nghiệm thu | `test-adoption-smoke.sh` (đỏ/xanh Node/Python, clone sạch, CI offline); báo cáo `docs/reports/2026-10-05-adoption-smoke.md` |
+| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ cho copy/gate Node và Python tối thiểu; các stack khác chưa nghiệm thu | `test-adoption-smoke.sh` (đỏ/xanh Node/Python, clone sạch, CI offline); `tests/test_lean_adoption.py` (upgrade giữ config/ghi chú, evidence cũ/FAIL bị từ chối); protocol `docs/framework/lean-delivery-benchmark.md` (metric model unknown); báo cáo `docs/reports/2026-10-05-adoption-smoke.md` |
 | FT-39 | Model + tự động hoá + tối ưu token | `models-and-automation.md` | `.claude/settings*.json` | ✅ | link-check |
 | FT-40 | Spec-driven tuỳ chọn (OpenSpec) | `spec-driven-openspec.md` | `openspec/` | ✅ | link-check |
 | FT-41 | Case-study greenfield chạy thật | `case-study-greenfield-dry-run.md` | — | 🚧 Bước 6–8 chưa kiểm chứng (cần tài khoản thật) | ❌ |

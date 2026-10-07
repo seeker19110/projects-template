@@ -142,6 +142,9 @@ jobs:
       - name: Profile quality matrix (LD-06)
         run: python3 tests/test_profile_quality_matrix.py
 
+      - name: Lean adoption runtime evidence and protocol (LD-08)
+        run: python3 tests/test_lean_adoption.py
+
       - name: Cú pháp Python (py_compile — scripts và tests)
         run: |
           set -e

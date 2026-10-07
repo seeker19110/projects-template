@@ -55,6 +55,7 @@ class CiSuiteParity(TestCase):
         self.assertIn('python3 tests/test_runtime_safety.py', config)
         self.assertIn('python3 tests/test_ci_suite_parity.py', config)
         self.assertIn('python3 tests/test_profile_quality_matrix.py', config)
+        self.assertIn('python3 tests/test_lean_adoption.py', config)
 
     def test_counts_execution_not_names_comments_or_windows(self):
         workflow = '''jobs:

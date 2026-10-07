@@ -4,8 +4,8 @@
 | --- | --- |
 | Goal ID | LD-2026-10 |
 | Owner | Chủ repo |
-| State | ACTIVE |
-| Default-branch SHA đã reconcile | e2b70bffd8f6adadd14b96b31d7b0ab62f63cc61 |
+| State | WAITING |
+| Default-branch SHA đã reconcile | fb05bd56517d534aee5ceb5301e3a394f7b77645 |
 | Bắt đầu / review | 2026-10-07 |
 | Quyền AI | branch / PR / kiểm thử / merge khi cổng xanh; không production |
 | Budget | Không gọi model/API trả phí; không đổi provider mặc định |
@@ -45,3 +45,19 @@ có benchmark model thật hoặc pilot sản phẩm. Phê duyệt triển khai 
 Tối giản nhầm thành giảm cổng: giữ test âm tính, required checks và các ngưỡng.
 Trạng thái cũ: đọc Git/CI, không tin checkpoint một mình. Thêm công cụ quá mức:
 dùng lại điểm vào và cơ chế hiện có; mọi helper phải giải quyết lỗi đo được.
+
+## Checkpoint 2026-10-07 — LD-08 verification và nghiệm thu
+
+Đã reconcile main `fb05bd5`: LD-01..07 đã merge; LD-06 ở #209 có required checks
+Linux/Windows xanh. Blocker tạo PR (3 lỗi dịch vụ) đã được chủ repo cho phép thử
+lại khi GitHub hoạt động; REST tạo #209 thành công, không bypass hook/ruleset.
+
+LD-08 có regression Node/Python runtime thật và protocol ở
+`docs/framework/lean-delivery-benchmark.md`. AC-1..8 nối tới test hiện hữu trong spec;
+trace đầy đủ là ánh xạ, không tự chứng minh hành vi. Chờ required checks/merge của
+slice cuối rồi trình chủ repo nghiệm thu. Không gọi goal Complete trước bước đó.
+
+Protocol đo 17 suite/34 lời gọi baseline so với 17/17 ở c522839. Không suy ra token
+hay latency từ lời gọi suite. Pilot sản phẩm, hosted CI dự án đích, benchmark model
+và usage thật chưa chạy; ngoài scope triển khai hiện tại, giữ unknown đến khi có
+repo đích/quyền/ngân sách riêng. Không gọi API trả phí hoặc tự triển khai production.
