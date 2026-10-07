@@ -545,7 +545,8 @@ review_check() {
     log "$action $id${loc:+ @ $loc}"
   done < <(jq -r '.findings[] | [(if ((.id // "") | tostring) == "" then "-" else .id end),
       (if ((.scenario // "") | length) > 0 and ((.evidence // "") | length) > 0 then (.kind // "") else "" end),
-      (.location // "")] | map(tostring | gsub("[\u001f\n]"; " ")) | join("\u001f")' "$f")
+      (.location // "")] | map(tostring | gsub("[\u001f\r\n]"; " ")) | join("\u001f")' "$f" | tr -d '\r')
+  # tr: jq trên Windows in CRLF; `$(...)` của Git Bash bỏ \r nhưng `read` từ process substitution thì không.
   [ "$rejected" -eq 0 ] || { log "REJECTED: $rejected/$total finding không có căn cứ — bổ sung bằng chứng, không sửa code theo chúng"; return 1; }
   [ "$total" -gt 0 ] || log 'CLEAN: không có finding'
 }

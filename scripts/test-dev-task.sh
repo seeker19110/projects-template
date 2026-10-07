@@ -282,6 +282,9 @@ review_tests() {
   d="$(gate_fixture review)"; printf 'a\nb\n' > "$d/app.sh"
   findings_file "$f" "$(finding defect app.sh:2 'b rỗng → chia 0' 'test_div_zero đỏ')"
   rv_check "$d" "$f" 0 'REPAIR-CODE F1' "lỗi có vị trí + kịch bản + bằng chứng → sửa code"
+  # jq trên Windows in CRLF (CI framework-lint-windows đã đỏ đúng ca này): giả lập bằng jq bọc thêm \r.
+  mkdir -p "$WORK/crlf-bin"; printf '#!/usr/bin/env bash\n%s "$@" | sed "s/\\$/\\r/"\n' "$(command -v jq)" > "$WORK/crlf-bin/jq"; chmod +x "$WORK/crlf-bin/jq"
+  PATH="$WORK/crlf-bin:$PATH" rv_check "$d" "$f" 0 'REPAIR-CODE F1' "jq in CRLF (Windows) → vẫn đọc đúng path:line"
   findings_file "$f" "$(finding missing-evidence '' 'evidence STALE' 'evidence-check: STALE head')"
   rv_check "$d" "$f" 0 'RERUN-EVIDENCE F1' "thiếu/cũ bằng chứng → chạy lại kiểm, không sửa code"
   grep -q 'REPAIR-CODE' "$WORK/rv-output" && bad "thiếu bằng chứng bị quy thành sửa code" || ok "thiếu bằng chứng không sinh REPAIR-CODE"
