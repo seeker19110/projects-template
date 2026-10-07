@@ -343,6 +343,29 @@ while IFS= read -r mdfile; do
   fi
 done < <(git ls-files '*.md' ':!:vendor/*')
 
+# ── 11. Script (scripts/) ↔ FEATURE-MAP.md (F-N01, audit 2026-10-06). ──
+# VÌ SAO: FEATURE-MAP là "nguồn sự thật về dự án có những gì" và là đầu vào của Nhóm 12 (thống nhất chéo tính năng),
+# nhưng mục 6 chỉ canh CODEMAP — nên 7 engine/cổng thật (spec-compiler, arch-health-radar, subagent-dispatch,
+# telemetry-log, check-progress-freshness, hai cổng độ phức tạp) và 6 test từng vắng mặt mà không cổng nào báo.
+# Quy ước: script không bắt đầu bằng `_` (helper nội bộ) phải có tên file trong FEATURE-MAP; wrapper `x.sh` và `x.py`
+# cùng tên coi như một tính năng (nhắc một trong hai là đủ).
+echo "== 11. Script (scripts/) ↔ FEATURE-MAP.md =="
+FEATURE_MAP_FILE="docs/FEATURE-MAP.md"
+if [ ! -f "$FEATURE_MAP_FILE" ]; then
+  echo "::notice::Không có $FEATURE_MAP_FILE (dự án đích chưa lập) — bỏ qua mục 11."
+else
+  for f in scripts/*.sh scripts/*.py; do
+    [ -e "$f" ] || continue
+    base="$(basename "$f")"
+    case "$base" in _*) continue ;; esac
+    stem="${base%.*}"
+    if ! grep -qF "$stem.sh" "$FEATURE_MAP_FILE" && ! grep -qF "$stem.py" "$FEATURE_MAP_FILE"; then
+      echo "::error file=$FEATURE_MAP_FILE::Script '$f' tồn tại nhưng KHÔNG được khai trong $FEATURE_MAP_FILE — thêm một hàng FT-xx (điểm vào, dữ liệu, trạng thái, test), hoặc đổi tên thành _<tên> nếu là helper nội bộ."
+      fail=1
+    fi
+  done
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi

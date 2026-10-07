@@ -111,6 +111,16 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được CLAUDE.md có dòng > 2000 ký tự (mục 9)" || bad "KHÔNG bắt được dòng dài trong CLAUDE.md (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mục 11: script mới có trong CODEMAP.md nhưng KHÔNG có trong FEATURE-MAP.md → phải đỏ đúng ở mục 11 (F-N01, 2026-10-06:
+# FEATURE-MAP từng thiếu 7 engine/cổng mà không cổng nào báo). Khai CODEMAP để cô lập: mục 6 không được là lý do đỏ.
+zeta="zeta-engine"   # dựng tên lúc chạy: viết literal trong backtick sẽ bị mục 1 coi là tham chiếu hỏng của chính file test này
+printf '#!/usr/bin/env bash\nexit 0\n' > "$d/scripts/$zeta.sh"; chmod +x "$d/scripts/$zeta.sh"
+printf '\n| Sửa zeta | `scripts/%s.sh` | test |\n' "$zeta" >> "$d/CODEMAP.md"
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q "FEATURE-MAP" "$WORK/check-output" && ok "bắt được script chưa khai trong FEATURE-MAP.md (mục 11)" || bad "KHÔNG bắt được script thiếu trong FEATURE-MAP (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
 # Mục 10: bảng Markdown có hàng THỪA Ô. GitHub lặng lẽ bỏ ô thừa và `|` trong backtick VẪN tách ô, nên chữ
 # sau đó biến mất (đã gặp thật ở docs/ops/repository-settings.md và báo cáo audit 2026-10-05).
 printf '\n| Cot A | Cot B |\n| --- | --- |\n| `a|b` | c |\n' >> "$d/README.md"
@@ -155,6 +165,8 @@ printf '#!/usr/bin/env bash\nexit 0\n' > "$d/scripts/script-moi-da-khai.sh"
 # *.sh và sẽ báo file giả lập này "không tồn tại" (đã mắc thật khi viết ca test này). Mục 6 chỉ
 # grep tên file nên không cần backtick.
 printf '| Việc giả lập | scripts/script-moi-da-khai.sh | test |\n' >> "$d/CODEMAP.md"
+# Mục 11 cũng đòi script có mặt trong FEATURE-MAP.md (F-N01) — khai cả hai để ca này cô lập đúng mục 6.
+printf '| FT-99 | Việc giả lập | script-moi-da-khai.sh | | ✅ | test |\n' >> "$d/docs/FEATURE-MAP.md"
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "script đã khai trong CODEMAP.md thì mục 6 XANH (không đỏ oan)" || bad "mục 6 đỏ oan với script đã khai (rc=$rc)"
 

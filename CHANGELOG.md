@@ -16,6 +16,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   Rút từ đối chiếu X-Agents: `docs/reports/2026-10-06-doi-chieu-x-agents-v2.md`.
 - Fixed: `pre-commit-gate.sh` xét cả thay đổi chưa stage khi lệnh tự stage (`git add … && git commit`, `commit -a`) —
   trước đó bí mật/file >1 MB đi lọt (3 ca đỏ → xanh); commit thường vẫn chỉ xét index.
+- Added: `check-docs-consistency.sh` mục 11 đối chiếu `scripts/*` ↔ `docs/FEATURE-MAP.md` (F-N01); FEATURE-MAP bổ sung FT-63..70
+  (spec-compiler, radar, dispatch, telemetry, progress-freshness, cổng độ phức tạp, độ phủ dòng, tự kiểm cổng).
+- Fixed: radar nhận test Python ở `tests/` (F-N02); tách `test-engine-characterization.sh` thành `tests/engine_characterization/` (F-N04);
+  3 spec bổ sung mục 11 touchpoints (F-N03); `concurrency` cho dependency-review/pr-policy/scorecard (F-N07).
 - Added: `check-docs-consistency.sh` mục 10 bắt hàng bảng Markdown thừa ô (`|` trong backtick tách ô, GitHub bỏ chữ);
   sửa 2 hàng đã mất chữ ở `docs/ops/repository-settings.md` và báo cáo audit 2026-10-05.
 - Added: exporter delivery offline nhận policy/schema từ native X-Agents; ghim bytes spec,
