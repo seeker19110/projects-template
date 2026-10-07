@@ -5,12 +5,12 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 triển khai regression/protocol, chờ CI và nghiệm thu chủ repo.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 (#210) đã merge; LD-01..08 đã tích hợp, chờ chủ repo nghiệm thu.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `fb05bd5` (`origin/main`, sau PR #209).
+- Default-branch SHA đã đối chiếu: `2b927e6` (`origin/main`, sau PR #210).
 - Ngày cập nhật: 2026-10-07
 
-## Goal đang active
+## Goal đang chờ nghiệm thu
 
 `docs/goals/2026-10-07-lean-delivery.md`, spec đã được chủ repo duyệt ngày
 2026-10-07. Issue #198 theo dõi các slice, PR/CI và phần chưa được kiểm chứng.
@@ -32,12 +32,12 @@ LD-05 (`subagent-dispatch` prepare-only, context thiếu/rỗng/không UTF-8/qu�
 LD-06 (#209) đã merge ở `fb05bd5`: ma trận bằng chứng hồ sơ C1–C10 × hành vi/UX-DX/
 dữ liệu/bảo mật/release và độ sâu S/M/L; `tests/test_profile_quality_matrix.py`, CI Linux/Windows xanh.
 Blocker tạo PR GitHub đã được xử lý sau khi chủ repo cho phép thử lại; không hạ cổng.
-LD-08 bổ sung `tests/test_lean_adoption.py`: Node/Python runtime thật, copy → evidence → upgrade
+LD-08 (#210) đã merge ở `2b927e6`, bổ sung `tests/test_lean_adoption.py`: Node/Python runtime thật, copy → evidence → upgrade
 bảo toàn config/ghi chú → từ chối evidence cũ và FAIL. Test đăng ký ở gate cục bộ và CI Linux.
 `docs/framework/lean-delivery-benchmark.md` đo baseline 17 suite/34 lời gọi so với 17/17 ở c522839;
 đây là giảm lời gọi, không phải số đo tiết kiệm token/thời gian. AC-1..8 đã có ánh xạ evidence;
-map đầy đủ không thay thế kết quả CI của đúng commit. Chủ repo nghiệm thu sau khi required checks
-và merge LD-08 đạt; pilot/hosted CI dự án đích/model benchmark chưa chạy, ngoài scope hiện tại.
+map đầy đủ không thay thế kết quả CI của đúng commit. Required checks Linux/Windows của #210
+đã xanh trước merge; pilot/hosted CI dự án đích/model benchmark chưa chạy, ngoài scope hiện tại.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
@@ -56,7 +56,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Theo goal: kiểm required checks và merge LD-08, rồi trình bằng chứng AC-1..8 để chủ repo nghiệm thu. Không thêm scheduler hay gọi model trả phí.
+Chủ repo xem `docs/reports/2026-10-07-lean-delivery-acceptance.md` và xác nhận nghiệm thu phạm vi LD-01..08. Chưa gọi Goal/Project Complete; không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
 
