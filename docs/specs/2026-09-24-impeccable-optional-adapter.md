@@ -31,6 +31,15 @@ context-file migration, 24 aliases, vendor binary/dataset hoặc copy catalog.
 - **FR-2** Khi opt-in và có executable hợp lệ, hook chỉ gọi detector với file UI tồn tại.
 - **FR-3** Lỗi từ detector không chặn thao tác sửa file và không tạo file product/design song song.
 
+## Architecture và code touchpoints
+
+Điểm chạm (đối chiếu diff PR #177, `f3f29ef`): hook `.claude/hooks/ui-intelligence.sh` nối ở
+`.claude/settings.json` và `.claude/settings-shared-default.json` (PostToolUse, sau `auto-format.sh`); lệnh
+`.claude/commands/ui-ux.md` chỉ trỏ mapping hẹp; tài liệu `docs/framework/ui-ux-intelligence-provider.md`.
+Test: mục 9 của `scripts/test-hooks-session.sh` (opt-in, file UI tồn tại, provider lỗi không chặn sửa file),
+`scripts/test-check-scripts.sh`, `scripts/test-next-gen-engines.sh`. Không chạm engine Python, ruleset hay dependency.
+Từ 2026-10-06 mode `100755` của hook được canh bởi `scripts/test-hooks-gate.sh` mục 14.
+
 ## Acceptance / rollout
 
 - **AC-1** Provider không có vẫn chạy `/ui-ux`; Impeccable có sẵn được map rõ nhưng không auto-run/cài.

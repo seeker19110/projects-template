@@ -29,6 +29,14 @@ regression trong `scripts/test-dev-task.sh` vốn đã nối CI. Profile khung n
 `.claude/project-commands.sh`; hướng dẫn cấu hình dự án đích ở mẫu hiện có và tài
 liệu gate. Không thêm engine Python, không đổi branch rules hoặc ngưỡng coverage.
 
+## Architecture và code touchpoints
+
+Điểm chạm (đối chiếu diff PR #180, `071faea`): `scripts/dev-task.sh` (tiền kiểm dùng chung cho `gate`/`doctor`),
+`.claude/project-commands.sh` (profile khung) và `.claude/project-commands.example.sh` (mẫu dự án đích),
+`docs/framework/strict-gate-contract.md`, `docs/CONVENTIONS.md`, bước CI trong `.github/workflows/ci.yml`.
+Test: `scripts/test-dev-task.sh` (gồm đường lỗi và xanh giả), nối sẵn CI. Không thêm engine Python, không đổi
+branch rules hay ngưỡng coverage.
+
 ## Giới hạn và bảo mật
 
 READY chỉ nói contract/tool đủ để bắt đầu, không khẳng định chương trình đúng.
