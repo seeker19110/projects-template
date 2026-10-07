@@ -95,7 +95,7 @@ class CompactSpec(TestCase):
         )
         self.assertTrue(parsed["approved"])
         self.assertEqual(parsed["requirement_ids"], ["AC-1"])
-        self.assertTrue(parsed["metadata"].get("Approver / date") is not None)
+        self.assertIsNotNone(parsed["metadata"].get("Approver / date"))
 
     def test_compact_spec_without_ac_or_approval_is_not_ready(self):
         compiler = load_compiler()
