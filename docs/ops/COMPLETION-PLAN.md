@@ -45,7 +45,7 @@ runtime độc lập (đã ghi ở chu kỳ trước).
 | --- | --- | --- | --- | --- | --- |
 | W-01 | — | Mở PR cho các commit của nhánh (`de01523`…) | CI xanh, mô tả đủ mục template, squash merge | S | ⬜ chưa mở PR (chờ người dùng yêu cầu); commit đã push |
 | W-02 | F-N02 | Radar: nhận test Python trong `tests/` mà `test-py-coverage.sh` chạy; test đỏ trước (fixture script `.py` + test) | `delivery-handoff.py` không còn trong `scripts_uncovered`; ca âm: `.py` không test vẫn bị báo | S | ✅ `b8d2032` |
-| W-03 | F-N01 | Cổng docs-consistency mục 11: mọi `scripts/*` (trừ `_*`, `__pycache__`) và `test-*.sh` phải có mặt trong FEATURE-MAP; sau đó bổ sung các hàng thiếu bằng cách đọc code thật + sửa nhãn "(3 script)" | Negative test: thêm script giả → đỏ; FEATURE-MAP đủ; CODEMAP khớp | M | ⬜ (phụ thuộc W-02 không) |
+| W-03 | F-N01 | Cổng docs-consistency mục 11: mọi `scripts/*` (trừ `_*`, `__pycache__`) và `test-*.sh` phải có mặt trong FEATURE-MAP; sau đó bổ sung các hàng thiếu bằng cách đọc code thật + sửa nhãn "(3 script)" | Negative test: thêm script giả → đỏ; FEATURE-MAP đủ; CODEMAP khớp | M | ✅ `c9c6031` |
 | W-04 | F-N03 | Bổ sung mục 11 touchpoints cho 3 spec (đọc diff PR tương ứng, không bịa) | Radar hết cảnh báo spec | S | ✅ `2d5d1cc` |
 | W-05 | F-N04 | Tách `test-engine-characterization.sh` ≤ 400 dòng, **không đổi hành vi** (test chạy trước/sau cùng kết quả) | Radar hết cảnh báo file dài; 9 test xanh | M | ✅ `b8d2032` |
 | W-06 | F-N07 | Thêm `concurrency` cho 3 workflow; cập nhật `check-ci-policy` nếu cần | `check-ci-policy.sh` xanh, CI xanh | S | ✅ `92a1959` |
