@@ -52,7 +52,7 @@
 | FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
 | FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
 | FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | chỉ kiểm copy; chưa có test chạy hook |
-| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm chọn trạng thái và giới hạn ngữ cảnh |
+| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `docs/work/*/working.md`, `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm active trước PROGRESS, không nạp lịch sử done/nội dung, chọn trạng thái và giới hạn ngữ cảnh |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | chỉ kiểm copy hook; `test-usage-estimate.sh` kiểm engine, chưa chạy hook guard |
 | FT-58 | Chặn lệnh Git nguy hiểm | `block-dangerous-git.sh` | lệnh Git sắp chạy | ✅ | `scripts/test-hooks-gate.sh` có ca chặn và không chặn oan |
 | FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |

@@ -5,10 +5,10 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: Đã nghiệm thu phạm vi triển khai lean delivery theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203), LD-04 (#205), LD-07 (#207), LD-05 (#208) đã merge; LD-06 (#209) đã merge; LD-08 (#210) đã merge; LD-01..08 đã tích hợp và đạt nghiệm thu kỹ thuật theo ủy quyền; hồ sơ ở #211.
+- Giai đoạn: Lean delivery đã nghiệm thu theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01..08 đã merge và đạt nghiệm thu kỹ thuật, hồ sơ #211 và đóng goal ở #212. Đang hoàn thiện luật chung và hồ sơ nối phiên theo yêu cầu mới.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `47b691f` (`origin/main`, sau PR #211).
-- Ngày cập nhật: 2026-10-07
+- Default-branch SHA đã đối chiếu: `661f7f6` (`origin/main`, sau PR #212).
+- Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
 
@@ -18,10 +18,22 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Ủy quyền áp riêng repo này (2026-10-07):** chủ repo yêu cầu “chọn theo hướng tốt nhất cho chất lượng cho tôi từ giờ trở đi, không cần hỏi”.
-AI tự quyết các phương án và nghiệm thu trong phạm vi dự án đã giao, ưu tiên tính đúng,
-bằng chứng kiểm thử và khả năng bảo trì. Không hỏi lại quyết định đã được ủy quyền.
-Cổng chất lượng và scope/budget hiện tại vẫn được giữ; đây không phải sửa luật chung của template.
+**Hồ sơ đang mở:** `docs/work/2026-10-07-pr-dispatch-work-memory/working.md` — thêm luật
+phân chia theo số PR/trần ba subagent và hồ sơ working → done; chưa có PR merge cho việc này.
+
+**Ngữ cảnh chung (2026-10-07):** chủ repo yêu cầu trần 500.000 token cho mọi phiên,
+mọi nhà cung cấp và subagent; checkpoint/nén trước 450.000 hoặc thấp hơn theo cửa sổ model.
+Luật ở `CLAUDE.md` §2 / `AGENTS.md`; Claude Code và Codex đã có cấu hình repo.
+JSON/TOML và cổng docs đã kiểm; chưa kiểm chứng phiên Claude/Hermes/Gemini/OpenCode/Cursor/Copilot
+thật trên máy này. Runner chưa có cổng tự động tuân thủ checkpoint/chuyển phiên;
+chi tiết ở `docs/framework/models-and-automation.md` §5.2.1.
+
+**Ủy quyền toàn cục (2026-10-07):** chủ repo yêu cầu phiên chính luôn tự chọn phương án
+tối giản nhất vẫn đạt chất lượng cao nhất có thể: ít code, bảo mật, khoa học, logic,
+ít bảo trì, TDD. Đã nâng thành luật chung của template ở `CLAUDE.md` §2 / `AGENTS.md`
+và `docs/framework/standard-delivery.md` §3d, áp mọi phiên/nhà cung cấp/agent.
+Phiên chính tự quyết và nghiệm thu trong phạm vi đã giao, ghi căn cứ; không hỏi lại
+quyết định đã được ủy quyền. Mọi cổng chất lượng và scope/budget vẫn được giữ.
 
 LD-01 (CI parity, mỗi suite Linux chạy đúng một lần) đã merge ở #200.
 LD-03 (evidence gắn HEAD/config/working tree, `evidence-check`, chặn no-op/0 ca test,

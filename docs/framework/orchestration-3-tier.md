@@ -1,8 +1,9 @@
 # Kiến trúc điều phối 3 tầng
 
-> **Chế độ tùy chọn cho mức L — không phải mặc định.** Mặc định agent chính tự làm (`standard-delivery.md` §3c).
-> Chỉ bật 3 tầng khi thay đổi mức L có ≥ 2 đơn vị PR độc lập thật, đủ để song song bù chi phí bàn giao
-> (mất ngữ cảnh, token, vòng review). Một PR, hoặc các phần phụ thuộc chặt nhau → làm thẳng, không viết PLAN.md.
+> **Chế độ tùy chọn cho mức L — không phải mặc định.** Một PR có thể do phiên chính tự làm;
+> từ hai PR phải giao subagent đủ năng lực, độc lập thì song song, phụ thuộc thì tuần tự
+> (`standard-delivery.md` §3c). Mặc định gọn: phiên chính → worker; thêm coordinator chỉ khi cần.
+> **Tối đa 3 subagent đang chạy trong toàn cây**, gồm coordinator/reviewer/tester/agent lồng.
 
 > Mô hình vận hành tự động của khung: tách bạch **NGHĨ** (lập kế hoạch) — **CHẠY** (điều phối) —
 > **LÀM** (thực thi), định tuyến worker theo 2 trục *độ phức tạp × độ kín đặc tả*.
@@ -21,8 +22,8 @@ TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · model cao cấp nh�
    Hiểu yêu cầu → thiếu đặc tả thì HỎI (AskUserQuestion) → viết đặc tả chi tiết
    (schema DDL, API, điểm chạm code, tiêu chí chấp nhận) → gắn nhãn `route:` từng việc
    → NHÓM việc thành các ĐƠN VỊ PR (1 PR/đơn vị) + khai phụ thuộc giữa đơn vị
-   → xuất PLAN.md → tự làm phần lõi → (cuối) DUYỆT kết quả. KHÔNG babysit worker.
-                                  │  PLAN.md (đã người dùng duyệt)
+   → ghi working.md + xuất PLAN.md khi cần → cấp slot/phạm vi → (cuối) DUYỆT kết quả.
+                                  │  PLAN.md (đã duyệt theo quyền/contract §3d)
                                   ▼
 TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Sonnet · low) — phần "CHẠY"
    Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → với MỖI đơn vị PR: tạo nhánh/worktree
@@ -172,7 +173,7 @@ subagent `version-check` hoặc nguồn sống trước khi dùng thật (CLAUDE
   Engineering → Verify & Operate → Knowledge, ADR-0008) là bản đồ ở `standard-delivery.md` §3b: tầng ①②⑤
   là vai của Tầng 1; tầng ③ = Tầng 2+3; tầng ④ = `tester`/`reviewer`/`security-reviewer` + `/gate` + CI.
 - **Không thay** `PROJECT.md` (cái-gì), các cổng `/gate` (commit/merge), hay ADR (`/adr`). 3 tầng chỉ là **cách điều phối thực thi**.
-- **Mặc định là agent chính tự làm** (`standard-delivery.md` §3c); 3 tầng chỉ dùng khi mức L có nhiều đơn vị độc lập. Đổi `/model` (ADR-0007) chỉ khi độ khó thật đòi hỏi, không phải nghi thức đầu mỗi việc.
+- **Một PR có thể tự làm; từ hai PR giao subagent** (`standard-delivery.md` §3c), kể cả tuần tự. Ba tầng tùy chọn; coordinator chiếm một trong ba slot toàn cây. Đổi `/model` chỉ khi năng lực cần, không phải nghi thức.
 - **Đa nhà cung cấp là mở rộng, không phải thay thế**: mặc định không đổi gì vẫn chạy đúng như trước (Claude Sonnet 5 xuyên suốt cho thực thi); `--tier` chỉ dùng khi có lý do chọn khác (độ phức tạp, chi phí, tính khả dụng) — xem ADR-0006.
 - Subagent read-only `lookup` (Haiku) và `version-check` (Haiku) vẫn phục vụ Tầng 1 ở bước research-first; chúng không nằm trong bảng route (chỉ tra cứu, không thực thi thay đổi).
 - Subagent `maintainer` (Sonnet · medium) cũng **ngoài bảng route**: phục vụ Tầng 1 theo chu kỳ (`/maintain`) — quét bằng `scripts/maintenance-sweep.sh`, triage, viết `docs/ops/MAINTENANCE-PLAN.md` (mỗi mục một PR có nhãn `route:`) rồi dừng chờ duyệt. Sau duyệt, Tầng 1 có thể đưa các mục đó vào PLAN.md cho `coordinator` dispatch như việc thường; `maintainer` không tự commit/merge. Ngoài Claude Code chạy qua `scripts/maintain-run.sh` (CLI subscription cục bộ của mọi nhà cung cấp).
