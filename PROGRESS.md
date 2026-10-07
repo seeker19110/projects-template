@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 đã merge (#200), LD-02 mở ở #203, LD-03 đang làm.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200) và LD-03 (#204) đã merge, LD-02 mở ở #203, LD-04 đang làm.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `fd178faa368a6a36931824d9f567fc7401a5be6a` (`origin/main`, sau PR #200).
+- Default-branch SHA đã đối chiếu: `f800f312f59e8ee5c57801effa3b2c970851f751` (`origin/main`, sau PR #204).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -19,11 +19,12 @@
 
 LD-01 (CI parity, mỗi suite Linux chạy đúng một lần) đã merge ở #200.
 LD-02 (mức quy trình theo rủi ro) mở ở #203, do phiên khác làm.
-LD-03 trên nhánh `claude/blissful-bardeen-penh5b`: gate ghi evidence gắn HEAD/config/working
-tree, `evidence-check` từ chối evidence cũ/thiếu, lệnh no-op và test 0 ca bị chặn, C-4 + `--trace`
-nối mọi AC tới bằng chứng có thật. Bằng chứng: `scripts/test-dev-task.sh` mục 7b,
-`scripts/test-next-gen-engines.sh` mục 1b, `tests/test_acceptance_trace.py`. `--trace` của spec lean-delivery vẫn INCOMPLETE
-(AC-2, AC-4..8 chưa có) — đúng trạng thái goal. Chưa coi là tích hợp trước khi PR merge.
+LD-03 (evidence gắn phiên bản, `evidence-check`, chặn no-op/zero-test, `--trace`) đã merge ở #204.
+LD-04 trên nhánh `claude/jolly-ramanujan-g6sj70`: `dev-task.sh review-check` đọc `review-findings/1`,
+loại finding không căn cứ (thiếu kịch bản/bằng chứng, `defect` không trỏ được `path:line` có thật),
+định tuyến `defect`→REPAIR-CODE, `missing-evidence`→RERUN-EVIDENCE, `missing-input`→ASK-UPSTREAM
+(hai loại sau không sinh yêu cầu sửa code). Bằng chứng: `scripts/test-dev-task.sh` mục 7c.
+LD-05..08 đã có bản phân tích thiết kế (chưa code); `--trace` vẫn INCOMPLETE (AC-2, AC-5..8).
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 

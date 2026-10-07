@@ -266,6 +266,49 @@ count_tests
 evidence_tests
 evidence_binding_tests
 
+rv_check() {  # $1=fixture $2=findings $3=exit mong đợi $4=dấu hiệu $5=mô tả
+  local rc; CLAUDE_PROJECT_DIR="$1" bash "$DT" review-check "$2" >"$WORK/rv-output" 2>&1; rc=$?
+  if [ "$rc" -eq "$3" ] && grep -q -- "$4" "$WORK/rv-output"; then ok "$5 → exit $rc"; else bad "$5: mong exit $3/$4, được $rc"; cat "$WORK/rv-output"; fi
+}
+finding() {  # $1=kind $2=location $3=scenario $4=evidence → một finding JSON
+  jq -nc --arg k "$1" --arg l "$2" --arg s "$3" --arg e "$4" '{id:"F1",kind:$k,location:$l,scenario:$s,evidence:$e}'
+}
+findings_file() {  # $1=đường dẫn, phần còn lại = các finding JSON
+  local out="$1"; shift
+  printf '%s\n' "$@" | jq -s '{schema:"review-findings/1",findings:.}' > "$out"
+}
+review_tests() {
+  local d f="$WORK/findings.json"
+  d="$(gate_fixture review)"; printf 'a\nb\n' > "$d/app.sh"
+  findings_file "$f" "$(finding defect app.sh:2 'b rỗng → chia 0' 'test_div_zero đỏ')"
+  rv_check "$d" "$f" 0 'REPAIR-CODE F1' "lỗi có vị trí + kịch bản + bằng chứng → sửa code"
+  findings_file "$f" "$(finding missing-evidence '' 'evidence STALE' 'evidence-check: STALE head')"
+  rv_check "$d" "$f" 0 'RERUN-EVIDENCE F1' "thiếu/cũ bằng chứng → chạy lại kiểm, không sửa code"
+  grep -q 'REPAIR-CODE' "$WORK/rv-output" && bad "thiếu bằng chứng bị quy thành sửa code" || ok "thiếu bằng chứng không sinh REPAIR-CODE"
+  findings_file "$f" "$(finding missing-input '' 'AC-3 không nói ca rỗng' 'spec §9 thiếu ca rỗng')"
+  rv_check "$d" "$f" 0 'ASK-UPSTREAM F1' "thiếu input/spec → hỏi/sửa tầng trên, không sửa code"
+  findings_file "$f" "$(finding defect app.sh:2 'chia 0' '')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "finding không có bằng chứng → bị loại"
+  findings_file "$f" "$(finding defect '' 'chia 0' 'test đỏ')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "lỗi code không chỉ được path:line → bị loại"
+  findings_file "$f" "$(finding defect khong-co.sh:3 'chia 0' 'test đỏ')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "lỗi trỏ tới file không tồn tại → bị loại"
+  findings_file "$f" "$(finding defect app.sh:9 'chia 0' 'test đỏ')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "dòng vượt quá độ dài file → bị loại"
+  findings_file "$f" "$(finding defect ../app.sh:1 'chia 0' 'test đỏ')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "path thoát khỏi repo → bị loại"
+  findings_file "$f" "$(finding style app.sh:1 'x' 'y')"
+  rv_check "$d" "$f" 1 'UNSUPPORTED F1' "kind lạ → bị loại, không đoán"
+  findings_file "$f" "$(finding cleanup app.sh:1 'trùng helper' 'grep thấy 2 bản')"
+  rv_check "$d" "$f" 0 'OPTIONAL F1' "cleanup → tuỳ chọn, không chặn"
+  findings_file "$f"
+  rv_check "$d" "$f" 0 'CLEAN' "không có finding → CLEAN"
+  printf '{"schema":"x"}' > "$f"; rv_check "$d" "$f" 2 BLOCKED "sai schema → BLOCKED"
+  rv_check "$d" "$WORK/khong-co.json" 2 BLOCKED "thiếu file findings → BLOCKED"
+}
+echo "== 7c. Review có căn cứ, repair đúng nguyên nhân (LD-04) =="
+review_tests
+
 echo "== 8. Lint của chính repo khung fail-closed ở từng bước =="
 lint_cmd="$(CLAUDE_PROJECT_DIR="$ROOT" bash "$DT" --print lint)"
 d="$(fx framework-lint)"; mkdir -p "$d/scripts"

@@ -27,4 +27,17 @@ Bạn là **reviewer — hậu kiểm Tầng-độc-lập** của kiến trúc �
 - Không bịa phát hiện — mỗi mục phải chỉ được `path:line` và kịch bản lỗi cụ thể (§4).
 
 ## Trả kết quả
-Danh sách phát hiện xếp theo mức nghiêm trọng (nặng trước): `path:line` + mô tả 1 câu + kịch bản lỗi. Phân biệt rõ **phải sửa (correctness)** với **nên cân nhắc (cleanup)**. Nếu diff sạch: nói rõ "không thấy lỗi correctness", kèm ghi chú cleanup (nếu có).
+Danh sách phát hiện xếp theo mức nghiêm trọng (nặng trước): `path:line` + mô tả 1 câu + kịch bản lỗi + **bằng chứng** (test đỏ, output lệnh, trace từ caller thật). Kèm bản máy đọc `review-findings/1` để `scripts/dev-task.sh review-check <file>` kiểm căn cứ và định tuyến repair:
+
+```json
+{"schema":"review-findings/1","findings":[
+  {"id":"F1","kind":"defect","location":"src/a.ts:42","scenario":"input rỗng → chia 0","evidence":"test_div_zero đỏ"}]}
+```
+
+`kind` quyết định **sửa ở đâu**, không phải mức "nặng":
+- `defect` → lỗi code thật, phải chỉ được `path:line` có trong repo → `REPAIR-CODE` (test đỏ trước khi sửa).
+- `missing-evidence` → bằng chứng thiếu/cũ (vd `evidence-check` báo `STALE`/`INCOMPLETE`) → `RERUN-EVIDENCE`, **không viết lại code**.
+- `missing-input` → spec/AC/thiết kế thiếu → `ASK-UPSTREAM` (về tầng ①② của `standard-delivery.md` §3b), **không viết lại code**.
+- `cleanup` → `OPTIONAL`, không chặn.
+
+Finding thiếu kịch bản/bằng chứng hoặc `defect` không trỏ được dòng có thật bị `review-check` loại (`UNSUPPORTED`) — đừng gửi. Nếu diff sạch: `findings: []` và nói rõ "không thấy lỗi correctness".
