@@ -13,7 +13,7 @@ Vào **plan mode** (Opus). Trước khi lập kế hoạch, **nghiên cứu th�
 - **Dự án MỚI (greenfield):** theo `/consult` + KHUNG-3 — phân loại loại dự án → chọn hồ sơ → **xác minh phiên bản bằng nguồn sống** (giao subagent `version-check`) → đề xuất stack. Bám 9 giai đoạn KHUNG-1.
 - **Dự án CÓ SẴN (brownfield):** theo `existing-project-adoption.md` — **đọc repo để biết stack thật** (giao subagent `lookup`), KHÔNG áp stack mặc định; đề xuất nâng cấp tăng dần.
 
-Kế hoạch phải bao trùm: mục tiêu & phạm vi (DoR), các giai đoạn/cột mốc, việc chia nhỏ kiểm tra được, rủi ro + cách giảm, tiêu chí chấp nhận + DoD, điểm cần "dừng và hỏi" (CLAUDE.md §9), và **các cổng** giữa giai đoạn.
+Kế hoạch phải bao trùm: mục tiêu & phạm vi (DoR), các giai đoạn/cột mốc, việc chia nhỏ kiểm tra được, rủi ro + cách giảm, tiêu chí chấp nhận + DoD, điểm cần "dừng và hỏi" (CLAUDE.md §9), và **các cổng** giữa giai đoạn. Độ dài kế hoạch tỉ lệ với mức rủi ro (§3c): mức S/M vài dòng là đủ, mức L mới cần cột mốc và đơn vị PR.
 
 ## Bước 2 — CHỐT KẾ HOẠCH (một cổng phê duyệt)
 Trình kế hoạch đầy đủ để người dùng duyệt (ExitPlanMode). Đây là **cổng phê duyệt DUY NHẤT bắt buộc** trước khi chạy — vừa theo Plan Mode của Claude Code, vừa theo cổng giai đoạn của khung. **Không tự thực thi khi chưa được duyệt.**
@@ -22,8 +22,7 @@ Trình kế hoạch đầy đủ để người dùng duyệt (ExitPlanMode). Đ
 Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại từng bước:
 - **Sonnet 5** viết code theo từng phần nhỏ, hoàn chỉnh, kiểm tra được.
 - Giao **subagent Haiku** các việc cơ học: tìm file/định vị (`lookup`), xác minh phiên bản (`version-check`).
-- Giao **subagent Sonnet `standard-worker`** các việc RÕ PHẠM VI đã bóc tách (viết test theo spec, sinh boilerplate, cập nhật docs, sửa cơ học nhiều file) → cô lập ngữ cảnh + chạy song song, rút tải khỏi phiên chính. Việc kiến trúc/bảo mật/breaking change vẫn giữ ở phiên chính.
-- Thay đổi đủ lớn cần điều phối nhiều worker song song → dùng **kiến trúc điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): Tầng 1 **nhóm việc thành các đơn vị PR** (1 PR/đơn vị, khai phụ thuộc giữa đơn vị) và gắn `route:` từng việc → `coordinator` (Tầng 2) dispatch tới worker đúng nhãn (`complex-implementer`/`spec-executor`/`standard-worker`/`mechanical-worker`, **trần effort medium** kể cả `route:complex`) — đơn vị độc lập chạy **song song**, đơn vị phụ thuộc chạy **tuần tự** → `reviewer` hậu kiểm → mỗi đơn vị mở PR riêng, cổng xanh thì **bật auto-merge** (CLAUDE.md §8), không dồn nhiều đơn vị vào một PR khổng lồ.
+- **Mức quy trình theo rủi ro** (`docs/framework/standard-delivery.md` §3c): mức S/M → phiên chính tự code trọn vẹn, không viết PLAN.md, không chuyển giao. Mức L có ≥ 2 đơn vị PR độc lập thật → mới dùng **điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): `coordinator` dispatch theo `route:` (**trần effort medium**), mỗi đơn vị một PR, cổng xanh thì **bật auto-merge** (CLAUDE.md §8). Việc kiến trúc/bảo mật/breaking change luôn giữ ở phiên chính.
 - **Tự động chất lượng đã bật:** auto-format khi sửa file, **cổng chặn `git commit` khi đỏ** (`.claude/hooks/`), qua `scripts/dev-task.sh`. Điền `.claude/project-commands.sh` (copy từ `.example.sh`) nếu dự án có lệnh riêng.
 - Cập nhật `PROGRESS.md` sau mỗi mốc; commit theo conventional commits.
 

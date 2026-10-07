@@ -57,13 +57,13 @@ giữ tóm tắt; Goal giữ iteration state; Spec giữ contract capability; Gi
 
 Cùng 9 cổng ở trên, nhìn theo **5 câu hỏi vòng đời**. "Tầng" ở đây là *tầng vòng đời*, khác "Tầng 1/2/3"
 của `orchestration-3-tier.md` (*tầng điều phối*) — cột "Ai làm" nói rõ ánh xạ. Không có agent nào mới:
-tầng ①②⑤ là **vai của phiên chính**; chỉ ③④ dùng subagent (spawn khi cần, xong thì kết thúc).
+tầng ①②⑤ là **vai của phiên chính**; ③④ cũng do phiên chính làm, chỉ spawn subagent khi có lợi rõ (§3c).
 
 | Tầng vòng đời | Câu hỏi | Cổng | Ai làm (lệnh / agent) | Artifact ra | Cổng máy kiểm | Fail ở tầng sau → quay về đây khi |
 | --- | --- | --- | --- | --- | --- | --- |
 | ① Product & UX | Xây gì, tại sao? | Frame · Research · Approve | Phiên chính: `/consult`, `/grill`, `lookup`/`version-check` (tra cứu) | `docs/goals/<id>.md`, `docs/specs/<ngày>-<slug>.md` **Approved** | `pr-policy.yml` (PR `feat` chưa Approved → đỏ) | acceptance criteria sai/thiếu, scope lệch, edge case chưa nêu |
 | ② Design | Hoạt động / trông thế nào? | Approve (spec §6, §10, §11) · Plan | Phiên chính: `/ui-ux` (UI) hoặc thiết kế CLI/API/DX theo hồ sơ C4/C5 | Mục journeys-mọi-state, UX/a11y, kiến trúc & điểm chạm **trong cùng spec** | axe/E2E a11y, Lighthouse CI (hồ sơ C1); cổng hồ sơ khác ở `quality-gates-by-profile.md` | thiếu state (tải/rỗng/lỗi), luồng không khớp, contract API/DDL chưa chốt |
-| ③ Engineering | Xây bằng cách nào? | Plan · Build | Tầng 1 viết PLAN.md → `coordinator` → worker `route:complex/spec/standard/mechanical` (`subagent-dispatch.sh --tier`) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
+| ③ Engineering | Xây bằng cách nào? | Plan · Build | Agent chính tự làm (mặc định, §3c); mức L có ≥ 2 đơn vị độc lập mới dùng PLAN.md → `coordinator` → worker `route:` (`subagent-dispatch.sh --tier`) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
 | ④ Verify & Operate | Đúng, an toàn, chạy tốt không? | Verify · Integrate · Observe | `/gate` (§5–§7), `tester`, `reviewer`, `security-reviewer`; `release-readiness.md`; `/incident`; `/maintain` | Báo cáo xác thực §7, PR xanh + auto-merge, post-mortem, `MAINTENANCE-*.md` | `ci.yml` job `gate`, `secret-scan`, `dependency-review`, `maintenance.yml` | cổng/CI/hạ tầng sai (máy xanh giả, lockfile lệch — xem `gate.md` Bước 1) |
 | ⑤ Knowledge | Hệ thống biết gì, đã đổi gì? | Reconcile (+ mọi PR, §8 bước 0/5) | Phiên chính: `/adr`, cập nhật `PROGRESS.md`, `CONTEXT.md`, `TRAPS.md`, `CODEMAP.md`, `docs/changelog/` | ADR, TRAPS mục mới, PROGRESS mốc + SHA, changelog đợt việc | `progress-freshness` (PF-1..3), `docs-consistency`, `maintenance-sweep` 🟡 `DEBT:` thiếu `xem lại khi:` | (không có tầng sau) — tri thức sai làm ① của chu kỳ kế lệch: sửa tại ADR/TRAPS, không sửa code |
 
@@ -72,6 +72,30 @@ sửa code ngay; trước lần sửa **thứ 2 cùng một failure** phải vi�
 và quay về đúng tầng đó (sửa spec/design trước, rồi mới code). Lần thứ 3 vẫn fail → BLOCKED, xin quyết
 định. Cross-cutting (bảo mật, hiệu năng, a11y, quyền riêng tư, chi phí, observability) **không** là tầng
 riêng: mỗi tầng có cổng của mình cho chúng (spec §8/§14 → design a11y → code an toàn → scan/test → ADR).
+
+### 3c. Mức quy trình theo rủi ro
+
+Thủ tục tỉ lệ với **rủi ro**, không với thói quen: chọn mức theo yếu tố rủi ro cao nhất của thay đổi,
+nghi ngờ thì chọn mức cao hơn. Mức chỉ đổi **lượng giấy tờ và điều phối**; sàn chất lượng giống nhau.
+
+| Mức | Khi nào | Artifact tối thiểu | Ai làm |
+| --- | --- | --- | --- |
+| S | `fix`/`chore`/`docs`/`refactor`/`test`, một PR, không đổi schema, API công khai, auth hay dữ liệu thật | Issue hoặc mô tả PR (vấn đề, bằng chứng, rủi ro) — không cần spec | Agent chính tự làm |
+| M | Tính năng gọn trong một PR, không chạm mốc §9 | Spec gọn Approved: mục 1, 2, 5, 9, 11 + Approval của `FEATURE-SPEC.template.md` | Agent chính tự làm |
+| L | Nhiều PR/phiên, schema/API phá vỡ, auth/thanh toán/dữ liệu thật, quyết định khó đảo | Spec đầy đủ Approved + `docs/goals/<id>.md`; ADR/threat model khi §9 yêu cầu | Agent chính lập kế hoạch và làm phần lõi; tách worker khi có ≥ 2 đơn vị độc lập thật |
+
+**Không mức nào nới:** test đỏ-trước cho `fix:` và code mới có logic (ADR-0005); `scripts/dev-task.sh gate`
+xanh trước commit; required checks CI; feature gate "Approved for implementation" cho mọi PR `feat`
+(`pr-policy.yml`); dừng và hỏi ở mốc §9 của `CLAUDE.md`; báo cáo có bằng chứng (§7).
+
+**Agent chính tự làm** là mặc định: đọc, sửa, test, mở PR trong cùng ngữ cảnh. Chỉ giao subagent khi có lợi
+đo được — đọc/tra cứu song song nhiều nơi, cô lập ngữ cảnh rất lớn, hoặc đơn vị độc lập thật ở mức L
+(khi đó dùng `orchestration-3-tier.md`). Không chuyển giao, đổi model hay viết `PLAN.md` chỉ cho đủ nghi thức;
+mỗi lần bàn giao làm mất ngữ cảnh và tốn token.
+
+**Quyền tách bạch — quyền code ≠ quyền merge ≠ quyền deploy.** Được duyệt spec chỉ mở quyền code. Merge chỉ
+khi người dùng/quy tắc repo cho phép và cổng của đúng head xanh; deploy/production luôn cần quyền riêng,
+không suy ra từ hai quyền trước.
 
 ## 4. AI Goal Loop
 

@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200) và LD-03 (#204) đã merge, LD-02 mở ở #203, LD-04 đang làm.
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 (#200), LD-03 (#204), LD-02 (#203) đã merge; LD-04 ở #205.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `f800f312f59e8ee5c57801effa3b2c970851f751` (`origin/main`, sau PR #204).
+- Default-branch SHA đã đối chiếu: `30dc004` (`origin/main`, sau PR #206).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -18,13 +18,17 @@
 ## Đang làm / chờ
 
 LD-01 (CI parity, mỗi suite Linux chạy đúng một lần) đã merge ở #200.
-LD-02 (mức quy trình theo rủi ro) mở ở #203, do phiên khác làm.
-LD-03 (evidence gắn phiên bản, `evidence-check`, chặn no-op/zero-test, `--trace`) đã merge ở #204.
-LD-04 trên nhánh `claude/jolly-ramanujan-g6sj70`: `dev-task.sh review-check` đọc `review-findings/1`,
+LD-03 (evidence gắn HEAD/config/working tree, `evidence-check`, chặn no-op/0 ca test,
+C-4 + `--trace` nối AC tới bằng chứng) đã merge ở #204.
+LD-02 (mức quy trình S/M/L theo rủi ro — `standard-delivery.md` §3c, spec gọn mức M,
+agent chính tự làm, 3 tầng tùy chọn cho mức L, ADR-0010) đã merge ở #203; AC-2 nối tới
+`tests/test_adaptive_process.py`. TRAPS mục 48 (commit do công cụ sinh làm đỏ `metadata`)
+đi PR riêng vì đẩy sau khi #203 đã merge.
+LD-04 ở #205 (nhánh `claude/jolly-ramanujan-g6sj70`): `dev-task.sh review-check` đọc `review-findings/1`,
 loại finding không căn cứ (thiếu kịch bản/bằng chứng, `defect` không trỏ được `path:line` có thật),
 định tuyến `defect`→REPAIR-CODE, `missing-evidence`→RERUN-EVIDENCE, `missing-input`→ASK-UPSTREAM
 (hai loại sau không sinh yêu cầu sửa code). Bằng chứng: `scripts/test-dev-task.sh` mục 7c.
-LD-05..08 đã có bản phân tích thiết kế (chưa code); `--trace` vẫn INCOMPLETE (AC-2, AC-5..8).
+LD-05..08 đã code và qua gate cục bộ trên nhánh tích hợp; mở PR lần lượt sau khi #205 merge.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
@@ -43,9 +47,8 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Sau LD-02/LD-03: LD-04 review/repair, LD-05 context/harness, LD-06 profile sản phẩm,
-LD-07 telemetry, LD-08 adoption. Khi #203 vào main: đổi dòng AC-2 trong bản đồ của spec
-lean-delivery sang test thật của nó. Không thêm scheduler hay gọi model trả phí.
+Theo goal: LD-04 review/repair, LD-05 context/harness, LD-06 profile sản phẩm,
+LD-07 telemetry, LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
 

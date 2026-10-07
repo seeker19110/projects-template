@@ -10,10 +10,10 @@
 
 ## 2. Giải xung đột merge/rebase
 
-đọc commit/PR/issue gốc của **cả hai phía** để hiểu đúng ý định trước khi chọn hunk — không chọn theo cảm tính hay "bên nào dài hơn". Giữ ý định của cả hai khi có thể; khi không tương thích, chọn bên khớp mục tiêu của merge và ghi 1 dòng đánh đổi vào commit message. Không tự bịa hành vi mới. Xong mỗi hunk, chạy lại cổng (`/gate`) trước khi hoàn tất — **không bao giờ** `--abort` để né việc giải xung đột.
+đọc commit/PR/issue gốc của **cả hai phía** để hiểu đúng ý định trước khi chọn hunk — không chọn theo cảm tính hay "bên nào dài hơn". Giữ ý định của cả hai khi có thể; khi không tương thích, chọn bên khớp mục tiêu của merge và ghi 1 dòng đánh đổi vào commit message. Không tự bịa hành vi mới. Merge commit cũng phải theo Conventional Commits — dùng `git merge -m "chore(merge): đồng bộ main (…)"` (`TRAPS.md` mục 48). Xong mỗi hunk, chạy lại cổng (`/gate`) trước khi hoàn tất — **không bao giờ** `--abort` để né việc giải xung đột.
 
 ## 3. Cổng máy liên quan
 
-- `pr-policy.yml` (job `metadata`): tiêu đề conventional ≤ 72 ký tự, đủ mục PR template, Feature gate cho `feat`, trần WIP 3 PR mở, nhắc `TRAPS.md` cho `fix:`.
+- `pr-policy.yml` (job `metadata`): tiêu đề PR **và mọi tiêu đề commit** (kể cả merge/autofix — `TRAPS.md` mục 48) conventional, tiêu đề ≤ 72 ký tự, đủ mục PR template, Feature gate cho `feat`, trần WIP 3 PR mở, nhắc `TRAPS.md` cho `fix:`.
 - `check-progress-freshness.sh` (job `progress-freshness`): PF-1..PF-4 — bước (5) "cập nhật PROGRESS.md ngay sau khi về main" có cổng thật.
 - `block-dangerous-git.sh` khuôn 3: cấm `--abort`; khuôn 1/5: cấm force-push / xoá / ép ghi đè nhánh chính.

@@ -994,3 +994,17 @@ sửa → FAIL nói rõ, không âm thầm bỏ ca. Không đổi hành vi của
 
 *Khuôn:* test dùng repo khung làm nguồn phải độc lập với trạng thái working tree của chính repo đó; kiểm bằng
 cách chạy suite khi một file nó dùng đang sửa dở.
+
+## 48. Commit do công cụ sinh không theo Conventional Commits làm đỏ `metadata`
+
+*Ngày:* 2026-10-07, LD-02 (#203), tái phát 2 lần trong cùng PR. Job `metadata` (`pr-policy.yml`) kiểm
+**mọi** tiêu đề commit của PR, không chỉ tiêu đề PR. Lần 1: nút autofix CodeQL trên GitHub tạo commit
+"Potential fix for pull request finding …". Lần 2: `git merge origin/main` để giải xung đột tạo
+"Merge origin/main …". Cả hai đều đúng nội dung nhưng đỏ CI; squash merge không cứu được vì cổng chạy trước.
+
+*Cách sửa:* đổi tiêu đề commit đó (`git commit --amend` / `-m` khi merge), giữ nguyên nội dung và parent,
+rồi `git push --force-with-lease=<nhánh>:<sha-cũ>` lên nhánh PR (không bao giờ lên `main`).
+
+*Khuôn:* commit không do mình gõ tiêu đề (autofix, suggestion, merge, revert của nền tảng) vẫn phải theo
+`<type>(<scope>): …`. Phòng trước: merge base bằng `git merge -m "chore(merge): đồng bộ main (…)"`;
+autofix/suggestion thì sửa tiêu đề ngay ở hộp commit. Cổng chốt chặn: job `metadata`.
