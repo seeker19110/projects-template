@@ -9,6 +9,10 @@
 | Last updated | |
 
 > Không code khi chưa **Approved for implementation**.
+>
+> **Spec gọn (mức M)** — tính năng gọn một PR, không chạm mốc §9 (`standard-delivery.md` §3c): chỉ bắt buộc
+> mục 1, 2, 5, 9, 11 và Approval; xoá các mục còn lại. AC vẫn đánh mã `AC-n` và map tới test. Mức L dùng
+> đủ mẫu; chạm mốc §9 giữa chừng thì nâng lên mức L trước khi code tiếp.
 
 ## 1. Problem, user và evidence
 

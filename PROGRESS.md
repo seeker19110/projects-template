@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`) trên nền chu kỳ hoàn thiện 2026-10-06 đã đóng (các PR sửa khung đến #202).
+- Giai đoạn: GĐ 4, triển khai lean delivery (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01 đã merge (#200), đang làm LD-02.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `c5012c623c8726c76488e0c2612993d0c03229ab` (`origin/main`, sau PR #202).
+- Default-branch SHA đã đối chiếu: `fd178fa` (`origin/main`, sau PR #200).
 - Ngày cập nhật: 2026-10-07
 
 ## Goal đang active
@@ -17,13 +17,16 @@
 
 ## Đang làm / chờ
 
-LD-01 giảm chạy lặp CI, giữ parity với full local gate và ma trận Windows.
-Chưa coi thay đổi là tích hợp trước khi PR merge và cổng của đúng head xanh.
+LD-01 (CI parity, mỗi suite Linux chạy đúng một lần) đã merge ở #200.
+LD-02 đang làm trên nhánh `claude/bold-wozniak-44li1x`: mức quy trình S/M/L theo rủi ro
+(`standard-delivery.md` §3c), spec gọn cho mức M, agent chính tự làm, 3 tầng là tùy chọn
+cho mức L (ADR-0010); bằng chứng `tests/test_adaptive_process.py`. Chưa coi là tích hợp
+trước khi PR merge và cổng của đúng head xanh.
 Kế hoạch hoàn thiện khung trước đó đã có hồ sơ ở PR #197; phần nghiệm thu cũ
 không được tự thay đổi bởi việc bắt đầu goal mới.
 
 Đã merge #199: đối chiếu X-Agents lần 2 và chu kỳ hoàn thiện 2026-10-06
-(radar, FEATURE-MAP↔scripts, specs, concurrency). PR #200 (lean-delivery CI, ngoài kế hoạch này) đang mở. Báo cáo `docs/reports/2026-10-06-framework-audit.md`; F-N05: chủ repo chọn giữ lại 3 nhánh remote (ghi nhận).
+(radar, FEATURE-MAP↔scripts, specs, concurrency). Báo cáo `docs/reports/2026-10-06-framework-audit.md`; F-N05: chủ repo chọn giữ lại 3 nhánh remote (ghi nhận).
 
 PR #180 đã merge (`071faea`), bổ sung gate fail-closed, doctor và test Node thật.
 Các PR #188–195 đã sửa ruleset strict, môi trường Git của hook, báo cáo secret,
@@ -37,8 +40,8 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Theo phụ thuộc trong goal: quy trình thích ứng, evidence, review/context,
-profile sản phẩm và telemetry. Không thêm scheduler hay gọi model trả phí.
+Sau LD-02, theo phụ thuộc trong goal: LD-03 evidence, LD-04 review/repair,
+LD-05 context, LD-06 profile sản phẩm, LD-07 telemetry, LD-08 adoption. Không thêm scheduler hay gọi model trả phí.
 
 ## Rủi ro, blocker và giới hạn
 
