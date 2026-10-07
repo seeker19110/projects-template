@@ -32,6 +32,12 @@
 # Không được vừa có command vừa N/A cho cùng task, hoặc N/A toàn bộ bốn task.
 # Các biến hỗ trợ: gate_skip_build_reason, gate_skip_typecheck_reason,
 # gate_skip_lint_reason, gate_skip_test_reason; tất cả là ngoại lệ cần review.
+# Lệnh no-op (true, :, echo, printf, exit 0) và test có --passWithNoTests bị BLOCKED.
+# Tuỳ chọn đếm ca test: ERE có một nhóm bắt số trên output của test; 0 ca → FAIL,
+# số ca ghi vào evidence (không khai thì evidence ghi null = không biết).
+# export gate_test_count_regex='([0-9]+) passed'
+# Evidence máy đọc: bash scripts/dev-task.sh gate --evidence <file ngoài repo/đã ignore>
+# rồi bash scripts/dev-task.sh evidence-check <file> trước khi tin một lời "đã PASS".
 # gate_tools chứa tên executable cách nhau bằng khoảng trắng; gate_python_modules
 # chứa tên module Python. Không đưa secret/token vào command vì command được log.
 #
