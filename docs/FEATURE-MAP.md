@@ -59,7 +59,7 @@
 | FT-60 | Ghi telemetry khi dừng phiên/subagent | `telemetry-record.sh` | transcript và `.ai-telemetry/` | ✅ | `scripts/test-hooks-session.sh` |
 | FT-61 | Trí tuệ UI opt-in | `ui-intelligence.sh` | cấu hình provider của dự án đích | ✅ | `scripts/test-hooks-session.sh` kiểm tắt/bật/lỗi provider |
 
-## D. Cổng tự kiểm của CHÍNH repo khung (3 script) — `scripts/`
+## D. Cổng tự kiểm và engine của CHÍNH repo khung — `scripts/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -67,6 +67,14 @@
 | FT-27 | Kiểm job CI ↔ required checks 2 chiều | `scripts/check-ci-policy.sh` | `ci.yml`, `pr-policy.yml`, `repository-settings.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh`/`copy-framework.ps1` | ✅ | job CI `copy-framework-smoke` |
 | FT-29 | *(đã gỡ — ADR-0004: scaffold Web đã xoá, không còn dropins Lớp 2 để kiểm chạy thật)* | — | — | ➖ | — |
+| FT-63 | Biên dịch spec thành contract test | `scripts/spec-compiler.sh` → `spec-compiler.py` | `docs/specs/*.md` (chỉ State đã chọn trong metadata) | ✅ | `test-next-gen-engines.sh`, `test-engine-characterization.sh`, `tests/test_delivery_handoff_integrity.py` |
+| FT-64 | Radar sức khoẻ repo (độ phủ cổng, spec, kích thước file, nợ TODO) | `scripts/arch-health-radar.sh` → `arch-health-radar.py` | `scripts/`, `ci.yml`, `tests/*.py` được test cổng gọi, `docs/specs/` | ✅ | `test-next-gen-engines.sh`, `test-engine-characterization.sh` |
+| FT-65 | Điều phối subagent đa harness theo nhãn `route:` | `scripts/subagent-dispatch.sh` → `subagent-dispatch.py`, `model-capability-tiers.json` | `.claude/agents/*.md` | ✅ (4 harness: claude, hermes, codex, generic) | `test-telemetry-and-dispatch.sh`, `test-engine-characterization.sh` |
+| FT-66 | Telemetry thời gian/LOC/chi phí tác vụ AI | `scripts/telemetry-log.sh` → `telemetry-log.py`, `model-rates.json` | `.ai-telemetry/` | ✅ | `test-telemetry-and-dispatch.sh`, `tests/test_telemetry_integrity.py` |
+| FT-67 | Kiểm PROGRESS.md không lỗi thời so với git thật (PF-1..4) | `scripts/check-progress-freshness.sh` | `PROGRESS.md`, git remote | ✅ | job CI `progress-freshness` (chỉ trên main); `test-check-scripts.sh` có negative test |
+| FT-68 | Trần độ phức tạp vòng cho mã Python và shell | `scripts/check-python-complexity.sh`, `scripts/check-shell-complexity.sh` | mọi engine/script trong `scripts/` | ✅ | `test-check-python-complexity.sh`, `test-check-shell-complexity.sh` (có ca đỏ) |
+| FT-69 | Độ phủ dòng Python thật (sàn 95%) và probe mã thoát | `scripts/test-py-coverage.sh` | engine Python, `tests/*.py` | ✅ (đo 96% ngày 2026-10-06) | `test-py-coverage-exit.sh` |
+| FT-70 | Khoá hành vi 3 engine và kiểm chính các cổng tài liệu/CI | `scripts/test-engine-characterization.sh` (thân ở `tests/engine_characterization/`), `scripts/test-check-scripts.sh` | `check-*.sh`, radar, compiler, dispatcher | ✅ | tự chạy trong job CI `framework-lint` |
 
 ## E. Bộ copy khung (2 biến thể)
 

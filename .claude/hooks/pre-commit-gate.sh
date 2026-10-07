@@ -10,6 +10,13 @@ set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lư�
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
+# CÂY ĐANG COMMIT ≠ CHECKOUT CHÍNH (đối chiếu X-Agents `pt.10`, đo lại ở repo này — test mục 15). Phiên chạy trong
+# `git worktree` thì `git commit` chạy ở worktree còn CLAUDE_PROJECT_DIR vẫn trỏ checkout chính: đọc nhánh/index/cổng
+# từ đó vừa chặn oan ("đang đứng trên main") vừa buông bí mật và cổng đỏ của worktree. Mọi phép kiểm đọc $CAY = gốc
+# cây chứa cwd của hook (cwd của lệnh commit); ngoài repo thì lùi về $ROOT (lùi về chặt hơn là buông cổng).
+CAY="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -n "$CAY" ] || CAY="$ROOT"
+
 # Đọc payload hook từ stdin, lấy lệnh Bash sắp chạy.
 payload="$(cat)"
 cmd=""
@@ -41,7 +48,7 @@ fi
 
 # --- Không commit thẳng lên nhánh chính (CLAUDE.md §8; TRAPS mục 14: `checkout -b` hỏng → commit rơi
 # vào main mà không ai thấy). Bỏ qua tường minh: ALLOW_COMMIT_ON_MAIN=1.
-branch="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
+branch="$(git -C "$CAY" branch --show-current 2>/dev/null || true)"
 if [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ] && { [ "$branch" = "main" ] || [ "$branch" = "master" ]; }; then
   echo "🚫 Đang đứng trên nhánh '$branch' — CLAUDE.md §8: mọi thay đổi vào nhánh chính đi qua PR. Tạo nhánh trước: git switch -c feat/<tên>." >&2
   echo "   Nếu THỰC SỰ cần: chạy lại với ALLOW_COMMIT_ON_MAIN=1 (và nói rõ lý do cho người dùng)." >&2
@@ -51,27 +58,55 @@ fi
 # --- Bí mật / file lớn trong diff STAGED (cùng mẫu với scripts/maintenance-sweep.sh — sweep chỉ chạy
 # định kỳ, tới lúc đó khoá đã nằm trong lịch sử git; chặn ở đây là chặn TRƯỚC khi vào lịch sử). ---
 secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
-if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then
-  echo "🚫 Diff staged chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi staged, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
+
+# Hook chạy TRƯỚC lệnh nên index còn CŨ: `git add X && git commit` hay `commit -a` tự stage thứ hook chưa thấy
+# (đối chiếu X-Agents #368; đo lại ở repo này: bí mật/file lớn đi lọt). Lệnh tự stage → xét cả thay đổi chưa
+# stage; `git add` còn kéo cả file chưa theo dõi. Commit thường vẫn chỉ xét index (không chặn oan).
+self_stage=0; add_untracked=0
+if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?add([[:space:]]|$)'; then self_stage=1; add_untracked=1; fi
+if printf '%s' "$cmd_scan" | grep -Eq 'commit[^|&;]*[[:space:]](-[A-Za-z]*a[A-Za-z]*|--all)([[:space:]]|$)'; then self_stage=1; fi
+candidates() {   # NUL-separated, đường dẫn tương đối gốc repo
+  git -C "$CAY" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null
+  [ "$self_stage" = 1 ] && git -C "$CAY" diff --name-only --diff-filter=AM -z -- 2>/dev/null
+  [ "$add_untracked" = 1 ] && git -C "$CAY" ls-files -o --exclude-standard -z -- 2>/dev/null
+  return 0
+}
+secret_hit=0
+diff_text() {   # luôn return 0: pipefail sẽ biến trạng thái 1 của `[ ] &&` cuối nhóm thành "pipeline lỗi" và bỏ lọt ca
+  git -C "$CAY" diff --cached -U0 -- 2>/dev/null
+  [ "$self_stage" = 1 ] && git -C "$CAY" diff -U0 -- 2>/dev/null
+  return 0
+}
+if diff_text | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then secret_hit=1; fi
+if [ "$secret_hit" = 0 ] && [ "$add_untracked" = 1 ]; then
+  while IFS= read -r -d '' f; do
+    grep -IEq "$secret_re" "$CAY/$f" 2>/dev/null && { secret_hit=1; break; }
+  done < <(git -C "$CAY" ls-files -o --exclude-standard -z -- 2>/dev/null)
+fi
+if [ "$secret_hit" = 1 ]; then
+  echo "🚫 Diff (staged hoặc sắp được stage) chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi diff, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
   exit 2
 fi
 big=""
 while IFS= read -r -d '' f; do
-  sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"
+  sz="$(wc -c <"$CAY/$f" 2>/dev/null || echo 0)"
   [ "$sz" -gt 1048576 ] && big="$big $f($((sz/1024))KB)"
-done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
+done < <(candidates | sort -zu)
 if [ -n "$big" ]; then
-  echo "🚫 File staged > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
+  echo "🚫 File staged (hoặc sắp stage) > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
   exit 2
 fi
 
-if [ ! -x "$ROOT/scripts/dev-task.sh" ]; then
+# Cổng chạy trên cây đang commit; cây đó không có dev-task.sh (hiếm) thì lùi về $ROOT.
+GOC_CONG="$CAY"; [ -x "$GOC_CONG/scripts/dev-task.sh" ] || GOC_CONG="$ROOT"
+if [ ! -x "$GOC_CONG/scripts/dev-task.sh" ]; then
   # Không có dispatcher → không chặn (an toàn), chỉ nhắc.
   echo "[pre-commit-gate] không thấy scripts/dev-task.sh → bỏ qua cổng." >&2
   exit 0
 fi
 
-if ! "$ROOT/scripts/dev-task.sh" gate; then
+# dev-task.sh lấy ROOT từ CLAUDE_PROJECT_DIR → ép về cây đang commit, kẻo nó cd sang checkout chính.
+if ! CLAUDE_PROJECT_DIR="$GOC_CONG" "$GOC_CONG/scripts/dev-task.sh" gate; then
   echo "❌ Cổng trước commit ĐỎ (build/typecheck/lint/test). Sửa hết rồi commit lại (CLAUDE.md §5)." >&2
   echo "   Bỏ qua có chủ đích: thêm --no-verify vào lệnh git commit." >&2
   exit 2
@@ -79,8 +114,8 @@ fi
 
 # Cổng máy móc (build/lint/test) chỉ bắt lỗi CÚ PHÁP, không bắt lỗi LOGIC/trùng lặp/hiệu năng —
 # đúng việc Sonnet làm tốt qua skill /code-review, /simplify. Nudge (không chặn) khi diff staged đủ lớn.
-lines_changed="$(git -C "$ROOT" diff --cached --numstat -- 2>/dev/null | awk '{a+=$1; d+=$2} END{print a+d+0}')"
-files_changed="$(git -C "$ROOT" diff --cached --name-only -- 2>/dev/null | grep -c . || true)"
+lines_changed="$(git -C "$CAY" diff --cached --numstat -- 2>/dev/null | awk '{a+=$1; d+=$2} END{print a+d+0}')"
+files_changed="$(git -C "$CAY" diff --cached --name-only -- 2>/dev/null | grep -c . || true)"
 if [ "${lines_changed:-0}" -ge 80 ] || [ "${files_changed:-0}" -ge 5 ]; then
   echo "💡 Diff staged khá lớn (${files_changed} file, ~${lines_changed} dòng đổi). Cổng máy móc chỉ bắt lỗi cú pháp — cân nhắc chạy /code-review (hoặc /simplify) trước khi commit để bắt lỗi logic/trùng lặp/hiệu năng." >&2
 fi

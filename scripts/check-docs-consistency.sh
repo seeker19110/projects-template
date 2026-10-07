@@ -319,6 +319,53 @@ if [ -f CLAUDE.md ]; then
   fi
 fi
 
+# ── 10. Bảng Markdown không hàng nào THỪA Ô (đối chiếu X-Agents 2026-10-06; lỗi thật ở repo này). ──
+# GitHub lặng lẽ BỎ ô thừa, và `|` trong backtick VẪN tách ô (phải viết `\|`) — nên chữ biến mất mà không cổng
+# nào báo. Đã gặp: `Analyze (python|actions)` ở repository-settings.md, `|| true` ở báo cáo audit 2026-10-05.
+echo "== 10. Bảng Markdown không hàng nào thừa ô =="
+while IFS= read -r mdfile; do
+  [ -f "$mdfile" ] || continue
+  bad_rows="$(awk '
+    function cells(l,   t) { t = l; gsub(/\\\|/, "", t); sub(/^[ \t]*\|/, "", t); sub(/\|[ \t]*$/, "", t); return gsub(/\|/, "|", t) + 1 }
+    /^[ \t]*```/ { fence = !fence; intable = 0; next }
+    fence { next }
+    {
+      if (intable) {
+        if ($0 ~ /^[ \t]*\|/) { if (cells($0) > n) print NR; next }
+        intable = 0
+      }
+      if (prev ~ /^[ \t]*\|/ && $0 ~ /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/) { intable = 1; n = cells(prev) }
+      prev = $0
+    }' "$mdfile")"
+  if [ -n "$bad_rows" ]; then
+    echo "::error file=$mdfile,line=$(printf '%s' "$bad_rows" | head -1)::Hàng bảng nhiều ô hơn dòng tiêu đề — GitHub bỏ ô thừa, chữ mất im lặng. '|' trong backtick vẫn tách ô: viết \`\\|\`. Các dòng: $(printf '%s' "$bad_rows" | tr '\n' ' ')"
+    fail=1
+  fi
+done < <(git ls-files '*.md' ':!:vendor/*')
+
+# ── 11. Script (scripts/) ↔ FEATURE-MAP.md (F-N01, audit 2026-10-06). ──
+# VÌ SAO: FEATURE-MAP là "nguồn sự thật về dự án có những gì" và là đầu vào của Nhóm 12 (thống nhất chéo tính năng),
+# nhưng mục 6 chỉ canh CODEMAP — nên 7 engine/cổng thật (spec-compiler, arch-health-radar, subagent-dispatch,
+# telemetry-log, check-progress-freshness, hai cổng độ phức tạp) và 6 test từng vắng mặt mà không cổng nào báo.
+# Quy ước: script không bắt đầu bằng `_` (helper nội bộ) phải có tên file trong FEATURE-MAP; wrapper `x.sh` và `x.py`
+# cùng tên coi như một tính năng (nhắc một trong hai là đủ).
+echo "== 11. Script (scripts/) ↔ FEATURE-MAP.md =="
+FEATURE_MAP_FILE="docs/FEATURE-MAP.md"
+if [ ! -f "$FEATURE_MAP_FILE" ]; then
+  echo "::notice::Không có $FEATURE_MAP_FILE (dự án đích chưa lập) — bỏ qua mục 11."
+else
+  for f in scripts/*.sh scripts/*.py; do
+    [ -e "$f" ] || continue
+    base="$(basename "$f")"
+    case "$base" in _*) continue ;; esac
+    stem="${base%.*}"
+    if ! grep -qF "$stem.sh" "$FEATURE_MAP_FILE" && ! grep -qF "$stem.py" "$FEATURE_MAP_FILE"; then
+      echo "::error file=$FEATURE_MAP_FILE::Script '$f' tồn tại nhưng KHÔNG được khai trong $FEATURE_MAP_FILE — thêm một hàng FT-xx (điểm vào, dữ liệu, trạng thái, test), hoặc đổi tên thành _<tên> nếu là helper nội bộ."
+      fail=1
+    fi
+  done
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi
