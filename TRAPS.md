@@ -924,3 +924,18 @@ lint thật. Cảnh báo SC2154 ở test hook được sửa trong cùng đợt 
 CI Windows không cài ShellCheck: lần đầu test đỏ với exit 127 ở đường sạch,
 vì fixture gọi binary thật. Test dùng ShellCheck giả chỉ trong fixture để kiểm
 đường gọi từng file và mã thoát; cổng Linux vẫn chạy ShellCheck thật trên source.
+
+
+## 42. Chạy từng suite rồi chạy full gate làm kiểm thử Linux lặp toàn bộ
+
+*Ngày:* 2026-10-07, issue #198. CI gọi các suite bằng step riêng, sau đó gọi
+full local gate có vòng lặp lại mọi shell suite. Cả 17 suite bị gọi hai lần trên
+Linux; các lượt Windows là đối chứng nền tảng riêng, không phải phần cần xóa.
+
+*Cách sửa:* giữ step kiểm tra và doctor, bỏ lần gọi full gate lặp trong CI.
+Giữ ShellCheck từng file (bẫy 41) và Python syntax trên cả scripts/tests để không
+mất kiểm tra vốn có trong full gate. Local gate vẫn chạy đủ mọi suite.
+
+*Cổng:* `tests/test_ci_suite_parity.py` đếm lệnh chạy, không đếm tên step/comment;
+thiếu hoặc trùng một suite phải đỏ. Không dùng kết quả này để suy ra mức giảm thời
+lượng hoặc token: đó cần số đo thực tế riêng.

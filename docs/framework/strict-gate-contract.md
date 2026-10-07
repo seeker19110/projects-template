@@ -63,3 +63,12 @@ Hook thiếu jq vẫn có đường fail-open như tài liệu cũ; doctor phát
 không thay thế sandbox hoặc vô hiệu hóa mọi bypass thủ công.
 Native PowerShell nâng cấp, spec-approval proof, evidence schema theo từng AC và
 đánh giá UX thực tế là các phạm vi riêng, không được đánh dấu hoàn tất bởi gate này.
+
+
+## Parity của CI và local gate
+
+Local gate chạy toàn bộ shell suite. CI Linux đã gọi từng suite trong các job
+bắt buộc nên không gọi full gate thêm một lần; doctor chỉ báo READY. Kiểm parity
+ở `tests/test_ci_suite_parity.py` giữ tập suite bằng nhau và mỗi suite đúng một
+lần trên Linux. Các lượt Windows vẫn là kiểm tra tính tương thích riêng.
+Không giảm ngưỡng, không bỏ cổng aggregate, không dùng READY thay cho test PASS.

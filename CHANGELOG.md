@@ -20,6 +20,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Lean delivery (2026-10-07, issue #198)
+
+- CI Linux giữ đủ 17 shell suite nhưng bỏ lượt chạy lặp qua full local gate; local gate vẫn chạy đủ.
+- Thêm kiểm tra parity có đối chứng thiếu/trùng suite, không tính comment hoặc lượt Windows.
+- Giữ ShellCheck từng file và kiểm cú pháp Python cả scripts/tests, không giảm ngưỡng hay required check.
+
 ### Added (Thêm)
 
 - **Đối chiếu 15 repo agent (2026-09-27):** `docs/reports/2026-09-27-agent-frameworks.md` ghi nguồn hiện hành, ba cột tiếp nhận và lý do không đóng gói một runtime mặc định; cổng C7 bổ sung các ca nghiệm thu agent chạy dài, quyền tool, human gate, trace, memory và MCP theo dự án đích.
