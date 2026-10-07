@@ -5,7 +5,7 @@
 > `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới
 > là lịch sử, không dùng các ô chưa tick của lượt cũ để suy ra trạng thái hiện tại.
 
-## Chu kỳ 2026-10-06 — đã duyệt 2026-10-07; Pha 3 xong, chờ nghiệm thu W-01/W-07
+## Chu kỳ 2026-10-06 — đã duyệt 2026-10-07; Pha 3 xong, chỉ còn W-07 (F-N05) chờ chủ repo + xác nhận đóng
 
 Chu kỳ 2026-10-05 đã đóng theo xác nhận của người dùng ngày 2026-10-06 (lựa chọn "đóng chu kỳ cũ, mở chu kỳ mới").
 Base: `origin/main` `e2b70bf`; nhánh làm việc `claude/beautiful-albattani-f55ar3` (commit `de01523`, chưa có PR).
@@ -43,7 +43,7 @@ runtime độc lập (đã ghi ở chu kỳ trước).
 
 | ID | F gốc | Việc | Tiêu chí nghiệm thu | Sức | Trạng thái |
 | --- | --- | --- | --- | --- | --- |
-| W-01 | — | Mở PR cho các commit của nhánh (`de01523`…) | CI xanh, mô tả đủ mục template, squash merge | S | ⬜ chưa mở PR (chờ người dùng yêu cầu); commit đã push |
+| W-01 | — | Mở PR cho các commit của nhánh (`de01523`…) | CI xanh, mô tả đủ mục template, squash merge | S | ✅ đã vào `main` qua #199 (`3ab7a7b`); `main` hiện `3310d2a` (#201) |
 | W-02 | F-N02 | Radar: nhận test Python trong `tests/` mà `test-py-coverage.sh` chạy; test đỏ trước (fixture script `.py` + test) | `delivery-handoff.py` không còn trong `scripts_uncovered`; ca âm: `.py` không test vẫn bị báo | S | ✅ `b8d2032` |
 | W-03 | F-N01 | Cổng docs-consistency mục 11: mọi `scripts/*` (trừ `_*`, `__pycache__`) và `test-*.sh` phải có mặt trong FEATURE-MAP; sau đó bổ sung các hàng thiếu bằng cách đọc code thật + sửa nhãn "(3 script)" | Negative test: thêm script giả → đỏ; FEATURE-MAP đủ; CODEMAP khớp | M | ✅ `c9c6031` |
 | W-04 | F-N03 | Bổ sung mục 11 touchpoints cho 3 spec (đọc diff PR tương ứng, không bịa) | Radar hết cảnh báo spec | S | ✅ `2d5d1cc` |
