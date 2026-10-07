@@ -5,7 +5,7 @@
 > `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới
 > là lịch sử, không dùng các ô chưa tick của lượt cũ để suy ra trạng thái hiện tại.
 
-## Chu kỳ 2026-10-06 — đã duyệt 2026-10-07; Pha 3 xong, chỉ còn W-07 (F-N05) chờ chủ repo + xác nhận đóng
+## Chu kỳ 2026-10-06 — đã duyệt 2026-10-07; Pha 3 xong, W-07 đã quyết định (giữ nhánh); chờ xác nhận đóng chu kỳ
 
 Chu kỳ 2026-10-05 đã đóng theo xác nhận của người dùng ngày 2026-10-06 (lựa chọn "đóng chu kỳ cũ, mở chu kỳ mới").
 Base: `origin/main` `e2b70bf`; nhánh làm việc `claude/beautiful-albattani-f55ar3` (commit `de01523`, chưa có PR).
@@ -49,7 +49,7 @@ runtime độc lập (đã ghi ở chu kỳ trước).
 | W-04 | F-N03 | Bổ sung mục 11 touchpoints cho 3 spec (đọc diff PR tương ứng, không bịa) | Radar hết cảnh báo spec | S | ✅ `2d5d1cc` |
 | W-05 | F-N04 | Tách `test-engine-characterization.sh` ≤ 400 dòng, **không đổi hành vi** (test chạy trước/sau cùng kết quả) | Radar hết cảnh báo file dài; 9 test xanh | M | ✅ `b8d2032` |
 | W-06 | F-N07 | Thêm `concurrency` cho 3 workflow; cập nhật `check-ci-policy` nếu cần | `check-ci-policy.sh` xanh, CI xanh | S | ✅ `92a1959` |
-| W-07 | F-N05 | Dọn nhánh remote theo lựa chọn của chủ repo (từng nhánh) | Danh sách còn lại khớp quyết định; không đụng nhánh của người khác nếu chưa hỏi | S | ⬜ KHÔNG làm: xoá nhánh không hoàn tác, một nhánh của tác giả khác — cần chủ repo chọn từng nhánh |
+| W-07 | F-N05 | Dọn nhánh remote theo lựa chọn của chủ repo (từng nhánh) | Danh sách còn lại khớp quyết định; không đụng nhánh của người khác nếu chưa hỏi | S | ➖ chủ repo chọn giữ lại cả 3 nhánh (2026-10-07) — không xoá; ghi nhận ở báo cáo audit |
 | W-08 | F-N06/N08/N09 | Ghi quyết định + điều kiện xem lại vào báo cáo audit | Có mục trong `docs/reports/2026-10-06-framework-audit.md` | S | ✅ báo cáo cùng PR |
 | W-09 | — | Re-audit nhóm 4/8/9/12 và nghiệm thu DoC | Bảng bằng chứng, `gate` xanh | S | ✅ 2026-10-07: 0 Cao/Trung mở; còn F-N05 chờ chủ repo |
 
