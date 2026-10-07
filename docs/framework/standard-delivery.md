@@ -186,7 +186,7 @@ migration/data tests cho DB, eval/cost/safety cho AI, platform/device tests cho 
 - Feature spec nâng cao/OpenSpec: `spec-driven-openspec.md`.
 - Điều phối 3 tầng + bảng `route:`: `orchestration-3-tier.md`.
 - Model, effort, chế độ tự động: `models-and-automation.md`.
-- Cổng chất lượng đo được theo hồ sơ C2–C10: `quality-gates-by-profile.md`.
+- Cổng chất lượng đo được theo hồ sơ C1–C10 và ma trận bằng chứng (hành vi/UX/dữ liệu/bảo mật/release): `quality-gates-by-profile.md`.
 - Mức nghiêm ngặt ngành (ASVS, SOLID, 12-Factor, GDPR/SOC2): `industry-standards.md`.
 - Học từ nguồn ngoài (ba cột, cổng sự cố thật): `adopt-from-outside.md`.
 - Quy trình PR → merge + giải xung đột (luật đầy đủ của CLAUDE.md §8): `pr-flow.md`.

@@ -8,7 +8,7 @@
 
 ## Quality/security/data
 
-- [ ] Full profile gate xanh trên release candidate.
+- [ ] Full profile gate xanh trên release candidate; bằng chứng từng chiều theo ma trận hồ sơ ở `docs/framework/quality-gates-by-profile.md` (mức L: đủ 5 chiều).
 - [ ] Dependency, secret, SAST và threat-model findings trong SLA.
 - [ ] Migration chạy fresh/repeat/upgrade; backup restore đã kiểm; reconciliation query sẵn.
 - [ ] Privacy/retention/consent và authorization negative tests phù hợp.
