@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-process-optimization
 - Yêu cầu / outcome: chủ repo yêu cầu "nghiên cứu lại quy trình, tối ưu lại tốt nhất, chất lượng tốt nhất, ít code nhất, bảo mật nhất, dễ vận hành nhất". Outcome: audit có bằng chứng trên chính bộ khung theo 4 lăng kính, kế hoạch ưu tiên, thực thi các hạng mục giá trị cao/rủi ro thấp không đổi hành vi, có test bảo vệ.
-- Trạng thái: Active.
+- Trạng thái: Ready — O-0..O-4a đã commit, chờ PR/CI/merge; O-4b/O-5/O-6 là chu kỳ sau.
 - Chủ trì / writer: phiên chính; hai lượt audit chỉ-đọc giao subagent (code · tài liệu quy trình).
 - Mức rủi ro / số PR: audit + refactor không đổi hành vi mức S/M; số PR chốt sau audit (mỗi hạng mục một PR nhỏ, FIFO, trần 3 PR mở).
 - Scope / non-goal: scripts/, .claude/hooks, tests/, .github/workflows, tài liệu quy trình (CLAUDE/AGENTS/docs/framework/commands/agents). Non-goal: đổi luật nền (feature gate, TDD, WIP, trần token), hạ cổng, thêm dependency, thay stack, production.
@@ -34,9 +34,12 @@
 
 Gate lần 1 exit 2 (thiếu pwsh — công cụ host, đã cài portable). Gate lần 2 treo đệ quy (P-A0) — dừng bằng tay, không phải cùng failure lặp.
 
+- O-2 review + apply: 4 suite liên quan trên cây tích hợp 52/44/5/27 ✅; TRAPS của worker đánh lại số 53 (52 đã dùng cho P-A0). O-4a review + apply: 9 file +55/−101, test bảo vệ xanh.
+- Commit qua hook pre-commit (full gate exit 0 mỗi lần): `7208f2c` fix (O-0+O-2), `8332b96` refactor (O-4a), `411d751` docs (O-1+O-3+report). Hai lần hook đỏ trước đó là do fixture `test-check-scripts` dựng từ `git ls-files` thiếu file chưa stage / tham chiếu file bị gitignore — sửa bằng stage trước và bỏ backtick, không hạ cổng.
+
 ## Bàn giao / bước tiếp theo
 
-Chờ O-2 (worker complex, worktree `wt-o2`) → review diff + apply → full gate trên cây tích hợp → commit từng đơn vị → push → PR. O-4 sau O-2.
+Push nhánh, mở PR đủ template, bật auto-merge sau khi mô tả đủ, theo dõi CI Linux/Windows của đúng head. Sau merge: reconcile PROGRESS (SHA mới), đổi hồ sơ này thành done, mở O-4b.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 

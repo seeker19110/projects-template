@@ -122,7 +122,35 @@ rồi hỏng không thông báo); log `o0-red.log`. Sửa `dev-task.sh` (chốt 
 (11 mục OK), `test_adaptive_process` 8 OK, `test_profile_quality_matrix` 3 OK trong worktree;
 phiên chính chạy lại trên cây tích hợp (xem dưới). TDD: ngoại lệ 3 (chỉ tài liệu).
 
-**O-2 (fix, P-A1/A2/A3/A5 + P-B1).** _Đang thực thi — worker complex trong worktree riêng._
+**O-2 (fix, P-A1/A2/A3/A5 + P-B1).** Worker complex trong worktree riêng; phiên chính review diff
+từng hook (mọi khuôn chặn vẫn cần chữ `git`, không regex nào đổi) rồi `git apply`. Đỏ-trước trên
+source cũ: `test-hooks-gate.sh` mục 16 — 2 ❌ (thân heredoc chứa `git commit`/`git add` làm hook exit 2);
+`test-hooks-session.sh` mục 10 — 6 ❌ (thiếu jq/python, chỉ có `python`, engine lỗi → im lặng);
+`test-usage-estimate.sh` UE-5 — `UnicodeDecodeError` thật với `LC_ALL=C PYTHONUTF8=0`. Xanh-sau trên
+cây tích hợp (phiên chính chạy lại): hooks-gate 52 ✅, hooks-session 44 ✅, usage-estimate 5 ✅,
+telemetry-and-dispatch 27 ✅, 0 ❌. `_lib.sh` đi theo copy nguyên thư mục `.claude/hooks`
+(worker đã copy thử sang đích và hook ở đích vẫn chặn force-push main). TRAPS mục 53. Để lại có
+chủ đích: `telemetry-record.sh` vẫn im lặng khi *thiếu engine* (dự án đích gỡ telemetry không nên bị
+nhắc mỗi lượt); `usage-guard.sh:15` im lặng khi `usage-estimate.sh` lỗi → O-4b.
+Commit `7208f2c` (gộp O-0 + O-2, cùng loại `fix`).
 
-**O-4.** _Chưa bắt đầu — chờ O-2._
+**O-4a (refactor, P-B3/P-B4/P-B5/P-B9 một phần).** Worker standard trong worktree riêng, 9 file
++55/−101; phiên chính review `forbid()`/`step_body()`/`http_call` và `git apply`. Test bảo vệ chạy
+trong worktree: test-check-scripts 37 ✅, maintenance-sweep 40 ✅, maintain-cron 29 ✅, maintain-run
+27 ✅, next-gen-engines 19 ✅, py-coverage 96%, runtime_safety 17 OK, docs/CI-policy OK; hook commit
+chạy lại full gate trên cây tích hợp: exit 0. TDD ngoại lệ 2 (gộp/xoá cơ học). Commit `8332b96`.
+
+**O-1 + O-3 (docs).** Commit `411d751`; docs-consistency 11 mục OK, `test_adaptive_process` 8 OK,
+`test_profile_quality_matrix` 3 OK, progress-freshness PF-1..4 OK.
+
+**O-4b (còn lại của O-4, chu kỳ/commit sau):** P-A4 (`_commit-guard.sh` một nguồn secret_re/>1 MB,
+cần thêm vào cả hai copy script + test đồng bộ), P-B2 (`finish` trong `_test-lib.sh`, 12 suite — đụng
+`test-hooks-*.sh` nên chờ O-2 merge), P-B6 (`declared_cmd` dùng chung, bỏ `eval`), P-B8 (gọn Python
+engine), P-B9 phần telemetry test ghi vào thư mục thật, `usage-guard.sh:15` cảnh báo khi estimate lỗi.
+Xem lại khi: PR này đã merge (tránh xung đột trên cùng file hook/test).
+
+**Số đo sau O-0..O-4a (cây tích hợp `411d751`):** full gate exit 0 qua hook ở cả ba commit; code
+thực thi −46 dòng ròng ở scripts (+55/−101) sau khi đã cộng thêm ~70 dòng test/hook mới của hai `fix`
+(test đỏ-trước và `_lib.sh` là chi phí cố ý cho hai lỗ hổng hàng rào); radar/complexity không đổi
+(CC cao nhất 43/45). Đo lại radar + thời gian gate ở O-5 khi dời khối dò stack.
 
