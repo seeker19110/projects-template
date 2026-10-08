@@ -149,7 +149,7 @@ cần thêm vào cả hai copy script + test đồng bộ), P-B2 (`finish` trong
 engine), P-B9 phần telemetry test ghi vào thư mục thật, `usage-guard.sh:15` cảnh báo khi estimate lỗi.
 Xem lại khi: PR này đã merge (tránh xung đột trên cùng file hook/test).
 
-**O-4b — đã làm (nhánh sau #218, hồ sơ `docs/work/2026-10-08-process-optimization-o4b/working.md`).**
+**O-4b — đã làm (nhánh sau #218, hồ sơ `docs/work/2026-10-08-process-optimization-o4b/done.md`).**
 Hai worker trong worktree riêng, phiên chính review + nối hai phần + tự sửa phần giáp ranh:
 - P-A4: `scripts/_commit-guard.sh` (14 dòng, chỉ `source`) giữ `COMMIT_GUARD_SECRET_RE` + `COMMIT_GUARD_MAX_FILE_BYTES`;
   `pre-commit-gate.sh`, `githooks/pre-commit`, `maintenance-sweep.sh` source nó, ba bản regex rời đã xoá. **Chính sách
@@ -171,7 +171,9 @@ Hai worker trong worktree riêng, phiên chính review + nối hai phần + tự
   `arch-health-radar.py` `_read_text` thay 5 khối open/read. Bỏ qua nén CSS (đã quyết).
 - Phát hiện khi làm (đã sửa cùng PR, 1 dòng/file): fixture copy trong `test-maintain-run.sh`/`test-maintain-cron.sh`
   thiếu `_stack-detect.sh` nên sweep in "No such file" rồi chạy tiếp — đúng khuôn TRAPS mục 19.
-Số đo: xem hồ sơ o4b (điền sau khi commit).
+Merge: #219 squash → `0eeede6` (2026-10-08T17:02Z), 12 check xanh trên head 6ca9e85 sau một lần sửa Windows
+(`mktemp` Git Bash → `cygpath -m`). Số đo so với 843581a: `scripts/` + hooks 26 file +174/−152 (test +76/−79;
+code +98/−73 — phần tăng là comment giải thích và nhánh fail-closed ở 3 nơi source). Chi tiết: hồ sơ o4b `done.md`.
 
 **Số đo sau O-0..O-4a (cây tích hợp `411d751`):** full gate exit 0 qua hook ở cả ba commit; code
 thực thi −46 dòng ròng ở scripts (+55/−101) sau khi đã cộng thêm ~70 dòng test/hook mới của hai `fix`
