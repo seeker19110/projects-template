@@ -32,6 +32,12 @@ LARGE_CODE_LINES = 400   # ngưỡng cho FILE MÃ
 LARGE_DOC_LINES = 900    # tài liệu dài là bình thường, ngưỡng riêng và rộng hơn
 
 
+def _read_text(path):
+    """Đọc cả file UTF-8, bỏ qua byte lạ. Ném OSError — caller tự quyết nhánh lỗi."""
+    with open(path, encoding="utf-8", errors="ignore") as fp:
+        return fp.read()
+
+
 def _count_code_files(file_type_counts):
     return sum(n for e, n in file_type_counts.items() if e in CODE_EXT)
 
@@ -53,8 +59,7 @@ def _ci_gate_tests(test_scripts):
     ci_path = os.path.join(ROOT_DIR, ".github", "workflows", "ci.yml")
     if not os.path.exists(ci_path):
         return []
-    with open(ci_path, encoding="utf-8", errors="ignore") as fp:
-        ci_text = fp.read()
+    ci_text = _read_text(ci_path)
     return [t for t in test_scripts if t in ci_text]
 
 
@@ -66,8 +71,7 @@ def _scripts_covered_by(test_name, scripts_dir, all_scripts):
     """
     covered = {test_name}
     try:
-        with open(os.path.join(scripts_dir, test_name), encoding="utf-8", errors="ignore") as fp:
-            body = fp.read()
+        body = _read_text(os.path.join(scripts_dir, test_name))
     except OSError:
         return covered
     for cand in all_scripts:
@@ -89,15 +93,13 @@ def _scripts_covered_by_python_tests(test_name, scripts_dir, all_scripts):
     """
     covered = set()
     try:
-        with open(os.path.join(scripts_dir, test_name), encoding="utf-8", errors="ignore") as fp:
-            body = fp.read()
+        body = _read_text(os.path.join(scripts_dir, test_name))
     except OSError:
         return covered
     tests_dir = os.path.join(os.path.dirname(scripts_dir), "tests")
     for ref in set(re.findall(r"tests/([\w.-]+\.py)", body)) | set(re.findall(r"\b(test_[\w-]+\.py)\b", body)):
         try:
-            with open(os.path.join(tests_dir, ref), encoding="utf-8", errors="ignore") as fp:
-                tbody = fp.read()
+            tbody = _read_text(os.path.join(tests_dir, ref))
         except OSError:
             continue
         for cand in all_scripts:
@@ -136,8 +138,7 @@ def _spec_quality():
         if not f.endswith(".md") or f == "README.md":
             continue
         total += 1
-        with open(os.path.join(specs_dir, f), encoding="utf-8", errors="ignore") as fp:
-            body = fp.read()
+        body = _read_text(os.path.join(specs_dir, f))
         has_ids = bool(re.search(r"\b(?:FR|AC|NFR|W)-\d+\b", body))
         has_touch = "Architecture và code touchpoints" in body
         if has_ids and has_touch:

@@ -12,7 +12,6 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # explicit for ShellCheck; _test-lib.sh also initializes the counter
 
 if ! command -v jq >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
   echo "::error::Cần jq + python3 để kiểm hook session (hook fail-open khi thiếu — test này không được xanh giả)."
@@ -222,9 +221,4 @@ printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$P6" bash "$P6/.cl
   && ok "usage-estimate.sh lỗi → exit 0 + cảnh báo stderr có exit code" \
   || bad "usage-estimate.sh lỗi → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[usage-guard] usage-estimate.sh lỗi (exit 4)')"
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
-  exit 0
-fi
-echo "FAIL — $fails ca hỏng."
-exit 1
+finish "hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."

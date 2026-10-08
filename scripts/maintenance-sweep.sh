@@ -23,6 +23,7 @@
 set -uo pipefail   # cố ý KHÔNG -e: một phép đo hỏng không được làm chết cả lượt quét
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+# shellcheck disable=SC2034  # đọc bởi declared_cmd trong scripts/_stack-detect.sh (source ở dưới)
 DECL="$ROOT/.claude/project-commands.sh"
 OUT=""; STRICT=0; RUN_GATE=0; DO_DEPS=1
 DEPS_TIMEOUT="${MAINT_DEPS_TIMEOUT:-180}"   # giây cho mỗi lệnh dependency (cần mạng)
@@ -73,12 +74,6 @@ tracked() { git ls-files -z 2>/dev/null; }   # NUL-separated
 run_capture() { # $1=giây, $2..=lệnh (chuỗi bash)
   local secs="$1"; shift
   if has timeout; then timeout "$secs" bash -c "$*" 2>&1; else bash -c "$*" 2>&1; fi
-}
-
-declared_var() { # $1=tên biến trong project-commands.sh → in giá trị hoặc rỗng
-  [ -f "$DECL" ] || return 0
-  # shellcheck source=/dev/null  # file khai báo của DỰ ÁN ĐÍCH, repo khung không có
-  ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${$1:-}\"" )
 }
 
 days_since() { # $1=YYYY-MM-DD → số ngày tới nay, rỗng nếu không parse được
@@ -183,7 +178,7 @@ sweep_deps() {
   if [ "$DO_DEPS" -eq 0 ]; then line "bỏ qua (--no-deps)"; info Dependency "bỏ qua theo --no-deps" "—"; return; fi
   local kind cmd specs dep_dir dep_cmd safe_dir dep_prefix dep_label out rc
   for kind in outdated audit; do
-    cmd="$(declared_var "deps_$kind")"
+    cmd="$(declared_cmd "deps_$kind" 2>/dev/null || true)"   # declared_cmd: _stack-detect.sh; config hỏng → coi như không khai báo, như trước
     if [ -n "$cmd" ]; then
       specs=".$(printf '\t%s' "$cmd")"  # lệnh khai báo tiếp tục chạy ở root, như hợp đồng hiện tại
     else

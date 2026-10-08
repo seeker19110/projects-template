@@ -16,7 +16,6 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 FAKEBIN="$WORK/bin"; mkdir -p "$FAKEBIN"
 for b in ruff mypy pytest uv poetry flutter; do printf '#!/usr/bin/env bash\nexit 0\n' > "$FAKEBIN/$b"; chmod +x "$FAKEBIN/$b"; done
@@ -393,5 +392,4 @@ else
   bad "ba bước sạch nhưng lint exit $rc hoặc thiếu bước"
 fi
 
-if [ "$fails" -eq 0 ]; then echo "OK — dev-task.sh phân giải đúng lệnh cho 13 stack, alias Node, môi trường Python."; exit 0; fi
-echo "FAIL — $fails ca hỏng."; exit 1
+finish "dev-task.sh phân giải đúng lệnh cho 13 stack, alias Node, môi trường Python."

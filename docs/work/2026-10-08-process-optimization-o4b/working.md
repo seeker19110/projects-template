@@ -18,14 +18,25 @@
 ## Quyết định và bằng chứng
 
 - #218 merge SHA 843581a; main Release/Secret scan SUCCESS, CI 37807540551 đang chạy lúc mở hồ sơ.
+- Hai worker xong (A: 14 file +94/−16; B: 14 file +76/−101), mỗi worker full gate PASS trong worktree riêng. Phiên chính
+  review toàn bộ diff, apply bằng `git apply --index`, rồi tự làm phần giáp ranh: 6 suite còn lại sang `finish`
+  (quyết exit 1 thống nhất — `exit "$fails"` ≥ 256 quay về 0), `maintenance-sweep.sh` dùng `declared_cmd` chung
+  (kiểm tay: lệnh khai báo chạy, config hỏng → sweep vẫn rc 0 như trước), fixture `test-maintain-run/cron` thêm
+  `_stack-detect.sh` (hết "No such file"), CODEMAP + `_test-lib.sh` comment, SC2034 `DECL` trong sweep.
+- Chính sách fail-closed khi thiếu `_commit-guard.sh` (worker A đề xuất, phiên chính chốt theo §3d): chặn + nhắc copy;
+  lý do + so sánh với `_lib.sh` ghi trong report.
+- Số đo trước commit (so với 843581a): `scripts/` + hooks 26 file +174/−152 (test 14 file +76/−79; code 12 file
+  +98/−73 — phần tăng là comment giải thích + nhánh fail-closed mới của 3 nơi source). Kiểm chứng trong repo chính:
+  shellcheck -S warning rc 0; docs-consistency rc 0; test-maintenance-sweep, test-maintain-run, test-maintain-cron,
+  test-hooks-session, test-check-scripts, test-adoption-smoke đều `OK —`, 0 dòng ❌; full gate chạy qua hook ở mỗi commit.
 
 ## Lần thử / blocker
 
-—
+- Hook pre-commit kích hoạt oan khi lệnh kiểm tay có chuỗi `git … commit` (TRAPS mục 53) và báo lint đỏ SC2034 `DECL` → sửa bằng directive có lý do; kiểm fixture chuyển sang file script riêng.
 
 ## Bàn giao / bước tiếp theo
 
-Chờ hai worker; review + apply; gate; PR.
+Commit theo đơn vị (A: guard/hook · B+giáp ranh: test-lib/declared_cmd/telemetry/engine) → push → PR (template đủ mục, auto-merge SQUASH) → subscribe + check-in 5 phút → sau merge: PROGRESS SHA mới, đổi hồ sơ này thành done.md.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 

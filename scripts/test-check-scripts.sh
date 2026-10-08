@@ -397,9 +397,4 @@ else
   fi
 fi
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — 3 gate script, protection-guard và dependency-review đều bắt đúng lỗi + không chặn oan."
-else
-  echo "❌ $fails ca thất bại — xem chi tiết ở trên."
-fi
-exit "$fails"
+finish "3 gate script, protection-guard và dependency-review đều bắt đúng lỗi + không chặn oan."

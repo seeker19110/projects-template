@@ -239,7 +239,7 @@ def print_trace(spec_path):
     return 1
 
 
-def _display_path(path, start=None):
+def _display_path(path):
     """Duong dan de HIEN THI, uu tien tuong doi so voi ROOT_DIR.
 
     Tren Windows, os.path.relpath NEM ValueError khi hai duong dan nam tren hai o dia khac nhau
@@ -252,7 +252,7 @@ def _display_path(path, start=None):
     tuyet doi, khong co ly do gi de lam hong ca lenh bien dich vi mot nhan hien thi.
     """
     try:
-        return os.path.relpath(path, start if start is not None else ROOT_DIR)
+        return os.path.relpath(path, ROOT_DIR)
     except ValueError:
         return os.path.abspath(path)
 

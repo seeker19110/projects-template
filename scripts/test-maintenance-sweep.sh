@@ -11,7 +11,6 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SWEEP="$ROOT/scripts/maintenance-sweep.sh"
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -174,5 +173,4 @@ echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
 
 echo
-if [ "$fails" -eq 0 ]; then echo "OK — maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."; else echo "FAIL — $fails kiểm hỏng."; fi
-exit "$fails"
+finish "maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."

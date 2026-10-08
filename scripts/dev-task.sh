@@ -36,16 +36,10 @@ if [ -z "$TASK" ]; then
 fi
 
 # --- 1) Lệnh KHAI BÁO (escape hatch cho mọi dự án đặc thù) --------------------
-declared_cmd() {
-  # Config là shell tin cậy của dự án, không phải input từ PR/provider chưa review.
-  # Shell riêng giữ errexit hoạt động ngay cả khi caller dùng command substitution/if.
-  [ -f "$DECL" ] || return 0
-  bash -e -o pipefail -c '. "$1" >/dev/null; key="$2"; printf "%s" "${!key-}"' bash "$DECL" "$1"
-}
-
+# declared_cmd() nằm ở _stack-detect.sh (dùng chung; đọc $DECL lúc gọi).
 # --- 2) TỰ DÒ theo hệ sinh thái ---------------------------------------------
 # shellcheck source=scripts/_stack-detect.sh
-. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"   # node_pm, py_present, py_tool (dùng chung với maintenance-sweep)
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"   # node_pm, py_present, py_tool, declared_cmd (dùng chung với maintenance-sweep)
 node_has_script() {
   # $1 = tên script; true nếu package.json khai báo nó.
   [ -f "$ROOT/package.json" ] || return 1
