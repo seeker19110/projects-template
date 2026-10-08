@@ -1063,3 +1063,41 @@ chứng minh không đếm trùng; kiểm miễn trừ body/feature vẫn áp d�
 *Cổng chốt chặn:* `tests/test_runtime_safety.py` chạy Node trên script workflow
 với 18 subcase trong gate và CI Linux/Windows. Đếm mọi PR khác đang mở trước
 return miễn trừ, chỉ loại PR hiện tại; giới hạn vẫn là ba. Không tự đóng PR.
+
+## 52. Gate của dự án đích kế thừa `CLAUDE_PROJECT_DIR` của repo khung → gate khung gọi lại chính nó
+
+*Ngày:* 2026-10-08, audit tối ưu quy trình (P-A0).
+
+*Khuôn lỗi:* `dev-task.sh` ưu tiên `CLAUDE_PROJECT_DIR` để tính ROOT (cần cho worktree —
+mục 48/hook). `test-adoption-smoke.sh` chạy gate/doctor của dự án đích giả bằng
+`cd "$dir" && bash scripts/dev-task.sh gate` mà không đặt lại biến đó. Khi biến đã trỏ về
+repo khung (hook `pre-commit-gate` đặt nó cho mọi `git commit` từ Claude Code), ROOT của gate
+"dự án đích" quay về khung → gate khung chạy lại trong gate khung → đệ quy vô hạn, treo
+không thông báo. CI không thấy vì CI không đặt biến; các phiên trước commit bằng Git hook
+chuẩn (không đặt biến) nên không gặp.
+
+*Cách rà:* mọi chỗ gọi `dev-task.sh` cho MỘT CÂY KHÁC (fixture, dự án đích, clone) phải đặt
+`CLAUDE_PROJECT_DIR` trỏ đúng cây đó (grep `dev-task.sh (gate|doctor)` trong `scripts/test-*.sh`);
+`ps` thấy chuỗi `test-adoption-smoke.sh → dev-task.sh gate → test-adoption-smoke.sh` lặp là
+đúng khuôn này.
+
+*Cổng chốt chặn:* `dev-task.sh gate` BLOCKED khi `DEV_TASK_GATE_ROOT` (export ở lượt ngoài) trùng
+ROOT — fail-closed có lý do thay vì treo; `scripts/test-dev-task.sh` mục 7d (fixture tự gọi gate
+cùng ROOT, giới hạn 3 tầng, đỏ-trước trên bản cũ). `test-adoption-smoke.sh` đặt
+`CLAUDE_PROJECT_DIR="$dir"` cho mọi gate/doctor của đích.
+
+## 53. Bản sao hook lệch nhau — bộ lọc dữ liệu sửa ở một hook không sang hook kia
+
+*Ngày:* 2026-10-08, O-2 P-A1 (PR: điền khi mở). Lần sửa 2026-09-14 thêm `strip_heredoc_bodies` vào
+`block-dangerous-git.sh` nhưng `pre-commit-gate.sh` giữ BẢN SAO riêng của bộ lọc (chỉ bỏ nháy). Hệ quả:
+`python3 - <<PY … git commit … PY` (lệnh không phải commit) chạy cổng và bị chặn oan khi cổng đỏ; commit có
+message heredoc nhắc `git add` bị coi là lệnh tự stage → soi cả file chưa theo dõi và chặn oan. Đo: 2 ca đỏ
+(exit 2, kỳ vọng 0). Gặp thật ngay trong phiên sửa: lệnh vá test có thân heredoc chứa `git commit` bị chặn.
+
+*Cách rà:* sửa một bộ lọc/regex/parse ở một hook → `grep` cùng khuôn (`.tool_input.command`, `strip_`, `<<`)
+trong mọi `.claude/hooks/*.sh` và `scripts/githooks/*`. Logic dùng chung đặt một chỗ (`.claude/hooks/_lib.sh`),
+không chép; hook nào còn bản sao riêng là ứng viên lệch.
+
+*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 16 (thân heredoc chứa `git commit`/`git add` không kích hoạt
+cổng/tự-stage; `git commit` THẬT sau heredoc vẫn qua cổng) + mục 7–8 cho `block-dangerous-git` — cả hai hook
+`source` cùng `_lib.sh` nên một lần sửa áp cho cả hai.

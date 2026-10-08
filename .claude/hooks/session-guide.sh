@@ -9,11 +9,11 @@
 # tiêu chuẩn (mặc định repo: Sonnet 5) + phân việc/PR cho model khác theo độ phức tạp
 # (`scripts/subagent-dispatch.sh --tier`). Không còn một alias/model_id cố định để so khớp,
 # nên hook chỉ NHẮC chính sách — không tự xác nhận/cảnh báo đúng-sai theo tên model.
-# Không đổi gì (chỉ đọc). No-op nếu thiếu jq hoặc không phải dự án của khung.
+# Không đổi gì (chỉ đọc). No-op nếu không phải dự án của khung; thiếu jq → bỏ qua nhưng NÓI RA (stderr).
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
-command -v jq >/dev/null 2>&1 || exit 0
+command -v jq >/dev/null 2>&1 || { echo "[session-guide] không có jq → không đọc được payload, bỏ qua gợi ý đầu phiên." >&2; exit 0; }
 
 # Marker: chỉ chạy trong dự án áp dụng khung này.
 [ -d "$ROOT/docs/framework" ] || [ -f "$ROOT/.claude/commands/auto.md" ] || exit 0

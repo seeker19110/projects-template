@@ -176,6 +176,44 @@ CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$P
 CLAUDE_PROJECT_DIR="$UI_PROJ" UI_INTELLIGENCE_HOOK=1 UI_INTELLIGENCE_COMMAND="$PROVIDER" UI_EXIT=9 bash "$UI" <<< "$(ui_payload 'src/my component.tsx')"; rc=$?
 [ "$rc" -eq 0 ] && [ "$(wc -l < "$UI_CALLS")" -eq 4 ] && ok "provider lỗi: edit vẫn tiếp tục" || bad "provider lỗi đã chặn edit hoặc không chạy"
 
+echo "== 10. Thiếu jq/python hoặc engine lỗi → thoát 0 nhưng PHẢI cảnh báo stderr (không im lặng) =="
+# VÌ SAO (O-2 P-A2, 2026-10-08): session-guide/usage-guard/telemetry-record thoát 0 IM LẶNG khi thiếu công cụ hoặc
+# telemetry-log.sh lỗi → người dùng mất gợi ý/cảnh báo quota/số đo mà không ai biết. Khuôn chung các hook khác:
+# fail-open nhưng NÓI RA (`[tên-hook] không có jq → … bỏ qua.`).
+mkbin() {   # mkbin <thư mục> <lệnh…> — PATH tối giản chỉ có đúng các lệnh liệt kê (symlink, dự phòng cp)
+  local d="$1" b src; shift; mkdir -p "$d"
+  for b in "$@"; do
+    src="$(command -v "$b" 2>/dev/null)" && [ -n "$src" ] && { ln -sf "$src" "$d/$b" 2>/dev/null || cp "$src" "$d/$b"; }
+  done
+}
+NOJQ="$WORK/bin-nojq"; mkbin "$NOJQ" bash cat dirname
+for h in session-guide usage-guard telemetry-record; do
+  printf '{}' | env -i PATH="$NOJQ" CLAUDE_PROJECT_DIR="$PROJ" bash "$ROOT/.claude/hooks/$h.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+  if [ "$rc" -eq 0 ] && grep -q "^\[$h\] không có jq" "$WORK/err.txt"; then ok "$h: thiếu jq → exit 0 + cảnh báo"
+  else bad "$h: thiếu jq → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[$h] không có jq')"; fi
+done
+NOPY="$WORK/bin-nopy"; mkbin "$NOPY" bash cat dirname jq
+printf '{"transcript_path":"%s"}' "$TR" | env -i PATH="$NOPY" CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+[ "$rc" -eq 0 ] && grep -q '^\[telemetry-record\] không có python' "$WORK/err.txt" && ok "telemetry-record: thiếu python → exit 0 + cảnh báo" \
+  || bad "telemetry-record: thiếu python → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")'"
+# Chỉ có `python` (không có python3 — Windows/một số distro): phải ghi được như _python-exec.sh.
+ONLYPY="$WORK/bin-onlypy"; mkbin "$ONLYPY" bash cat dirname jq git mkdir cksum cut
+ln -sf "$(command -v python3)" "$ONLYPY/python"
+P4="$WORK/proj-onlypy"; mkdir -p "$P4/.claude/hooks"; cp -R "$PROJ/scripts" "$P4/"; cp "$PROJ/.claude/hooks/telemetry-record.sh" "$P4/.claude/hooks/"
+rm -f "$P4"/scripts/*.tmp 2>/dev/null
+printf '{"transcript_path":"%s"}' "$TR" | env -i PATH="$ONLYPY" CLAUDE_PROJECT_DIR="$P4" bash "$P4/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+n="$(python3 -c "import json; print(len(json.load(open('$P4/.ai-telemetry/telemetry.json', encoding='utf-8'))))" 2>/dev/null)"
+[ "$rc" -eq 0 ] && [ "$n" = "1" ] && ok "telemetry-record: chỉ có 'python' vẫn ghi được 1 entry" \
+  || bad "telemetry-record: chỉ có 'python' → rc=$rc, entry='$n', stderr='$(head -c 200 "$WORK/err.txt")'"
+# telemetry-log.sh lỗi → lỗi phải hiện ra stderr có tiền tố, hook vẫn exit 0 (hook Stop không được làm chết phiên).
+P5="$WORK/proj-badlog"; mkdir -p "$P5/scripts" "$P5/.claude/hooks"; cp "$PROJ/.claude/hooks/telemetry-record.sh" "$P5/.claude/hooks/"
+printf '#!/usr/bin/env bash\necho "LOI-ENGINE-GIA" >&2\nexit 3\n' > "$P5/scripts/telemetry-log.sh"; chmod +x "$P5/scripts/telemetry-log.sh"
+printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$P5" bash "$P5/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+[ "$rc" -eq 0 ] && grep -q '^\[telemetry-record\].*LOI-ENGINE-GIA' "$WORK/err.txt" && ok "telemetry-log.sh lỗi → exit 0 + lỗi engine hiện ra stderr có tiền tố" \
+  || bad "telemetry-log.sh lỗi → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[telemetry-record] … LOI-ENGINE-GIA')"
+[ ! -f "$P5/.ai-telemetry/last-stop-$(printf '%s' "$TR" | git hash-object --stdin)" ] && ok "engine lỗi → KHÔNG dời mốc (lượt sau ghi lại được)" \
+  || bad "engine lỗi mà mốc vẫn bị dời → mất số đo lượt này"
+
 if [ "$fails" -eq 0 ]; then
   echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
   exit 0

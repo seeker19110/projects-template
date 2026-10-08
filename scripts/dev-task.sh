@@ -366,6 +366,13 @@ gate_preflight() {
   local task after
   GATE_NAMES=(); GATE_COMMANDS=(); GATE_NA=''
   command -v git >/dev/null 2>&1 || { blocked 'thiếu git'; return 2; }
+  # Chống đệ quy (2026-10-08, TRAPS mục 52): gate lồng nhau TRÊN CÙNG ROOT là một lệnh con kế thừa
+  # CLAUDE_PROJECT_DIR (hook pre-commit-gate đặt biến này) rồi gọi lại chính gate này → treo vô hạn.
+  # ROOT khác (fixture của test, dự án đích trong smoke test) vẫn hợp lệ.
+  if [ "${DEV_TASK_GATE_ROOT:-}" = "$ROOT" ]; then
+    blocked "gate lồng nhau trên cùng ROOT '$ROOT' — lệnh con kế thừa CLAUDE_PROJECT_DIR; đặt CLAUDE_PROJECT_DIR trỏ đúng dự án con"; return 2
+  fi
+  export DEV_TASK_GATE_ROOT="$ROOT"
   GATE_CONTEXT="$(gate_context)" || { blocked 'không đọc được context'; return 2; }
   if [ -f "$DECL" ]; then
     bash -n "$DECL" || { blocked 'project-commands.sh sai cú pháp'; return 2; }

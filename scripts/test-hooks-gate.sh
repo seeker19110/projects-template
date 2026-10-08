@@ -306,6 +306,31 @@ printf '#!/usr/bin/env bash\n[ "${1:-}" = "gate" ] && exit 1\nexit 0\n' > "$WORK
 rc="$(run_wt "$WORK/wt-tree" 'git commit -m "x"')"
 [ "$rc" = "2" ] && ok "cổng đỏ của worktree chặn commit (cổng chạy trên cây đang commit)" || bad "cổng chạy trên checkout chính thay vì worktree (exit $rc, kỳ vọng 2)"
 
+echo "== 16. pre-commit-gate: THÂN HEREDOC là dữ liệu — không kích hoạt cổng / tự-stage oan =="
+# VÌ SAO (O-2 P-A1, 2026-10-08): block-dangerous-git đã bỏ thân heredoc từ 2026-09-14 nhưng pre-commit-gate chỉ bỏ
+# nháy — bản sao bộ lọc lệch nhau. `python3 - <<PY … git commit … PY` (cổng đỏ) bị chặn oan; commit có message
+# heredoc nhắc "git add" bị coi là lệnh tự stage → soi cả file chưa theo dõi và chặn oan. Nay dùng chung _lib.sh.
+if [ "$HAS_JQ" = "0" ]; then skip "mục 16 — hook không đọc được lệnh"; else
+rc="$(run_hook "$red" 'python3 - <<PY
+print("du lieu test")
+git commit -m "trong than heredoc"
+PY')"
+[ "$rc" = "0" ] && ok "lệnh không phải commit, thân heredoc chứa git commit → không chạy cổng (exit 0)" \
+               || bad "chạy cổng OAN vì thân heredoc chứa git commit (exit $rc, kỳ vọng 0)"
+h2="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$h2/conf.txt"
+rc="$(run_hook "$h2" 'git commit -F - <<EOF
+nho chay git add -A truoc khi push
+EOF')"
+[ "$rc" = "0" ] && ok "commit có message heredoc nhắc git add → không coi là tự stage (exit 0)" \
+               || bad "coi message heredoc là lệnh git add → soi file chưa theo dõi, chặn OAN (exit $rc, kỳ vọng 0)"
+rc="$(run_hook "$red" 'cat <<EOF > note.txt
+ghi chu
+EOF
+git commit -m "x"')"
+[ "$rc" = "2" ] && ok "git commit THẬT sau heredoc vẫn qua cổng (cổng đỏ → exit 2)" \
+               || bad "bỏ nhầm dòng LỆNH sau heredoc — cổng để lọt (exit $rc, kỳ vọng 2)"
+fi
+
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."

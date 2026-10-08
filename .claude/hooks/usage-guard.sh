@@ -5,7 +5,7 @@
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
-command -v jq >/dev/null 2>&1 || exit 0
+command -v jq >/dev/null 2>&1 || { echo "[usage-guard] không có jq → không đọc được transcript_path, bỏ qua cảnh báo quota." >&2; exit 0; }
 
 payload="$(cat)"
 tp="$(printf '%s' "$payload" | jq -r '.transcript_path // empty' 2>/dev/null)"
