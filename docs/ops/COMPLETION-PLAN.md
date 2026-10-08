@@ -1,4 +1,13 @@
-# COMPLETION-PLAN — trạng thái hiện hành 2026-10-06
+# COMPLETION-PLAN — trạng thái hiện hành 2026-10-08
+
+## Chu kỳ 2026-10-08 — đang thực thi
+
+Yêu cầu mới: hoàn thiện toàn bộ chính bộ khung. Kế hoạch/DoC và audit 12 nhóm:
+`docs/reports/2026-10-08-framework-completion.md`; goal:
+`docs/goals/2026-10-08-framework-completion.md`; hồ sơ nối phiên:
+`docs/work/2026-10-08-framework-completion/working.md`.
+Phiên chính duyệt theo ủy quyền trước sửa source; hai PR sửa lỗi, worker thực thi
+tuần tự và phiên chính nghiệm thu qua full gate/CI. Không mở lại chu kỳ cũ bên dưới.
 
 > Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
 > `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:

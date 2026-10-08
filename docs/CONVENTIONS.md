@@ -16,6 +16,7 @@ không phải một app có stack mặc định. Sổ được đối chiếu l�
 | Contract của repo khung | Cấu hình riêng trong `.claude/project-commands.sh`, không copy làm mặc định sang dự án khác | CI chạy doctor và gate đầy đủ |
 | Header | Giải thích làm gì, vì sao tồn tại, cách chạy và mã lỗi có ý nghĩa | `scripts/maintain-cron.sh` |
 | CLI nhận giá trị | Kiểm thiếu/rỗng/cờ kế tiếp trước shift; không để parser chạy mãi | `tests/test_runtime_safety.py` |
+| Đường dẫn qua shell Bash | Filename formatter là positional parameter, không ghép vào shell source; template chỉ dùng placeholder độc lập {}, "{}", '{}'. Executable path venv dùng printf %q; config command vẫn là shell tin cậy | `scripts/dev-task.sh`, `scripts/_stack-detect.sh`, `tests/test_runtime_safety.py` |
 | Runtime data safety | Lease gắn expected SHA; giữ local commit; merge trên bản tạm; không ghi stamp thành công khi lỗi | `docs/reports/2026-09-25-runtime-safety.md` |
 | Test mới | Có đối chứng vi phạm; test thật sự được CI chạy | `scripts/test-dev-task.sh`, `tests/test_runtime_safety.py` |
 | Fixture phục hồi | Dùng scratch riêng/bản sao; không git restore/reset làm mất việc chưa commit của người dùng | `TRAPS.md` |

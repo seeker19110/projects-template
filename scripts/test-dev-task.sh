@@ -45,7 +45,9 @@ expect "$d" typecheck "" "không có script nào khớp → rỗng (no-op), khô
 
 echo "== 2. Python: venv / uv / poetry / PATH, marker requirements.txt =="
 d="$(fx py1)"; : > "$d/requirements.txt"; mkdir -p "$d/.venv/bin"; printf '#!/usr/bin/env bash\nexit 0\n' > "$d/.venv/bin/ruff"; chmod +x "$d/.venv/bin/ruff"
-expect "$d" lint "$d/.venv/bin/ruff check ." "requirements.txt là marker; ruff trong .venv được ưu tiên hơn PATH"
+expect "$d" lint "$(printf '%q' "$d/.venv/bin/ruff") check ." "requirements.txt là marker; ruff trong .venv được ưu tiên hơn PATH"
+d="$(fx 'py windows space')"; : > "$d/requirements.txt"; mkdir -p "$d/.venv/Scripts"; printf '#!/usr/bin/env bash\nexit 0\n' > "$d/.venv/Scripts/ruff.exe"; chmod +x "$d/.venv/Scripts/ruff.exe"
+expect "$d" lint "$(printf '%q' "$d/.venv/Scripts/ruff.exe") check ." "Windows venv executable path được quote như một đối số"
 d="$(fx py2)"; : > "$d/pyproject.toml"; : > "$d/uv.lock"
 expect "$d" test "uv run pytest -q" "uv.lock → 'uv run pytest'"
 expect "$d" typecheck "uv run mypy ." "uv.lock → 'uv run mypy'"

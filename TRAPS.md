@@ -1023,3 +1023,25 @@ không thêm cờ `mv -T` chỉ có trên GNU. Không thay kết quả kiểm tr
 *Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 7b: thư mục cha mất, đích thành
 thư mục và kiểm tra thất bại kèm lỗi ghi evidence đều phải exit 2, không báo PASS
 và không để lại file tạm; đường ghi PASS/FAIL/BLOCKED thành công vẫn có regression.
+
+## 50. Filename và executable path được ghép vào shell source
+
+*Ngày:* 2026-10-08, audit hoàn thiện F-C01/F-C03 (W-01).
+
+*Khuôn lỗi:* `format-file` ghép filename vào chuỗi rồi chạy `bash -c`; bọc dấu
+nháy kép vẫn thực thi `$()`/backtick, còn filename chứa dấu nháy làm hỏng lệnh.
+`py_tool` trả executable path venv không quote nên root có khoảng trắng trả 127;
+ký tự shell trong root có thể thực thi lệnh ngoài tool. Config command là shell
+tin cậy nhưng các đường dẫn filesystem vẫn là dữ liệu.
+
+*Cách rà:* dùng formatter giả ghi NUL-separated argv và sentinel cục bộ; truyền
+filename có khoảng trắng, dấu nháy, dollar, backtick, dấu chấm phẩy và newline.
+Chạy executable venv giả trong fixture root có khoảng trắng/ký tự shell. Test phải kiểm
+đúng argv và không có sentinel, không chỉ dựa trên exit 0 của formatter best-effort.
+
+*Cổng chốt chặn:* `tests/test_runtime_safety.py` kiểm cả năm formatter fallback,
+template với {}, "{}", '{}', leading dash, missing tool/error và venv root;
+`scripts/test-dev-task.sh` kiểm resolver cả `.venv/bin` và `.venv/Scripts`.
+Sửa bằng Bash positional parameter cho filename và printf %q cho executable path;
+không đưa filename vào shell source. Template dùng placeholder như đối số độc lập,
+không nhúng trong shell lồng. Config vẫn cần được review như shell tin cậy.

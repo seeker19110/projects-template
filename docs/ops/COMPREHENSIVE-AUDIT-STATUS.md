@@ -1,4 +1,13 @@
-# Trạng thái audit hiện hành của repo khung — 2026-10-05
+# Trạng thái audit hiện hành của repo khung — 2026-10-08
+
+## Chu kỳ 2026-10-08
+
+Đã đối chiếu 12 nhóm theo năng lực khung tại base `6c3e3ce`; báo cáo/bằng chứng:
+`docs/reports/2026-10-08-framework-completion.md`. Ba phát hiện tái hiện được:
+F-C01 Cao (format filename thực thi shell), F-C02 Trung (WIP bỏ draft/bot),
+F-C03 Trung (venv path không quote). Baseline full gate xanh không chứng minh các
+ca chưa có test. Đang sửa qua hai PR theo goal
+`docs/goals/2026-10-08-framework-completion.md`; chưa nghiệm thu Complete.
 
 > Người dùng chọn hoàn thiện chính bộ khung. Audit 12 nhóm theo năng lực khung,
 > các phát hiện F-K01..10 và căn cứ kiểm chứng nằm trong

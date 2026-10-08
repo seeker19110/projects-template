@@ -49,7 +49,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
+| FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | `test-copy-framework.sh` kiểm hook được copy; `tests/test_runtime_safety.py` kiểm formatter nhận filename literal (binary giả), template và best-effort; chưa kiểm runtime hook Claude thật |
 | FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
 | FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | chỉ kiểm copy; chưa có test chạy hook |
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `docs/work/*/working.md`, `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm active trước PROGRESS, không nạp lịch sử done/nội dung, chọn trạng thái và giới hạn ngữ cảnh |
@@ -114,7 +114,7 @@
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-44 | Cổng CI dự án đích (9 workflow nguồn; `ci.yml` phát bản riêng) | `.github/workflows/*`, `docs/framework/templates/ci-target.yml` | ci, secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance, codeql, scorecard | ✅ cho template Node/Python offline; hosted CI của repo đích chưa nghiệm thu | `check-ci-policy.sh`, `test-adoption-smoke.sh`; `ci-workflow-policy.test.ts` chưa chạy trên fixture |
-| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh`, `test-dev-task.sh` (resolver/doctor/gate fixture; một số binary giả), `test-usage-estimate.sh`; Node/Python runtime thật trong adoption smoke |
+| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh`, `test-dev-task.sh` (resolver/doctor/gate fixture; một số binary giả), `test-usage-estimate.sh`, `tests/test_runtime_safety.py` (Python venv path có khoảng trắng/ký tự shell); Node/Python runtime thật trong adoption smoke |
 | FT-62 | Cầu nối delivery opt-in | `scripts/delivery-handoff.py` | spec/goal và contract từ consumer đã pin | ✅ | `tests/test_delivery_handoff_integrity.py`; CI Linux/Windows |
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)
