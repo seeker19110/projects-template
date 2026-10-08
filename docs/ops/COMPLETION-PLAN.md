@@ -9,6 +9,9 @@ Yêu cầu mới: hoàn thiện toàn bộ chính bộ khung. Kế hoạch/DoC v
 Phiên chính duyệt theo ủy quyền trước sửa source; hai PR sửa lỗi, worker thực thi
 tuần tự và phiên chính nghiệm thu qua full gate/CI. Không mở lại chu kỳ cũ bên dưới.
 
+W-01 đã MERGED qua #216, F-C01/F-C03 đóng trên main d7aca5d với CI Linux/Windows
+xanh ở head PR; hồ sơ đơn vị done. W-02 tiếp tục F-C02, chờ nghiệm thu cuối chu kỳ.
+
 > Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
 > `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:
 > `docs/reports/2026-10-05-framework-audit.md`. Phần "lượt 2026-09-12" bên dưới

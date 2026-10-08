@@ -25,6 +25,15 @@ jobs:
             const body = pr.body || "";
             const title = /^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9._/-]+\))?!?: .+/;
             if (!title.test(pr.title)) core.setFailed("PR title must follow Conventional Commits.");
+            // Trần WIP = tối đa 3 PR mở toàn repo, mọi tác giả, kể cả draft/bot (CLAUDE.md §8).
+            // Đếm mọi PR KHÁC trước miễn trừ metadata; PR này là cái thứ 4 trở đi → đỏ.
+            const openPrs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner, repo: context.repo.repo, state: "open", per_page: 100,
+            });
+            const others = openPrs.filter(p => p.number !== pr.number);
+            if (others.length >= 3) {
+              core.setFailed(`Trần WIP: đã có ${others.length} PR khác đang mở (#${others.map(p => p.number).join(", #")}) — tối đa 3 PR mở đồng thời (CLAUDE.md §8). Merge/đóng bớt rồi re-run check này.`);
+            }
             if (pr.draft) return;
             // Miễn trừ PR do BOT tạo (audit 2026-09-12, F-001 — nguyên nhân gốc):
             // dependabot/renovate không thể điền các mục của PR template, nên required check này
@@ -39,15 +48,6 @@ jobs:
             // nên tiêu đề hỏng vẫn qua; audit 2026-09-23 C10).
             if (pr.title.length > 72) core.setFailed(`PR title dài ${pr.title.length} ký tự (tối đa 72 — squash lấy làm tiêu đề commit trên main).`);
             if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/.test(pr.title)) core.setFailed("PR title chứa ký tự điều khiển hoặc U+FFFD (mojibake).");
-            // Trần WIP = tối đa 3 PR mở đồng thời trên toàn repo, mọi tác giả (CLAUDE.md §8; sự cố PR #157).
-            // Đếm PR KHÁC đang mở (không draft); PR này là cái thứ 4 trở đi → đỏ. Không tự đóng gì.
-            const openPrs = await github.paginate(github.rest.pulls.list, {
-              owner: context.repo.owner, repo: context.repo.repo, state: "open", per_page: 100,
-            });
-            const others = openPrs.filter(p => p.number !== pr.number && !p.draft);
-            if (others.length >= 3) {
-              core.setFailed(`Trần WIP: đã có ${others.length} PR khác đang mở (#${others.map(p => p.number).join(", #")}) — tối đa 3 PR mở đồng thời (CLAUDE.md §8). Merge/đóng bớt rồi re-run check này.`);
-            }
             // fix: mà không chạm TRAPS.md → chỉ CẢNH BÁO (CLAUDE.md §1: bug là một khuôn thì ghi TRAPS; typo thì không).
             if (/^fix(\(|:)/.test(pr.title)) {
               const files = await github.paginate(github.rest.pulls.listFiles, {

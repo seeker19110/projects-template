@@ -1045,3 +1045,21 @@ template với {}, "{}", '{}', leading dash, missing tool/error và venv root;
 Sửa bằng Bash positional parameter cho filename và printf %q cho executable path;
 không đưa filename vào shell source. Template dùng placeholder như đối số độc lập,
 không nhúng trong shell lồng. Config vẫn cần được review như shell tin cậy.
+
+## 51. Miễn trừ metadata bằng return bỏ qua trần WIP toàn repo
+
+*Ngày:* 2026-10-08, audit hoàn thiện F-C02 (W-02).
+
+*Khuôn lỗi:* workflow trả về sớm với PR draft/bot trước phép đếm WIP; phép đếm
+còn lọc bỏ draft khác. Luật ghi mọi PR mở nhưng cổng cho qua PR thứ tư khi ba PR
+khác là draft. Miễn trừ thông tin mà một tác nhân không cung cấp được vô tình
+miễn cả giới hạn tài nguyên áp cho mọi tác nhân.
+
+*Cách rà:* thực thi JavaScript thật trong workflow với GitHub/core stub offline,
+không viết lại luật trong test. Test total ba/bốn PR, draft khác, PR draft/bot
+hiện tại, title sai và metadata thường. Trả cả PR hiện tại trong danh sách để
+chứng minh không đếm trùng; kiểm miễn trừ body/feature vẫn áp dưới trần.
+
+*Cổng chốt chặn:* `tests/test_runtime_safety.py` chạy Node trên script workflow
+với 18 subcase trong gate và CI Linux/Windows. Đếm mọi PR khác đang mở trước
+return miễn trừ, chỉ loại PR hiện tại; giới hạn vẫn là ba. Không tự đóng PR.
