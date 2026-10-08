@@ -14,14 +14,24 @@ if [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ] && { [ "$branch" = "main" ] || [ "$br
   exit 1
 fi
 
-secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
-if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then
+# Mẫu bí mật + ngưỡng file lớn: một nguồn scripts/_commit-guard.sh (chung với .claude/hooks/pre-commit-gate.sh và
+# maintenance-sweep). Tìm cạnh hook (core.hooksPath) rồi ở gốc repo (hook chép tay vào .git/hooks/).
+# Thiếu cả hai → CHẶN kèm lời nhắc: buông kiểm bí mật âm thầm không đảo ngược được, commit bị chặn thì có.
+for guard in "$(dirname "$0")/../_commit-guard.sh" "$ROOT/scripts/_commit-guard.sh"; do
+  # shellcheck source=scripts/_commit-guard.sh
+  [ -f "$guard" ] && . "$guard" && break
+done
+if [ -z "${COMMIT_GUARD_SECRET_RE:-}" ]; then
+  echo "pre-commit: thiếu scripts/_commit-guard.sh (mẫu bí mật dùng chung) — copy từ khung (copy-framework.sh), hoặc git commit --no-verify có chủ đích." >&2
+  exit 1
+fi
+if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then
   echo "pre-commit: diff staged chứa chuỗi giống khoá/token — gỡ khỏi staged, dùng biến môi trường, xoay khoá nếu đã lộ." >&2
   exit 1
 fi
 big=""
 while IFS= read -r -d '' f; do
-  sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"; [ "$sz" -gt 1048576 ] && big="$big $f"
+  sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"; [ "$sz" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && big="$big $f"
 done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
 [ -z "$big" ] || { echo "pre-commit: file staged > 1 MB:$big — Git LFS hoặc loại khỏi repo." >&2; exit 1; }
 

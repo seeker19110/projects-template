@@ -214,6 +214,14 @@ printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$P5" bash "$P5/.cl
 [ ! -f "$P5/.ai-telemetry/last-stop-$(printf '%s' "$TR" | git hash-object --stdin)" ] && ok "engine lỗi → KHÔNG dời mốc (lượt sau ghi lại được)" \
   || bad "engine lỗi mà mốc vẫn bị dời → mất số đo lượt này"
 
+# usage-estimate.sh lỗi → usage-guard nói ra (exit code) rồi exit 0, không nuốt im lặng (O-4b 2026-10-08).
+P6="$WORK/proj-badest"; mkdir -p "$P6/scripts" "$P6/.claude/hooks"; cp "$ROOT/.claude/hooks/usage-guard.sh" "$P6/.claude/hooks/"
+printf '#!/usr/bin/env bash\nexit 4\n' > "$P6/scripts/usage-estimate.sh"; chmod +x "$P6/scripts/usage-estimate.sh"
+printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$P6" bash "$P6/.claude/hooks/usage-guard.sh" >"$WORK/out.txt" 2>"$WORK/err.txt"; rc=$?
+[ "$rc" -eq 0 ] && [ ! -s "$WORK/out.txt" ] && grep -q '^\[usage-guard\] usage-estimate.sh lỗi (exit 4)' "$WORK/err.txt" \
+  && ok "usage-estimate.sh lỗi → exit 0 + cảnh báo stderr có exit code" \
+  || bad "usage-estimate.sh lỗi → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[usage-guard] usage-estimate.sh lỗi (exit 4)')"
+
 if [ "$fails" -eq 0 ]; then
   echo "OK — hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
   exit 0

@@ -22,7 +22,7 @@ GIT=(git -c user.name=t -c user.email=t@example.com -c commit.gpgsign=false -c i
 REMOTE="$TMP/remote.git"; "${GIT[@]}" init -q --bare "$REMOTE"
 WORK="$TMP/work"; mkdir -p "$WORK/scripts" "$WORK/.claude/agents"
 ( cd "$WORK" && "${GIT[@]}" init -q && "${GIT[@]}" remote add origin "$REMOTE" )
-cp "$ROOT"/scripts/{maintain-cron.sh,maintain-run.sh,maintenance-sweep.sh,subagent-dispatch.sh,subagent-dispatch.py,_python-exec.sh} "$WORK/scripts/"
+cp "$ROOT"/scripts/{maintain-cron.sh,maintain-run.sh,maintenance-sweep.sh,subagent-dispatch.sh,subagent-dispatch.py,_python-exec.sh,_commit-guard.sh} "$WORK/scripts/"
 cp "$ROOT/.claude/agents/maintainer.md" "$WORK/.claude/agents/"
 printf '# PROGRESS\n- Ngày cập nhật: %s\n' "$(date +%Y-%m-%d)" > "$WORK/PROGRESS.md"
 ( cd "$WORK" && "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init && "${GIT[@]}" push -q -u origin HEAD:main )

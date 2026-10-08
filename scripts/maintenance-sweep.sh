@@ -116,6 +116,11 @@ sweep_git() {
 # node_pm/py_present dùng chung với dev-task.sh — một nguồn (scripts/_stack-detect.sh); ROOT = thư mục đang quét.
 # shellcheck source=scripts/_stack-detect.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"
+# Mẫu bí mật + ngưỡng file lớn (mục 4) dùng chung với hook pre-commit — một nguồn (scripts/_commit-guard.sh).
+# Thiếu → dừng hẳn: regex rỗng sẽ khớp MỌI dòng và báo 🔴 oan khắp repo.
+# shellcheck source=scripts/_commit-guard.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_commit-guard.sh" && [ -n "${COMMIT_GUARD_SECRET_RE:-}" ] \
+  || { echo "maintenance-sweep: thiếu scripts/_commit-guard.sh — copy từ khung (copy-framework.sh)." >&2; exit 2; }
 # Mỗi hệ sinh thái một hàm: in lệnh cho loại quét $1 (outdated|audit), hoặc return 1 nếu hệ sinh
 # thái này không có mặt / không có lệnh. Tách ra vì bản gộp từng ở CC 13 — trên trần 12 mà
 # `scripts/check-shell-complexity.sh` cưỡng chế.
@@ -273,11 +278,10 @@ sweep_hygiene() {
   envs="$(tracked | grep -zE '(^|/)\.env(\.[a-z]+)?$' | grep -zvE '\.example$|\.sample$|\.template$' | tr '\0' ' ')"
   line "- File .env đang được git theo dõi: ${envs:-không}"
   [ -n "$envs" ] && red "Bí mật" "file .env nằm trong git: $envs" "git rm --cached <file> + thêm vào .gitignore + xoay vòng bí mật"
-  local secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
   hits=""
   while IFS= read -r -d '' file; do
     # Keep only line numbers from grep output: the matched line may contain the actual credential.
-    line_nums="$(grep -nIEh "$secret_re" -- "$file" 2>/dev/null | cut -d: -f1 | sort -nu || true)"
+    line_nums="$(grep -nIEh "$COMMIT_GUARD_SECRET_RE" -- "$file" 2>/dev/null | cut -d: -f1 | sort -nu || true)"
     [ -n "$line_nums" ] || continue
     printf -v safe_path '%q' "$file"
     while IFS= read -r line_no; do
@@ -297,7 +301,7 @@ sweep_hygiene() {
   # KHÔNG nội suy tên file vào chuỗi lệnh shell (bản cũ `xargs -I{} sh -c 'f="{}"'` = command
   # injection qua tên file do PR/fork đưa vào — nguy hiểm khi maintain-cron chạy không giám sát).
   big="$(tracked | while IFS= read -r -d '' f; do
-    s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt 1048576 ] && echo "$f ($((s/1024)) KB)"; done || true)"
+    s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && echo "$f ($((s/1024)) KB)"; done || true)"
   line "- File > 1 MB được theo dõi: ${big:-không}"
   [ -n "$big" ] && yel "Vệ sinh" "file lớn trong git: $(printf '%s' "$big" | tr '\n' ' ')" "cân nhắc Git LFS hoặc loại khỏi repo"
 }

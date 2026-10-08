@@ -206,6 +206,7 @@ Copy-IfAbsent ".claude/agents"
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 Copy-IfAbsent "scripts/dev-task.sh"
 Copy-IfAbsent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
+Copy-IfAbsent "scripts/_commit-guard.sh"          # mẫu bí mật + ngưỡng file lớn: pre-commit-gate + githook + sweep source
 Copy-IfAbsent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
 Copy-IfAbsent "scripts/usage-estimate.sh"
 Copy-IfAbsent "scripts/test-usage-estimate.sh"

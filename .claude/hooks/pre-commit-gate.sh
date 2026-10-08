@@ -57,9 +57,15 @@ if [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ] && { [ "$branch" = "main" ] || [ "$br
   exit 2
 fi
 
-# --- Bí mật / file lớn trong diff STAGED (cùng mẫu với scripts/maintenance-sweep.sh — sweep chỉ chạy
-# định kỳ, tới lúc đó khoá đã nằm trong lịch sử git; chặn ở đây là chặn TRƯỚC khi vào lịch sử). ---
-secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
+# --- Bí mật / file lớn trong diff STAGED (mẫu + ngưỡng một nguồn scripts/_commit-guard.sh, chung với githook và
+# maintenance-sweep — sweep chỉ chạy định kỳ, tới lúc đó khoá đã nằm trong lịch sử git; chặn ở đây là chặn TRƯỚC). ---
+# Lấy theo vị trí HOOK (không theo $CAY/$ROOT): hook và lib đi cùng một lần copy khung. Thiếu lib (đích copy hook
+# trước khi có file này) → CHẶN kèm lời nhắc: buông kiểm bí mật âm thầm không đảo ngược được, commit bị chặn thì có.
+# shellcheck source=scripts/_commit-guard.sh
+if ! source "$(dirname "$0")/../../scripts/_commit-guard.sh" 2>/dev/null || [ -z "${COMMIT_GUARD_SECRET_RE:-}" ]; then
+  echo "🚫 [pre-commit-gate] thiếu scripts/_commit-guard.sh (mẫu bí mật dùng chung) → không kiểm được bí mật/file lớn. Copy file đó từ khung (copy-framework.sh), hoặc bỏ qua có chủ đích bằng --no-verify." >&2
+  exit 2
+fi
 
 # Hook chạy TRƯỚC lệnh nên index còn CŨ: `git add X && git commit` hay `commit -a` tự stage thứ hook chưa thấy
 # (đối chiếu X-Agents #368; đo lại ở repo này: bí mật/file lớn đi lọt). Lệnh tự stage → xét cả thay đổi chưa
@@ -79,10 +85,10 @@ diff_text() {   # luôn return 0: pipefail sẽ biến trạng thái 1 của `[ 
   [ "$self_stage" = 1 ] && git -C "$CAY" diff -U0 -- 2>/dev/null
   return 0
 }
-if diff_text | grep -E '^\+[^+]' | grep -Eq "$secret_re"; then secret_hit=1; fi
+if diff_text | grep -E '^\+[^+]' | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then secret_hit=1; fi
 if [ "$secret_hit" = 0 ] && [ "$add_untracked" = 1 ]; then
   while IFS= read -r -d '' f; do
-    grep -IEq "$secret_re" "$CAY/$f" 2>/dev/null && { secret_hit=1; break; }
+    grep -IEq "$COMMIT_GUARD_SECRET_RE" "$CAY/$f" 2>/dev/null && { secret_hit=1; break; }
   done < <(git -C "$CAY" ls-files -o --exclude-standard -z -- 2>/dev/null)
 fi
 if [ "$secret_hit" = 1 ]; then
@@ -92,7 +98,7 @@ fi
 big=""
 while IFS= read -r -d '' f; do
   sz="$(wc -c <"$CAY/$f" 2>/dev/null || echo 0)"
-  [ "$sz" -gt 1048576 ] && big="$big $f($((sz/1024))KB)"
+  [ "$sz" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && big="$big $f($((sz/1024))KB)"
 done < <(candidates | sort -zu)
 if [ -n "$big" ]; then
   echo "🚫 File staged (hoặc sắp stage) > 1 MB:$big — không đưa file lớn vào git (Git LFS hoặc loại khỏi repo; maintenance-sweep sẽ 🟡 mãi)." >&2
