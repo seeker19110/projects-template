@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4–5 (Build/Verify). Chu kỳ hoàn thiện khung 2026-10-08 (W-01 #216, W-02 #217) đã merge và COMPLETE; chu kỳ kế tiếp: tối ưu quy trình không đổi hành vi (audit + refactor nhỏ qua /gate). Goal cũ `docs/goals/2026-10-08-framework-completion.md` giữ nguyên đã đóng.
+- Giai đoạn: GĐ 4–5 (Build/Verify). Chu kỳ tối ưu quy trình 2026-10-08: O-0..O-4a đã merge ở #218 (sửa đệ quy gate, hook cứng hơn, gỡ trùng lặp, căn tài liệu); O-4b đang làm. Chu kỳ hoàn thiện (W-01 #216, W-02 #217) COMPLETE, goal `docs/goals/2026-10-08-framework-completion.md` đã đóng.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `6643f4e` (`origin/main`, sau PR #217).
+- Default-branch SHA đã đối chiếu: `843581a` (`origin/main`, sau PR #218).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -18,9 +18,10 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Hồ sơ đang mở:** `docs/work/2026-10-08-process-optimization/working.md` — nghiên cứu lại
-quy trình khung và tối ưu (chất lượng · ít code · bảo mật · dễ vận hành); báo cáo
-`docs/reports/2026-10-08-process-optimization.md`.
+**Hồ sơ đang mở:** `docs/work/2026-10-08-process-optimization-o4b/working.md` — O-4b của chu kỳ
+tối ưu quy trình (một nguồn cho secret/>1 MB guard, helper `finish`, `declared_cmd` dùng chung,
+test telemetry không ghi vào thư mục thật). Hồ sơ O-0..O-4a: `docs/work/2026-10-08-process-optimization/done.md`
+(#218); báo cáo `docs/reports/2026-10-08-process-optimization.md`.
 
 Chu kỳ FC-2026-10-08 COMPLETE: `docs/work/2026-10-08-framework-completion/done.md`
 (W-01 `…-format/done.md` #216, W-02 `…-wip/done.md` #217); báo cáo

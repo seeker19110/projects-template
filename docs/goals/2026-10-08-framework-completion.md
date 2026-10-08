@@ -54,4 +54,4 @@ COMPLETE 2026-10-08 theo ủy quyền chủ repo 2026-10-07: hai PR MERGED (SHA 
 default branch xanh, re-audit không còn Cao/Trung mở, hồ sơ work/report/PROGRESS khớp
 Git. Giới hạn còn lại (pilot thật, hosted CI đích, runtime mọi provider, WIP không chặn
 tạo PR trên UI) giữ nguyên trong report; chu kỳ kế tiếp:
-`docs/work/2026-10-08-process-optimization/working.md`.
+`docs/work/2026-10-08-process-optimization/done.md`.

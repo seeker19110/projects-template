@@ -11,7 +11,7 @@ tuần tự và phiên chính nghiệm thu qua full gate/CI. Không mở lại c
 
 W-01 #216 (d7aca5d) và W-02 #217 (6643f4e) đã MERGED, F-C01/F-C02/F-C03 đóng trên main,
 CI main xanh, re-audit 0 Cao/Trung; goal COMPLETE. Chu kỳ kế tiếp (tối ưu quy trình,
-không đổi hành vi): `docs/work/2026-10-08-process-optimization/working.md`.
+không đổi hành vi): `docs/work/2026-10-08-process-optimization/done.md`.
 
 > Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
 > `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:

@@ -9,7 +9,7 @@ quy trình), không phải `/completion` (chu kỳ FC-2026-10-08 vừa đóng, k
 Nguyên tắc: không đổi luật nền, không hạ cổng, không thêm dependency; mỗi hạng mục một PR nhỏ,
 có test bảo vệ, đo trước–sau; bug (`fix:`) có test đỏ trước.
 
-Base: `6643f4e` (origin/main sau #217). Hồ sơ: `docs/work/2026-10-08-process-optimization/working.md`.
+Base: `6643f4e` (origin/main sau #217). Hồ sơ: `docs/work/2026-10-08-process-optimization/done.md`.
 Hai lượt audit chỉ-đọc (code · tài liệu) do subagent thực hiện; phiên chính xác minh từng claim
 đưa vào kế hoạch bằng `grep`/`sed` trên source thật trước khi ghi dưới đây.
 
