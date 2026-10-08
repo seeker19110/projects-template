@@ -17,8 +17,8 @@
 ## Cách dùng khung này
 
 1. Khi bắt đầu một dự án mới, đọc khung này để nắm trình tự và tiêu chuẩn.
-2. Điền **Mẫu định nghĩa dự án** trong KHUNG 2 → tạo ra `PROJECT.md` của dự án.
-3. Tinh chỉnh `CLAUDE.md` cho dự án (dựa trên mẫu trong KHUNG 2 / file CLAUDE.md mẫu).
+2. Điền mẫu `PROJECT.md` ở gốc repo (quy trình ở KHUNG 2 Phần C) → ra `PROJECT.md` của dự án.
+3. Tinh chỉnh `CLAUDE.md` cho dự án (dựa trên `CLAUDE.md` mẫu của repo; quy trình ở KHUNG 2 Phần C).
 4. Đi qua từng giai đoạn dưới đây. **Không bỏ giai đoạn.** Mỗi giai đoạn có một "cổng" (gate) phải đạt mới được sang giai đoạn sau.
 
 ---

@@ -89,7 +89,7 @@
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-32 | Hợp đồng bàn giao chuẩn (điểm vào duy nhất) | `standard-delivery.md` | `docs/specs/`, `docs/goals/` | ✅ | link-check |
 | FT-33 | Quy trình 9 giai đoạn + cổng | `01-process-and-standards.md` | — | ✅ | link-check |
-| FT-34 | Luật AI đầy đủ + mẫu dự án | `02-ai-rules-and-project-template.md` | `CLAUDE.md`, `AGENTS.md` | ✅ | link-check + §3 khớp lệnh |
+| FT-34 | Quy trình sinh PROJECT.md/CLAUDE.md (luật AI/mẫu: con trỏ tới `CLAUDE.md`, `PROJECT.md`) | `02-ai-rules-and-project-template.md` | `CLAUDE.md`, `AGENTS.md` | ✅ | link-check + §3 khớp lệnh |
 | FT-35 | Research-first chọn công nghệ | `03-tech-selection-and-proactive-advice.md` | `docs/research/` | ✅ | link-check |
 | FT-36 | Điều phối 3 tầng | `orchestration-3-tier.md` | `.claude/agents/` | ✅ | link-check |
 | FT-37 | Bổ sung chất lượng (Nhóm 1+2, theme, i18n/PWA/SEO) | `quality-supplements.md` | dropins | ✅ | link-check |

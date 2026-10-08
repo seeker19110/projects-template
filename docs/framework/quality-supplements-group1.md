@@ -136,16 +136,9 @@ Cách tận dụng:
 
 ## 7. Bổ sung quy trình: Definition of Ready (DoR)
 
-Khung đã có Definition of Done (khi nào một việc *xong*). Bổ sung đối trọng: Definition of Ready — khi nào một việc *sẵn sàng để bắt đầu*. Tránh lao vào việc còn mơ hồ rồi phải làm lại.
+DoR đầy đủ (9 mục) nằm ở **`docs/framework/standard-delivery.md` §5 "Definition of Ready"** — nguồn khai duy nhất, không chép lại ở đây.
 
-**Một task chỉ nên BẮT ĐẦU khi:**
-- [ ] Có tiêu chí chấp nhận rõ ràng, đo được.
-- [ ] Không còn câu hỏi mở quan trọng nào.
-- [ ] Đã xác định các phần phụ thuộc (cần gì xong trước).
-- [ ] Thiết kế/luồng đủ rõ để bắt tay (hoặc đã có wireframe nếu là UI).
-- [ ] Phạm vi đủ nhỏ để gói gọn trong một PR.
-
-→ DoR này đã nằm trong KHUNG 1 (Giai đoạn 1, ngay cạnh DoD) và runbook Phần B (Chất lượng). Trong `CLAUDE.md`, có thể yêu cầu AI kiểm tra DoR trước khi bắt đầu một task: nếu chưa đủ "ready", AI phải hỏi cho rõ trước, thay vì code ngay.
+Vì sao có DoR: đối trọng với Definition of Done (khi nào một việc *xong*) — DoR là khi nào một việc *sẵn sàng bắt đầu*, để không lao vào việc còn mơ hồ rồi phải làm lại. Có thể yêu cầu AI kiểm DoR trước mỗi task: chưa "ready" thì hỏi cho rõ trước, không code ngay.
 
 ---
 
