@@ -7,7 +7,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # explicit for ShellCheck; _test-lib.sh also initializes the counter
 
 echo "== 1. Autonomous Spec-to-Contract Compiler Engine =="
 
@@ -289,10 +288,4 @@ else
   bad "AHR-3: độ phủ KHÔNG đổi khi thêm script không có test ($cov_before → $cov_after) — đang in hằng số?"
 fi
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — Tất cả kiểm tra Next-Gen Engines (Spec Compiler & Health Radar) đều XANH."
-  exit 0
-else
-  echo "FAIL — Có $fails ca kiểm tra thất bại."
-  exit 1
-fi
+finish "Tất cả kiểm tra Next-Gen Engines (Spec Compiler & Health Radar) đều XANH."

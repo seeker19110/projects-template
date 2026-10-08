@@ -30,3 +30,11 @@ py_tool() {
   command -v "$t" >/dev/null 2>&1 && { echo "$t"; return 0; }
   return 1
 }
+
+# Đọc một biến do dự án khai báo trong $DECL (.claude/project-commands.sh); $DECL đọc lúc GỌI.
+declared_cmd() {
+  # Config là shell tin cậy của dự án, không phải input từ PR/provider chưa review.
+  # Shell riêng giữ errexit hoạt động ngay cả khi caller dùng command substitution/if.
+  [ -f "$DECL" ] || return 0
+  bash -e -o pipefail -c '. "$1" >/dev/null; key="$2"; printf "%s" "${!key-}"' bash "$DECL" "$1"
+}

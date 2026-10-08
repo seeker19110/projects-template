@@ -11,7 +11,6 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SWEEP="$ROOT/scripts/maintenance-sweep.sh"
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -36,6 +35,7 @@ fake_pem="-----BEGIN ""RSA PRIVATE KEY-----"
   cd "$bad_repo" && "${GIT[@]}" init -q -b main
   printf 'DB_URL=x\nAWS_KEY=%s\n' "$fake_aws" > .env
   printf '%s\nabc\n' "$fake_pem" > key.pem
+  head -c 1100000 /dev/zero > blob.bin   # > ngưỡng 1 MB của scripts/_commit-guard.sh
   printf 'name: x\non: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n' > .github/workflows/ci.yml
   printf '# PROGRESS\n- Ngày cập nhật: 2020-01-01\n' > PROGRESS.md
   mkdir -p docs/framework && printf 'commit-nguon: abc1234\nngay-copy: 2020-01-01\n' > docs/framework/FRAMEWORK-VERSION
@@ -56,6 +56,7 @@ fi
 chk "báo cáo giữ đường dẫn + dòng, chỉ ghi redacted" "key.pem:1 \[credential-like match — redacted\]"
 chk "🔴 .env trong git"                    "🔴 | Bí mật | file .env"
 chk "🔴 chuỗi giống bí mật (AWS/PEM)"     "🔴 | Bí mật | .* dòng giống khoá"
+chk "🟡 file > 1 MB được theo dõi"       "🟡 | Vệ sinh | file lớn trong git: blob.bin"
 chk "🟡 action chưa ghim SHA"             "🟡 | CI | 1 action chưa ghim"
 chk "🟡 PROGRESS.md lỗi thời"             "🟡 | Tài liệu | PROGRESS.md lỗi thời"
 chk "🟡 thiếu dependabot.yml"             "🟡 | CI | thiếu .github/dependabot.yml"
@@ -172,5 +173,4 @@ echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
 
 echo
-if [ "$fails" -eq 0 ]; then echo "OK — maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."; else echo "FAIL — $fails kiểm hỏng."; fi
-exit "$fails"
+finish "maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."

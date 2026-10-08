@@ -9,7 +9,7 @@ quy trình), không phải `/completion` (chu kỳ FC-2026-10-08 vừa đóng, k
 Nguyên tắc: không đổi luật nền, không hạ cổng, không thêm dependency; mỗi hạng mục một PR nhỏ,
 có test bảo vệ, đo trước–sau; bug (`fix:`) có test đỏ trước.
 
-Base: `6643f4e` (origin/main sau #217). Hồ sơ: `docs/work/2026-10-08-process-optimization/working.md`.
+Base: `6643f4e` (origin/main sau #217). Hồ sơ: `docs/work/2026-10-08-process-optimization/done.md`.
 Hai lượt audit chỉ-đọc (code · tài liệu) do subagent thực hiện; phiên chính xác minh từng claim
 đưa vào kế hoạch bằng `grep`/`sed` trên source thật trước khi ghi dưới đây.
 
@@ -148,6 +148,30 @@ cần thêm vào cả hai copy script + test đồng bộ), P-B2 (`finish` trong
 `test-hooks-*.sh` nên chờ O-2 merge), P-B6 (`declared_cmd` dùng chung, bỏ `eval`), P-B8 (gọn Python
 engine), P-B9 phần telemetry test ghi vào thư mục thật, `usage-guard.sh:15` cảnh báo khi estimate lỗi.
 Xem lại khi: PR này đã merge (tránh xung đột trên cùng file hook/test).
+
+**O-4b — đã làm (nhánh sau #218, hồ sơ `docs/work/2026-10-08-process-optimization-o4b/working.md`).**
+Hai worker trong worktree riêng, phiên chính review + nối hai phần + tự sửa phần giáp ranh:
+- P-A4: `scripts/_commit-guard.sh` (14 dòng, chỉ `source`) giữ `COMMIT_GUARD_SECRET_RE` + `COMMIT_GUARD_MAX_FILE_BYTES`;
+  `pre-commit-gate.sh`, `githooks/pre-commit`, `maintenance-sweep.sh` source nó, ba bản regex rời đã xoá. **Chính sách
+  chọn:** hook/githook THIẾU file này thì CHẶN commit kèm lời nhắc copy (khác `_lib.sh` thiếu → cho qua có cảnh báo),
+  vì buông kiểm bí mật âm thầm là không đảo ngược được còn commit bị chặn thì gỡ được; sweep thiếu → exit 2 (regex rỗng
+  sẽ khớp mọi dòng). Thêm vào cả hai copy script; `test-hooks-gate.sh` mục 17 (đỏ trước: 4 ca — còn bản rời ở 3 file,
+  thiếu lib không chặn) + ca githook chặn bí mật/file lớn (xanh ngay — hành vi có sẵn, chỉ thiếu test);
+  `test-maintenance-sweep.sh` thêm ca file > 1 MB.
+- `usage-guard.sh`: estimate lỗi → `[usage-guard] usage-estimate.sh lỗi (exit N)` trên stderr rồi exit 0 (đỏ trước ở
+  `test-hooks-session.sh`).
+- P-B2: `finish` trong `_test-lib.sh`; 12 suite dùng (trừ `test-hooks-gate.sh` có `skips`, `test-copy-framework.sh`
+  dùng `$fail`). Phiên chính quyết thống nhất **exit 1 khi đỏ** cho cả 5 suite từng `exit "$fails"`: CI chỉ cần ≠ 0,
+  còn `exit "$fails"` với ≥ 256 ca hỏng quay về 0 — một bẫy logic chưa xảy ra nhưng không có lý do giữ.
+- P-B6: `declared_cmd` dời vào `_stack-detect.sh`; `maintenance-sweep.sh` bỏ `declared_var` (eval) dùng chung hàm đó
+  (config hỏng → coi như không khai báo, như trước — kiểm tay bằng fixture); `maintain-run.sh` bỏ `eval` → `${!name}`.
+- P-B9: `test-telemetry-and-dispatch.sh` chạy engine trên bản copy `scripts/` tạm; ca mới "nhật ký thật không đổi
+  cksum" đỏ trước (`absent → 1458348186 4222`) rồi xanh. `test-py-coverage.sh` đã có trap từ O-4a.
+- P-B8: `subagent-dispatch.py` một dict payload chung; `spec-compiler._display_path` bỏ tham số `start`;
+  `arch-health-radar.py` `_read_text` thay 5 khối open/read. Bỏ qua nén CSS (đã quyết).
+- Phát hiện khi làm (đã sửa cùng PR, 1 dòng/file): fixture copy trong `test-maintain-run.sh`/`test-maintain-cron.sh`
+  thiếu `_stack-detect.sh` nên sweep in "No such file" rồi chạy tiếp — đúng khuôn TRAPS mục 19.
+Số đo: xem hồ sơ o4b (điền sau khi commit).
 
 **Số đo sau O-0..O-4a (cây tích hợp `411d751`):** full gate exit 0 qua hook ở cả ba commit; code
 thực thi −46 dòng ròng ở scripts (+55/−101) sau khi đã cộng thêm ~70 dòng test/hook mới của hai `fix`

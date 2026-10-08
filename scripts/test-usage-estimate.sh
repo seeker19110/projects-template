@@ -15,7 +15,6 @@ if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 SCRIPT="$ROOT/scripts/usage-estimate.sh"
 
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -82,9 +81,4 @@ else
   bad "UE-5: transcript non-ASCII + locale không UTF-8 làm hỏng ước tính (rc=$rc): $(echo "$out" | tail -n 3 | tr '\n' ' ')"
 fi
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — usage-estimate.sh đạt toàn bộ ca kiểm (kể cả đối chứng định lượng)."
-  exit 0
-fi
-echo "FAIL — Có $fails ca thất bại."
-exit 1
+finish "usage-estimate.sh đạt toàn bộ ca kiểm (kể cả đối chứng định lượng)."

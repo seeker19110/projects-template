@@ -12,7 +12,6 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -22,7 +21,7 @@ GIT=(git -c user.name=t -c user.email=t@example.com -c commit.gpgsign=false -c i
 REMOTE="$TMP/remote.git"; "${GIT[@]}" init -q --bare "$REMOTE"
 WORK="$TMP/work"; mkdir -p "$WORK/scripts" "$WORK/.claude/agents"
 ( cd "$WORK" && "${GIT[@]}" init -q && "${GIT[@]}" remote add origin "$REMOTE" )
-cp "$ROOT"/scripts/{maintain-cron.sh,maintain-run.sh,maintenance-sweep.sh,subagent-dispatch.sh,subagent-dispatch.py,_python-exec.sh} "$WORK/scripts/"
+cp "$ROOT"/scripts/{maintain-cron.sh,maintain-run.sh,maintenance-sweep.sh,subagent-dispatch.sh,subagent-dispatch.py,_python-exec.sh,_stack-detect.sh,_commit-guard.sh} "$WORK/scripts/"
 cp "$ROOT/.claude/agents/maintainer.md" "$WORK/.claude/agents/"
 printf '# PROGRESS\n- Ngày cập nhật: %s\n' "$(date +%Y-%m-%d)" > "$WORK/PROGRESS.md"
 ( cd "$WORK" && "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init && "${GIT[@]}" push -q -u origin HEAD:main )
@@ -184,5 +183,4 @@ out7e="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash 
 printf '%s' "$out7e" | grep -q "mở PR thất bại (HTTP 500)" && ok "7e: log rõ HTTP 500" || bad "7e: thiếu log lỗi HTTP"
 
 echo
-if [ "$fails" -eq 0 ]; then echo "OK — maintain-cron.sh chỉ đẩy nhánh maint/auto-*, không đụng main, chặn đúng working tree bẩn + chạy chồng, tự mở/tránh trùng PR đúng qua GitHub REST API."; else echo "FAIL — $fails kiểm hỏng."; fi
-exit "$fails"
+finish "maintain-cron.sh chỉ đẩy nhánh maint/auto-*, không đụng main, chặn đúng working tree bẩn + chạy chồng, tự mở/tránh trùng PR đúng qua GitHub REST API."

@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-process-optimization
 - Yêu cầu / outcome: chủ repo yêu cầu "nghiên cứu lại quy trình, tối ưu lại tốt nhất, chất lượng tốt nhất, ít code nhất, bảo mật nhất, dễ vận hành nhất". Outcome: audit có bằng chứng trên chính bộ khung theo 4 lăng kính, kế hoạch ưu tiên, thực thi các hạng mục giá trị cao/rủi ro thấp không đổi hành vi, có test bảo vệ.
-- Trạng thái: Ready — O-0..O-4a đã commit, chờ PR/CI/merge; O-4b/O-5/O-6 là chu kỳ sau.
+- Trạng thái: Done — PR #218 MERGED 2026-10-08; O-4b nối tiếp ở hồ sơ `docs/work/2026-10-08-process-optimization-o4b/working.md`.
 - Chủ trì / writer: phiên chính; hai lượt audit chỉ-đọc giao subagent (code · tài liệu quy trình).
 - Mức rủi ro / số PR: audit + refactor không đổi hành vi mức S/M; số PR chốt sau audit (mỗi hạng mục một PR nhỏ, FIFO, trần 3 PR mở).
 - Scope / non-goal: scripts/, .claude/hooks, tests/, .github/workflows, tài liệu quy trình (CLAUDE/AGENTS/docs/framework/commands/agents). Non-goal: đổi luật nền (feature gate, TDD, WIP, trần token), hạ cổng, thêm dependency, thay stack, production.
@@ -43,4 +43,9 @@ Push nhánh, mở PR đủ template, bật auto-merge sau khi mô tả đủ, th
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-Chưa.
+PR #218 MERGED (squash) lúc 2026-10-08T16:16:48Z, merge SHA 843581a000402955a3f28eb04306bd838522b4de,
+head đã kiểm aa63553. Tại head: 13 check SUCCESS (gate, metadata, framework-lint Linux/Windows,
+docs-consistency, copy-framework-smoke, protection-guard, CodeQL ×2, gitleaks, dependency-review;
+progress-freshness skip hợp lệ), không review thread. Main 843581a: Release/Secret scan SUCCESS,
+CI run 37807540551 ghi nhận ở hồ sơ O-4b khi hoàn tất. O-0..O-4a đạt DoD đã duyệt theo ủy quyền
+2026-10-07, nghiệm thu 2026-10-08. Còn lại O-4b (đang làm), O-5/O-6 (kế hoạch có điều kiện xem lại).

@@ -6,10 +6,8 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -r "$WORK"' EXIT
-fails=0
-
-ok() { echo "  ✅ $1"; }
-bad() { echo "  ❌ $1"; fails=$((fails+1)); }
+# shellcheck source=scripts/_test-lib.sh
+source "$ROOT/scripts/_test-lib.sh"
 
 for tool in git node python3; do
   command -v "$tool" >/dev/null 2>&1 || { bad "thiếu runtime bắt buộc: $tool"; exit 1; }
@@ -167,9 +165,4 @@ else
   echo '  ℹ️  không có pwsh; chưa đối chiếu bản PowerShell trên máy này'
 fi
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — Node/Python copy + gate thật xanh sau ca đỏ; CI drop-in chỉ kiểm cấu trúc offline."
-else
-  echo "FAIL — $fails kiểm hỏng."
-fi
-exit "$fails"
+finish "Node/Python copy + gate thật xanh sau ca đỏ; CI drop-in chỉ kiểm cấu trúc offline."

@@ -17,7 +17,6 @@ PROBE="$ROOT/scripts/zz-probe-shcc-$$.sh"
 trap 'rm -f "$PROBE"' EXIT
 
 source "$ROOT/scripts/_test-lib.sh"
-fails=0  # ShellCheck không theo được source qua $ROOT; giữ biến đếm tường minh.
 
 GATE="scripts/check-shell-complexity.sh"
 run_gate() { ( cd "$ROOT" && env "$@" bash "$GATE" >/dev/null 2>&1 ); echo $?; }
@@ -92,9 +91,4 @@ else
 fi
 
 echo
-if [ "$fails" -eq 0 ]; then
-  echo "OK — cổng CC shell chứng minh được là bắt đúng vi phạm."
-  exit 0
-fi
-echo "FAIL — $fails ca hỏng."
-exit 1
+finish "cổng CC shell chứng minh được là bắt đúng vi phạm."

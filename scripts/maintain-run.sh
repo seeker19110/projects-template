@@ -71,8 +71,8 @@ done
 
 # CLI của một harness: ưu tiên MAINT_BIN_<HARNESS>, rồi PATH. In đường dẫn hoặc rỗng.
 cli_of() {
-  local h="$1" override
-  override="$(eval "printf '%s' \"\${MAINT_BIN_${h^^}:-}\"")"
+  local h="$1" name override
+  name="MAINT_BIN_${h^^}"; override="${!name:-}"
   if [ -n "$override" ]; then [ -x "$override" ] && printf '%s' "$override"; return 0; fi
   command -v "$h" 2>/dev/null || true
 }

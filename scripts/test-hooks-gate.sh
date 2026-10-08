@@ -331,6 +331,35 @@ git commit -m "x"')"
                || bad "bỏ nhầm dòng LỆNH sau heredoc — cổng để lọt (exit $rc, kỳ vọng 2)"
 fi
 
+echo "== 17. Mẫu bí mật + ngưỡng file lớn: MỘT nguồn (scripts/_commit-guard.sh) cho hook/githook/sweep =="
+# VÌ SAO (O-4b, 2026-10-08 — TRAPS.md mục 19/53 "bản sao lệch nhau"): regex bí mật + ngưỡng 1 MB từng chép
+# nguyên văn 3 nơi, không gì kiểm chúng còn khớp. Mẫu dựng lúc chạy để chính file test không chứa bản rời.
+pat_re='AKIA[0-9A-Z]{''16}'; pat_mb="$((1024*1024))"
+for pat in "$pat_re" "$pat_mb"; do
+  stray="$(grep -rlF -- "$pat" "$ROOT/scripts" "$ROOT/.claude/hooks" 2>/dev/null | grep -v '/scripts/_commit-guard\.sh$' || true)"
+  [ -z "$stray" ] && ok "không còn bản rời '$pat' ngoài scripts/_commit-guard.sh" \
+                  || bad "còn bản rời '$pat' ngoài scripts/_commit-guard.sh: $(printf '%s' "${stray//$ROOT\//}" | tr '\n' ' ')"
+done
+g5="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$g5/conf.txt"; git -C "$g5" add conf.txt
+rc="$( cd "$g5" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: chặn bí mật staged (exit 1)" || bad "githooks: LỌT bí mật staged (exit $rc, kỳ vọng 1)"
+g6="$(setup_project 0)"; head -c 1100000 /dev/zero > "$g6/blob.bin"; git -C "$g6" add blob.bin
+rc="$( cd "$g6" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: chặn file staged > 1 MB (exit 1)" || bad "githooks: LỌT file lớn staged (exit $rc, kỳ vọng 1)"
+# Dự án đích copy hook TRƯỚC khi có _commit-guard.sh: thiếu nguồn mẫu → CHẶN kèm lời nhắc (fail-closed), không
+# âm thầm bỏ kiểm bí mật. Bản hook/githook dựng trong cây tạm không có scripts/_commit-guard.sh.
+nolib="$(setup_project 0)"; mkdir -p "$nolib/.claude/hooks" "$nolib/scripts/githooks"
+cp "$HOOK" "$ROOT/.claude/hooks/_lib.sh" "$nolib/.claude/hooks/"; cp "$GH" "$nolib/scripts/githooks/pre-commit"
+echo hi > "$nolib/a.txt"; git -C "$nolib" add a.txt
+rc="$( cd "$nolib" && bash scripts/githooks/pre-commit 2>"$WORK/stderr.txt" >/dev/null; echo $? )"
+[ "$rc" = "1" ] && grep -q '_commit-guard.sh' "$WORK/stderr.txt" && ok "githooks: thiếu _commit-guard.sh → chặn kèm lời nhắc" \
+  || bad "githooks: thiếu _commit-guard.sh mà không chặn/không nhắc (exit $rc)"
+if [ "$HAS_JQ" = "0" ]; then skip "mục 17 — pre-commit-gate thiếu _commit-guard.sh"; else
+rc="$(run_hook "$nolib" 'git commit -m "x"' "" "$nolib/.claude/hooks/pre-commit-gate.sh")"
+[ "$rc" = "2" ] && grep -q '_commit-guard.sh' "$WORK/stderr.txt" && ok "pre-commit-gate: thiếu _commit-guard.sh → chặn kèm lời nhắc" \
+  || bad "pre-commit-gate: thiếu _commit-guard.sh mà không chặn/không nhắc (exit $rc)"
+fi
+
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."

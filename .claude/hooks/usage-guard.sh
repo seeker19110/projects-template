@@ -12,7 +12,9 @@ tp="$(printf '%s' "$payload" | jq -r '.transcript_path // empty' 2>/dev/null)"
 [ -n "$tp" ] || exit 0
 [ -x "$ROOT/scripts/usage-estimate.sh" ] || exit 0
 
-out="$("$ROOT/scripts/usage-estimate.sh" "$tp" 2>/dev/null)" || exit 0
+# Estimate lỗi → NÓI RA rồi thoát 0 (Stop hook không được chặn phiên; im lặng = mất cảnh báo quota mà không ai biết).
+out="$("$ROOT/scripts/usage-estimate.sh" "$tp" 2>/dev/null)" || {
+  echo "[usage-guard] usage-estimate.sh lỗi (exit $?) → bỏ qua cảnh báo quota." >&2; exit 0; }
 overall="$(printf '%s' "$out" | sed -n 's/^OVERALL=//p' | head -1)"
 thr="$(printf '%s' "$out" | sed -n 's/^THRESHOLD=//p' | head -1)"
 [ -n "$overall" ] && [ "$overall" != "NA" ] || exit 0

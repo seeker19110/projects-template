@@ -23,6 +23,7 @@
 set -uo pipefail   # cố ý KHÔNG -e: một phép đo hỏng không được làm chết cả lượt quét
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+# shellcheck disable=SC2034  # đọc bởi declared_cmd trong scripts/_stack-detect.sh (source ở dưới)
 DECL="$ROOT/.claude/project-commands.sh"
 OUT=""; STRICT=0; RUN_GATE=0; DO_DEPS=1
 DEPS_TIMEOUT="${MAINT_DEPS_TIMEOUT:-180}"   # giây cho mỗi lệnh dependency (cần mạng)
@@ -75,12 +76,6 @@ run_capture() { # $1=giây, $2..=lệnh (chuỗi bash)
   if has timeout; then timeout "$secs" bash -c "$*" 2>&1; else bash -c "$*" 2>&1; fi
 }
 
-declared_var() { # $1=tên biến trong project-commands.sh → in giá trị hoặc rỗng
-  [ -f "$DECL" ] || return 0
-  # shellcheck source=/dev/null  # file khai báo của DỰ ÁN ĐÍCH, repo khung không có
-  ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${$1:-}\"" )
-}
-
 days_since() { # $1=YYYY-MM-DD → số ngày tới nay, rỗng nếu không parse được
   local ts; ts="$(date -d "$1" +%s 2>/dev/null || date -j -f '%Y-%m-%d' "$1" +%s 2>/dev/null)" || return 0
   [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 ))
@@ -116,6 +111,11 @@ sweep_git() {
 # node_pm/py_present dùng chung với dev-task.sh — một nguồn (scripts/_stack-detect.sh); ROOT = thư mục đang quét.
 # shellcheck source=scripts/_stack-detect.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_stack-detect.sh"
+# Mẫu bí mật + ngưỡng file lớn (mục 4) dùng chung với hook pre-commit — một nguồn (scripts/_commit-guard.sh).
+# Thiếu → dừng hẳn: regex rỗng sẽ khớp MỌI dòng và báo 🔴 oan khắp repo.
+# shellcheck source=scripts/_commit-guard.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_commit-guard.sh" && [ -n "${COMMIT_GUARD_SECRET_RE:-}" ] \
+  || { echo "maintenance-sweep: thiếu scripts/_commit-guard.sh — copy từ khung (copy-framework.sh)." >&2; exit 2; }
 # Mỗi hệ sinh thái một hàm: in lệnh cho loại quét $1 (outdated|audit), hoặc return 1 nếu hệ sinh
 # thái này không có mặt / không có lệnh. Tách ra vì bản gộp từng ở CC 13 — trên trần 12 mà
 # `scripts/check-shell-complexity.sh` cưỡng chế.
@@ -178,7 +178,7 @@ sweep_deps() {
   if [ "$DO_DEPS" -eq 0 ]; then line "bỏ qua (--no-deps)"; info Dependency "bỏ qua theo --no-deps" "—"; return; fi
   local kind cmd specs dep_dir dep_cmd safe_dir dep_prefix dep_label out rc
   for kind in outdated audit; do
-    cmd="$(declared_var "deps_$kind")"
+    cmd="$(declared_cmd "deps_$kind" 2>/dev/null || true)"   # declared_cmd: _stack-detect.sh; config hỏng → coi như không khai báo, như trước
     if [ -n "$cmd" ]; then
       specs=".$(printf '\t%s' "$cmd")"  # lệnh khai báo tiếp tục chạy ở root, như hợp đồng hiện tại
     else
@@ -273,11 +273,10 @@ sweep_hygiene() {
   envs="$(tracked | grep -zE '(^|/)\.env(\.[a-z]+)?$' | grep -zvE '\.example$|\.sample$|\.template$' | tr '\0' ' ')"
   line "- File .env đang được git theo dõi: ${envs:-không}"
   [ -n "$envs" ] && red "Bí mật" "file .env nằm trong git: $envs" "git rm --cached <file> + thêm vào .gitignore + xoay vòng bí mật"
-  local secret_re='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|glpat-[A-Za-z0-9_-]{20}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,})'
   hits=""
   while IFS= read -r -d '' file; do
     # Keep only line numbers from grep output: the matched line may contain the actual credential.
-    line_nums="$(grep -nIEh "$secret_re" -- "$file" 2>/dev/null | cut -d: -f1 | sort -nu || true)"
+    line_nums="$(grep -nIEh "$COMMIT_GUARD_SECRET_RE" -- "$file" 2>/dev/null | cut -d: -f1 | sort -nu || true)"
     [ -n "$line_nums" ] || continue
     printf -v safe_path '%q' "$file"
     while IFS= read -r line_no; do
@@ -297,7 +296,7 @@ sweep_hygiene() {
   # KHÔNG nội suy tên file vào chuỗi lệnh shell (bản cũ `xargs -I{} sh -c 'f="{}"'` = command
   # injection qua tên file do PR/fork đưa vào — nguy hiểm khi maintain-cron chạy không giám sát).
   big="$(tracked | while IFS= read -r -d '' f; do
-    s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt 1048576 ] && echo "$f ($((s/1024)) KB)"; done || true)"
+    s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && echo "$f ($((s/1024)) KB)"; done || true)"
   line "- File > 1 MB được theo dõi: ${big:-không}"
   [ -n "$big" ] && yel "Vệ sinh" "file lớn trong git: $(printf '%s' "$big" | tr '\n' ' ')" "cân nhắc Git LFS hoặc loại khỏi repo"
 }

@@ -105,40 +105,26 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
         f"{task_text}\n"
     )
 
-    if harness_type == "hermes":
-        return {
-            "harness": "hermes",
-            "mode": "prepare-only",
-            "executed": False,
-            "delegate_task_call": {
-                "tasks": [
-                    {"goal": f"[{name}] {task_text[:200]}...", "context": full_prompt}
-                ]
-            },
-            "agent": agent_info,
+    kind = harness_type if harness_type in ("hermes", "claude", "codex") else "generic"
+    payload = {"harness": kind, "mode": "prepare-only", "executed": False}
+    if kind == "hermes":
+        payload["delegate_task_call"] = {
+            "tasks": [{"goal": f"[{name}] {task_text[:200]}...", "context": full_prompt}]
         }
-    elif harness_type == "claude":
+    elif kind == "claude":
         # Claude Code KHÔNG có lệnh `/subagent` (audit 2026-09-13, A-03: bản cũ sinh ra chuỗi
         # đó, dán vào Claude Code sẽ không chạy). Cơ chế THẬT là tool Task/Agent với
         # subagent_type = tên file trong .claude/agents/. Trả về đúng hình dạng lời gọi đó.
-        return {
-            "harness": "claude",
-            "mode": "prepare-only",
-            "executed": False,
-            "tool_call": {
-                "tool": "Task",
-                "subagent_type": name,
-                "description": task_text[:60],
-                "prompt": full_prompt,
-            },
-            "agent": agent_info,
+        payload["tool_call"] = {
+            "tool": "Task",
+            "subagent_type": name,
+            "description": task_text[:60],
+            "prompt": full_prompt,
         }
-    elif harness_type == "codex":
-        return {"harness": "codex", "mode": "prepare-only", "executed": False,
-                "prompt": full_prompt, "agent": agent_info}
     else:
-        return {"harness": "generic", "mode": "prepare-only", "executed": False,
-                "prompt": full_prompt, "agent": agent_info}
+        payload["prompt"] = full_prompt
+    payload["agent"] = agent_info
+    return payload
 
 
 def _build_parser():

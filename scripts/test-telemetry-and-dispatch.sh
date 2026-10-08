@@ -8,7 +8,6 @@ if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 
 # shellcheck source=scripts/_test-lib.sh
 source "$ROOT/scripts/_test-lib.sh"
-fails=0
 
 echo "== 1. Subagent Dispatcher Engine =="
 
@@ -95,23 +94,35 @@ else
   ok "--context-file thiếu → thoát khác 0"
 fi
 
+# Nhật ký THẬT của repo không được đổi bởi suite này (P-B9): engine ghi cạnh vị trí script của nó,
+# nên các ca record/summary/widget chạy trên bản sao `scripts/` trong thư mục tạm.
+real_log="$ROOT/.ai-telemetry/telemetry.json"
+log_state() { [ -f "$real_log" ] && cksum < "$real_log" || echo absent; }
+real_log_before="$(log_state)"
+TLROOT="$(mktemp -d)"
+trap 'rm -rf "$TLROOT"' EXIT
+# Git Bash trên Windows: mktemp in /tmp/..., Python (native) không mở được đường dẫn đó — cùng cách đổi như $ROOT ở trên.
+if command -v cygpath >/dev/null 2>&1; then TLROOT="$(cygpath -m "$TLROOT")"; fi
+cp -r "$ROOT/scripts" "$TLROOT/scripts"
+TL="$TLROOT"
+
 echo "== 2. Telemetry & Observability Engine =="
 
-out_rec="$(bash "$ROOT/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"
+out_rec="$(bash "$TL/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"
 if echo "$out_rec" | grep -q "Recorded telemetry entry"; then
   ok "telemetry-log --record ghi nhận entry thành công"
 else
   bad "telemetry-log --record thất bại"
 fi
 
-out_sum="$(bash "$ROOT/scripts/telemetry-log.sh" --summary 2>&1)"
+out_sum="$(bash "$TL/scripts/telemetry-log.sh" --summary 2>&1)"
 if echo "$out_sum" | grep -q "AI Execution & Observability Summary"; then
   ok "telemetry-log --summary sinh báo cáo Markdown thành công"
 else
   bad "telemetry-log --summary thất bại"
 fi
 
-out_widget="$(bash "$ROOT/scripts/telemetry-log.sh" --widget 2>&1)"
+out_widget="$(bash "$TL/scripts/telemetry-log.sh" --widget 2>&1)"
 if echo "$out_widget" | grep -q "::preview{file="; then
   ok "telemetry-log --widget sinh HTML widget thành công"
 else
@@ -134,7 +145,7 @@ print(" ".join(sorted(ids)))
 PY
 )"
 for m in $hinted claude-fable-5-1 claude-opus-5-5 claude-sonnet-5 claude-haiku-4-5-20251001; do
-  err="$(bash "$ROOT/scripts/telemetry-log.sh" --record --model "$m" --agent rate-check --task "rate $m" \
+  err="$(bash "$TL/scripts/telemetry-log.sh" --record --model "$m" --agent rate-check --task "rate $m" \
          --input-tokens 1000000 --output-tokens 0 2>&1 >/dev/null)"
   if echo "$err" | grep -q "không có trong bảng giá"; then
     bad "model '$m' không có khoá giá riêng trong model-rates.json (rơi về default)"
@@ -150,8 +161,8 @@ py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-r
 
 # --- Không có token thật → unknown (null) + cảnh báo, KHÔNG bịa 1000/500 (C4) và KHÔNG ghi 0 (LD-07/AC-7) ---
 echo "== 4. Không bịa token khi không được cấp =="
-err0="$(bash "$ROOT/scripts/telemetry-log.sh" --record --model claude-sonnet-5 --agent zero-check --task "zero" 2>&1 >/dev/null)"
-last_cost="$(python3 -c "import json; l=json.load(open('$ROOT/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['est_cost_usd'], l[-1]['input_tokens'], l[-1]['output_tokens'])")"
+err0="$(bash "$TL/scripts/telemetry-log.sh" --record --model claude-sonnet-5 --agent zero-check --task "zero" 2>&1 >/dev/null)"
+last_cost="$(python3 -c "import json; l=json.load(open('$TL/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['est_cost_usd'], l[-1]['input_tokens'], l[-1]['output_tokens'])")"
 if [ "$last_cost" = "None None None" ]; then
   ok "record không token → input/output/est_cost = null (unknown), không phải 0"
 else
@@ -172,10 +183,10 @@ else
   printf '%s\n' "$integrity_out" >&2
 fi
 
-if [ "$fails" -eq 0 ]; then
-  echo "OK — Tất cả kiểm tra Universal Subagent Dispatch & Telemetry đều XANH."
-  exit 0
+if [ "$(log_state)" = "$real_log_before" ]; then
+  ok "suite không đổi nhật ký telemetry thật của repo"
 else
-  echo "FAIL — Có $fails ca kiểm tra thất bại."
-  exit 1
+  bad "suite đã ghi vào $real_log (trước: $real_log_before, sau: $(log_state))"
 fi
+
+finish "Tất cả kiểm tra Universal Subagent Dispatch & Telemetry đều XANH."
