@@ -1,8 +1,10 @@
-"""Regression tests: shell paths, CLI validation, Git lease, transactional upgrade.
+"""Regression tests: shell paths, PR policy, CLI validation, Git lease and upgrade.
 
 All repositories are disposable, local-only fixtures. No AI CLI, credentials,
 production files or network are used. Run: python3 tests/test_runtime_safety.py
 """
+# DEBT: giữ chung regression runtime | trần: suite vượt 400 dòng | xem lại khi: thêm nhóm hành vi mới hoặc fixture chung bắt đầu phân kỳ
+import json
 import os
 from pathlib import Path
 import shlex
@@ -10,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,6 +64,73 @@ class RuntimeSafety(unittest.TestCase):
         # Use the same Git config as clone/setup; changing core.autocrlf only
         # for the system under test makes a clean Windows fixture look dirty.
         self.env.update(GIT_TERMINAL_PROMPT="0")
+
+    def pr_policy(self, pr, others):
+        workflow = (ROOT / ".github/workflows/pr-policy.yml").read_text(encoding="utf-8")
+        _, marker, script = workflow.partition("          script: |\n")
+        self.assertTrue(marker, "Workflow must expose the actual github-script body")
+        fixture = self.tmp / "pr-policy.json"
+        write(fixture, json.dumps({"script": textwrap.dedent(script), "pr": pr,
+                                  "open": [pr, *others]}, ensure_ascii=False))
+        runner = self.tmp / "pr-policy.cjs"
+        write(runner, '''const fs = require("node:fs");
+const input = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const failures = [], calls = [];
+const context = {payload: {pull_request: input.pr}, repo: {owner: "fixture", repo: "local"}};
+const core = {setFailed: text => failures.push(text), info() {}, warning() {}};
+const github = {
+  rest: {pulls: {list: "list", listCommits: "commits", listFiles: "files"}},
+  async paginate(route, args) {
+    calls.push(route);
+    if (route === "list" && args.state === "open") return input.open;
+    if (route === "commits") return [{commit: {message: "chore: fixture"}}];
+    if (route === "files") return [{filename: "TRAPS.md"}];
+    throw new Error(`Unexpected fixture API request: ${route}`);
+  }
+};
+const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+new AsyncFunction("context", "core", "github", input.script)(context, core, github)
+  .then(() => process.stdout.write(JSON.stringify({failures, calls})))
+  .catch(error => { process.stderr.write(String(error)); process.exitCode = 1; });
+''')
+        result = run(["node", runner, fixture], env=self.env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def test_pr_policy_wip_counts_every_open_pr_before_metadata_exemptions(self):
+        body = "\n".join(("## Summary", "## Issue / Goal", "## Research / Spec",
+                          "## Validation", "## Risk, rollout and rollback", "## Definition of Done"))
+        regular = {"number": 1, "draft": False, "user": {"login": "human"},
+                   "title": "fix: fixture", "body": body}
+        cases = [
+            ("three regular", {}, 2, False, []),
+            ("four regular", {}, 3, False, ["Trần WIP"]),
+            ("three including other drafts", {}, 2, True, []),
+            ("four including other drafts", {}, 3, True, ["Trần WIP"]),
+            ("ordinary missing body", {"body": ""}, 2, False, ["Missing PR sections"]),
+            ("ordinary unapproved feature", {"title": "feat: fixture"}, 2, False,
+             ["Feature PR must link", "Feature spec must be Approved"]),
+        ]
+        exemptions = [("draft", {"draft": True})]
+        exemptions.extend((bot, {"user": {"login": bot}})
+                          for bot in ("dependabot[bot]", "renovate[bot]", "github-actions[bot]"))
+        for actor, fields in exemptions:
+            fields = {**fields, "title": "feat: fixture", "body": ""}
+            cases.extend((
+                (f"{actor} under cap retains exemptions", fields, 2, True, []),
+                (f"{actor} over cap", fields, 3, True, ["Trần WIP"]),
+                (f"{actor} invalid title", {**fields, "title": "invalid"}, 2, True,
+                 ["PR title must follow Conventional Commits"]),
+            ))
+        for label, fields, count, draft, expected in cases:
+            with self.subTest(case=label):
+                others = [{"number": index + 2, "draft": draft,
+                           "user": {"login": "another-author"}} for index in range(count)]
+                output = self.pr_policy({**regular, **fields}, others)
+                self.assertEqual(len(output["failures"]), len(expected), output)
+                for fragment, failure in zip(expected, output["failures"]):
+                    self.assertIn(fragment, failure)
+                self.assertEqual(output["calls"].count("list"), 1, output)
 
     def formatter_fixture(self, tool=None, template=None, tool_exit=0, root=None):
         root = root or self.tmp / (tool or "no-formatter")

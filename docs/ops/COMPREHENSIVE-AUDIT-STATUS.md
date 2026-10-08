@@ -9,6 +9,10 @@ F-C03 Trung (venv path không quote). Baseline full gate xanh không chứng min
 ca chưa có test. Đang sửa qua hai PR theo goal
 `docs/goals/2026-10-08-framework-completion.md`; chưa nghiệm thu Complete.
 
+Sau #216 MERGED tại d7aca5d: F-C01/F-C03 đóng (CI Linux/Windows của PR xanh,
+tree head/main trùng); còn F-C02 Trung đang sửa trong W-02. Chưa có phát hiện
+Cao mới ở phần đã re-audit; nghiệm thu toàn chu kỳ chờ PR cuối và default-branch CI.
+
 > Người dùng chọn hoàn thiện chính bộ khung. Audit 12 nhóm theo năng lực khung,
 > các phát hiện F-K01..10 và căn cứ kiểm chứng nằm trong
 > `docs/reports/2026-10-05-framework-audit.md`. Bản 2026-09-12 bên dưới là

@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-framework-completion-format
 - Yêu cầu / outcome: sửa F-C01 (filename formatter thực thi shell) và F-C03 (venv tool path không quote).
-- Trạng thái: Ready cho phiên chính review/tích hợp; chưa commit/PR/merge.
+- Trạng thái: Done — PR #216 MERGED, DoD đạt; phiên chính nghiệm thu theo ủy quyền.
 - Chủ trì / writer: worker format_safety; phiên chính review và tích hợp.
 - Mức rủi ro / số PR: S fix, một PR W-01 trong goal FC-2026-10-08.
 - Scope: scripts/dev-task.sh, scripts/_stack-detect.sh, scripts/test-dev-task.sh, tests/test_runtime_safety.py, CODEMAP/TRAPS, quy ước/example và hồ sơ đơn vị.
@@ -54,4 +54,26 @@ mọi thay đổi nằm trong checkout chung, chưa commit. Giới hạn templat
 
 ## Nghiệm thu cuối
 
-Chưa nghiệm thu; giữ working.md đến khi phiên chính xác minh DoD/PR MERGED và SHA thật.
+PR #216 MERGED lúc 2026-10-08T05:07:05Z, merge SHA
+d7aca5d37ddd55df7672cbe66470a086d7101794; head đã kiểm
+0fca90969ede9b65bd6813a385f76293323c1f05. CI run 37730273965: Linux/Windows,
+docs/copy/protection/gate SUCCESS; progress-freshness SKIPPED đúng main-only.
+Metadata, gitleaks, dependency-review và CodeQL SUCCESS; GraphQL reviewThreads
+nodes rỗng, hasNextPage false. Main đã pull --ff-only tới merge SHA; git diff tree
+giữa head và main rỗng. Regression 16/16, coverage 96%, source/docs/rollback đủ;
+nghiệm thu W-01 theo ủy quyền ngày 2026-10-08. Chỉ đổi tên done sau các phép đối chiếu.
+Backup checkpoint mở PR: stash 376852a36bdbf2da4db8f5f4aa15d68bfd4f9d98 đã apply
+vào main sau pull, không mất nội dung. Bản ghi sau merge đưa vào PR W-02 theo §3e.
+Giới hạn vẫn giữ: config shell tin cậy, placeholder độc lập, formatter thực dùng
+binary giả trong regression; không giả runtime Claude/provider hoặc pilot đích.
+
+## Checkpoint tích hợp của phiên chính
+
+Hook Git chạy lại full gate exit 0, coverage 96%, runtime 16/16; log
+/tmp/framework-completion-W01-commit.log đối chiếu đầy đủ với gate (chỉ khác dữ
+liệu động/fingerprint/footer). Commit 0fca90969ede9b65bd6813a385f76293323c1f05;
+PR https://github.com/seeker19110/projects-template/pull/216 OPEN, SQUASH auto-merge
+enabledAt 2026-10-08T05:01:40Z. CI Linux/Windows còn chạy tại checkpoint;
+metadata, gitleaks, dependency-review, CodeQL, docs/copy/protection SUCCESS.
+Checkpoint sau mở PR giữ cục bộ để reconcile sau merge; không tạo vòng CI chỉ để
+ghi số PR. Chưa đủ điều kiện đổi tên done.

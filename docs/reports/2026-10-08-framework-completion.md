@@ -86,4 +86,36 @@ Log /tmp/framework-completion-W01-gate.log; output đối chiếu đầy đủ v
 chỉ khác các ca mới, tỷ lệ tài liệu, fingerprint và dữ liệu động của fixture/thời gian.
 Hook Git và CI sẽ kiểm lại bản tích hợp sau cập nhật tài liệu.
 
-W-01 chờ PR/CI/merge; W-02 chưa sửa source. Chưa nghiệm thu Complete.
+W-01 đã MERGED qua [PR #216](https://github.com/seeker19110/projects-template/pull/216)
+lúc 2026-10-08T05:07:05Z, SHA d7aca5d37ddd55df7672cbe66470a086d7101794. Head
+0fca909 đã có CI 37730273965: Linux/Windows/gate/docs/copy/protection SUCCESS,
+progress-freshness SKIPPED theo main-only; metadata/security đều SUCCESS. Không có
+review thread; tree head/main trùng nhau. Hồ sơ đơn vị:
+`docs/work/2026-10-08-framework-completion-format/done.md`.
+
+F-C01/F-C03 đóng trên default branch; còn F-C02 (Trung) đang thực thi W-02.
+Main CI d7aca5d run 37730770082 đã SUCCESS đủ 7 job, gồm progress-freshness.
+Đã đọc log bước Runtime safety Windows thật của #216: 16/16, không skip/error.
+
+W-02 giữ trần ba, chuyển đếm mọi PR khác trước return draft/bot; không đếm lại PR
+hiện tại. Test dùng Node thực thi JS thật của workflow với API/core fixture offline,
+không viết lại luật đếm trong test. TDD: 18 subcase, 13 failure trước source; sau
+sửa phiên chính chạy runtime 17/17 xanh, không skip/error. Log đỏ
+/tmp/framework-completion-W02-wip-red.log; log recheck của phiên chính
+/tmp/framework-completion-W02-parent-runtime.log. Title/body/feature metadata và
+miễn trừ dưới trần có ca bảo vệ riêng.
+
+Re-audit candidate 12 nhóm: F-C01/F-C03 đã đóng trên main, F-C02 sửa trên nhánh
+W-02 nhưng còn chờ tích hợp; chưa có Cao/Trung mới trong phần đã rà. Radar vẫn
+99/100, 39/39 script có cổng và 22/22 spec đạt tín hiệu đo. File runtime test mới
+vượt 400 dòng (năm file mã vượt mốc heuristic); giữ chung suite đang có để giảm
+wiring/fixture trùng, có DEBT ngay header. Xem lại khi thêm nhóm hành vi mới hoặc
+fixture bắt đầu phân kỳ; đây là giới hạn bảo trì được ghi nhận, không nới cổng.
+
+W-02 full gate --evidence exit 0 và evidence-check VERIFIED trước cập nhật bản ghi:
+17 shell suite/5 Python suite trực tiếp, runtime 17/17, coverage 96%, lint 0 cảnh báo.
+Maintenance --strict --no-deps sau gate: 0 đỏ/2 vàng về Git (đang sửa 12 file và hai
+nhánh local cũ); hai DEBT đều có điều kiện xem lại, docs/CI-policy/action pin sạch.
+Dependency được audit riêng ở baseline và không đổi trong hai PR. Hook Git kiểm
+lại sau cập nhật tài liệu; W-02 chờ CI/merge và nghiệm thu default branch cuối.
+Chưa Complete.

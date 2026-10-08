@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4–5 (Build/Verify), chu kỳ hoàn thiện toàn bộ khung 2026-10-08. Kế hoạch được phiên chính duyệt theo ủy quyền; goal `docs/goals/2026-10-08-framework-completion.md`. Các goal/chu kỳ trước đã đóng; #213/#214/#215 đã merge.
+- Giai đoạn: GĐ 4–5 (Build/Verify), chu kỳ hoàn thiện toàn bộ khung 2026-10-08. W-01 đã merge ở #216 với CI Linux/Windows xanh; W-02 sửa WIP tiếp theo. Goal `docs/goals/2026-10-08-framework-completion.md`; các goal/chu kỳ trước giữ nguyên đã đóng.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `6c3e3ce` (`origin/main`, sau PR #215).
+- Default-branch SHA đã đối chiếu: `d7aca5d` (`origin/main`, sau PR #216).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -20,7 +20,8 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 **Hồ sơ đang mở:** `docs/work/2026-10-08-framework-completion/working.md`.
 Phát hiện, kế hoạch và bằng chứng ở `docs/reports/2026-10-08-framework-completion.md`;
-hai đơn vị sửa lỗi thực thi tuần tự qua PR, không mở lại goal LD đã Complete.
+W-01 đã MERGED, hồ sơ `docs/work/2026-10-08-framework-completion-format/done.md`;
+W-02 tiếp tục trên main đã đối chiếu, không mở lại goal LD đã Complete.
 
 Hồ sơ cũ: `docs/work/2026-10-07-pr-dispatch-work-memory/done.md` (#213),
 `docs/work/2026-10-08-gate-evidence-write/done.md` (#214) và
