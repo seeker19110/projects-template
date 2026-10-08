@@ -149,15 +149,6 @@ fi
 # --- 6. Mọi job cổng của ci.yml phải có mặt trong `needs:` của job tổng hợp `gate` (ADR-0003). ---
 # VÌ SAO: `gate` chỉ mạnh bằng danh sách needs: của nó. Thêm job cổng mới mà quên đưa vào needs
 # thì job đó chạy nhưng đỏ KHÔNG chặn merge (branch protection chỉ khoá `gate`) — cổng hình thức.
-#
-# Ngoại lệ BOOTSTRAP tạm thời (audit 2026-09-12, F-001 tái phát ở dạng khác): job mới thêm mà bản
-# thân nó CHỈ có thể xanh sau khi một bước cấu hình tay bên ngoài git đã xong (vd `protection-guard`
-# cần ruleset đã import trên GitHub) — đưa thẳng vào needs: của gate sẽ tạo deadlock: PR thêm job đó
-# không bao giờ merge được vì chính job đó luôn đỏ ở PR mở ra nó. Khai ở đây, xoá khỏi danh sách này
-# TRONG CÙNG LẦN thêm job đó vào needs: của gate (một PR riêng, sau khi bước cấu hình tay đã xong và
-# job đã xanh thật). Rỗng hiện tại — `protection-guard` đã được thêm vào needs: của gate sau khi
-# người dùng import ruleset (2026-09-13); giữ lại cơ chế này cho job bootstrap tương lai.
-CP4_BOOTSTRAP_EXEMPT=()
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
 echo "== Job của ci.yml có trong needs: của gate =="
 if grep -q "^  gate:" .github/workflows/ci.yml; then
@@ -171,7 +162,6 @@ if grep -q "^  gate:" .github/workflows/ci.yml; then
     case "$job" in ci.yml:*) ;; *) continue ;; esac
     jid="${job#ci.yml:}"
     [ "$jid" = "gate" ] && continue
-    is_in "$job" "${CP4_BOOTSTRAP_EXEMPT[@]}" && continue
     # shellcheck disable=SC2086  # can tach tu: $needs_ids la danh sach ten job
     if ! is_in "$jid" $needs_ids; then
       echo "::error file=.github/workflows/ci.yml::Job '$jid' KHÔNG có trong needs: của job 'gate' — đỏ sẽ không chặn merge (ADR-0003)."

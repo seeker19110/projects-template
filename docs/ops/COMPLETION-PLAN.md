@@ -1,6 +1,6 @@
 # COMPLETION-PLAN — trạng thái hiện hành 2026-10-08
 
-## Chu kỳ 2026-10-08 — đang thực thi
+## Chu kỳ 2026-10-08 — ĐÃ ĐÓNG 2026-10-08 (nghiệm thu: `docs/reports/2026-10-08-framework-completion.md`)
 
 Yêu cầu mới: hoàn thiện toàn bộ chính bộ khung. Kế hoạch/DoC và audit 12 nhóm:
 `docs/reports/2026-10-08-framework-completion.md`; goal:
@@ -9,8 +9,9 @@ Yêu cầu mới: hoàn thiện toàn bộ chính bộ khung. Kế hoạch/DoC v
 Phiên chính duyệt theo ủy quyền trước sửa source; hai PR sửa lỗi, worker thực thi
 tuần tự và phiên chính nghiệm thu qua full gate/CI. Không mở lại chu kỳ cũ bên dưới.
 
-W-01 đã MERGED qua #216, F-C01/F-C03 đóng trên main d7aca5d với CI Linux/Windows
-xanh ở head PR; hồ sơ đơn vị done. W-02 tiếp tục F-C02, chờ nghiệm thu cuối chu kỳ.
+W-01 #216 (d7aca5d) và W-02 #217 (6643f4e) đã MERGED, F-C01/F-C02/F-C03 đóng trên main,
+CI main xanh, re-audit 0 Cao/Trung; goal COMPLETE. Chu kỳ kế tiếp (tối ưu quy trình,
+không đổi hành vi): `docs/work/2026-10-08-process-optimization/working.md`.
 
 > Người dùng duyệt hoàn thiện chính bộ khung ngày 2026-10-05. Kế hoạch chi tiết:
 > `docs/reports/2026-10-05-framework-completion-plan.md`; audit 12 nhóm:

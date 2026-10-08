@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-framework-completion
 - Yêu cầu / outcome: hoàn thiện toàn bộ dự án khung; rà năng lực thật, sửa thiếu sót có bằng chứng, hội tụ qua cổng và CI.
-- Trạng thái: Active.
+- Trạng thái: Done — hai PR MERGED, nghiệm thu 2026-10-08.
 - Chủ trì / writer: phiên chính.
 - Mức rủi ro / số PR: mục tiêu nhiều PR (L), hai đơn vị sửa lỗi S; không thêm tính năng nên không mở feature spec mới.
 - Scope: installer, engine, hook, quality gate, CI, tài liệu và hồ sơ của chính khung.
@@ -53,4 +53,8 @@ W-02 giao worker wip_policy trên nhánh codex/framework-wip-completion-2026-10-
 
 ## Nghiệm thu cuối
 
-Chưa nghiệm thu; giữ working.md đến khi DoD và merge thật đạt.
+W-01 #216 → d7aca5d; W-02 #217 → 6643f4e (MERGED 2026-10-08T05:42:38Z). Main 6643f4e CI
+run 37733742326/37733742238 SUCCESS; 0 PR mở; nhánh làm việc trùng origin/main. Re-audit:
+radar 99/100, maintenance --strict --no-deps 0/0. Goal FC-2026-10-08 COMPLETE theo ủy
+quyền 2026-10-07, ngày 2026-10-08. Rename done trong PR của chu kỳ kế tiếp
+(`2026-10-08-process-optimization`) theo contract §3e.

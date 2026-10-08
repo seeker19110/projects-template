@@ -336,6 +336,15 @@ review_tests() {
 echo "== 7c. Review có căn cứ, repair đúng nguyên nhân (LD-04) =="
 review_tests
 
+echo "== 7d. Gate lồng nhau trên cùng ROOT → BLOCKED có lý do, không đệ quy (2026-10-08) =="
+# VÌ SAO: test-adoption-smoke chạy gate của dự án đích giả mà KẾ THỪA CLAUDE_PROJECT_DIR của repo khung
+# (hook pre-commit-gate đặt biến này) → ROOT quay về khung → gate khung chạy lại chính nó → treo vô hạn,
+# CI không thấy vì CI không đặt biến. Fixture: lệnh test tự gọi lại gate với cùng ROOT; chặn ở 3 tầng
+# để bản dev-task CŨ (chưa có chốt) không chạy mãi mà vẫn ĐỎ (không có thông báo "lồng nhau").
+d="$(gate_fixture nested)"
+printf '%s\n' "test='[ \"\${NESTED_DEPTH:-0}\" -lt 3 ] || exit 7; NESTED_DEPTH=\$((\${NESTED_DEPTH:-0}+1)) bash \"$DT\" gate'" >> "$d/.claude/project-commands.sh"
+gate_case "$d" 1 "lồng nhau trên cùng ROOT"
+
 echo "== 8. Lint của chính repo khung fail-closed ở từng bước =="
 lint_cmd="$(CLAUDE_PROJECT_DIR="$ROOT" bash "$DT" --print lint)"
 d="$(fx framework-lint)"; mkdir -p "$d/scripts"

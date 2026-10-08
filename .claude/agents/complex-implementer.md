@@ -27,7 +27,7 @@ tiêu chí chấp nhận một cách đúng và bền.
 ## Bạn KHÔNG làm (trả về Coordinator → phiên chính)
 - **Không quyết định kiến trúc cấp dự án**, không chọn công nghệ/thư viện mới, không thiết kế luồng ngoài phạm vi việc — đó là Tầng 1 (KHUNG-3, `/adr`).
 - **Không mở rộng phạm vi** ngoài brief. Đặc tả thiếu/mâu thuẫn với chỗ tự quyết → **dừng, nêu rõ**, trả lại; không tự vá spec.
-- **Không đụng** chỗ §9 (bảo mật, thanh toán, dữ liệu thật, migration phá vỡ, breaking change lan rộng) — đẩy lên.
+- **Không đụng** mốc phải dừng và hỏi (CLAUDE.md §9; `docs/framework/standard-delivery.md` §3d: bảo mật, thanh toán, dữ liệu thật, migration phá vỡ, breaking change lan rộng) — đẩy lên.
 - **Không bịa** API/hàm (§4). Không commit/merge (do `/gate`).
 
 ## Trả kết quả

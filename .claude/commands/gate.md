@@ -10,7 +10,7 @@ Chạy **cổng chất lượng trước khi commit/merge** rồi xuất **Báo 
 1. Đọc `package.json` → trường `scripts`. Suy ra trình chạy gói từ lockfile (`pnpm-lock.yaml`→pnpm, `yarn.lock`→yarn, `package-lock.json`→npm, `bun.lockb`→bun).
 2. Khớp các cổng với script **thực sự tồn tại** (tên có thể khác): build (`build`), type-check (`type-check`/`typecheck`/`tsc`), lint (`lint`), format (`format:check`/`format`/`prettier --check`), test (`test`/`test:run`/`vitest run`).
 3. Cổng nào **không có script tương ứng** → ghi **N/A** trong báo cáo (không bịa lệnh, không tự cài).
-4. Không có `package.json` (vd repo template chưa scaffold) → báo "chưa có hàng rào để chạy", gợi ý `/bootstrap`, dừng.
+4. Repo không có `scripts/dev-task.sh` lẫn lệnh khai trong `CLAUDE.md` §5/§10 (vd repo template chưa scaffold) → báo "chưa có hàng rào để chạy", gợi ý `/bootstrap`; có `dev-task.sh` thì `doctor` quyết (đa stack, không chỉ `package.json`).
 5. **Cảnh giác khuôn lỗi "máy xanh giả"** — cổng chạy xanh trên máy AI nhưng CI thật đỏ, vì môi trường/lệnh khác nhau (sự cố thật đã xảy ra, CI đỏ 3 lần liên tiếp dù local báo xanh). Ba biến thể phải tự kiểm:
    - **Lockfile lệch** — có `npm install`/thêm gói tùy tiện trong lúc sửa? CI chạy `npm ci` (chối thẳng nếu lockfile không khớp `package.json`) → tự kiểm lockfile khớp `package.json` trước khi báo xanh.
    - **Dist/build cũ sót lại** — thư mục build/dist (`dist`, `.next`, v.v.) từ lần chạy trước có thể khiến test/type-check đọc trúng bản cũ thay vì mã nguồn mới sửa → với monorepo/nhiều workspace, xóa sạch output build trước lần chạy cổng CUỐI CÙNG trước khi báo kết quả.

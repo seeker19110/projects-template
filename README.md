@@ -7,7 +7,7 @@ Khung này hỗ trợ **phát triển mọi loại dự án phần mềm từ ý
 blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
 
 - **Phương pháp là phổ quát:** quy trình 9 giai đoạn + cổng, research-first, đề xuất chủ động mọi mặt, ADR,
-  chống ảo giác, báo cáo xác thực — áp cho **mọi loại dự án, mọi ngôn ngữ/stack** (`docs/framework/KHUNG-1/2/3`).
+  chống ảo giác, báo cáo xác thực — áp cho **mọi loại dự án, mọi ngôn ngữ/stack** (`docs/framework/`: `01-process-and-standards.md`, `02-ai-rules-and-project-template.md`, `03-tech-selection-and-proactive-advice.md`).
 - **Công nghệ chọn theo "hồ sơ loại dự án":** từ ý tưởng, AI **phân loại → chọn hồ sơ → chọn stack** (research-first,
   phiên bản đã xác minh). Bảng hồ sơ C1–C10 + cổng tương đương: `KHUNG-3 PHẦN A0 + PHẦN C`.
 - **Không có scaffold/stack mặc định đóng gói sẵn.** Repo này chỉ chứa tài liệu + quy trình + script tự kiểm
@@ -25,7 +25,7 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
 |---|---|---|
 | `bash` | mọi script `scripts/*.sh`, hook | không chạy được gì (Windows: dùng Git Bash) |
 | **`jq`** | hook `pre-commit-gate.sh`, `block-dangerous-git.sh` | **hàng rào fail-open: hook cảnh báo ra stderr rồi CHO QUA** — commit khi cổng đỏ, `git push --force` lên `main`, `reset --hard` đều không bị chặn |
-| `python3` (≥ 3.7) | 4 engine: `spec-compiler`, `arch-health-radar`, `telemetry-log`, `subagent-dispatch` | các lệnh engine báo lỗi và thoát |
+| `python3` (≥ 3.7) | 5 engine: `spec-compiler`, `arch-health-radar`, `telemetry-log`, `subagent-dispatch`, `delivery-handoff` | các lệnh engine báo lỗi và thoát |
 | `git` | toàn bộ quy trình | — |
 | `bash` ≥ 4 | `mapfile` trong 3 cổng `check-*.sh` (macOS mặc định bash 3.2 → `brew install bash`) | cổng chết với "mapfile: command not found" |
 | `shellcheck`, `radon`, `coverage`, `pwsh` *(tuỳ chọn — chỉ để chạy cổng CI cục bộ)* | ShellCheck, `check-python-complexity.sh`, `test-py-coverage.sh`, bản `.ps1` của copy-framework | các cổng đó ĐỎ RÕ (không skip): `pip install -r scripts/requirements-ci.txt`, `apt/brew install shellcheck` |

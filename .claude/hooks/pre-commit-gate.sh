@@ -10,28 +10,23 @@ set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lư�
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
-# CÂY ĐANG COMMIT ≠ CHECKOUT CHÍNH (đối chiếu X-Agents `pt.10`, đo lại ở repo này — test mục 15). Phiên chạy trong
-# `git worktree` thì `git commit` chạy ở worktree còn CLAUDE_PROJECT_DIR vẫn trỏ checkout chính: đọc nhánh/index/cổng
-# từ đó vừa chặn oan ("đang đứng trên main") vừa buông bí mật và cổng đỏ của worktree. Mọi phép kiểm đọc $CAY = gốc
-# cây chứa cwd của hook (cwd của lệnh commit); ngoài repo thì lùi về $ROOT (lùi về chặt hơn là buông cổng).
-CAY="$(git rev-parse --show-toplevel 2>/dev/null)"
-[ -n "$CAY" ] || CAY="$ROOT"
-
 # Đọc payload hook từ stdin, lấy lệnh Bash sắp chạy.
 payload="$(cat)"
-cmd=""
-if command -v jq >/dev/null 2>&1; then
-  cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null)"
-else
+if ! command -v jq >/dev/null 2>&1; then
   # Không có jq → KHÔNG đoán lệnh từ JSON thô (grep trên cả payload sẽ khớp nhầm nội dung
   # file/mô tả và chạy cổng oan hoặc chặn sai). Fail-open: bỏ qua cổng, chỉ nhắc.
   echo "[pre-commit-gate] không có jq → không đọc được lệnh, bỏ qua cổng." >&2
   exit 0
 fi
+# shellcheck source=.claude/hooks/_lib.sh
+source "$(dirname "$0")/_lib.sh" || { echo "[pre-commit-gate] thiếu .claude/hooks/_lib.sh → bỏ qua cổng." >&2; exit 0; }
+cmd="$(printf '%s' "$payload" | read_hook_command)"
+case "$cmd" in *git*) ;; *) exit 0 ;; esac   # không có chữ `git` thì không thể là commit — khỏi chạy awk/sed/grep
 
-# Bỏ phần TRONG DẤU NHÁY trước khi so khớp (audit 2026-09-12): nếu không, một chuỗi mô tả như
-# `echo 'git reset --hard ...'` sẽ bị coi là lệnh git thật và chặn oan.
-cmd_scan="$(printf '%s' "$cmd" | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+# Bỏ DỮ LIỆU trước khi so khớp — CÙNG bộ lọc với block-dangerous-git (_lib.sh): phần TRONG DẤU NHÁY (audit
+# 2026-09-12: `echo 'git commit ...'`) và THÂN HEREDOC (O-2 2026-10-08: `python3 - <<PY … git commit … PY` chạy
+# cổng oan; message heredoc nhắc `git add` bật tự-stage oan — TRAPS.md "bản sao hook lệch nhau").
+cmd_scan="$(printf '%s' "$cmd" | strip_heredoc_bodies | strip_quoted)"
 
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
 if ! printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then
@@ -45,6 +40,13 @@ if printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
 fi
+
+# CÂY ĐANG COMMIT ≠ CHECKOUT CHÍNH (đối chiếu X-Agents `pt.10`, đo lại ở repo này — test mục 15). Phiên chạy trong
+# `git worktree` thì `git commit` chạy ở worktree còn CLAUDE_PROJECT_DIR vẫn trỏ checkout chính: đọc nhánh/index/cổng
+# từ đó vừa chặn oan ("đang đứng trên main") vừa buông bí mật và cổng đỏ của worktree. Mọi phép kiểm đọc $CAY = gốc
+# cây chứa cwd của hook (cwd của lệnh commit); ngoài repo thì lùi về $ROOT (lùi về chặt hơn là buông cổng).
+CAY="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -n "$CAY" ] || CAY="$ROOT"
 
 # --- Không commit thẳng lên nhánh chính (CLAUDE.md §8; TRAPS mục 14: `checkout -b` hỏng → commit rơi
 # vào main mà không ai thấy). Bỏ qua tường minh: ALLOW_COMMIT_ON_MAIN=1.

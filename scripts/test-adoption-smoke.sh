@@ -27,9 +27,11 @@ new_target() { # $1: tên fixture
   printf '%s' "$dir"
 }
 
+# Dự án đích phải thấy ROOT của CHÍNH NÓ: gate/doctor ưu tiên CLAUDE_PROJECT_DIR, mà hook pre-commit-gate
+# của repo khung đặt biến đó trỏ về khung → gate khung chạy lại trong gate khung (TRAPS mục 52).
 gate_expect() { # $1: target; $2: expected exit; $3: expected output marker
   local dir="$1" expected="$2" marker="$3" rc
-  (cd "$dir" && bash scripts/dev-task.sh gate) >"$WORK/gate.log" 2>&1; rc=$?
+  (cd "$dir" && CLAUDE_PROJECT_DIR="$dir" bash scripts/dev-task.sh gate) >"$WORK/gate.log" 2>&1; rc=$?
   if [ "$rc" -eq "$expected" ] && grep -Fq "$marker" "$WORK/gate.log"; then
     ok "$(basename "$dir"): gate exit $rc; $marker"
   else
@@ -68,7 +70,7 @@ install_and_check_ci() { # $1: target
   cp "$dir/_framework-dropins/.github/workflows/ci.yml" "$ci"
   if ci_policy_check "$ci" "$dir"; then ok "$(basename "$dir"): CI drop-in chỉ gọi script đã phát, có gate và action ghim SHA";
   else bad "$(basename "$dir"): CI drop-in gọi script vắng hoặc thiếu gate/action ghim SHA"; fi
-  (cd "$dir" && bash scripts/dev-task.sh doctor) >"$WORK/doctor.log" 2>&1
+  (cd "$dir" && CLAUDE_PROJECT_DIR="$dir" bash scripts/dev-task.sh doctor) >"$WORK/doctor.log" 2>&1
   if [ "$?" -eq 0 ] && grep -Fq 'READY:' "$WORK/doctor.log"; then ok "$(basename "$dir"): lệnh doctor của CI trả READY";
   else bad "$(basename "$dir"): lệnh doctor của CI không READY"; cat "$WORK/doctor.log" >&2; fi
   gate_expect "$dir" 0 'PASS: 3 kiểm tra đã chạy thành công'
@@ -84,7 +86,7 @@ clone_ci_expect() { # CI chỉ thấy file đã commit, không thấy config b�
   git -C "$dir" -c user.email=smoke@example.invalid -c user.name=Smoke commit -qm 'test: target fixture'
   clone="$WORK/clone-$name"
   git clone -q --no-hardlinks "$dir" "$clone"
-  (cd "$clone" && bash scripts/dev-task.sh doctor) >"$WORK/clone-doctor.log" 2>&1
+  (cd "$clone" && CLAUDE_PROJECT_DIR="$clone" bash scripts/dev-task.sh doctor) >"$WORK/clone-doctor.log" 2>&1
   if [ "$?" -eq 2 ] && grep -Fq 'BLOCKED:' "$WORK/clone-doctor.log"; then
     ok "$name: checkout sạch thiếu config bị ignore → doctor BLOCKED"
   else
@@ -95,7 +97,7 @@ clone_ci_expect() { # CI chỉ thấy file đã commit, không thấy config b�
   git -C "$dir" -c user.email=smoke@example.invalid -c user.name=Smoke commit -qm 'test: track reviewed commands'
   tracked_clone="$WORK/clone-tracked-$name"
   git clone -q --no-hardlinks "$dir" "$tracked_clone"
-  (cd "$tracked_clone" && bash scripts/dev-task.sh doctor) >"$WORK/clone-doctor.log" 2>&1
+  (cd "$tracked_clone" && CLAUDE_PROJECT_DIR="$tracked_clone" bash scripts/dev-task.sh doctor) >"$WORK/clone-doctor.log" 2>&1
   if [ "$?" -eq 0 ] && grep -Fq 'READY:' "$WORK/clone-doctor.log"; then
     ok "$name: checkout sạch có config đã review → doctor READY"
   else

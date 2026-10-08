@@ -4,9 +4,7 @@ description: Hoàn thiện dự án — lập kế hoạch chi tiết từ hiệ
 
 Đọc kỹ `docs/framework/project-completion.md` trong repo này và **làm theo đúng 5 pha trong đó**.
 
-> 💡 **Model/effort:** lập kế hoạch hoàn thiện (Pha 2) là việc lý luận sâu — trước khi vào Plan Mode, tự `/model` sang model cao cấp nhất đang sẵn có (ADR-0007; `opusplan` đã ngừng hỗ trợ) đã
-> dùng Opus; ca đặc biệt phức tạp cân nhắc `/model claude-fable-5-1` + `/effort xhigh` cho riêng Pha 2,
-> xong tự `/model claude-sonnet-5` quay lại. Việc quét/đo cơ học giao subagent (`lookup`, `version-check`).
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
 Ràng buộc bắt buộc (chi tiết nằm ở file trên — bám `CLAUDE.md` §3–§4, cổng §5–§7):
 
@@ -15,7 +13,7 @@ Ràng buộc bắt buộc (chi tiết nằm ở file trên — bám `CLAUDE.md` 
 
 - **Bước 0 — kiểm tra trạng thái trước khi làm bất cứ gì:** đọc `docs/ops/COMPLETION-PLAN.md` nếu có.
   - **Đã có kế hoạch đang mở** → tóm tắt trạng thái (đợt nào xong, việc nào 🔄/⬜), rồi **DÙNG
-    `AskUserQuestion` hỏi**: tiếp tục đúng chỗ dở, hay lập lại kế hoạch từ đầu? Không tự quyết.
+    `AskUserQuestion` hỏi** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)): tiếp tục đúng chỗ dở, hay lập lại kế hoạch từ đầu?
   - **Chưa có** → chạy từ Pha 0.
 
 - **Trình tự pha — không bỏ pha, không đảo:**
@@ -23,15 +21,14 @@ Ràng buộc bắt buộc (chi tiết nằm ở file trên — bám `CLAUDE.md` 
     lập `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` + `CODEMAP.md` bằng cách **đọc code thật** (chống ảo giác).
   - **Pha 1** quét: chạy `/audit-full` (12 nhóm, gồm Nhóm 12 thống nhất chéo tính năng). KHÔNG sửa gì.
   - **Pha 2** lập `docs/ops/COMPLETION-PLAN.md` (đợt + việc + tiêu chí nghiệm thu + truy vết F-xxx→W-xxx
-    + Definition of Complete) → **DỪNG, chờ người dùng duyệt kế hoạch + DoC**. Chưa duyệt chưa sửa.
+    + Definition of Complete) → **DỪNG, chờ duyệt kế hoạch + DoC** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)). Chưa duyệt chưa sửa.
   - **Pha 3** thực thi từng việc: nhánh riêng → PR nhỏ → `/gate`; bug có **test tái hiện trước khi
     sửa**; cập nhật COMPLETION-PLAN **ngay sau mỗi việc** (trạng thái + PR + bằng chứng).
   - **Pha 4** hội tụ: quét lại nhóm bị ảnh hưởng sau mỗi đợt; sau đợt cuối quét lại đủ 12 nhóm;
     chỉ đóng khi đạt tiêu chí thoát (0 phát hiện Cao mở; Trung/Thấp có quyết định ghi nhận; lượt
     quét cuối không ra phát hiện Cao mới) → nghiệm thu từng mục Definition of Complete kèm bằng chứng.
 
-- **Vẫn dừng và hỏi** theo `CLAUDE.md` §9 (mơ hồ, không hoàn tác được, breaking change, bảo mật/
-  thanh toán/dữ liệu thật) — kể cả đang ở giữa Pha 3.
+- **Vẫn dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d — kể cả đang ở giữa Pha 3.
 
 Nếu **không tìm thấy** `docs/framework/project-completion.md` (repo chưa áp khung), báo người dùng
 cân nhắc chạy `copy-framework.sh`, rồi vẫn tiến hành theo đúng 5 pha tóm tắt trên.

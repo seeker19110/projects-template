@@ -4,14 +4,7 @@ description: Audit toàn diện mọi khía cạnh dự án — quét lại từ
 
 Đọc kỹ `docs/ops/comprehensive-audit-prompt.md` trong repo này và **làm theo đúng quy trình trong đó**.
 
-> 💡 **Model/effort cho ca này (tách rõ 2 việc khác thế mạnh):** quét từng nhóm ở GIAI ĐOẠN 1 (đọc
-> code, đối chiếu checklist, liệt kê bằng chứng) là việc **Sonnet đã đủ tốt** — giữ nguyên model tiêu chuẩn (Sonnet 5)
-> + `/effort medium`, không cần nâng. Nhưng bước **tổng hợp BÁO CÁO cuối GIAI ĐOẠN 1** (cân đánh đổi
-> giữa 12 nhóm, xếp ưu tiên toàn cục — lý luận sâu, rủi ro cao nếu xếp sai) đúng việc Opus/Fable làm
-> tốt hơn hẳn Sonnet (`models-and-automation.md` §3 xếp `/audit-full` là "audit lớn" — nhóm cần nâng
-> model). Trước khi viết mục tổng hợp: nâng `/model claude-opus-5-5` (hoặc `claude-fable-5-1` nếu dự án
-> rất phức tạp/nhiều rủi ro) + `/effort xhigh`; xong quay lại `/model claude-sonnet-5` + `/effort medium` cho
-> GIAI ĐOẠN 2 (xử lý — lại là việc Sonnet làm tốt).
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
 Ràng buộc bắt buộc (chi tiết & danh sách 12 nhóm nằm ở file trên — bám đúng `CLAUDE.md` §3–§4,
 `KHUNG-3` PHẦN C (hồ sơ theo loại dự án), `quality-supplements.md` Nhóm 1+2, `KHUNG-1` tiêu chuẩn
@@ -35,13 +28,13 @@ từng giai đoạn):
   - **Chưa có** → đây là lần quét đầu; tạo file mới (mẫu trong `comprehensive-audit-prompt.md`), bắt đầu Nhóm 1.
   - **Đã có** → đọc trạng thái, tóm tắt cho người dùng (nhóm nào xong/đang dở/chưa quét), rồi
     **DÙNG `AskUserQuestion` hỏi rõ**: quét lại từ đầu (reset) hay chỉ tiếp tục các nhóm
-    chưa xong? Không tự quyết thay người dùng.
+    chưa xong? (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền))
 
 - **GIAI ĐOẠN 1 (quét — chỉ đọc & đo, KHÔNG sửa gì):** quét từng nhóm áp dụng theo đúng thứ tự,
   **cập nhật `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` ngay sau mỗi nhóm** (kể cả khi mới quét dở
   một nhóm) để lần sau tiếp tục đúng chỗ. Sau khi hết các nhóm áp dụng → tổng hợp **BÁO CÁO AUDIT
   TOÀN DIỆN** (vị trí · mức độ · đề xuất · rủi ro · công sức ước tính, xếp ưu tiên) — **rồi DỪNG,
-  chờ người dùng duyệt.**
+  chờ duyệt** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)).
 - Chỉ sang **GIAI ĐOẠN 2 (xử lý)** sau khi được duyệt: từng PR nhỏ theo ưu tiên, qua đúng cổng
   `/gate`, cập nhật lại file trạng thái + `PROGRESS.md` sau mỗi mục đã xử lý.
 

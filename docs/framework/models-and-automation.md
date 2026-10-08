@@ -26,7 +26,7 @@ Script copy `.claude/settings.json` (model tiêu chuẩn: Sonnet 5) + hooks + ag
 | **Tầm trung → lớn** (10–50k+ LOC) | **Sonnet 5** thực thi + **chuyển tay sang model cao cấp nhất sẵn có** cho pha lập kế hoạch | `/model claude-opus-5-5` (hoặc tương đương) lúc plan, quay lại Sonnet 5 lúc code |
 | **Rất phức tạp / rủi ro cực cao** | như trên + nâng riêng lúc cần | `/model claude-fable-5-1` ở ca khó nhất |
 
-> **Nguyên tắc vàng:** dùng model **rẻ nhất vẫn đạt chất lượng** cho phần lớn công việc; **nâng cấp có chọn lọc** đúng các mốc rủi ro cao mà khung bắt "dừng và hỏi" (CLAUDE.md §9).
+> **Nguyên tắc vàng:** dùng model **rẻ nhất vẫn đạt chất lượng** cho phần lớn công việc; **nâng cấp có chọn lọc** đúng các mốc độ khó/rủi ro thật (CLAUDE.md §2, ADR-0010 §4); dừng và hỏi chỉ theo CLAUDE.md §9.
 
 ---
 
@@ -239,7 +239,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 ### 5.3 Một phiên chuẩn trông thế nào (checklist)
 1. **Mở phiên:** hook tự nạp PROGRESS.md; `session-guide.sh` hiện model phiên hiện tại (chỉ để tham khảo, không còn so khớp đúng/sai với một alias cố định).
 2. **Việc lớn/mơ hồ** → `/model` sang model cao cấp nhất sẵn có rồi vào plan mode một lần; **việc rõ phạm vi** → làm thẳng (Sonnet).
-3. **Trong lúc chạy:** việc cơ học giao subagent; `/effort` chỉnh theo loại việc (§4); nâng `/model` chỉ đúng mốc rủi ro CLAUDE.md §9 rồi tự `/model claude-sonnet-5` quay về.
+3. **Trong lúc chạy:** việc cơ học giao subagent; `/effort` chỉnh theo loại việc (§4); nâng `/model` chỉ khi độ khó thật đòi hỏi (CLAUDE.md §2) rồi tự `/model claude-sonnet-5` quay về.
 4. **Đóng mảng việc:** `/gate` → commit → cập nhật PROGRESS.md → phiên mới cho mảng kế tiếp.
 
 **Tóm một dòng:** plan một lần bằng model cao cấp nhất sẵn có (tự `/model` chuyển) → thực thi dài bằng Sonnet → việc cơ học ra subagent → effort theo việc → nâng model đúng mốc rồi tự quay về. **Token tiết kiệm nhất nằm ở kỷ luật vận hành, không nằm trong file config.**
@@ -393,7 +393,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 - **Quyền:** allow-list an toàn; thao tác nguy hiểm vẫn hỏi. Muốn bỏ mọi xác nhận → tự chạy chế độ bypass (cân nhắc rủi ro), không bake vào template.
 - Auto-format/gate **đa-loại dự án** nhờ mọi lệnh nằm sau `dev-task.sh`; template không hardcode lệnh stack nào. Hook cần `scripts/dev-task.sh` (copy-framework đã copy kèm); thiếu thì no-op (không lỗi).
 - Hook viết bằng **bash** — trên **Windows** cần Git Bash (đi kèm Git for Windows; Claude Code dùng nó chạy hook). Thiếu bash → hook không chạy (automation tắt, không lỗi).
-- **Đừng downgrade ở chỗ rủi ro cao** — chi phí một quyết định kiến trúc/bảo mật sai lớn hơn nhiều tiền tiết kiệm model. Khung §9 liệt kê đúng chỗ nên dùng model mạnh.
+- **Đừng downgrade ở chỗ rủi ro cao** — chi phí một quyết định kiến trúc/bảo mật sai lớn hơn nhiều tiền tiết kiệm model. CLAUDE.md §2 yêu cầu đổi model theo độ khó thật (ADR-0010 §4) cho đúng chỗ này.
 - **Haiku 4.5 không dùng làm model chính** — thiếu chiều sâu lý luận đa vai trò; chỉ hợp việc phụ, đơn lẻ.
 - **Ngữ cảnh 1M** ở Sonnet/Opus/Fable đủ cho gần như mọi dự án; **chất lượng lý luận** mới là yếu tố quyết định giữa ba model, không phải ngữ cảnh.
 

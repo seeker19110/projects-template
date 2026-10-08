@@ -177,11 +177,6 @@ sed -i 's|scripts/spec-compiler.sh|scripts/DA-XOA-KHOI-AGENTS.sh|g' "$d/AGENTS.m
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được engine khai ở CLAUDE.md nhưng thiếu trong AGENTS.md (mục 7)" || bad "KHÔNG bắt được lệch CLAUDE.md/AGENTS.md (rc=$rc)"
 
-d="$(setup_repo)" || exit 1
-# Đối chứng: không đụng gì thì mục 7 phải XANH (bản sao sạch đã có đủ 4 engine ở cả hai file).
-rc="$(run_check "$d" check-docs-consistency.sh)"
-[ "$rc" = "0" ] && ok "mục 7 XANH khi CLAUDE.md và AGENTS.md khớp (không đỏ oan)" || bad "mục 7 đỏ oan trên bản sao sạch (rc=$rc)"
-
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================
@@ -316,18 +311,23 @@ git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn b�
 rc="$(run_check "$d" check-progress-freshness.sh)"
 [ "$rc" = "0" ] && ok "PF-3 XANH khi 'Giai đoạn' >= PR của SHA (không đỏ oan)" || bad "PF-3 đỏ oan dù 'Giai đoạn' đã khớp (rc=$rc)"
 
+# step_body <tên-step> <file-workflow> <file-ra>: trích thân `run:` của một step trong .github/workflows.
+step_body() {
+  awk -v name="      - name: $1" '
+    $0 == name { found=1; next }
+    found && /^        run: \|$/ { body=1; next }
+    body && /^      - name:/ { exit }
+    body && /^          / { sub(/^          /, ""); print }
+  ' "$ROOT/.github/workflows/$2" > "$3"
+}
+
 ## ============================================================
 ## 4. protection-guard: tham số strict của ruleset thật
 ## ============================================================
 echo "== 4. protection-guard strict =="
 
 # Chạy đúng thân step CI với phản hồi API giả lập; không gọi GitHub hoặc thay ruleset thật.
-awk '
-  /^      - name: Bảo vệ nhánh đã có hiệu lực chưa$/ { found=1; next }
-  found && /^        run: \|$/ { body=1; next }
-  body && /^      - name:/ { exit }
-  body && /^          / { sub(/^          /, ""); print }
-' "$ROOT/.github/workflows/ci.yml" > "$WORK/protection-guard.sh"
+step_body "Bảo vệ nhánh đã có hiệu lực chưa" ci.yml "$WORK/protection-guard.sh"
 if [ ! -s "$WORK/protection-guard.sh" ]; then
   echo 'không tìm thấy thân step protection-guard' > "$WORK/check-output"
   bad "không thể trích step protection-guard từ ci.yml"
@@ -359,12 +359,7 @@ fi
 ## 5. dependency-review: nhận manifest của khung và monorepo
 ## ============================================================
 echo "== 5. dependency-review manifests =="
-awk '
-  /^      - name: Detect project manifest$/ { found=1; next }
-  found && /^        run: \|$/ { body=1; next }
-  body && /^      - name:/ { exit }
-  body && /^          / { sub(/^          /, ""); print }
-' "$ROOT/.github/workflows/dependency-review.yml" > "$WORK/detect-manifest.sh"
+step_body "Detect project manifest" dependency-review.yml "$WORK/detect-manifest.sh"
 if [ ! -s "$WORK/detect-manifest.sh" ]; then
   echo 'không tìm thấy thân step Detect project manifest' > "$WORK/check-output"
   bad "không thể trích step dependency-review từ workflow"

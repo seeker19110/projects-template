@@ -12,13 +12,20 @@
 #   - không có dòng mới → không ghi gì;
 #   - SubagentStop (Claude Code gửi agent_type + transcript_path riêng của subagent): --agent = tên
 #     agent, mốc lưu riêng theo transcript nên Tầng 2/3 — nơi tốn nhất — được đo tách khỏi phiên chính.
-# Không chặn phiên nếu lỗi (xem docs/CONVENTIONS.md §A) — best-effort, im lặng khi thiếu điều kiện.
+# Không chặn phiên nếu lỗi (xem docs/CONVENTIONS.md §A) — best-effort: luôn exit 0, nhưng thiếu jq/python hoặc
+# engine lỗi thì NÓI RA một dòng stderr (O-2 2026-10-08: im lặng = mất số đo mà không ai biết).
 set -uo pipefail
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 [ -x "$ROOT/scripts/telemetry-log.sh" ] || exit 0
-command -v jq >/dev/null 2>&1 || exit 0
-command -v python3 >/dev/null 2>&1 || exit 0
+command -v jq >/dev/null 2>&1 || { echo "[telemetry-record] không có jq → không đọc được payload, bỏ qua ghi telemetry." >&2; exit 0; }
+# Dò python3 rồi python — cùng thứ tự với scripts/_python-exec.sh (helper đó `exec` một engine .py nên không
+# source được cho đoạn Python inline dưới đây).
+PYTHON_CMD=""
+if command -v python3 >/dev/null 2>&1; then PYTHON_CMD=python3
+elif command -v python >/dev/null 2>&1; then PYTHON_CMD=python
+else echo "[telemetry-record] không có python3/python → bỏ qua ghi telemetry." >&2; exit 0
+fi
 
 payload="$(cat)"
 tp="$(printf '%s' "$payload" | jq -r '.transcript_path // empty' 2>/dev/null)"
@@ -33,7 +40,7 @@ mkdir -p "$STATE_DIR" 2>/dev/null || exit 0
 
 # In một dòng: <model> <input> <output> <giây> <ts-cuối>  — hoặc rỗng nếu không có dòng mới.
 # PYTHONIOENCODING: console Windows mặc định cp1252 (TRAPS.md bẫy 24).
-stats="$(PYTHONIOENCODING=utf-8 python3 - "$tp" "$STATE" <<'PY'
+stats="$(PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$tp" "$STATE" <<'PY'
 import json, sys
 from datetime import datetime
 path, state = sys.argv[1], sys.argv[2]
@@ -88,10 +95,17 @@ read -r model in_tok out_tok seconds last_ts <<<"$stats"
 
 tokens=()
 [ "$in_tok" = - ] || tokens=(--input-tokens "$in_tok" --output-tokens "$out_tok")
-bash "$ROOT/scripts/telemetry-log.sh" --record \
+# Engine lỗi → in lỗi của nó ra stderr (có tiền tố), KHÔNG dời mốc (lượt sau ghi lại được), vẫn exit 0 (hook Stop
+# không được làm chết phiên). Engine thành công thì stderr của nó (vd cảnh báo token unknown) vẫn bỏ như cũ.
+err="$(bash "$ROOT/scripts/telemetry-log.sh" --record \
   --harness claude-code --provider anthropic --model "$model" \
   --agent "$agent" --task "Stop hook tu dong" \
-  --duration "$seconds" --test-status N/A "${tokens[@]}" >/dev/null 2>&1 || exit 0
+  --duration "$seconds" --test-status N/A "${tokens[@]}" 2>&1 >/dev/null)"; rc=$?
+if [ "$rc" -ne 0 ]; then
+  echo "[telemetry-record] telemetry-log.sh lỗi (exit $rc) → không ghi được số đo lượt này:" >&2
+  printf '%s\n' "$err" | sed 's/^/[telemetry-record]   /' >&2
+  exit 0
+fi
 
 printf '%s\n' "$last_ts" > "$STATE" 2>/dev/null || true
 exit 0

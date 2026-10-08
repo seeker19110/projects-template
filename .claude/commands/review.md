@@ -14,7 +14,7 @@ Kích hoạt **rà soát code trước khi mở Pull Request**. Đây là bướ
 Dùng `Skill(code-review)` ở effort phù hợp độ rủi ro của diff (mặc định `medium`; nâng `high` nếu diff chạm nhiều file/luồng nghiệp vụ chính). Skill tìm lỗi correctness + cơ hội tái sử dụng/đơn giản hóa/hiệu quả.
 
 ## Bước 3 — Gọi thêm `security-review` nếu chạm vùng nhạy cảm
-Diff đụng auth, thanh toán, dữ liệu người dùng thật, quyền truy cập, hoặc input từ bên ngoài chưa rõ đã validate → gọi thêm `Skill(security-review)` (đúng CLAUDE.md §9).
+Diff đụng auth, thanh toán, dữ liệu người dùng thật, quyền truy cập, hoặc input từ bên ngoài chưa rõ đã validate → gọi thêm `Skill(security-review)` (vùng nhạy cảm theo `docs/framework/standard-delivery.md` §3d).
 
 ## Bước 4 — Xử lý phát hiện
 - Ghi phát hiện thành `review-findings/1` (khuôn ở `.claude/agents/reviewer.md`) và chạy `scripts/dev-task.sh review-check <file>`: finding `UNSUPPORTED` (không bằng chứng/không trỏ được dòng thật) bị loại; mỗi finding còn lại có đúng một hành động.
@@ -26,4 +26,4 @@ Diff đụng auth, thanh toán, dữ liệu người dùng thật, quyền truy 
 ## Ranh giới
 - **Không thay `/gate`** — vẫn phải chạy `/gate` (build/type/lint/format/test) trước khi commit/merge như CLAUDE.md §5–§6 yêu cầu.
 - **Không tự merge/tạo PR** thay người dùng nếu chưa được yêu cầu.
-- Nếu review phát hiện vấn đề kiến trúc lớn (không phải bug cục bộ) → đúng CLAUDE.md §9, dừng và hỏi thay vì tự quyết sửa.
+- Nếu review phát hiện vấn đề kiến trúc lớn (không phải bug cục bộ) → dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d, thay vì tự quyết sửa.

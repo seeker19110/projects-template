@@ -66,7 +66,7 @@ tầng ①②⑤ là **vai của phiên chính**; tầng ③ giao theo số PR �
 | ② Design | Hoạt động / trông thế nào? | Approve (spec §6, §10, §11) · Plan | Phiên chính: `/ui-ux` (UI) hoặc thiết kế CLI/API/DX theo hồ sơ C4/C5 | Mục journeys-mọi-state, UX/a11y, kiến trúc & điểm chạm **trong cùng spec** | axe/E2E a11y, Lighthouse CI (hồ sơ C1); cổng hồ sơ khác ở `quality-gates-by-profile.md` | thiếu state (tải/rỗng/lỗi), luồng không khớp, contract API/DDL chưa chốt |
 | ③ Engineering | Xây bằng cách nào? | Plan · Build | Một PR: phiên chính có thể tự làm; ≥ 2 PR: subagent thực thi theo contract/dependency; coordinator là tùy chọn (§3c) | PR nhỏ, test cùng code (TDD đỏ-trước, ADR-0005) | hook `pre-commit-gate.sh`, `auto-format.sh`; `progress-freshness` | lỗi trong code đã có spec đúng — **mặc định là đây, nhưng phải nêu lý do** (luật dưới) |
 | ④ Verify & Operate | Đúng, an toàn, chạy tốt không? | Verify · Integrate · Observe | `/gate` (§5–§7), `tester`, `reviewer`, `security-reviewer`; `release-readiness.md`; `/incident`; `/maintain` | Báo cáo xác thực §7, PR xanh + auto-merge, post-mortem, `MAINTENANCE-*.md` | `ci.yml` job `gate`, `secret-scan`, `dependency-review`, `maintenance.yml` | cổng/CI/hạ tầng sai (máy xanh giả, lockfile lệch — xem `gate.md` Bước 1) |
-| ⑤ Knowledge | Hệ thống biết gì, đã đổi gì? | Reconcile (+ mọi PR, §8 bước 0/5) | Phiên chính: `/adr`, cập nhật `PROGRESS.md`, `CONTEXT.md`, `TRAPS.md`, `CODEMAP.md`, `docs/changelog/` | ADR, TRAPS mục mới, PROGRESS mốc + SHA, changelog đợt việc | `progress-freshness` (PF-1..3), `docs-consistency`, `maintenance-sweep` 🟡 `DEBT:` thiếu `xem lại khi:` | (không có tầng sau) — tri thức sai làm ① của chu kỳ kế lệch: sửa tại ADR/TRAPS, không sửa code |
+| ⑤ Knowledge | Hệ thống biết gì, đã đổi gì? | Reconcile (+ mọi PR, `CLAUDE.md` §8 bước 0/5) | Phiên chính: `/adr`, cập nhật `PROGRESS.md`, `CONTEXT.md`, `TRAPS.md`, `CODEMAP.md`, `docs/changelog/` | ADR, TRAPS mục mới, PROGRESS mốc + SHA, changelog đợt việc | `progress-freshness` (PF-1..4), `docs-consistency`, `maintenance-sweep` 🟡 `DEBT:` thiếu `xem lại khi:` | (không có tầng sau) — tri thức sai làm ① của chu kỳ kế lệch: sửa tại ADR/TRAPS, không sửa code |
 
 **Luật quy lỗi về tầng (bổ sung trần "3 lần → BLOCKED" của §4):** khi Verify fail, lần sửa **đầu** được
 sửa code ngay; trước lần sửa **thứ 2 cùng một failure** phải viết một dòng *"lỗi ở tầng ①/②/③/④ vì …"*
@@ -294,7 +294,6 @@ migration/data tests cho DB, eval/cost/safety cho AI, platform/device tests cho 
 - Học từ nguồn ngoài (ba cột, cổng sự cố thật): `adopt-from-outside.md`.
 - Quy trình PR → merge + giải xung đột (luật đầy đủ của CLAUDE.md §8): `pr-flow.md`.
 - Hoàn thiện dự án (bản đồ tính năng, vòng hội tụ): `project-completion.md`.
-- Audit/hội tụ Project Complete: `project-completion.md`.
 - Checklist chất lượng: `quality-supplements.md`.
 
 Nếu tài liệu chuyên sâu mâu thuẫn contract này, dừng và sửa mâu thuẫn trước khi tiếp tục.

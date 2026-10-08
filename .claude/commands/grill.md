@@ -4,7 +4,7 @@ description: Phỏng vấn dồn dập (grilling) để làm rõ một ý tưở
 
 Chạy một phiên **phỏng vấn dồn dập** để đạt hiểu biết chung với người dùng trước khi hành động — kỹ thuật thực thi cụ thể cho mục 9 ("dừng và hỏi") và mục 2 ("chủ động góp ý") của `CLAUDE.md`.
 
-> Dùng khi: mở đầu `/consult` PHẦN A (làm rõ ý tưởng greenfield); yêu cầu người dùng mơ hồ/nhiều cách hiểu (§9); một quyết định thiết kế có nhiều nhánh chưa chốt; hoặc gõ `/grill` trực tiếp.
+> Dùng khi: mở đầu `/consult` PHẦN A (làm rõ ý tưởng greenfield); yêu cầu người dùng mơ hồ/nhiều cách hiểu (trigger `CLAUDE.md` §1; chỉ hỏi phần không tự xác minh được — §9, contract §3d); một quyết định thiết kế có nhiều nhánh chưa chốt; hoặc gõ `/grill` trực tiếp.
 
 Theo contract §3d, tự chốt các nhánh đủ dữ kiện và đã được ủy quyền trước khi tính biên hỏi.
 Biên chỉ còn thông tin/mục tiêu không thể tự xác minh hoặc quyền chưa được cấp.

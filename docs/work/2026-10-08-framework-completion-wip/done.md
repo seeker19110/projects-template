@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-framework-completion-wip
 - Yêu cầu / outcome: khớp cổng PR với trần tối đa ba PR mở toàn repo, kể cả draft và bot.
-- Trạng thái: Ready — worker bàn giao, chờ phiên chính full gate/review và PR/CI.
+- Trạng thái: Done — PR #217 MERGED, nghiệm thu 2026-10-08 theo ủy quyền.
 - Chủ trì / writer: worker W-02; phiên chính review, tích hợp và nghiệm thu.
 - Mức rủi ro / số PR: S; một PR sửa lỗi có hồi quy đỏ-trước.
 - Scope: `.github/workflows/pr-policy.yml`, `tests/test_runtime_safety.py`, `CODEMAP.md`, `TRAPS.md` và hồ sơ đơn vị này.
@@ -49,4 +49,13 @@ metadata; khi số PR thay đổi workflow vẫn yêu cầu re-run như thông b
 
 ## Nghiệm thu cuối
 
-Chưa nghiệm thu; giữ working.md đến khi đủ DoD và bằng chứng merge thật.
+PR #217 MERGED lúc 2026-10-08T05:42:38Z (squash), merge SHA
+6643f4e52b0a0ca09e8ccee06ff4188ee4cda1a3; head đã kiểm f9eb2f8df47b71be1e1ef62a31baca6e34faecd9,
+base d7aca5d. CI của main 6643f4e: run 37733742238 (CI) SUCCESS; CodeQL 37733742317,
+Secret scan 37733742216, Scorecard 37733742338, Release 37733742326 đều SUCCESS. GitHub
+2026-10-08: 0 PR mở, không review thread chờ. `git fetch origin main` → nhánh làm việc
+trùng origin/main (0/0 ahead-behind). F-C02 đóng trên default branch với regression
+18 subcase trong `tests/test_runtime_safety.py`. Nghiệm thu theo ủy quyền chủ repo
+2026-10-07, ngày 2026-10-08; đổi tên done sau các phép đối chiếu trên, ghi trong PR
+của chu kỳ kế tiếp theo contract §3e. Giới hạn giữ nguyên: cổng WIP chặn ở check
+metadata, không ngăn tạo PR thứ tư trên GitHub UI.

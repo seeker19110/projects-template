@@ -162,8 +162,11 @@ echo "$err0" | grep -q "unknown" && ok "có cảnh báo stderr khi thiếu token
 echo "== 5. Nhật ký telemetry giữ dữ liệu khi lỗi và khi ghi song song =="
 integrity_out="$(cd "$ROOT" && python3 -m unittest discover -s tests -p test_telemetry_integrity.py 2>&1)"
 integrity_rc=$?
-if [ "$integrity_rc" -eq 0 ] && printf '%s\n' "$integrity_out" | grep -q '^Ran 15 tests'; then
-  ok "15 ca toàn vẹn telemetry: JSON lỗi, schema, ghi lỗi, ghi đồng thời, chờ khoá, usage unknown, lần thử/nghiệm thu"
+# Không ghim số ca (`^Ran 15 tests`): thêm ca vào file kia làm đỏ oan file này. unittest in `OK` (có thể kèm
+# `(skipped=N)`) ở cuối khi mọi ca đạt; rc=0 + dòng `OK` là đủ, số ca thật đọc từ dòng `Ran N tests`.
+integrity_ran="$(printf '%s\n' "$integrity_out" | sed -n 's/^Ran \([0-9]*\) tests\{0,1\}.*/\1/p' | tail -n 1)"
+if [ "$integrity_rc" -eq 0 ] && printf '%s\n' "$integrity_out" | grep -q '^OK'; then
+  ok "${integrity_ran:-?} ca toàn vẹn telemetry: JSON lỗi, schema, ghi lỗi, ghi đồng thời, chờ khoá, usage unknown, lần thử/nghiệm thu"
 else
   bad "telemetry integrity thất bại (rc=$integrity_rc)"
   printf '%s\n' "$integrity_out" >&2

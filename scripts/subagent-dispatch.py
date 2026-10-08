@@ -38,15 +38,6 @@ PREPARE_ONLY_NOTICE = (
 # Trần theo BYTE (không phải token): chặn nối nhầm file khổng lồ, không phải giới hạn của model.
 DEFAULT_MAX_CONTEXT_BYTES = 262144
 
-# Nhãn route: -> cấp năng lực trong CAPABILITY_MAP_FILE (đa nhà cung cấp, xem
-# docs/framework/orchestration-3-tier.md). "planning" không gắn với agent nào (là Tầng 1).
-AGENT_TIER = {
-    "complex-implementer": "complex",
-    "spec-executor": "spec",
-    "standard-worker": "standard",
-    "mechanical-worker": "mechanical",
-}
-
 
 def load_capability_tiers():
     if not os.path.exists(CAPABILITY_MAP_FILE):

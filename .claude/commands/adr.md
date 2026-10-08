@@ -6,7 +6,7 @@ Tạo một **ADR (Architecture Decision Record)** mới cho một quyết đị
 
 > Khi nào cần ADR: quyết định kiến trúc/công nghệ lớn, khó đảo, ảnh hưởng nhiều nơi. ADR ghi lại **"TẠI SAO"** để bạn (hoặc một phiên AI mới) không vô tình lật ngược quyết định cũ mà không biết lý do.
 
-> 💡 **Model/effort cho ca này:** ghi ADR = quyết định kiến trúc khó đảo, **lý luận sâu**. Cân nhắc nâng thủ công `/model claude-fable-5-1` (hoặc `claude-opus-5-5`) + `/effort xhigh` khi so sánh ứng viên/đánh đổi; xong quay lại `/model claude-sonnet-5` + `/effort medium` cho khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
 ## Bước 1 — Đánh số & đặt tên (không đoán)
 1. Đọc `docs/adr/` → tìm số ADR lớn nhất hiện có (vd `0001-...`) → số mới = **kế tiếp**, đệm 4 chữ số.
@@ -22,7 +22,7 @@ Sao cấu trúc từ `docs/adr/0000-template.md`, điền đủ các mục: **Tr
 
 ## Quy tắc bất biến
 - **KHÔNG sửa ADR cũ.** Nếu đổi ý: viết ADR mới và đánh dấu ADR cũ "Đã thay thế bởi ADR-XXXX".
-- ADR ở trạng thái "Đề xuất" cần **người dùng duyệt** trước khi chuyển "Đã chấp nhận".
+- ADR ở trạng thái "Đề xuất" cần **duyệt** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)) trước khi chuyển "Đã chấp nhận".
 - Sau khi tạo: nếu là quyết định stack, đối chiếu/cập nhật `PROJECT.md` mục 4 cho khớp.
 
 Hỏi nhanh **quyết định cần ghi là gì** (nếu chưa rõ), rồi làm **Bước 1**.

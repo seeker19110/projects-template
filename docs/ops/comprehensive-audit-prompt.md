@@ -59,10 +59,10 @@ Trạng thái quét được lưu trong file **`docs/ops/COMPREHENSIVE-AUDIT-STA
 2. **Chưa tồn tại** → đây là lần quét đầu. Tạo file mới từ mẫu ở PHẦN "Mẫu file trạng thái" bên dưới,
    liệt kê đủ 12 nhóm với trạng thái `⬜ Chưa quét`, rồi bắt đầu từ **Nhóm 1**.
 3. **Đã tồn tại** → đọc bảng trạng thái, tóm tắt cho người dùng: nhóm nào `✅ Xong`, nhóm nào
-   `🔄 Đang dở` (kèm đã quét tới đâu), nhóm nào `⬜ Chưa quét`. Rồi **hỏi người dùng** một trong hai:
+   `🔄 Đang dở` (kèm đã quét tới đâu), nhóm nào `⬜ Chưa quét`. Rồi **hỏi người dùng** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)) một trong hai:
    - **(a) Quét lại từ đầu:** reset toàn bộ về `⬜`, ghi đè ngày bắt đầu mới, quét lại từ Nhóm 1.
    - **(b) Tiếp tục:** chỉ quét các nhóm `⬜`/`🔄`, giữ nguyên kết quả các nhóm đã `✅`.
-   Không tự ý chọn thay người dùng nếu cả (a)/(b) đều hợp lý — đây đúng dạng "yêu cầu mơ hồ" ở
+   Không tự ý chọn nếu cả (a)/(b) đều hợp lý và thiếu dữ kiện để xác minh — dừng và hỏi theo
    `CLAUDE.md` §9.
 
 **Cập nhật trạng thái NGAY sau mỗi nhóm** (không đợi quét xong hết mới ghi) — để phiên sau (hoặc
@@ -162,7 +162,7 @@ Thực hiện đúng "Cơ chế quét lại/tiếp tục" ở trên. Sau khi cá
 **BÁO CÁO AUDIT TOÀN DIỆN**: bảng theo 12 nhóm, mỗi phát hiện có **ID cố định (`F-001`, `F-002`…
 — dùng truy vết về sau, nhất là khi vào `/completion`)** · vị trí (file:dòng) · mức độ ·
 đề xuất · rủi ro nếu để nguyên · công sức ước tính. Xếp ưu tiên toàn cục (Cao trước). **RỒI DỪNG,
-chờ người dùng duyệt** — chưa sửa gì.
+chờ duyệt** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)) — chưa sửa gì.
 
 **GIAI ĐOẠN 2 — XỬ LÝ (chỉ sau khi được duyệt):**
 Làm từng PR nhỏ theo ưu tiên đã duyệt, mỗi PR qua đúng cổng `/gate` (`CLAUDE.md` §5–§7). Việc nào
@@ -202,6 +202,6 @@ nếu có).
 ```
 
 ## Sau khi có báo cáo audit toàn diện
-- **Duyệt thứ tự ưu tiên** trước khi cho sửa — giá trị cao/rủi ro thấp làm trước, đúng `CLAUDE.md` §9 (dừng hỏi khi mơ hồ/rủi ro cao).
+- **Duyệt thứ tự ưu tiên** trước khi cho sửa — giá trị cao/rủi ro thấp làm trước, theo ủy quyền `docs/framework/standard-delivery.md` §3d; dừng và hỏi chỉ theo `CLAUDE.md` §9.
 - Có thể mang báo cáo về phiên khác để phản biện kế hoạch (không cần quyền truy cập repo đích).
 - Mỗi đợt xử lý đi qua đúng cổng commit/merge của khung (`/gate`).

@@ -1,12 +1,12 @@
 ---
-description: Chạy tự động — Opus lên kế hoạch TOÀN BỘ (plan mode) rồi thực thi tự động (Sonnet code + Haiku việc phụ), qua các cổng của khung. Dùng khi mô tả dự án MỚI hoặc bắt đầu làm trên dự án CÓ SẴN.
+description: Chạy tự động — lên kế hoạch TOÀN BỘ (plan mode; đổi model khi độ khó thật đòi hỏi) rồi thực thi tự động (Sonnet code + Haiku việc phụ), qua các cổng của khung. Dùng khi mô tả dự án MỚI hoặc bắt đầu làm trên dự án CÓ SẴN.
 ---
 
-Bạn vận hành ở chế độ **"Opus lên kế hoạch — chạy tự động"**. Áp dụng khi: người dùng **mô tả một dự án/tính năng mới**, hoặc bắt đầu **làm việc trên một repo có sẵn**.
+Bạn vận hành ở chế độ **"lên kế hoạch toàn bộ — chạy tự động"**. Áp dụng khi: người dùng **mô tả một dự án/tính năng mới**, hoặc bắt đầu **làm việc trên một repo có sẵn**.
 
-> Nền model: repo đặt mặc định `.claude/settings.json` = **Sonnet 5** (thực thi). `/model opusplan` đã ngừng CLI hỗ trợ (ADR-0007) — **trước khi vào Plan Mode, chủ động `/model` sang model cao cấp nhất đang sẵn có** (lý luận/kiến trúc), rồi tự `/model claude-sonnet-5` quay lại khi vào thực thi (viết code). Việc tra cứu/xác minh phiên bản giao **subagent Haiku** (`lookup`, `version-check`). Đây là lý do "model cao cấp nhất lên kế hoạch rồi chạy tự động" hoạt động, dù phải tự đổi model tay ở đầu/cuối pha lập kế hoạch.
+> Nền model: repo đặt mặc định `.claude/settings.json` = **Sonnet 5**. `/model opusplan` đã ngừng CLI hỗ trợ (ADR-0007). **Đổi model khi độ khó thật đòi hỏi** (vd quyết định kiến trúc mức L), không phải nghi thức đầu mỗi việc (CLAUDE.md §2, ADR-0010 §4); đổi xong quay lại mặc định khi thực thi. Việc tra cứu/xác minh phiên bản giao **subagent Haiku** (`lookup`, `version-check`).
 
-> 💡 **Model/effort:** Trước khi vào Plan Mode, tự `/model claude-opus-5-5` (model cao cấp nhất đang sẵn có). Chỉ khi quyết định kiến trúc **cực khó / nhiều đánh đổi khó đảo**, cân nhắc nâng thêm `/model claude-fable-5-1` + `/effort xhigh` cho riêng pha lập kế hoạch; xong tự `/model claude-sonnet-5` + `/effort medium` để pha thực thi (Sonnet/Haiku) khỏi phí token. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4. Đổi model khi độ khó thật đòi hỏi (vd quyết định kiến trúc mức L), không phải nghi thức đầu mỗi việc; phân loại và chia việc theo `docs/framework/standard-delivery.md` §3c.
 
 ## Bước 1 — LẬP KẾ HOẠCH TOÀN BỘ bằng Opus (trong Plan Mode)
 Vào **plan mode** (Opus). Trước khi lập kế hoạch, **nghiên cứu thật** (không bịa):
@@ -42,6 +42,6 @@ Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại t
 - Đọc mục **"Đang làm" / "Tiếp theo" / "Bàn giao phiên"** → **nối tiếp đúng chỗ dở**, không lập lại kế hoạch từ đầu (kế hoạch tổng đã duyệt vẫn hiệu lực).
 
 ## Ranh giới tự động (BẮT BUỘC — không vượt)
-Chạy tự động **KHÔNG** có nghĩa bỏ cổng. **Vẫn dừng và hỏi** khi (CLAUDE.md §9): yêu cầu mơ hồ nhiều cách hiểu; thao tác không thể hoàn tác (xóa dữ liệu, đổi schema phá vỡ); breaking change lan rộng; nhiều đánh đổi lớn; đụng bảo mật/thanh toán/dữ liệu người dùng thật; **hoặc chuyển sang giai đoạn kế** (tóm tắt đã đạt cổng chưa, xin xác nhận). Ngoài các mốc đó → chạy liền mạch.
+Chạy tự động **KHÔNG** có nghĩa bỏ cổng. **Vẫn dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d**. Chuyển giai đoạn kế: phiên chính nghiệm thu cổng giai đoạn và ghi căn cứ (CLAUDE.md §2), không chờ xác nhận riêng. Ngoài các mốc đó → chạy liền mạch.
 
 > Tóm tắt: **1 kế hoạch tổng (Opus) → 1 lần duyệt → thực thi tự động (Sonnet+Haiku) với auto-format + gate**, chỉ dừng ở các cổng/§9. Đây là mức "tự động" cao nhất vẫn an toàn theo khung.

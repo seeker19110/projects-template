@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4–5 (Build/Verify), chu kỳ hoàn thiện toàn bộ khung 2026-10-08. W-01 đã merge ở #216 với CI Linux/Windows xanh; W-02 sửa WIP tiếp theo. Goal `docs/goals/2026-10-08-framework-completion.md`; các goal/chu kỳ trước giữ nguyên đã đóng.
+- Giai đoạn: GĐ 4–5 (Build/Verify). Chu kỳ hoàn thiện khung 2026-10-08 (W-01 #216, W-02 #217) đã merge và COMPLETE; chu kỳ kế tiếp: tối ưu quy trình không đổi hành vi (audit + refactor nhỏ qua /gate). Goal cũ `docs/goals/2026-10-08-framework-completion.md` giữ nguyên đã đóng.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `d7aca5d` (`origin/main`, sau PR #216).
+- Default-branch SHA đã đối chiếu: `6643f4e` (`origin/main`, sau PR #217).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -18,10 +18,13 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Hồ sơ đang mở:** `docs/work/2026-10-08-framework-completion/working.md`.
-Phát hiện, kế hoạch và bằng chứng ở `docs/reports/2026-10-08-framework-completion.md`;
-W-01 đã MERGED, hồ sơ `docs/work/2026-10-08-framework-completion-format/done.md`;
-W-02 tiếp tục trên main đã đối chiếu, không mở lại goal LD đã Complete.
+**Hồ sơ đang mở:** `docs/work/2026-10-08-process-optimization/working.md` — nghiên cứu lại
+quy trình khung và tối ưu (chất lượng · ít code · bảo mật · dễ vận hành); báo cáo
+`docs/reports/2026-10-08-process-optimization.md`.
+
+Chu kỳ FC-2026-10-08 COMPLETE: `docs/work/2026-10-08-framework-completion/done.md`
+(W-01 `…-format/done.md` #216, W-02 `…-wip/done.md` #217); báo cáo
+`docs/reports/2026-10-08-framework-completion.md`.
 
 Hồ sơ cũ: `docs/work/2026-10-07-pr-dispatch-work-memory/done.md` (#213),
 `docs/work/2026-10-08-gate-evidence-write/done.md` (#214) và
@@ -81,13 +84,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Thực thi goal FC-2026-10-08 theo hồ sơ đang mở; phiên chính review và chạy đủ cổng
-trước tích hợp từng PR. Goal LD-01..08 giữ nguyên Complete theo nghiệm thu kỹ thuật đã có.
-Pilot/hosted CI dự án đích/model benchmark thuộc phạm vi riêng và vẫn chưa được kiểm chứng.
-
-## Rủi ro, blocker và giới hạn
-
-C01 pilot sản phẩm thật và C02 hosted CI các stack chưa thử vẫn cần bằng chứng
-riêng; Node/Python fixture không chứng minh tất cả dự án. Chi tiết lịch sử ở
-`docs/reports/2026-10-05-framework-audit.md` và
-`docs/framework/strict-gate-contract.md`. Không hạ quality gate để vượt blocker.
+Thực thi chu kỳ tối ưu quy trình theo hồ sơ đang mở: baseline đo thật → báo cáo 5 nhóm →
+duyệt theo ủy quyền §3d → từng PR nhỏ không đổi hành vi qua `/gate`, đo trước–sau.
+Goal LD-01..08 và FC-2026-10-08 giữ nguyên Complete. Pilot/hosted CI dự án đích/model
+benchmark thuộc phạm vi riêng và vẫn chưa được kiểm chứng.

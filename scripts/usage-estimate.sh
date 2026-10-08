@@ -53,7 +53,9 @@ def parse_ts(s):
 
 cut = datetime.now(timezone.utc) - timedelta(hours=5)
 used = {a: 0.0 for a in ("opus", "sonnet", "haiku", "fable")}
-with open(path) as f:
+# encoding tường minh: open() mặc định theo locale (cp1252 trên Windows) → UnicodeDecodeError với transcript
+# tiếng Việt, script chết, usage-guard mất cảnh báo quota (O-2 P-A3, test UE-5).
+with open(path, encoding="utf-8", errors="replace") as f:
     for line in f:
         try:
             o = json.loads(line)

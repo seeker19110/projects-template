@@ -69,6 +69,19 @@ else
   bad "UE-4: budget gấp đôi nhưng % không giảm ($overall → $overall2)"
 fi
 
+# UE-5 (O-2 P-A3, 2026-10-08): transcript có ký tự NGOÀI ASCII (tiếng Việt trong nội dung) + locale KHÔNG phải
+# UTF-8. Bản cũ `open(path)` không encoding → đọc theo mã locale (cp1252 trên Windows; ở đây mô phỏng bằng
+# LC_ALL=C + PYTHONUTF8=0 → ASCII) → UnicodeDecodeError, script chết, usage-guard tắt cảnh báo quota im lặng.
+printf '{"timestamp":"%s","message":{"model":"claude-opus-5","content":"Tiếng Việt — đã sửa ✓","usage":{"input_tokens":1000,"output_tokens":500}}}\n' \
+  "$NOW_TS" > "$WORK/t-utf8.jsonl"
+out="$(LC_ALL=C LANG=C PYTHONUTF8=0 CLAUDE_PROJECT_DIR="$WORK" bash "$SCRIPT" "$WORK/t-utf8.jsonl" 2>&1)"; rc=$?
+overall5="$(echo "$out" | sed -n 's/^OVERALL=\([0-9]*\)$/\1/p')"
+if [ "$rc" -eq 0 ] && [ -n "$overall5" ] && [ "$overall5" = "$overall2" ]; then
+  ok "UE-5: transcript non-ASCII + locale C → vẫn đọc được, OVERALL=$overall5 (bằng ca ASCII cùng token)"
+else
+  bad "UE-5: transcript non-ASCII + locale không UTF-8 làm hỏng ước tính (rc=$rc): $(echo "$out" | tail -n 3 | tr '\n' ' ')"
+fi
+
 if [ "$fails" -eq 0 ]; then
   echo "OK — usage-estimate.sh đạt toàn bộ ca kiểm (kể cả đối chứng định lượng)."
   exit 0
