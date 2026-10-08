@@ -101,6 +101,8 @@ log_state() { [ -f "$real_log" ] && cksum < "$real_log" || echo absent; }
 real_log_before="$(log_state)"
 TLROOT="$(mktemp -d)"
 trap 'rm -rf "$TLROOT"' EXIT
+# Git Bash trên Windows: mktemp in /tmp/..., Python (native) không mở được đường dẫn đó — cùng cách đổi như $ROOT ở trên.
+if command -v cygpath >/dev/null 2>&1; then TLROOT="$(cygpath -m "$TLROOT")"; fi
 cp -r "$ROOT/scripts" "$TLROOT/scripts"
 TL="$TLROOT"
 
