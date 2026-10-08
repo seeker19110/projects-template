@@ -11,6 +11,11 @@
 # Ví dụ Node (chỉnh theo package scripts thực tế):
 # export gate_tools='node npm'
 # export format='npm run format'
+# Per-file formatter (auto-format hook): {} là một đối số filename độc lập.
+# Hỗ trợ {}, "{}", '{}'; filename truyền qua positional parameter Bash, không
+# ghép vào shell source. Config vẫn là shell tin cậy; không dùng placeholder
+# trong chuỗi shell lồng hoặc một phần của đối số. Ví dụ:
+# export format_file='npx --no-install prettier --write {}'
 # export build='npm run build'
 # export typecheck='npm run type-check'
 # export lint='npm run lint'

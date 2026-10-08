@@ -1,10 +1,11 @@
-"""Regression tests: CLI validation, immutable Git lease, transactional upgrade.
+"""Regression tests: shell paths, CLI validation, Git lease, transactional upgrade.
 
 All repositories are disposable, local-only fixtures. No AI CLI, credentials,
 production files or network are used. Run: python3 tests/test_runtime_safety.py
 """
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import sys
@@ -60,6 +61,120 @@ class RuntimeSafety(unittest.TestCase):
         # Use the same Git config as clone/setup; changing core.autocrlf only
         # for the system under test makes a clean Windows fixture look dirty.
         self.env.update(GIT_TERMINAL_PROMPT="0")
+
+    def formatter_fixture(self, tool=None, template=None, tool_exit=0, root=None):
+        root = root or self.tmp / (tool or "no-formatter")
+        root.mkdir(parents=True, exist_ok=True)
+        bindir = root / "fixture-bin"
+        bindir.mkdir()
+        # Isolate detection from tools installed on the host. Bash resolves the
+        # fixture bin path itself so this also works with Git Bash on Windows.
+        for name in ("bash", "dirname", "touch"):
+            executable = run([BASH, "-c", f"command -v {name}"]).stdout.strip()
+            self.assertTrue(executable, f"Fixture requires {name}")
+            wrapper = bindir / name
+            write(wrapper, f'#!/bin/bash\nexec {shlex.quote(executable)} "$@"\n')
+            wrapper.chmod(0o755)
+        if tool:
+            wrapper = bindir / tool
+            write(wrapper, '#!/bin/bash\nprintf "%s\\0" "$@" > "$FORMAT_ARGS"\n'
+                  f"exit {tool_exit}\n")
+            wrapper.chmod(0o755)
+        if tool == "npx":
+            write(root / "package.json", "{}\n")
+        if template:
+            write(root / ".claude/project-commands.sh",
+                  "export format_file=" + shlex.quote(template) + "\n")
+        env = {**self.env, "CLAUDE_PROJECT_DIR": root.as_posix(),
+               "FORMAT_ARGS": (root / "formatter-args").as_posix()}
+        return root, bindir, env
+
+    def run_formatter(self, fixture, *args):
+        root, bindir, env = fixture
+        for name in ("formatter-args", "format-sentinel", "trusted-sentinel", "venv-sentinel", "venv-backtick"):
+            (root / name).unlink(missing_ok=True)
+        return run([BASH, "-c", 'export PATH="$(cd "$1" && pwd)"; exec "$2" "$3" "${@:4}"',
+                    "bash", bindir.as_posix(), Path(BASH).as_posix(),
+                    (ROOT / "scripts/dev-task.sh").as_posix(), *args], cwd=root, env=env)
+
+    def formatter_args(self, root):
+        output = root / "formatter-args"
+        self.assertTrue(output.exists(), "Formatter was not invoked")
+        return output.read_bytes().decode("utf-8").split("\0")[:-1]
+
+    def test_format_file_builtin_preserves_literal_filename(self):
+        tools = {
+            "npx": ("md", ["--no-install", "prettier", "--write"]),
+            "ruff": ("py", ["format"]), "black": ("py", []),
+            "gofmt": ("go", ["-w"]), "rustfmt": ("rs", []),
+        }
+        names = ("space name", "double\"quote", "single'quote", "$HOME",
+                 "$(touch format-sentinel)", "`touch format-sentinel`",
+                 "semi; touch format-sentinel;", "line\nbreak")
+        for tool, (ext, prefix) in tools.items():
+            fixture = self.formatter_fixture(tool)
+            root = fixture[0]
+            for name in names:
+                with self.subTest(tool=tool, name=name):
+                    filename = (root / f"{name}.{ext}").as_posix()
+                    result = self.run_formatter(fixture, "format-file", filename)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertFalse((root / "format-sentinel").exists(), result.stderr)
+                    self.assertEqual(self.formatter_args(root), [*prefix, filename])
+
+    def test_format_file_trusted_template_preserves_literal_filename(self):
+        for index, placeholder in enumerate(("{}", '"{}"', "'{}'")):
+            with self.subTest(placeholder=placeholder):
+                root = self.tmp / f"template-{index}"
+                fixture = self.formatter_fixture("customfmt", "customfmt " + placeholder, root=root)
+                filename = (root / 'space "quote\' $(touch format-sentinel) `touch format-sentinel`;\n.md').as_posix()
+                result = self.run_formatter(fixture, "format-file", filename)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertFalse((root / "format-sentinel").exists(), result.stderr)
+                self.assertEqual(self.formatter_args(root), [filename])
+
+    def test_format_file_retains_trusted_shell_operations(self):
+        fixture = self.formatter_fixture("customfmt", "customfmt {} {} && touch trusted-sentinel")
+        root = fixture[0]
+        filename = (root / "$(touch format-sentinel).md").as_posix()
+        result = self.run_formatter(fixture, "format-file", filename)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((root / "format-sentinel").exists(), result.stderr)
+        self.assertTrue((root / "trusted-sentinel").exists(), result.stderr)
+        self.assertEqual(self.formatter_args(root), [filename, filename])
+
+    def test_format_file_leading_dash_is_a_filename(self):
+        fixture = self.formatter_fixture("npx")
+        result = self.run_formatter(fixture, "format-file", "--flag.md")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.formatter_args(fixture[0]),
+                         ["--no-install", "prettier", "--write", "./--flag.md"])
+
+    def test_format_file_remains_best_effort(self):
+        fixture = self.formatter_fixture()
+        for args in (("format-file",), ("format-file", "file.py"), ("format-file", "file.unknown")):
+            with self.subTest(args=args):
+                result = self.run_formatter(fixture, *args)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertFalse((fixture[0] / "formatter-args").exists())
+        failing = self.formatter_fixture("npx", tool_exit=7)
+        result = self.run_formatter(failing, "format-file", "file.md")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.formatter_args(failing[0]),
+                         ["--no-install", "prettier", "--write", "file.md"])
+
+    def test_python_venv_executable_path_is_shell_escaped(self):
+        root = self.tmp / "venv $(touch venv-sentinel) `touch venv-backtick` 'quoted' ;"
+        fixture = self.formatter_fixture(root=root)
+        write(root / "requirements.txt", "")
+        tool = root / ".venv/bin/ruff"
+        write(tool, '#!/bin/bash\nprintf "%s\\0" "$@" > "$FORMAT_ARGS"\n')
+        tool.chmod(0o755)
+        result = self.run_formatter(fixture, "lint")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((root / "venv-sentinel").exists(), result.stderr)
+        self.assertFalse((root / "venv-backtick").exists(), result.stderr)
+        self.assertEqual(self.formatter_args(root), ["check", "."])
 
     def test_missing_cli_values_are_rejected_before_side_effects(self):
         flags = {

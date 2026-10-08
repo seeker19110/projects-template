@@ -17,13 +17,14 @@ py_present() {
   [ -f "$ROOT/pyproject.toml" ] || [ -f "$ROOT/requirements.txt" ] || [ -f "$ROOT/setup.py" ]
 }
 
-# In tiền tố để chạy công cụ Python ĐÚNG môi trường của dự án: ưu tiên venv/uv/poetry, cuối cùng PATH.
+# In tiền tố shell Bash để chạy công cụ Python ĐÚNG môi trường: ưu tiên venv/uv/poetry, cuối cùng PATH.
+# Executable path dùng %q: khoảng trắng/ký tự shell trong ROOT vẫn là một đường dẫn literal.
 # Trả về rỗng + return 1 nếu không tìm thấy công cụ ở đâu cả (để caller no-op thay vì chạy sai binary).
 #   $1 = tên công cụ (ruff/mypy/pytest…)  → in "path/tool" hoặc "uv run tool" hoặc "poetry run tool" hoặc "tool"
 py_tool() {
   local t="$1"
-  if [ -x "$ROOT/.venv/bin/$t" ]; then echo "$ROOT/.venv/bin/$t"; return 0; fi
-  if [ -x "$ROOT/.venv/Scripts/$t.exe" ]; then echo "$ROOT/.venv/Scripts/$t.exe"; return 0; fi   # Windows venv
+  if [ -x "$ROOT/.venv/bin/$t" ]; then printf '%q\n' "$ROOT/.venv/bin/$t"; return 0; fi
+  if [ -x "$ROOT/.venv/Scripts/$t.exe" ]; then printf '%q\n' "$ROOT/.venv/Scripts/$t.exe"; return 0; fi   # Windows venv
   if [ -f "$ROOT/uv.lock" ] && command -v uv >/dev/null 2>&1; then echo "uv run $t"; return 0; fi
   if [ -f "$ROOT/poetry.lock" ] && command -v poetry >/dev/null 2>&1; then echo "poetry run $t"; return 0; fi
   command -v "$t" >/dev/null 2>&1 && { echo "$t"; return 0; }

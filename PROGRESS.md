@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: Lean delivery đã nghiệm thu theo ủy quyền chủ repo (goal `docs/goals/2026-10-07-lean-delivery.md`); LD-01..08 đã merge và đạt nghiệm thu kỹ thuật, hồ sơ #211 và đóng goal ở #212. Luật chung và hồ sơ nối phiên đã merge ở #213; bản sửa lỗi ghi evidence của gate đã merge ở #214.
+- Giai đoạn: GĐ 4–5 (Build/Verify), chu kỳ hoàn thiện toàn bộ khung 2026-10-08. Kế hoạch được phiên chính duyệt theo ủy quyền; goal `docs/goals/2026-10-08-framework-completion.md`. Các goal/chu kỳ trước đã đóng; #213/#214/#215 đã merge.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `93d1a3f` (`origin/main`, sau PR #214).
+- Default-branch SHA đã đối chiếu: `6c3e3ce` (`origin/main`, sau PR #215).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -18,12 +18,14 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Hồ sơ đang mở:** `docs/work/2026-10-08-completion-closeout/working.md` — chốt các bản ghi
-sau merge #213/#214, đồng bộ đường dẫn spec và kiểm tra lại cổng; chưa merge PR bàn giao này.
+**Hồ sơ đang mở:** `docs/work/2026-10-08-framework-completion/working.md`.
+Phát hiện, kế hoạch và bằng chứng ở `docs/reports/2026-10-08-framework-completion.md`;
+hai đơn vị sửa lỗi thực thi tuần tự qua PR, không mở lại goal LD đã Complete.
 
-**Hồ sơ đã hoàn tất:** `docs/work/2026-10-07-pr-dispatch-work-memory/done.md` (#213) và
-`docs/work/2026-10-08-gate-evidence-write/done.md` (#214). Các PR triển khai đã MERGED;
-hai rename và bằng chứng sau merge được đưa vào cùng PR bàn giao hiện tại.
+Hồ sơ cũ: `docs/work/2026-10-07-pr-dispatch-work-memory/done.md` (#213),
+`docs/work/2026-10-08-gate-evidence-write/done.md` (#214) và
+`docs/work/2026-10-08-completion-closeout/done.md` (#215). Các PR đã MERGED và CI xanh;
+checkpoint sau merge #215 được tích hợp cùng PR của chu kỳ mới theo contract §3e.
 
 **Ngữ cảnh chung (2026-10-07):** chủ repo yêu cầu trần 500.000 token cho mọi phiên,
 mọi nhà cung cấp và subagent; checkpoint/nén trước 450.000 hoặc thấp hơn theo cửa sổ model.
@@ -78,8 +80,8 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Goal LD-01..08 đã Complete theo nghiệm thu kỹ thuật được chủ repo ủy quyền; không còn slice bắt buộc.
-Việc tiếp theo chọn theo giá trị chất lượng và bằng chứng sự cố thật; không tự tạo tính năng suy đoán.
+Thực thi goal FC-2026-10-08 theo hồ sơ đang mở; phiên chính review và chạy đủ cổng
+trước tích hợp từng PR. Goal LD-01..08 giữ nguyên Complete theo nghiệm thu kỹ thuật đã có.
 Pilot/hosted CI dự án đích/model benchmark thuộc phạm vi riêng và vẫn chưa được kiểm chứng.
 
 ## Rủi ro, blocker và giới hạn

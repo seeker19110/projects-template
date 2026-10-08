@@ -220,22 +220,28 @@ run_task() {
 declared_format_file() {
   [ -f "$DECL" ] || return 0
   # shellcheck source=/dev/null  # như trên: đường dẫn chỉ có ở dự án đích
-  ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${format_file:-}\"" )
+  ( set +u; . "$DECL" >/dev/null 2>&1; printf '%s' "${format_file:-}" )
 }
 resolve_format_file() {
   local p="$1" tmpl ext
   tmpl="$(declared_format_file)"
-  if [ -n "$tmpl" ]; then printf '%s' "${tmpl//\{\}/$p}"; return 0; fi
+  if [ -n "$tmpl" ]; then
+    # Placeholder là một đối số độc lập: {}, "{}" hoặc '{}'. Chỉ thay shell
+    # tin cậy bằng "$1"; filename được truyền riêng, không ghép vào shell source.
+    tmpl="${tmpl//\'\{\}\'/\"\$1\"}"
+    tmpl="${tmpl//\"\{\}\"/\"\$1\"}"
+    printf '%s' "${tmpl//\{\}/\"\$1\"}"; return 0
+  fi
   ext="${p##*.}"
   case "$ext" in
     js|jsx|ts|tsx|mjs|cjs|json|css|scss|md|mdx|html|yaml|yml)
       if command -v npx >/dev/null 2>&1 && [ -f "$ROOT/package.json" ]; then
-        echo "npx --no-install prettier --write \"$p\""; return 0; fi ;;
+        echo 'npx --no-install prettier --write "$1"'; return 0; fi ;;
     py)
-      command -v ruff  >/dev/null 2>&1 && { echo "ruff format \"$p\""; return 0; }
-      command -v black >/dev/null 2>&1 && { echo "black \"$p\""; return 0; } ;;
-    go)  command -v gofmt   >/dev/null 2>&1 && { echo "gofmt -w \"$p\""; return 0; } ;;
-    rs)  command -v rustfmt >/dev/null 2>&1 && { echo "rustfmt \"$p\""; return 0; } ;;
+      command -v ruff  >/dev/null 2>&1 && { echo 'ruff format "$1"'; return 0; }
+      command -v black >/dev/null 2>&1 && { echo 'black "$1"'; return 0; } ;;
+    go)  command -v gofmt   >/dev/null 2>&1 && { echo 'gofmt -w "$1"'; return 0; } ;;
+    rs)  command -v rustfmt >/dev/null 2>&1 && { echo 'rustfmt "$1"'; return 0; } ;;
   esac
   return 0
 }
@@ -562,9 +568,10 @@ case "$TASK" in
     run_task "$TASK"; exit $? ;;
   format-file)
     P="${2:-}"; [ -n "$P" ] || { log "format-file: thiếu path"; exit 0; }
+    case "$P" in -*) P="./$P" ;; esac   # filename không trở thành cờ formatter
     C="$(resolve_format_file "$P")"
     [ -n "$C" ] || { log "skip format-file: không có per-file formatter cho '$P'"; exit 0; }
-    log "format-file: $C"; ( cd "$ROOT" && bash -c "$C" ) || true
+    log "format-file: $C"; ( cd "$ROOT" && bash -c "$C" bash "$P" ) || true
     exit 0 ;;
   gate|doctor)
     verify_contract "$@"; exit $? ;;

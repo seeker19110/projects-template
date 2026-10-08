@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-completion-closeout
 - Yêu cầu / outcome: hoàn thiện nốt việc còn lại và tạo PR auto-merge.
-- Trạng thái: Active — đối chiếu phần bàn giao, chưa tạo PR.
+- Trạng thái: Done — PR #215 MERGED lúc 2026-10-07T23:42:01Z; DoD đạt theo ủy quyền.
 - Chủ trì / writer: phiên chính.
 - Mức rủi ro / số PR: S, một PR tài liệu; phiên chính tự thực hiện.
 - Scope: đưa hai hồ sơ đã MERGED thành done vào Git, cập nhật spec/progress và đối chiếu phần còn lại của kế hoạch bằng trạng thái thực tế.
@@ -30,10 +30,22 @@
 
 - Quét sau stage rename không còn lỗi đọc file; vẫn 0 đỏ/2 vàng. Hai lệnh --trace (spec work-memory và lean-delivery) TRACE COMPLETE; PF-1..4 xanh. Trace chỉ xác minh ánh xạ, không thay test/CI của head mới.
 
+- Full gate và Git hook ở head f1578c7c9d0b545ba5803dbbbd27235c815c7652 đều exit 0; log /tmp/completion-closeout-gate.log và /tmp/completion-closeout-commit.log. Đã đọc output đầy đủ và đối chiếu hook: chỉ khác đường dẫn fixture/thời gian/dòng commit. 17 shell suites, coverage 96% (sàn 95%).
+- PR https://github.com/seeker19110/projects-template/pull/215, autoMergeRequest SQUASH enabledAt 2026-10-07T23:36:19Z đã xác minh; GitHub CI giữ kết quả của đúng head.
+- Bản vá checkpoint chính: /tmp/completion-closeout-primary-checkpoint.patch (SHA-256 00f06aec13278e82f487753b61d5d81cb578ea9bc3a4f44fd0693073e81f1577). Hai blob spec/done #213 trùng index checkout chính; giữ bản gốc trước pull.
+
 ## Lần thử / blocker
 
 Lượt quét trước stage rename có cảnh báo đọc đường dẫn working.md đã đổi tên; stage đủ rename rồi chạy lại để tránh coi phép đo thiếu đầu vào là bằng chứng sạch. Lệnh trace đầu thiếu đối số spec trả 2; đã sửa theo usage thật và chạy đúng hai spec trả 0. C01 pilot sản phẩm, C02 hosted CI repo đích và benchmark model/provider runtime vẫn cần repo đích/quyền/ngân sách; không suy ra hoàn tất từ fixture.
 
 ## Bàn giao / bước tiếp theo
 
-Hai checkpoint đã gom; chạy full gate, commit/push rồi tạo PR. Chỉ rename hồ sơ này thành done sau khi PR mới MERGED.
+Không còn việc triển khai/bàn giao bắt buộc trong phạm vi yêu cầu. Bản ghi sau merge và PROGRESS được staged cục bộ để giữ bằng chứng cho PR công việc kế tiếp theo contract §3e; không mở vòng PR chỉ để ghi SHA của chính PR trước.
+
+## Nghiệm thu cuối
+
+- GET PR #215: MERGED, merge SHA 6c3e3ce0fb7e236704d86fbf654b93046dbbffbb; head f1578c7c9d0b545ba5803dbbbd27235c815c7652. CI run 37703200875: Linux, Windows, docs/copy/protection và gate SUCCESS; metadata, gitleaks, dependency-review và CodeQL SUCCESS. progress-freshness SKIPPED đúng điều kiện PR.
+- Cả hai hồ sơ #213/#214 và link spec đã tích hợp. Audit/plan thống nhất với quyết định giữ nhánh đã có; không đổi scope nghiệm thu goal cũ.
+- Checkout chính main đã pull --ff-only tới merge SHA trên. Tree head PR và main merge trùng nhau (git diff exit 0). Spec/done #213 trùng blobs staged cũ: fab6ad72015729dd8d95913b34d67a9439b036b3 và 66981d8bee98b5c8b5b4fbeb8b87151c640a0c82.
+- Stash dự phòng checkout chính: 9004724ca0cdf7f10c944191d728335d8459748d (checkpoint PR215); không apply lại vì nội dung đã vào main và PROGRESS đã reconcile. Bản vá dự phòng vẫn giữ.
+- Nghiệm thu kỹ thuật: phiên chính theo ủy quyền chủ repo ngày 2026-10-08; chưa giả UAT/pilot/benchmark model hay cưỡng chế runtime của mọi provider.
