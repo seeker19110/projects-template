@@ -80,7 +80,7 @@ Từ báo cáo audit + Bản đồ tính năng, lập `docs/ops/COMPLETION-PLAN.
       mỗi đợt đủ nhỏ để kết thúc gọn. Thứ tự mặc định: 1. Lỗ hổng bảo mật + nguy cơ mất/hỏng dữ liệu (Nhóm 2, 10) 2. Lỗi logic nghiệp vụ (Nhóm 3) 3. Thống nhất chéo tính năng + cấu trúc (Nhóm 12, 1) — hợp nhất logic phân kỳ về một nguồn sự thật 4. Lấp test/hàng rào còn thiếu (Nhóm 4, 8) 5. Hiệu năng + a11y/UI-UX (Nhóm 5, 6) 6. Tối ưu mã nguồn + dependency + tài liệu đồng bộ (Nhóm 7, 9, 11 + `/audit-optimize`)
 - [ ] **Mỗi việc một dòng** trong kế hoạch: ID `W-xxx` · phát hiện gốc (F-xxx, có thể nhiều) ·
       mô tả · **tiêu chí nghiệm thu đo được** · phụ thuộc (W-yyy) · ước lượng (S/M/L) · trạng thái.
-- [ ] **DỪNG — trình kế hoạch + DoC cho người dùng duyệt** (một cổng phê duyệt, đúng `CLAUDE.md` §9).
+- [ ] **DỪNG — trình kế hoạch + DoC cho người dùng duyệt** (một cổng phê duyệt; theo ủy quyền contract §3d phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền — `CLAUDE.md` §9 chỉ hỏi phần vượt quyền).
       Chỉnh theo phản hồi. **Chưa duyệt thì chưa sửa bất cứ gì.**
 
 ## PHA 3 — Thực thi từng đợt có kiểm soát

@@ -11,7 +11,7 @@
 ## Nguyên tắc cốt lõi
 1. **Không bao giờ nói "xong" khi chưa thực sự chạy kiểm tra và đọc kết quả thật.** Cấm đoán kết quả lệnh.
 2. **Mặc định nghi ngờ chính mình.** Tự review diff của mình như review code người khác.
-3. **Thà dừng lại hỏi còn hơn làm sai.** Không chắc → DỪNG và HỎI.
+3. **Thà dừng lại hỏi còn hơn làm sai.** Không chắc về dữ kiện không tự xác minh → dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d.
 4. **Không "ảo giác".** Mọi hàm/thư viện/API phải *thực sự tồn tại* — xác minh, không bịa.
 5. **Chủ động góp ý.** Khi thấy cách làm tốt hơn, rủi ro tiềm ẩn, hoặc thiếu sót trong yêu cầu, AI phải nêu ra — không im lặng làm theo nếu biết có vấn đề.
 
@@ -49,12 +49,10 @@ Khắt khe hơn vì ảnh hưởng nhánh chính. AI phải xác minh thêm:
 - Khẳng định kỹ thuật nên kèm nguồn (tài liệu chính thức) khi có thể.
 
 ## Khi nào AI PHẢI dừng và hỏi
-- Yêu cầu mơ hồ / nhiều cách hiểu.
-- Thao tác không thể hoàn tác (xóa dữ liệu, đổi schema phá vỡ).
-- Mâu thuẫn giữa yêu cầu mới và code/thiết kế hiện có.
-- Breaking change ảnh hưởng nhiều nơi.
-- Nhiều giải pháp với đánh đổi khác nhau đáng kể.
-- Đụng bảo mật, thanh toán, dữ liệu người dùng thật.
+Theo `CLAUDE.md` §9 (nguồn sự thật) và `docs/framework/standard-delivery.md` §3d, chỉ 3 điều kiện:
+- Thiếu mục tiêu/dữ kiện không tự xác minh.
+- Không có phương án đạt chất lượng trong scope/budget.
+- Hành động cần quyền chưa cấp.
 
 ## Mẫu BÁO CÁO XÁC THỰC (bắt buộc trước commit/merge)
 ```
@@ -145,7 +143,7 @@ Nếu bất kỳ mục nào ❌ → sửa trước, chạy lại toàn bộ, KH�
 
 **Các bước sinh file (AI thực hiện cùng người dùng):**
 
-1. **Thu thập yêu cầu:** AI hỏi người dùng đủ thông tin để điền Mẫu Phần B. Chỗ nào thiếu/mơ hồ → hỏi, không tự đoán.
+1. **Thu thập yêu cầu:** AI hỏi người dùng đủ thông tin để điền Mẫu Phần B. Chỗ nào thiếu dữ kiện không tự xác minh → hỏi (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)), không tự đoán.
 2. **AI góp ý & phản biện (bắt buộc):** Trước khi chốt, AI **chạy KHUNG 3** (research-first) và chủ động nêu:
    - **PHẦN A của KHUNG 3** — rà *mọi mặt* (bảo mật, pháp lý/quyền riêng tư, hiệu năng, a11y, quy mô, chi phí...), không chỉ vài mục.
    - **PHẦN B của KHUNG 3** — đề xuất công nghệ + **phiên bản ổn định đã xác minh bằng nguồn sống** (không đoán theo trí nhớ), cân bằng độ phổ biến ↔ năng lực; ghi ADR.

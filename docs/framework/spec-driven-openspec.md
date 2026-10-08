@@ -89,7 +89,7 @@ bộ lệnh `/opsx:*` cho công cụ AI đã chọn. Commit thư mục `openspec
    (lệnh sync/archive theo phiên bản). Cập nhật `PROGRESS.md` như mọi mốc khác.
 
 **Ưu tiên khi xung đột:** CLAUDE.md + KHUNG-1/2/3 > `PROJECT.md` > spec OpenSpec của thay đổi.
-Spec mâu thuẫn với tài liệu cấp trên → dừng và hỏi (§9), không tự chọn.
+Spec mâu thuẫn với tài liệu cấp trên → không tự chọn: căn theo nguồn sự thật đã khai, chỉ hỏi phần không tự xác minh được (CLAUDE.md §9, contract §3d).
 
 ## 6. Ranh giới trung thực
 

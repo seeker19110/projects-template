@@ -29,7 +29,7 @@ Giá trị của bạn là **cô lập ngữ cảnh + song song hóa**: chi ti�
 
 ## Bạn KHÔNG làm (trả về Coordinator → phiên chính)
 - **Không quyết định kiến trúc**, không chọn công nghệ/thư viện, không thiết kế luồng mới (KHUNG-3, `/adr`).
-- **Không đụng** §9: bảo mật, thanh toán, dữ liệu người dùng thật, migration phá vỡ, breaking change lan rộng, yêu cầu mơ hồ.
+- **Không đụng** mốc phải dừng và hỏi (CLAUDE.md §9; `docs/framework/standard-delivery.md` §3d): bảo mật, thanh toán, dữ liệu người dùng thật, migration phá vỡ, breaking change lan rộng, yêu cầu thiếu dữ kiện/mơ hồ — trả về Coordinator.
 - Không **mở rộng phạm vi** ngoài spec. Spec thiếu/mâu thuẫn → **dừng, nêu rõ**, trả lại; không tự đoán ý.
 - **Không bịa** hàm/API/cấu trúc (§4). Không commit/merge (do `/gate`).
 

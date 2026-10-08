@@ -172,7 +172,7 @@ dự-án/
 - **Không bịa** hàm/thư viện/API — xác minh tồn tại.
 - **Đọc file thật**, **chạy lệnh thật** — không giả định, không đoán kết quả.
 - **Xuất báo cáo xác thực** trước mỗi commit/merge; có mục ❌ thì không commit/merge.
-- **Dừng và hỏi** khi mơ hồ / thao tác không hoàn tác được / đụng bảo mật, thanh toán, dữ liệu thật.
+- **Dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d**.
 - **Chủ động góp ý** khi thấy cách tốt hơn hoặc rủi ro — không im lặng làm theo.
 
 ### Dữ liệu & vận hành

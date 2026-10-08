@@ -2,7 +2,7 @@
 
 > Đặc tả dự án — nguồn sự thật về *cái gì cần xây*. Điền đầy đủ trước khi code.
 > Mẫu lấy từ docs/framework/KHUNG-2 (Phần B). Nhờ AI phản biện trước khi chốt.
-> **Mẫu này mặc định theo hồ sơ Web app** (vì file cấu hình drop-in của khung giả định hồ sơ này).
+> **Mẫu này không có hồ sơ mặc định** (ADR-0004; hồ sơ do AI chọn từ ý tưởng — xem README).
 > Các mục đặc thù web (Lighthouse/CWV, RLS, theme, endpoint) **chỉ điền nếu
 > đúng hồ sơ**; hồ sơ khác thay bằng tiêu chí tương đương (xem KHUNG-3 PHẦN C).
 

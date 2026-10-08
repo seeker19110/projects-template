@@ -11,7 +11,7 @@ Không dùng trí nhớ mô hình cho số phiên bản (CLAUDE.md §4). Tra b�
 
 ## Bước 2 — Đọc CHANGELOG/release notes giữa bản hiện tại và bản đích
 - Liệt kê **breaking change** thật sự ảnh hưởng code đang dùng (API đổi chữ ký, hành vi mặc định đổi, deprecation đã gỡ).
-- Nâng **major** version → coi là thay đổi đáng kể, cân nhắc CLAUDE.md §9 ("nhiều đánh đổi") nếu ảnh hưởng lan rộng — nêu rõ rủi ro trước khi làm.
+- Nâng **major** version → coi là thay đổi đáng kể, nếu ảnh hưởng lan rộng thì dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d — nêu rõ rủi ro trước khi làm.
 - Nâng **patch/minor** không breaking → làm thẳng, không cần hỏi thêm.
 
 ## Bước 3 — Nâng cấp + sửa điểm chạm breaking change

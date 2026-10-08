@@ -24,6 +24,6 @@ TypeScript `strict` không `any` · validate dữ liệu ngoài (Zod) · bí m�
 ## Cổng "Sẵn sàng phát triển" (Phần C — kiểm trước khi viết code tính năng)
 Hook cục bộ chặn được lỗi · CI xanh trên PR mẫu · branch protection bật · `PROJECT.md` + ≥1 ADR đã có · theme + env validation hoạt động. **Đạt đủ → chuyển GĐ 4**; cập nhật `PROGRESS.md`.
 
-> Đây là chuỗi nhiều bước, có việc đụng dịch vụ ngoài (GitHub/hosting/CSDL) và **không thể hoàn tác** — đi **từng bước**, **xin xác nhận trước** các bước tạo tài nguyên/đổi cấu hình từ xa (CLAUDE.md §9).
+> Đây là chuỗi nhiều bước, có việc đụng dịch vụ ngoài (GitHub/hosting/CSDL) và **không thể hoàn tác** — đi **từng bước**, **xin xác nhận trước** các bước tạo tài nguyên/đổi cấu hình từ xa — quyền chưa cấp, không suy từ ủy quyền kỹ thuật (CLAUDE.md §9, contract §3d).
 
 Bắt đầu: xác nhận đã chốt stack chưa (nếu chưa → `/consult`), rồi vào **Bước 0**.

@@ -7,9 +7,7 @@ Bạn đang chạy **`/maintain`** — vòng bảo trì toàn diện, dùng đư
 `/maintain` (mặc định, có kiểm dependency) · `/maintain quick` (bỏ dependency, chỉ mất vài giây) ·
 `/maintain full` (thêm `--gate`: build/type/lint/test) · `/maintain continue` (tiếp kế hoạch đã duyệt).
 
-> 💡 Model/effort: quét + triage là việc Sonnet làm tốt (model tiêu chuẩn Sonnet 5 + `/effort medium`, giao
-> subagent `maintainer`). Chỉ nâng Opus khi kế hoạch có mục **DỪNG & HỎI** cần cân đánh đổi
-> (major bump phá API, đổi CI, breaking change) — xem `models-and-automation.md` §3.
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
 Ràng buộc bắt buộc (bám `CLAUDE.md` §2 chia nhỏ + §5–§8 cổng/PR + §9 dừng-và-hỏi):
 
@@ -31,9 +29,9 @@ Ràng buộc bắt buộc (bám `CLAUDE.md` §2 chia nhỏ + §5–§8 cổng/PR
 
 - **PHA 2 — triage + kế hoạch, rồi DỪNG CHỜ DUYỆT:** `maintainer` viết
   `docs/ops/MAINTENANCE-PLAN.md` (mẫu trong `.claude/agents/maintainer.md`): 🔴 trước, mỗi mục =
-  **một PR nhỏ** có tiêu chí xong đo được + nhãn `route:` + cổng kiểm; mục đụng §9 (bảo mật, dữ liệu
+  **một PR nhỏ** có tiêu chí xong đo được + nhãn `route:` + cổng kiểm; mục đụng §9 (thiếu dữ kiện không tự xác minh, không có phương án đạt chất lượng trong scope, cần quyền chưa cấp; vd bảo mật, dữ liệu
   thật, breaking, major bump) ghi **DỪNG & HỎI**. Trình bày kế hoạch cho người dùng bằng
-  `AskUserQuestion` (duyệt toàn bộ / duyệt một phần / sửa) — **chưa duyệt thì không sửa source**.
+  `AskUserQuestion` (duyệt toàn bộ / duyệt một phần / sửa) — **chưa duyệt thì không sửa source** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)).
 
 - **PHA 3 — thực thi từng mục đã duyệt:** mỗi mục một nhánh `chore/maint-<id>-<slug>` (hoặc
   `fix/…` khi là bug — khi đó **phải có test tái hiện đỏ trước** theo §3.6), giao worker theo

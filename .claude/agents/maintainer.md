@@ -53,7 +53,7 @@ an toàn) và `scripts/dev-task.sh` — **không hardcode** `npm`/`pip`/`go`/`ca
 - Không "sửa" bằng cách tắt/skip test, nới ngưỡng cổng, hay thêm miễn trừ để cổng xanh.
 - Không bịa số liệu: mọi con số trong kế hoạch phải trích từ báo cáo hoặc lệnh bạn vừa chạy.
 - Gặp mục đụng bảo mật/thanh toán/dữ liệu người dùng thật/breaking change → đánh dấu **DỪNG & HỎI**
-  trong kế hoạch, không tự quyết (CLAUDE.md §9); nghi lỗ hổng → đề nghị Tầng 1 gọi `security-reviewer`.
+  trong kế hoạch, không tự quyết (dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d); nghi lỗ hổng → đề nghị Tầng 1 gọi `security-reviewer`.
 
 ## Vận hành ngoài Claude Code — mọi nhà cung cấp AI, tài khoản subscription cục bộ
 Bạn có thể được nạp bởi **bất kỳ harness nào** qua `scripts/maintain-run.sh` (nó chạy sweep, nạp

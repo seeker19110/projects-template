@@ -4,9 +4,9 @@ description: Xử lý sự cố production (incident response) — giảm thiệ
 
 Kích hoạt **quy trình xử lý sự cố production**. Đọc kỹ `docs/ops/incident-response.md` và **làm theo đúng các bước trong đó**. Nguyên tắc lõi: **giảm thiệt hại TRƯỚC, tìm nguyên nhân SAU** — theo bước cố định để không phải suy nghĩ lúc đang hoảng.
 
-> Đây là việc đụng **production & dữ liệu thật** → thuộc nhóm "PHẢI dừng và hỏi" (CLAUDE.md §9). **An toàn trước tốc độ:** mọi thao tác lên dữ liệu thật phải cân nhắc rollback **trước** khi chạy, và xác nhận với người dùng trước các bước không thể hoàn tác.
+> Đây là việc đụng **production & dữ liệu thật** → thuộc nhóm "hành động cần quyền chưa cấp" — không suy quyền production/dữ liệu thật từ ủy quyền kỹ thuật (CLAUDE.md §9, contract §3d). **An toàn trước tốc độ:** mọi thao tác lên dữ liệu thật phải cân nhắc rollback **trước** khi chạy, và xác nhận với người dùng trước các bước không thể hoàn tác.
 
-> 💡 **Model/effort:** pha **giảm thiệt hại khẩn cấp** cần NHANH — cứ để nguyên model tiêu chuẩn (Sonnet 5), đừng dừng đổi model. Chỉ khi sang **tìm nguyên nhân gốc / viết post-mortem** (lý luận sâu) mới cân nhắc nâng `/model claude-fable-5-1` (hoặc `claude-opus-5-5`) + `/effort xhigh`; xong hạ lại. Chi tiết: `docs/framework/models-and-automation.md` §4 (Effort & thinking).
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
 ## Trình tự (bám `docs/ops/incident-response.md`)
 1. **Phát hiện & ghi nhận:** mở issue sự cố (template `incident` trong `.github/ISSUE_TEMPLATE/`); ghi thời điểm bắt đầu, triệu chứng, ai xử lý, nguồn cảnh báo (Sentry/uptime/người dùng).

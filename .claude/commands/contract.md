@@ -26,6 +26,6 @@ Ghi vào `docs/specs/<ngày>-<slug>.md` (mẫu `FEATURE-SPEC.template.md`), mụ
 Spec (gồm contract vừa viết) phải có **"Approved for implementation"** + người duyệt + ngày **trước khi sửa source code** (CLAUDE.md §2). Chưa duyệt → chỉ được tiếp tục research/viết spec, không code.
 
 ## Ranh giới
-- Không tự chế schema khi thiếu thông tin nghiệp vụ — hỏi người dùng (CLAUDE.md §9 "yêu cầu mơ hồ").
+- Không tự chế schema khi thiếu thông tin nghiệp vụ — hỏi người dùng khi đó là dữ kiện không tự xác minh (dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d).
 - Không code trước khi contract trong spec được duyệt.
 - Tính năng nhỏ không đụng DB/API mới (chỉ sửa logic nội bộ) → không cần lệnh này, feature gate thường vẫn áp dụng nhưng khỏi bước contract riêng.

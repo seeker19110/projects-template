@@ -18,8 +18,8 @@
 ## Sơ đồ tổng thể
 
 ```
-TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · model cao cấp nhất sẵn có/Fable 5.1) — phần "NGHĨ"
-   Hiểu yêu cầu → thiếu đặc tả thì HỎI (AskUserQuestion) → viết đặc tả chi tiết
+TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · mặc định Sonnet 5; đổi model khi độ khó thật đòi hỏi, ADR-0010 §4) — phần "NGHĨ"
+   Hiểu yêu cầu → thiếu đặc tả thì HỎI (AskUserQuestion; theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)) → viết đặc tả chi tiết
    (schema DDL, API, điểm chạm code, tiêu chí chấp nhận) → gắn nhãn `route:` từng việc
    → NHÓM việc thành các ĐƠN VỊ PR (1 PR/đơn vị) + khai phụ thuộc giữa đơn vị
    → ghi working.md + xuất PLAN.md khi cần → cấp slot/phạm vi → (cuối) DUYỆT kết quả.
@@ -36,7 +36,7 @@ TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Sonnet · low) — phần 
    `/gate` xanh thì **bật auto-merge** (CLAUDE.md §8) → đơn vị kế theo đúng phụ thuộc
    (song song nếu độc lập, tuần tự nếu phụ thuộc) → báo cáo tổng hợp về Tầng 1.
    CỨNG: không đổi kế hoạch/đặc tả · không tự code · không tự tay merge (chỉ BẬT
-   auto-merge, để CI xanh mới thật sự merge) · gặp §9 (mốc không hoàn tác/breaking
+   auto-merge, để CI xanh mới thật sự merge) · gặp mốc dừng-và-hỏi (CLAUDE.md §9; vd không hoàn tác/breaking
    lan rộng) thì DỪNG đơn vị đó, không bật auto-merge, báo lên Tầng 1.
                                   │  dispatch theo nhãn, 1 PR/đơn vị
                                   ▼
@@ -80,7 +80,7 @@ chính (nguồn: code.claude.com/docs/en/sub-agents). Bảng này chỉ là bả
 **Trần effort = `medium` cho MỌI worker Tầng 3, kể cả `route:complex`** (không phải "complex = effort
 cao"). Model (Opus vs Sonnet vs Haiku) vẫn là trục phân biệt năng lực chính;
 không worker nào được tự nâng `/effort` quá `medium` để tiết kiệm token — việc thật sự cần effort
-cao hơn (`xhigh`/`ultrathink`) không giao worker, giữ lại ở Tầng 1 (đúng CLAUDE.md §9 "nhiều đánh đổi
+cao hơn (`xhigh`/`ultrathink`) không giao worker, giữ lại ở Tầng 1 (quyết định kiến trúc khó đảo — CLAUDE.md §2 đổi model theo độ khó thật; "nhiều đánh đổi
 lớn/quyết định kiến trúc" — Tầng 1 tự làm, không route xuống).
 
 ## Chọn đa nhà cung cấp (ADR-0006)
@@ -119,7 +119,7 @@ subagent `version-check` hoặc nguồn sống trước khi dùng thật (CLAUDE
 ## Luật cứng theo tầng
 
 **Tầng 1 (Người lập kế hoạch):**
-- Thiếu đặc tả → **hỏi người dùng** bằng `AskUserQuestion`. **Không tự chế đặc tả**; **không** hạ nhãn xuống `complex` chỉ để né phải hỏi.
+- Thiếu đặc tả → **hỏi người dùng** bằng `AskUserQuestion` (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)). **Không tự chế đặc tả**; **không** hạ nhãn xuống `complex` chỉ để né phải hỏi.
 - Đặc tả phải đủ để Tầng 2/3 thi hành: schema DDL, chữ ký API, điểm chạm code (`path`), tiêu chí chấp nhận, và nhãn `route:` cho từng việc.
 - Tự làm phần lõi/cần suy luận sâu (không giao xuống); không giám sát worker từng bước — duyệt kết quả cuối.
 

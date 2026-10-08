@@ -173,7 +173,7 @@ for f in "$SRC"/docs/ops/*.md; do
 done
 copy_if_absent "docs/specs/README.md"                # pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
 copy_if_absent "docs/goals/README.md"
-copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain
+copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain /contract /deps-upgrade /review
 copy_if_absent "docs/adr/0000-template.md"
 
 # Không ghi stamp thành công khi còn merge lỗi/xung đột; giữ baseline cũ cho đối chiếu.
