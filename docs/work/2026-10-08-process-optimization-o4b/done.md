@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-08-process-optimization-o4b
 - Yêu cầu / outcome: hoàn tất O-4b theo kế hoạch đã duyệt ở `docs/reports/2026-10-08-process-optimization.md` (P-A4, P-B2, P-B6, P-B8 một phần, P-B9 phần telemetry, `usage-guard` cảnh báo khi estimate lỗi). Không đổi hành vi hàng rào; bug/hành vi mới có test đỏ trước.
-- Trạng thái: Active.
+- Trạng thái: Done (2026-10-08).
 - Chủ trì / writer: phiên chính; hai worker trong worktree riêng (A: guard/hook · B: test-lib/declared_cmd/telemetry/engine).
 - Mức rủi ro / số PR: S/M refactor; một PR (ràng buộc nhánh của phiên), nhiều commit theo đơn vị.
 - Scope / non-goal: `scripts/`, `.claude/hooks`, copy-framework.sh/.ps1, test. Non-goal: O-5/O-6, đổi luật, dependency mới.
@@ -36,8 +36,15 @@
 
 ## Bàn giao / bước tiếp theo
 
-Commit theo đơn vị (A: guard/hook · B+giáp ranh: test-lib/declared_cmd/telemetry/engine) → push → PR (template đủ mục, auto-merge SQUASH) → subscribe + check-in 5 phút → sau merge: PROGRESS SHA mới, đổi hồ sơ này thành done.md.
+Chu kỳ tối ưu quy trình 2026-10-08 đóng ở O-4b. O-5/O-6 giữ trạng thái kế hoạch kèm điều kiện xem lại trong report (không làm nếu không mở chu kỳ mới).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-Chưa.
+- PR #219 MERGED (squash) 2026-10-08T17:02:01Z → `origin/main` = `0eeede6`. 4 commit trên nhánh: docs reconcile (1a41d69),
+  guard/hook (81277b3), test-lib/declared_cmd/telemetry/engine (3b58528), fix Windows (6ca9e85).
+- CI head 6ca9e85: 12 check xanh (framework-lint Linux + Windows, copy-framework-smoke, docs-consistency, protection-guard,
+  metadata, dependency-review, gitleaks, CodeQL ×3, progress-freshness skipped hợp lệ). Lần chạy đầu (3b58528) đỏ
+  `framework-lint-windows`: `mktemp` trong Git Bash trả `/tmp/...`, Python native không mở được → sửa bằng `cygpath -m`
+  như `$ROOT` đã làm (một lần đỏ, một lần sửa; không re-run).
+- DoD: không đổi hành vi hàng rào (regex/ngưỡng giữ từng ký tự; test 17 chốt); hành vi mới (fail-closed thiếu lib,
+  usage-guard cảnh báo, test không ghi nhật ký thật) đều có test đỏ trước; tài liệu (report, CODEMAP, hồ sơ) đi cùng PR.
