@@ -40,10 +40,7 @@ require_cli_value() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --out) require_cli_value "$@" ;;
-  esac
-  case "$1" in
-    --out)     OUT="${2:-}"; shift 2 ;;
+    --out)     require_cli_value "$@"; OUT="${2:-}"; shift 2 ;;
     --strict)  STRICT=1; shift ;;
     --gate)    RUN_GATE=1; shift ;;
     --no-deps) DO_DEPS=0; shift ;;
@@ -198,11 +195,7 @@ sweep_deps() {
       dep_prefix=""; dep_label="$kind"
       if [ "$dep_dir" != . ]; then dep_prefix="$safe_dir: "; dep_label="$kind ($safe_dir)"; fi
       out="$(cd "$ROOT/$dep_dir" && run_capture "$DEPS_TIMEOUT" "$dep_cmd")"; rc=$?
-      if [ "$dep_dir" = . ]; then
-        line "- $kind: \`$dep_cmd\` → exit $rc"
-      else
-        line "- $kind ($safe_dir): \`$dep_cmd\` → exit $rc"
-      fi
+      line "- $dep_label: \`$dep_cmd\` → exit $rc"
       if [ "$rc" -eq 124 ]; then
         yel Dependency "$dep_label: hết giờ sau ${DEPS_TIMEOUT}s (mạng/proxy?)" "chạy tay trong $safe_dir: $dep_cmd"
       elif [ "$rc" -ne 0 ] && [ "$kind" = audit ]; then

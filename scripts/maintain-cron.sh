@@ -60,18 +60,15 @@ require_cli_value() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --base|--lock-dir|--gh-token|--gh-token-file|--repo|--harness|--model|--provider|--mode) require_cli_value "$@" ;;
-  esac
-  case "$1" in
-    --base)       BASE="${2:-}"; shift 2 ;;
+    --base)       require_cli_value "$@"; BASE="${2:-}"; shift 2 ;;
     --no-push)    NO_PUSH=1; shift ;;
-    --lock-dir)   LOCK_DIR="${2:-}"; shift 2 ;;
+    --lock-dir)   require_cli_value "$@"; LOCK_DIR="${2:-}"; shift 2 ;;
     --no-open-pr) NO_OPEN_PR=1; shift ;;
-    --gh-token)   GH_TOKEN_FLAG="${2:-}"; log "CẢNH BÁO: --gh-token đưa token vào argv (lộ qua ps/cron log máy chung) — dùng --gh-token-file hoặc biến môi trường GITHUB_TOKEN"; shift 2 ;;
-    --gh-token-file) GH_TOKEN_FLAG="$(tr -d '[:space:]' < "${2:-/dev/null}")"; shift 2 ;;
-    --repo)       REPO_FLAG="${2:-}"; shift 2 ;;
+    --gh-token)   require_cli_value "$@"; GH_TOKEN_FLAG="${2:-}"; log "CẢNH BÁO: --gh-token đưa token vào argv (lộ qua ps/cron log máy chung) — dùng --gh-token-file hoặc biến môi trường GITHUB_TOKEN"; shift 2 ;;
+    --gh-token-file) require_cli_value "$@"; GH_TOKEN_FLAG="$(tr -d '[:space:]' < "${2:-/dev/null}")"; shift 2 ;;
+    --repo)       require_cli_value "$@"; REPO_FLAG="${2:-}"; shift 2 ;;
     -h|--help)    awk 'NR>1 && !/^#/{exit} NR>1' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;   # in TRỌN khối comment đầu file (bản cũ cắt ở dòng 36 → thiếu 5 cờ)
-    --harness|--model|--provider|--mode) PASS_ARGS+=("$1" "${2:-}"); shift 2 ;;
+    --harness|--model|--provider|--mode) require_cli_value "$@"; PASS_ARGS+=("$1" "${2:-}"); shift 2 ;;
     *) die "tham số lạ: $1 (xem --help)" 2 ;;
   esac
 done
@@ -249,17 +246,12 @@ open_pr() {
   # dù có khai `local` ở hàm cha hay không (bài học bắt được khi viết test §7: lỗi
   # "http_body_file: unbound variable" dưới `set -u`, vì biến never được gán do chạy trong subshell).
   http_call() {
-    if [ "$1" = POST ]; then
-      "$CURL_BIN" -sS -o "$3" -w '%{http_code}' -X POST \
-        -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" -H "User-Agent: maintain-cron" \
-        -d "$4" "$2"
-    else
-      "$CURL_BIN" -sS -o "$3" -w '%{http_code}' \
-        -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" -H "User-Agent: maintain-cron" \
-        "$2"
-    fi
+    local extra=()
+    [ "$1" = POST ] && extra=(-X POST -d "$4")
+    "$CURL_BIN" -sS -o "$3" -w '%{http_code}' "${extra[@]}" \
+      -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" -H "User-Agent: maintain-cron" \
+      "$2"
   }
   json_len() { if [ "$JSON_TOOL" = jq ]; then jq 'length' 2>/dev/null; else python3 -c 'import json,sys;print(len(json.load(sys.stdin)))' 2>/dev/null; fi; }
   json_field0() { if [ "$JSON_TOOL" = jq ]; then jq -r ".[0].$1 // empty" 2>/dev/null; else python3 -c "import json,sys;d=json.load(sys.stdin);print((d[0].get('$1') or '') if d else '')" 2>/dev/null; fi; }

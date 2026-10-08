@@ -22,10 +22,6 @@ EXCLUDE_SOURCE=(
   "PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md"
   "CHANGELOG.md" "TRAPS.md" "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "docs/adr/0004-remove-default-web-scaffold.md"
-  # Characterization test dựng repo TỔNG HỢP trong thư mục tạm: mọi đường dẫn trong nó
-  # (scripts/beta.sh, docs/specs/weak.md …) là FIXTURE cố ý không tồn tại, không phải
-  # tham chiếu tài liệu hỏng.
-  "scripts/test-engine-characterization.sh"
 )
 
 # Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một
@@ -41,7 +37,7 @@ EXCLUDE_SOURCE_PREFIX=("docs/specs/" "docs/changelog/")   # changelog = nhật k
 # entry cho file đã tồn tại sẽ khiến cổng im lặng khi file bị xoá.
 ALLOW_MISSING_PATH=(
   "app/layout.tsx" "lib/example.test.ts"
-  ".claude/project-commands.sh" ".claude/settings-sonnet.json" ".claude/usage-budget.sh"
+  ".claude/usage-budget.sh"
   # Ví dụ minh hoạ hồ sơ Web (ADR-0004, 2026-09-12) — scaffold thật đã gỡ khỏi repo khung;
   # các đường dẫn này chỉ còn xuất hiện trong tài liệu như PATTERN cho dự án đích tự tạo.
   "app/error.tsx" "app/global-error.tsx" "app/manifest.ts" "app/not-found.tsx" "app/robots.ts" \
@@ -49,7 +45,7 @@ ALLOW_MISSING_PATH=(
   "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
   ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
   # Sinh tại runtime bởi /maintain (maintenance-sweep.sh + agent maintainer), không đóng gói sẵn.
-  "docs/ops/MAINTENANCE-REPORT.md" "docs/ops/MAINTENANCE-PLAN.md" "docs/ops/MAINTENANCE-LOG.md"
+  "docs/ops/MAINTENANCE-REPORT.md"
   # Ví dụ minh hoạ quy ước đặt tên changelog (quality-supplements-group1.md mục 9) — file thật
   # sinh ở dự án đích khi cần, không đóng gói sẵn trong repo khung.
   "docs/changelog/0012-2026-09-19-them-xac-thuc-2fa.md"
@@ -183,14 +179,21 @@ STALE_EFFORT_EXCLUDE=(
   "TRAPS.md" "CHANGELOG.md" "PROGRESS.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "docs/ops/COMPLETION-PLAN.md" "scripts/check-docs-consistency.sh"
 )
-while IFS= read -r hit; do
-  [ -n "$hit" ] || continue
-  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"
-  is_in "$file" "${STALE_EFFORT_EXCLUDE[@]}" && continue
-  case "$file" in docs/specs/*) continue ;; esac
-  echo "::error file=$file,line=$lineno::Nhãn 'Opus · high' đã bị rút lại (route:complex trần effort medium từ 2026-09-12) nhưng còn sót ở đây — sửa thành 'Opus · medium' hoặc xoá nếu không còn liên quan (G-003/G-004)."
-  fail=1
-done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true)
+# forbid <regex> <thông-báo> <glob-bỏ-qua…>: mỗi dòng khớp (ngoài STALE_EFFORT_EXCLUDE và glob bỏ qua) -> ::error.
+forbid() {
+  local re="$1" msg="$2" skip; shift 2
+  while IFS= read -r hit; do
+    [ -n "$hit" ] || continue
+    file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"
+    is_in "$file" "${STALE_EFFORT_EXCLUDE[@]}" && continue
+    # shellcheck disable=SC2254  # $skip CỐ Ý là glob
+    for skip in "$@"; do case "$file" in $skip) continue 2 ;; esac; done
+    echo "::error file=$file,line=$lineno::$msg"
+    fail=1
+  done < <(git grep --untracked -noE "$re" -- "${FORBID_GLOBS[@]}" 2>/dev/null || true)
+}
+FORBID_GLOBS=('*.md' '*.sh' '*.ps1')
+forbid 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' "Nhãn 'Opus · high' đã bị rút lại (route:complex trần effort medium từ 2026-09-12) nhưng còn sót ở đây — sửa thành 'Opus · medium' hoặc xoá nếu không còn liên quan (G-003/G-004)." 'docs/specs/*'
 
 # --- 5b. ID model đã ngừng / sai chính tả không được sống lại (audit 2026-09-23, C6). ---
 # VÌ SAO: `audit-full.md` dạy người dùng gõ `/model claude-opus-4-8` (không còn) và `claude-fable-5`
@@ -199,14 +202,8 @@ done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -
 # scripts/model-capability-tiers.json (nguồn duy nhất). Thêm chuỗi mới vào STALE_MODEL_RE khi một ID ngừng.
 echo "== 5b. ID model cũ (claude-opus-4-*, claude-fable-5 thiếu -1, 'Opus 4.8') không còn sót =="
 STALE_MODEL_RE='claude-opus-4-[0-9]|claude-fable-5([^-0-9]|$)|Opus 4\.8'
-while IFS= read -r hit; do
-  [ -n "$hit" ] || continue
-  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"
-  is_in "$file" "${STALE_EFFORT_EXCLUDE[@]}" && continue
-  case "$file" in docs/specs/*|docs/reports/*|docs/research/*|docs/adr/*) continue ;; esac
-  echo "::error file=$file,line=$lineno::ID model đã ngừng/sai (claude-opus-4-x, claude-fable-5 thiếu '-1', 'Opus 4.8') còn sót — dùng ID hiện hành trong scripts/model-capability-tiers.json (claude-opus-5-5 / claude-fable-5-1)."
-  fail=1
-done < <(git grep --untracked -noE "$STALE_MODEL_RE" -- '*.md' '*.sh' '*.ps1' '*.json' 2>/dev/null || true)
+FORBID_GLOBS=('*.md' '*.sh' '*.ps1' '*.json')
+forbid "$STALE_MODEL_RE" "ID model đã ngừng/sai (claude-opus-4-x, claude-fable-5 thiếu '-1', 'Opus 4.8') còn sót — dùng ID hiện hành trong scripts/model-capability-tiers.json (claude-opus-5-5 / claude-fable-5-1)." 'docs/specs/*' 'docs/reports/*' 'docs/research/*' 'docs/adr/*'
 
 
 # ── 6. Mọi script trong scripts/ phải được CODEMAP.md khai (audit 2026-09-13, CAO-2). ──

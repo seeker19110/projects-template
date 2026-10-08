@@ -49,15 +49,12 @@ require_cli_value() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --harness|--model|--provider|--mode|--prompt-out) require_cli_value "$@" ;;
-  esac
-  case "$1" in
-    --harness)    HARNESS="${2:-}"; shift 2 ;;
-    --model)      MODEL="${2:-}"; shift 2 ;;
-    --provider)   PROVIDER="${2:-}"; shift 2 ;;
-    --mode)       MODE="${2:-}"; shift 2 ;;
+    --harness)    require_cli_value "$@"; HARNESS="${2:-}"; shift 2 ;;
+    --model)      require_cli_value "$@"; MODEL="${2:-}"; shift 2 ;;
+    --provider)   require_cli_value "$@"; PROVIDER="${2:-}"; shift 2 ;;
+    --mode)       require_cli_value "$@"; MODE="${2:-}"; shift 2 ;;
     --dry-run)    DRY=1; shift ;;
-    --prompt-out) PROMPT_OUT="${2:-}"; shift 2 ;;
+    --prompt-out) require_cli_value "$@"; PROMPT_OUT="${2:-}"; shift 2 ;;
     -h|--help)    sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) log "tham số lạ: $1"; exit 2 ;;
   esac
@@ -100,6 +97,7 @@ log "sweep xong: $counts → $REPORT"
 
 # ── (2) Dựng prompt vai maintainer (đọc thẳng .claude/agents/maintainer.md) ─────
 PROMPT_FILE="${PROMPT_OUT:-$(mktemp "${TMPDIR:-/tmp}/maintainer-prompt.XXXXXX")}"
+[ -n "$PROMPT_OUT" ] || trap 'rm -f "$PROMPT_FILE"' EXIT   # chỉ xoá file tạm do script tự tạo
 TASK="Bạn đang chạy KHÔNG trong Claude Code mà qua CLI '$HARNESS' bằng tài khoản subscription cục bộ của người dùng, trong thư mục $ROOT. \
 Làm đúng mục 'Bạn LÀM' theo thứ tự: báo cáo quét ĐÃ có sẵn ở $REPORT (nội dung đính kèm dưới) — KHÔNG chạy lại sweep trừ khi cần xác minh một dòng. \
 Triage từng phát hiện, rồi viết docs/ops/MAINTENANCE-PLAN.md theo mẫu và DỪNG chờ duyệt. Không sửa source, không commit. \

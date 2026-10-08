@@ -193,7 +193,8 @@ c4_case() {  # $1=tên spec  $2=0 (C-4 xanh) | 1 (C-4 đỏ)  $3=mô tả
   elif [ "$2" = 1 ] && [ "$rc" -ne 0 ] && printf '%s\n' "$out" | grep -q '^FAIL: test_c4_'; then ok "C-4 đỏ đúng lý do: $3"
   else bad "C-4 sai ($3): rc=$rc"; printf '%s\n' "$out" | tail -n 8 >&2; fi
 }
-trace_case() {  # $1=tên spec  $2=exit mong đợi  $3=dấu hiệu  $4=mô tả
+trace_case() {  # smoke CLI --trace; ca COMPLETE/UNMAPPED/PENDING/BROKEN đã có ở tests/test_acceptance_trace.py
+  # $1=tên spec  $2=exit mong đợi  $3=dấu hiệu  $4=mô tả
   local out rc
   out="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --trace "$trace_root/docs/specs/$1" 2>&1)"; rc=$?
   if [ "$rc" -eq "$2" ] && printf '%s\n' "$out" | grep -q "$3"; then ok "--trace exit $rc: $4"
@@ -207,15 +208,12 @@ c4_case 2026-10-08-du.md 0 "mọi AC có bằng chứng tồn tại (test + quan
 trace_case 2026-10-08-du.md 0 'TRACE COMPLETE' "đủ bằng chứng khai báo"
 trace_spec 2026-10-08-thieu.md "$APPROVED" "$ROW1"
 c4_case 2026-10-08-thieu.md 1 "AC-2 bị bỏ sót khỏi bản đồ"
-trace_case 2026-10-08-thieu.md 1 'AC-2.*UNMAPPED' "AC bỏ sót"
 trace_spec 2026-10-08-cho.md "$APPROVED" "$ROW1
 | AC-2 | chưa có — slice sau | |"
 c4_case 2026-10-08-cho.md 0 "AC 'chưa có' được khai minh bạch"
-trace_case 2026-10-08-cho.md 1 'AC-2.*PENDING' "AC chưa có bằng chứng không được gọi là đủ"
 trace_spec 2026-10-08-gay.md "$APPROVED" "$ROW1
 | AC-2 | \`$GONE_REF\` | |"
 c4_case 2026-10-08-gay.md 1 "bằng chứng trỏ tới file không tồn tại"
-trace_case 2026-10-08-gay.md 1 'AC-2.*BROKEN' "bằng chứng gãy"
 trace_spec 2026-10-08-ham.md "$APPROVED" "$ROW1
 | AC-2 | \`scripts/file-co-that.sh::ham_khong_co\` | |"
 c4_case 2026-10-08-ham.md 1 "bằng chứng trỏ tới test/hàm không có trong file"
@@ -274,6 +272,7 @@ fi
 # Không có ca này thì "100% độ phủ" chỉ là một hằng số in ra, không phải phép đo.
 cov_before="$(echo "$out_radar" | sed -n 's/.*Độ phủ cổng.*| \([0-9.]*\) | .*/\1/p' | head -1)"
 probe="$ROOT/scripts/zz-probe-do-phu-$$.sh"
+trap 'rm -rf "$scratch"; rm -f "$probe"' EXIT   # nối vào trap ở đầu file
 printf '#!/usr/bin/env bash\nexit 0\n' > "$probe"
 cov_after="$(bash "$ROOT/scripts/arch-health-radar.sh" --scan 2>&1 | sed -n 's/.*Độ phủ cổng.*| \([0-9.]*\) | .*/\1/p' | head -1)"
 rm -f "$probe"

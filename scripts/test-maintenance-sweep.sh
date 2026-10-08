@@ -22,8 +22,7 @@ if bash "$SWEEP" --help 2>&1 | grep -q -- '--strict'; then ok "--help in ra tu�
 
 echo "== 2. Quét chính repo này (--no-deps) — đủ 6 mảng + bảng tổng hợp, không crash =="
 out="$(bash "$SWEEP" --no-deps 2>&1)"; rc=$?
-[ "$rc" -eq 0 ] || [ "$rc" -eq 1 ] && ok "thoát $rc (0 = không 🔴; 1 chỉ khi --strict)" || bad "thoát mã lạ $rc"
-[ "$rc" -eq 0 ] || bad "không dùng --strict mà vẫn thoát khác 0"
+[ "$rc" -eq 0 ] && ok "thoát 0 (không --strict)" || bad "không dùng --strict mà thoát $rc"
 for s in "## Tổng hợp phát hiện" "## 1. Git" "## 2. Dependency" "## 3. Tài liệu" "## 4. Vệ sinh" "## 5. CI" "## 6. Cổng"; do
   if printf '%s' "$out" | grep -q "$s"; then ok "có mục '$s'"; else bad "thiếu mục '$s'"; fi
 done
