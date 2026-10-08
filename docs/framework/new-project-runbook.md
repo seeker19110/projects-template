@@ -79,7 +79,7 @@ dự-án/
 
 ### Bước 1 — Định nghĩa dự án → tạo `PROJECT.md`
 *(Tương ứng Giai đoạn 0–2 của khung, làm gọn)*
-- [ ] Điền **Mẫu định nghĩa dự án** (Phần B của KHUNG 2): vấn đề, người dùng, MVP (MoSCoW), yêu cầu phi chức năng, stack, schema CSDL, kiến trúc/API, luồng người dùng, DoD, lộ trình, rủi ro.
+- [ ] Điền mẫu `PROJECT.md` ở gốc repo (quy trình: KHUNG 2 Phần C): vấn đề, người dùng, MVP (MoSCoW), yêu cầu phi chức năng, stack, schema CSDL, kiến trúc/API, luồng người dùng, DoD, lộ trình, rủi ro.
 - [ ] **AI chạy KHUNG 3 (research-first):** đề xuất chủ động *mọi mặt* (PHẦN A) + chọn công nghệ với **phiên bản ổn định đã xác minh bằng nguồn sống** (PHẦN B), cân bằng phổ biến ↔ năng lực; ghi ADR.
 - [ ] Chốt `PROJECT.md` sau khi đồng ý các góp ý (tech stack ghi rõ **phiên bản + ngày xác minh**).
 - **Tuân thủ:** mỗi tính năng Must có *tiêu chí chấp nhận* đo được; *đóng băng* phạm vi MVP; **không đoán phiên bản theo trí nhớ**.

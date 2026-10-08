@@ -1,7 +1,7 @@
 # PROJECT.md — [Tên dự án]
 
 > Đặc tả dự án — nguồn sự thật về *cái gì cần xây*. Điền đầy đủ trước khi code.
-> Mẫu lấy từ docs/framework/KHUNG-2 (Phần B). Nhờ AI phản biện trước khi chốt.
+> Đây là mẫu gốc (copy-framework.sh đưa sang dự án đích); quy trình sinh file: `docs/framework/02-ai-rules-and-project-template.md` Phần C. Nhờ AI phản biện trước khi chốt.
 > **Mẫu này không có hồ sơ mặc định** (ADR-0004; hồ sơ do AI chọn từ ý tưởng — xem README).
 > Các mục đặc thù web (Lighthouse/CWV, RLS, theme, endpoint) **chỉ điền nếu
 > đúng hồ sơ**; hồ sơ khác thay bằng tiêu chí tương đương (xem KHUNG-3 PHẦN C).

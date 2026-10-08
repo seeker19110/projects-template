@@ -98,12 +98,14 @@ Test phụ thuộc chữ: `test_adaptive_process.py` (chuỗi trong §3c/orchest
 | O-2 | fix S | P-A1, P-A2, P-A3, P-A5 + P-B1: hook dùng `_lib.sh` chung, cảnh báo thay vì im lặng, encoding, thoát sớm; TRAPS mục mới; test đỏ trước ở `test-hooks-gate.sh`/`test-hooks-session.sh`/`test-usage-estimate.sh` | O-1 (FIFO) | subagent (complex: có nhánh logic + test) |
 | O-3 | docs S | P-C1..P-C7 (mâu thuẫn + tham chiếu chết), không đổi luật | độc lập O-2 (không chung file) | subagent (standard) |
 | O-4 | refactor S | P-A4 `_commit-guard.sh` + P-B2..P-B6, P-B9 dọn trùng/dead/tác dụng phụ | O-2 merge (chung hook/test) | subagent |
-| O-5 | refactor/docs M | P-B7 (dời dò stack), P-C8..P-C11 (rút tài liệu) | O-3, O-4 merge | chu kỳ sau, đo radar/byte trước–sau |
+| O-5 | refactor/docs M | P-B7 (dời dò stack), P-C8..P-C11 (rút tài liệu) | O-3, O-4 merge | **đã làm** (PR sau #220, xem mục O-5 dưới) |
 | O-6 | refactor M | P-B10, P-B11, P-C12 | O-5 | **chưa làm** — xem lại khi thêm/bớt file khung hoặc thời gian gate > 15 phút |
 
 **Approved for implementation — phiên chính duyệt theo ủy quyền của chủ repo ngày
 2026-10-07; ngày duyệt thực tế 2026-10-08.** Phạm vi duyệt: O-0..O-4 (S, không đổi hành vi
-luật, không hạ cổng, không dependency). O-5/O-6 giữ ở mức kế hoạch có điều kiện xem lại.
+luật, không hạ cổng, không dependency). O-5/O-6 giữ ở mức kế hoạch có điều kiện xem lại —
+**điều kiện "chủ repo yêu cầu" chạm ngày 2026-10-08** ("tiếp các việc khác cho đến khi xong") → O-5 rồi O-6 duyệt
+bổ sung theo cùng ủy quyền, cùng ràng buộc (không đổi luật, không hạ cổng, không dependency).
 Mâu thuẫn tài liệu được giải bằng cách **căn theo nguồn sự thật đã khai trong chính tài liệu**
 (CLAUDE §9/§3d, frontmatter agent, contract §4/§8, hành vi `ci.yml` thật), không chọn luật mới.
 
@@ -180,3 +182,29 @@ thực thi −46 dòng ròng ở scripts (+55/−101) sau khi đã cộng thêm 
 (test đỏ-trước và `_lib.sh` là chi phí cố ý cho hai lỗ hổng hàng rào); radar/complexity không đổi
 (CC cao nhất 43/45). Đo lại radar + thời gian gate ở O-5 khi dời khối dò stack.
 
+**O-5 — đã làm (nhánh sau #220, hồ sơ `docs/work/2026-10-08-process-optimization-o5/working.md`).**
+Ba worker standard trong worktree riêng (A: P-B7 · B: P-C8 + P-C11 · C: P-C9), phiên chính review + `git apply`, tự làm
+P-C10 (file luật) và dời thêm `resolve_format_file`:
+- P-B7: `node_has_script`, `_node_aliases`, 13 `_cmd_*`, `detected_cmd`, `declared_format_file`/`resolve_format_file` dời
+  nguyên văn sang `scripts/_stack-detect.sh` (40 → 229 dòng); `dev-task.sh` 585 → 399 dòng, chỉ còn điều phối/gate/
+  evidence/review; usage một biến `USAGE` kê đủ 11 task (trước: hai chỗ kê 7 và 9, thiếu `format-file`/`--print`).
+  `test-dev-task.sh` mục 6 (negative) `sed` gỡ alias trên bản copy `_stack-detect.sh` thay vì `dev-task.sh` — ca vẫn
+  đo đúng điều cũ. `--print lint/test` trước–sau giống hệt (`cmp`); 111 ✅; shellcheck 0; CC ≤ 12; **radar 99 → 100**
+  (kỷ luật kích thước 95.6 → 96.7). TDD ngoại lệ 2.
+- P-C8: `02-ai-rules-and-project-template.md` 179 → 65 dòng — PHẦN A/B thành con trỏ (`CLAUDE.md` §4–§7/§9 + §3d;
+  mẫu = `PROJECT.md` gốc), giữ PHẦN C; 6 tham chiếu "Phần B của KHUNG 2" đổi theo (PROJECT.md, 01-, runbook, README
+  framework, FEATURE-MAP FT-34, bootstrap.md).
+- P-C9: 6 lệnh thành con trỏ mỏng + delta (audit-full 45 → 15, completion 36 → 15, audit-optimize 15 → 11, incident
+  27 → 13, bootstrap 29 → 13 — bỏ bất biến web hard-code trái §0b, maintain 92 → 22); `coordinator.md` bỏ bảng route
+  chép (orchestration là nguồn; dòng 44-47 giữ nguyên cho cổng mục 4c). `maintain-run/cron` tả ở MỘT nơi:
+  `maintainer.md` (vì `maintain-run.sh` nạp chính file này làm prompt). Thu hẹp cố ý: thiếu playbook ở dự án đích →
+  báo người dùng chạy `copy-framework.sh`, không tự suy quy trình từ tóm tắt (tóm tắt đã xoá).
+- P-C10: `CLAUDE.md` §1 mỗi dòng = file → đọc khi nào, lệnh slash gom một khối con trỏ; §11 gộp vào dòng
+  `adopt-from-outside.md` (AGENTS.md trỏ theo) — **41 182 → 34 292 byte, 157 → 142 dòng** (trần 42 000, không dòng > 2 000);
+  `pr-flow.md:9` (3 576 ký tự) tách thành 8 gạch đầu dòng nguyên văn.
+- P-C11: `docs/framework/README.md` đủ 27 file (+5 hàng, sửa hàng `templates/` sai 2 điểm); `quality-supplements.md`
+  một bảng (33 → 18); group1 §7 DoR trỏ `standard-delivery.md` §5 (giữ số mục). Handoff PROGRESS.template ↔ WORK.template:
+  khác cấu trúc, không mâu thuẫn — giữ.
+Kiểm chứng trên cây tích hợp: docs-consistency 11 mục OK, `test_adaptive_process` + `test_profile_quality_matrix` 11 OK,
+test-check-scripts OK, progress-freshness PF-1..4 OK, test-dev-task/maintenance-sweep/runtime_safety OK; full gate qua hook
+ở mỗi commit. TDD: ngoại lệ 2 (P-B7) và 3 (tài liệu).

@@ -8,7 +8,7 @@
 | `standard-delivery.md` | **STANDARD** | **Nguồn vào duy nhất:** artifact, Research/Spec gate, AI Goal Loop, DoR/DoD/Complete | Đọc đầu tiên, mọi dự án |
 | `quickstart.md` | QUICKSTART | Định hướng Greenfield/Brownfield trong 10 phút + adoption preflight; không thay Standard Delivery | Lần đầu áp khung |
 | `01-process-and-standards.md` | **KHUNG-1** | Quy trình 9 giai đoạn + cổng + tiêu chuẩn từng giai đoạn | Bắt đầu dự án; trước khi chuyển giai đoạn |
-| `02-ai-rules-and-project-template.md` | **KHUNG-2** | Luật AI (cổng commit/merge, chống ảo giác, báo cáo xác thực) + mẫu `PROJECT.md` | Sinh PROJECT.md/CLAUDE.md; ôn luật |
+| `02-ai-rules-and-project-template.md` | **KHUNG-2** | Quy trình sinh `PROJECT.md` + `CLAUDE.md` cho dự án (luật AI ở `CLAUDE.md` §4–§7/§9, mẫu ở `PROJECT.md` gốc — file này chỉ trỏ) | Sinh PROJECT.md/CLAUDE.md |
 | `03-tech-selection-and-proactive-advice.md` | **KHUNG-3** | Research-first: chọn công nghệ/phiên bản + đề xuất chủ động 19 khía cạnh + hồ sơ C1–C10 | GĐ 0–2; thêm/đổi công nghệ |
 | `new-project-runbook.md` | KHOI-TAO | **Trang mục lục + Phần 0/A/B/C**: cấu trúc repo, trình tự triển khai, quy tắc bất biến, cổng "sẵn sàng phát triển" | Greenfield (`/bootstrap`) |
 | `new-project-runbook-part-d-guardrails.md` | KHOI-TAO · Phần D | Cấu hình chi tiết hàng rào — 14 bước sao chép được (Prettier/ESLint/TS strict/Husky/commitlint/Vitest/CI/branch protection/Dependabot) | Khi dựng nền thật |
@@ -24,8 +24,13 @@
 | `quality-supplements-advanced.md` | BO-SUNG · Nâng cao | i18n · PWA · Sentry · SEO · Analytics | Khi cần năng lực nâng cao |
 | `models-and-automation.md` | MODEL | Chọn model (Sonnet/Opus/Fable) + effort + kỷ luật vận hành tối ưu token + bản đồ chế độ chạy tự động | Bắt đầu/đổi quy mô; cân chi phí |
 | `spec-driven-openspec.md` | SPEC-DRIVEN | (Tùy chọn) Lớp spec cấp từng thay đổi với OpenSpec: proposal→spec→design→tasks trong Git, bản đồ khái niệm ↔ khung, khi nào dùng/không | Thay đổi vừa/lớn GĐ 4+; nhiều phiên/nhiều người |
+| `quality-gates-by-profile.md` | CONG-HO-SO | Cổng chất lượng cụ thể, đo được cho hồ sơ C1–C10 + cổng quyền riêng tư dữ liệu cá nhân + ma trận bằng chứng hồ sơ × S/M/L | Chốt cách chứng minh một tính năng/release; đối chiếu cổng trước merge theo hồ sơ |
+| `industry-standards.md` | TIEU-CHUAN | Ánh xạ tiêu chuẩn ngành (OWASP ASVS/SAST/DAST, SOLID + ngưỡng đo được, 12-Factor, signed commit, GDPR/SOC2/ISO 27001 ở mức artifact) vào khung | Khách hàng doanh nghiệp yêu cầu, chuẩn bị audit, hoặc muốn nâng mức nghiêm ngặt |
+| `strict-gate-contract.md` | GATE | Contract gate thực thi: 4 kết quả BLOCKED/READY/FAIL/PASS (+ N/A) và exit code của `scripts/dev-task.sh` | Cấu hình/chẩn đoán cổng máy (`doctor`, `gate`) |
+| `pr-flow.md` | PR-FLOW | Luật đầy đủ quy trình PR → merge tự động + giải xung đột (CLAUDE.md §8 chỉ tóm tắt) | Mở/merge PR hoặc gặp xung đột |
+| `lean-delivery-benchmark.md` | LD-08 | Phạm vi bằng chứng + protocol benchmark của adoption regression (fixture Node/Python, copy → gate → upgrade) | Muốn biết khung được kiểm bằng gì, trước khi trích số liệu |
 | `case-study-greenfield-dry-run.md` | — | Chạy thật runbook trên `create-next-app` thật: 3 lỗi tìm được + đã vá, bằng chứng chạy đầu-cuối | Kiểm chứng khung / trước khi tin runbook |
-| `templates/` | — | Bản mẫu sạch: `GOAL.template.md`, `FEATURE-SPEC.template.md`, `THREAT-MODEL.template.md`, `DATA-GOVERNANCE.template.md`, `GOVERNANCE.template.md`, `SUPPORT.template.md`, `FEATURE-MAP.template.md`, `CONVENTIONS.template.md`, `COMPLETION-PLAN.template.md`, `AI-EVAL.template.md`, `GOLDEN-TEST.template.md`, `TRAPS.template.md`, `CODEMAP.template.md`, `PROGRESS.template.md` | Pha 1/3 của `/completion` |
+| `templates/` | — | Bản mẫu sạch trong thư mục: `GOAL`, `FEATURE-SPEC`, `WORK`, `THREAT-MODEL`, `DATA-GOVERNANCE`, `GOVERNANCE`, `SUPPORT`, `FEATURE-MAP`, `CONVENTIONS`, `COMPLETION-PLAN`, `AI-EVAL`, `GOLDEN-TEST`, `TRAPS`, `CODEMAP` (đều `*.template.md`) + `ci-target.yml`. `PROGRESS.template.md` nằm ở GỐC repo, không trong `templates/` | Pha 1/3 của `/completion`; tạo artifact mới |
 | `FRAMEWORK-VERSION` | — | (Chỉ có ở DỰ ÁN ĐÍCH — sinh tự động bởi `copy-framework.sh`/`.ps1`) `version:` (file `VERSION` của khung, SemVer) + commit + ngày + **manifest hash từng file Lớp 1**; nâng bản: `bash copy-framework.sh <đích> --upgrade` (giữ chỉnh sửa cục bộ: hash khớp manifest → cập nhật, đã sửa → merge 3 chiều hoặc để `.framework-new`); `maintenance-sweep.sh` 🟡 khi quá 90 ngày | Muốn biết dự án đích dùng khung bản nào / nâng bản |
 
 ## Tên cũ (tiếng Việt) → tên mới — cho dự án đã copy khung bản trước

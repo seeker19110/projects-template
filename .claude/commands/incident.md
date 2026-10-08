@@ -2,26 +2,12 @@
 description: Xử lý sự cố production (incident response) — giảm thiệt hại trước, tìm nguyên nhân sau; kết bằng post-mortem cho SEV1/SEV2
 ---
 
-Kích hoạt **quy trình xử lý sự cố production**. Đọc kỹ `docs/ops/incident-response.md` và **làm theo đúng các bước trong đó**. Nguyên tắc lõi: **giảm thiệt hại TRƯỚC, tìm nguyên nhân SAU** — theo bước cố định để không phải suy nghĩ lúc đang hoảng.
+Kích hoạt quy trình xử lý sự cố production. Đọc kỹ `docs/ops/incident-response.md` và **làm theo đúng các bước trong đó** (nguồn sự thật: severity, 7 bước, nguyên tắc, mẫu post-mortem). Lõi: **giảm thiệt hại TRƯỚC, tìm nguyên nhân SAU**.
 
-> Đây là việc đụng **production & dữ liệu thật** → thuộc nhóm "hành động cần quyền chưa cấp" — không suy quyền production/dữ liệu thật từ ủy quyền kỹ thuật (CLAUDE.md §9, contract §3d). **An toàn trước tốc độ:** mọi thao tác lên dữ liệu thật phải cân nhắc rollback **trước** khi chạy, và xác nhận với người dùng trước các bước không thể hoàn tác.
+> Đây là việc đụng **production & dữ liệu thật** → thuộc nhóm "hành động cần quyền chưa cấp": không suy quyền từ ủy quyền kỹ thuật (CLAUDE.md §9, contract §3d). Cân nhắc rollback **trước** khi chạy, và xác nhận với người dùng trước mọi bước lên dữ liệu thật hoặc không thể hoàn tác.
 
 > 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
-## Trình tự (bám `docs/ops/incident-response.md`)
-1. **Phát hiện & ghi nhận:** mở issue sự cố (template `incident` trong `.github/ISSUE_TEMPLATE/`); ghi thời điểm bắt đầu, triệu chứng, ai xử lý, nguồn cảnh báo (Sentry/uptime/người dùng).
-2. **Đánh giá mức (severity):** SEV1 (sập/mất/lộ dữ liệu) · SEV2 (suy giảm nặng) · SEV3 (ảnh hưởng nhỏ). SEV1 = ưu tiên tuyệt đối.
-3. **Giảm thiệt hại (mitigate) trước khi vá triệt để:** rollback bản deploy gần nhất (Vercel: Promote bản trước) HOẶC tắt feature flag gây lỗi HOẶC khôi phục dữ liệu từ backup/PITR. **Xác nhận người dùng trước thao tác lên dữ liệu thật.**
-4. **Liên lạc:** cập nhật trạng thái cho người dùng nếu ảnh hưởng diện rộng.
-5. **Khắc phục triệt để:** nhánh `fix/...` → qua cổng commit/merge (`/gate`) → deploy.
-6. **Đóng sự cố:** xác nhận hết triệu chứng; ghi thời điểm kết thúc.
-7. **Post-mortem (SEV1/SEV2):** sao **Mẫu post-mortem** ở cuối `incident-response.md` thành `docs/ops/postmortem-YYYY-MM-DD-<slug>.md`; điền dòng thời gian (UTC), nguyên nhân gốc (5 Whys), hành động khắc phục → mỗi mục một issue có người phụ trách + hạn. **Văn hóa không đổ lỗi (blameless).**
-
-## Bất biến
-- Một **incident lead** điều phối, kể cả nhóm nhỏ — tránh giẫm chân.
-- **Ghi lại mọi thay đổi lúc chữa cháy** để post-mortem tái dựng được dòng thời gian.
-- Mỗi sự cố để lại **ít nhất một hàng rào mới** (test hồi quy / cảnh báo / kiểm tra CI) để cùng nguyên nhân không tái diễn.
-
-Nếu **không tìm thấy** `docs/ops/incident-response.md` (repo chưa áp khung): vẫn theo đúng trình tự tóm tắt trên, và báo người dùng cân nhắc chạy `copy-framework.sh`.
+Thiếu `docs/ops/incident-response.md` (chưa áp khung) → báo người dùng cân nhắc `copy-framework.sh`; không tự suy ra quy trình.
 
 Bắt đầu: hỏi nhanh **triệu chứng + nguồn cảnh báo**, rồi vào **Bước 1**.

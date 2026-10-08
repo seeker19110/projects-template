@@ -2,44 +2,14 @@
 description: Audit toàn diện mọi khía cạnh dự án — quét lại từ đầu hoặc tiếp tục phần chưa xong
 ---
 
-Đọc kỹ `docs/ops/comprehensive-audit-prompt.md` trong repo này và **làm theo đúng quy trình trong đó**.
+Đọc kỹ `docs/ops/comprehensive-audit-prompt.md` và **làm theo đúng quy trình trong đó** (nguồn sự thật: Bước -1, Bước 0, 12 nhóm, 2 giai đoạn, mẫu file trạng thái). Lệnh này chỉ thêm phần dưới.
 
 > 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
-Ràng buộc bắt buộc (chi tiết & danh sách 12 nhóm nằm ở file trên — bám đúng `CLAUDE.md` §3–§4,
-`KHUNG-3` PHẦN C (hồ sơ theo loại dự án), `quality-supplements.md` Nhóm 1+2, `KHUNG-1` tiêu chuẩn
-từng giai đoạn):
+- Khác `/audit-optimize` (chỉ tối ưu mã nguồn); muốn đi đến "không còn lỗi đã biết" → `/completion`.
+- Chạy **Bước -1 trước cả Bước 0**: nếu là khung trống → DỪNG, gợi ý `/consult` hoặc `/bootstrap`, không bịa phát hiện.
+- Ở Bước 0, khi đã có `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`: tóm tắt trạng thái rồi hỏi (quét lại / tiếp tục) bằng `AskUserQuestion` theo ủy quyền contract §3d.
+- Giai đoạn 1 chỉ đọc & đo; xong báo cáo thì **DỪNG chờ duyệt** (§3d). Giai đoạn 2 chỉ sau khi duyệt, từng PR nhỏ qua `/gate`.
+- Thiếu `docs/ops/comprehensive-audit-prompt.md` (chưa áp khung) → báo người dùng cân nhắc `copy-framework.sh`; không tự suy ra quy trình.
 
-- Đây là **AUDIT TOÀN DIỆN** — khác `/audit-optimize` (vốn chỉ tối ưu mã nguồn: dead code/trùng
-  lặp/dependency/bundle). Audit này rà **mọi khía cạnh**: kiến trúc, bảo mật, chất lượng mã &
-  chống lỗi logic, test/coverage, hiệu năng, accessibility/UI-UX, dependency & chuỗi cung ứng,
-  CI/CD & vận hành, tài liệu có đồng bộ code thật không, dữ liệu/migration, cấu hình & bí mật,
-  **thống nhất chéo tính năng** (Nhóm 12 — cần `docs/FEATURE-MAP.md`; muốn đi trọn vòng hoàn
-  thiện đến "không còn lỗi đã biết" → dùng `/completion`).
-
-- **BƯỚC -1 — bắt buộc TRƯỚC CẢ Bước 0:** xác nhận đây là **dự án cụ thể đã phát triển** (có
-  tính năng + công nghệ đã chọn/triển khai thật), không phải bộ khung/template còn trống (xem
-  dấu hiệu nhận biết trong `comprehensive-audit-prompt.md`). Nếu vẫn là khung trống → **DỪNG NGAY**,
-  giải thích cho người dùng rằng audit toàn diện cần một dự án cụ thể mới lập được kế hoạch chi
-  tiết, gợi ý `/consult` hoặc `/bootstrap` để bắt đầu phát triển — **không** tự bịa phát hiện/kế
-  hoạch audit cho tính năng chưa tồn tại.
-
-- **BƯỚC 0 — bắt buộc trước khi quét bất cứ gì (chỉ khi đã qua Bước -1):** kiểm tra `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`.
-  - **Chưa có** → đây là lần quét đầu; tạo file mới (mẫu trong `comprehensive-audit-prompt.md`), bắt đầu Nhóm 1.
-  - **Đã có** → đọc trạng thái, tóm tắt cho người dùng (nhóm nào xong/đang dở/chưa quét), rồi
-    **DÙNG `AskUserQuestion` hỏi rõ**: quét lại từ đầu (reset) hay chỉ tiếp tục các nhóm
-    chưa xong? (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền))
-
-- **GIAI ĐOẠN 1 (quét — chỉ đọc & đo, KHÔNG sửa gì):** quét từng nhóm áp dụng theo đúng thứ tự,
-  **cập nhật `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` ngay sau mỗi nhóm** (kể cả khi mới quét dở
-  một nhóm) để lần sau tiếp tục đúng chỗ. Sau khi hết các nhóm áp dụng → tổng hợp **BÁO CÁO AUDIT
-  TOÀN DIỆN** (vị trí · mức độ · đề xuất · rủi ro · công sức ước tính, xếp ưu tiên) — **rồi DỪNG,
-  chờ duyệt** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)).
-- Chỉ sang **GIAI ĐOẠN 2 (xử lý)** sau khi được duyệt: từng PR nhỏ theo ưu tiên, qua đúng cổng
-  `/gate`, cập nhật lại file trạng thái + `PROGRESS.md` sau mỗi mục đã xử lý.
-
-Nếu **không tìm thấy** `docs/ops/comprehensive-audit-prompt.md` (repo chưa áp khung), báo cho người
-dùng biết file chưa có để cân nhắc chạy `copy-framework.sh`, rồi vẫn tiến hành theo đúng ràng buộc
-tóm tắt trên bằng cách tự suy ra 12 nhóm audit từ tên gọi.
-
-Bắt đầu **BƯỚC -1** ngay.
+Bắt đầu **Bước -1** ngay.
