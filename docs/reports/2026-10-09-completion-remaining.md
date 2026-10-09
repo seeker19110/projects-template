@@ -5,7 +5,7 @@
 Yêu cầu (chủ repo, 2026-10-09): "hoàn thiện tiếp những phần còn lại". Phiên chính chọn `/completion`
 trên chính repo khung vì đây là lựa chọn duy nhất đưa MỌI khoảng trống đã ghi (FEATURE-MAP mục "hạn chế",
 PROGRESS "Tiếp theo", radar, sweep) tới một kết cục có bằng chứng: sửa được ở đây thì sửa, không thì
-ghi rõ vì sao và điều kiện quay lại. Hồ sơ: `docs/work/2026-10-09-completion-remaining/working.md`.
+ghi rõ vì sao và điều kiện quay lại. Hồ sơ: `docs/work/2026-10-09-completion-remaining/done.md`.
 
 Base `580fc91` (`origin/main` sau #223). Pha 0 đo tại base:
 
@@ -66,11 +66,26 @@ Definition of Complete:
 
 ## Pha 3 — thực thi
 
-(điền sau khi merge)
+| Việc | PR | Merge | Bằng chứng |
+| --- | --- | --- | --- |
+| W-01 | #224 | `f166369` | `test-copy-framework.sh` đỏ-trước 12 FAIL (6 job × bash/pwsh) → xanh; vitest drop-in trên fixture đích dựng lại: 38/38 (trước sửa 2 đỏ/36); cây khung 25/25; 13 check CI xanh |
+| W-02 | #225 | `0e37c6e` | mục 12 đỏ-trước đúng 3 mẫu → xanh; negative test mẫu mồ côi; `test-hooks-session.sh` mục 11–12 (negative hook rỗng bị bắt); `test-check-scripts.sh` 39 ✅ |
+| W-03 | PR closeout | — | tài liệu trạng thái khớp main; `DEBT:` cho `scripts/test-check-scripts.sh`; CODEMAP hàng adopt-from-outside trỏ `CLAUDE.md` §1 |
 
-## Pha 4 — quét lại
+Mỗi commit qua full `scripts/dev-task.sh gate` bằng hook pre-commit (exit 0) trước khi push; worker làm trong worktree
+riêng, phiên chính review diff, áp bằng `git apply --index` (hàng CODEMAP của W-02 đụng ngữ cảnh W-01 → sửa tay cùng nội dung).
 
-(điền sau khi merge)
+## Pha 4 — quét lại (sau W-02, cây = main + W-03)
+
+| Thước | Trước (base 580fc91) | Sau |
+| --- | --- | --- |
+| Radar | 100/100; 3 file mã > 400 dòng | 99/100; 4 file mã > 400 dòng — thêm `scripts/test-check-scripts.sh` (417) do hai ca mới; ghi `DEBT:` kèm điều kiện (gate script thứ tư hoặc > 500 dòng → tách) thay vì tách ngay (tách = thêm suite vào ci.yml/CODEMAP/FEATURE-MAP cho một tiêu chí phụ) |
+| Sweep `--strict --no-deps` | 🔴 0 · 🟡 0 | 🔴 0 · 🟡 0 (3 `DEBT:`, đều có điều kiện) |
+| docs-consistency | 11 mục | 12 mục, OK |
+| FEATURE-MAP | ❌ FT-43/FT-44; "chưa có test chạy hook" FT-23/FT-51 | không còn ❌; FT-25 ⚠️ giữ (F-014 đã chấp nhận rủi ro) |
+| Vitest drop-in trên fixture đích | 2 đỏ / 36 | 38 / 38 |
+
+Phát hiện mới ở lượt quét lại: không (Cao/Trung/Thấp). Mọi F-R có kết cục; mục không làm được ở đây ghi ở "Giới hạn".
 
 ## Giới hạn được ghi nhận
 

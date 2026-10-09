@@ -12,6 +12,7 @@
 # trước commit kiểm đúng bản đang sửa. File untracked không được sao chép vào fixture.
 # Mỗi ca dùng repo scratch/lịch sử riêng; không sửa repo thật.
 #
+# DEBT: một suite cho 3 gate script + protection-guard + dependency-review | trần: > 400 dòng (radar) | xem lại khi: thêm gate script thứ tư hoặc suite vượt 500 dòng → tách theo script được kiểm
 # Chạy: bash scripts/test-check-scripts.sh
 set -uo pipefail   # cố ý KHÔNG -e: một ca lỗi không được làm chết cả lượt chạy (docs/CONVENTIONS.md §A)
 
