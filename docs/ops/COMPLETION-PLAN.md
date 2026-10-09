@@ -11,7 +11,8 @@ Yêu cầu: chủ repo "tiếp tục cho đến khi xong đi" → mục ⚠️ c
 | T-01 | Luồng chính 5 | Pha 0 trên đích Node/vitest: `copy-framework.sh`, doctor/gate baseline, adoption Bước 0, `/consult` brownfield | gate đích chạy thật; 4 phiên bản xác minh nguồn sống | S | ✅ | báo cáo Pha 0 + bảng `/consult` |
 | T-02 | FT-08/FT-09 | Pha 1–4: 4 auditor song song → kế hoạch đích → W-1/W-2 TDD trong worktree → W-3 docs → re-audit | Cao/Trung = 0 sau re-audit; 76 test xanh 2 TZ; gate PASS evidence VERIFIED | M | ✅ | đích `9bb2127`; Pha 4: Cao 0 · Trung 0 · Thấp 4 ghi nhận |
 | F-T01/S-05 | Pha 0 | Lỗi KHUNG lộ ra: drop-in vitest bị đích gom; `ci-target.yml` không cài dependency | test-copy-framework có hàng rào; TRAPS 57 | S | ✅ | #234 → `db9bda6` |
-| T-03 | T-02 | Closeout: báo cáo, FEATURE-MAP Luồng chính 5 / FT-01, cổng độ dài tiêu đề commit (TRAPS 58) | docs-consistency + progress-freshness xanh | S | ✅ | PR closeout này |
+| T-03 | T-02 | Closeout: báo cáo, FEATURE-MAP Luồng chính 5 / FT-01, cổng độ dài tiêu đề commit (TRAPS 58) | docs-consistency + progress-freshness xanh | S | ✅ | #235 → `9c30df0` |
+| T-04 | radar sau #235 | Tách `test-dev-task.sh` 430 dòng → 2 suite + `_dev-task-test-lib.sh` | 119 ca giữ nguyên; CI gọi cả hai; radar 0 việc | S | ✅ | PR này (refactor cơ học, ngoại lệ 2) |
 
 Kết cục: FEATURE-MAP Luồng chính 1–5 đều ✅ (5: có giới hạn fixture). Phần còn lại chỉ kiểm được ngoài phiên này: hosted CI trên
 repo đích thật, pilot, model benchmark, harness khác, FT-41 bước 6–8.
