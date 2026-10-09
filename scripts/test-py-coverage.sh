@@ -105,6 +105,39 @@ run_expected_failure scripts/subagent-dispatch.py --agent khong-ton-tai --task "
 run_expected_failure scripts/subagent-dispatch.py --agent reviewer --task "T" --context-file "$WORK/khong-co.txt"
 run_expected_failure scripts/subagent-dispatch.py --agent reviewer --task "T" --context-file "$WORK/ctx.txt" --max-context-bytes 1
 run_expected_failure scripts/subagent-dispatch.py
+# --check-plan: PLAN hợp lệ (0), PLAN hỏng (1: thiếu trường/placeholder/route lạ/vòng/PR), file thiếu (2)
+cat > "$WORK/plan-ok.md" <<'PLAN'
+## Nhóm PR (đơn vị mở PR)
+- **PR-1** (a): gồm việc T1, T2 — độc lập
+## Danh sách việc
+### T1 — Viec A   `route: standard`
+- Điểm chạm: `a.py`
+- Đặc tả: lam A
+- Phụ thuộc: none
+- Tiêu chí chấp nhận: test A xanh
+### T2 — Viec B   `route: mechanical`
+- Điểm chạm: `b.md`
+- Đặc tả: noi khoi
+```
+khoi
+```
+- Phụ thuộc: T1
+- Tiêu chí chấp nhận: tail khop
+PLAN
+run scripts/subagent-dispatch.py --check-plan "$WORK/plan-ok.md"
+cat > "$WORK/plan-bad.md" <<'PLAN'
+## Nhóm PR (đơn vị mở PR)
+- **PR-1** (a): gồm việc T1, T1, T7 — độc lập
+## Danh sách việc
+### T1 — Viec A   `route: wizard`
+- Điểm chạm: `docs/*.md`
+- Đặc tả: <điền>
+- Phụ thuộc: T2
+### T2 — Viec B   `route: mechanical`
+- Phụ thuộc: T1
+PLAN
+run_expected_failure scripts/subagent-dispatch.py --check-plan "$WORK/plan-bad.md"
+run_expected_failure scripts/subagent-dispatch.py --check-plan "$WORK/khong-co-plan.md"
 
 # --- telemetry-log: record (nhiều model), summary, widget, và ĐƯỜNG LỖI bảng giá ---
 for m in claude-opus-5 claude-sonnet-5 claude-haiku-4-5 gpt-4o model-la-hoac-gi-do; do

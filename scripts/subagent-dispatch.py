@@ -14,6 +14,10 @@ chạy agent, KHÔNG cấp hay cưỡng chế quyền: `tools`/`model`/`effort` 
 từ frontmatter — harness/người gọi mới là bên thực thi và giới hạn quyền (LD-05, AC-5).
 Context (`--context-file`) thiếu, rỗng, không phải UTF-8 hoặc vượt `--max-context-bytes` → lỗi
 thoát 2; không bao giờ bỏ qua hay cắt im lặng.
+`--check-plan PLAN.md` khoá brief TRƯỚC khi dispatch (nghiệm thu 2026-10-09 đợt 3: brief mechanical
+khai "0 quyết định để ngỏ" nhưng mâu thuẫn với fence → worker dừng đúng, Tầng 1 mất một vòng): mỗi việc
+phải có route hợp lệ + 4 trường bắt buộc, không placeholder `<…>`, phụ thuộc có thật và không vòng, mỗi việc
+thuộc đúng một đơn vị PR; `route:mechanical` phải có khuôn trong fence và điểm chạm là đường dẫn tường minh.
 """
 
 import sys
@@ -126,6 +130,105 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
     payload["agent"] = agent_info
     return payload
 
+# --- --check-plan: cổng khoá brief trước khi dispatch -------------------------------------------
+PLAN_ROUTES = ("complex", "spec", "standard", "mechanical")
+PLAN_FIELDS = ("Điểm chạm", "Đặc tả", "Phụ thuộc", "Tiêu chí chấp nhận")
+_TASK_HEAD = re.compile(r"^###\s+(T\d+)\s+—\s+(.*?)\s*(?:`route:\s*([\w-]*)`)?\s*$", re.M)
+_PR_LINE = re.compile(r"^-\s+\*\*PR-\d+\*\*.*?gồm việc\s+([^—\n]+)", re.M)
+_PLACEHOLDER = re.compile(r"<[^<>\n]+>")
+
+
+def _plan_tasks(content):
+    """[{id, route, body}] theo thứ tự xuất hiện; body = phần dưới heading tới heading kế."""
+    heads = list(_TASK_HEAD.finditer(content))
+    tasks = []
+    for i, m in enumerate(heads):
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(content)
+        tasks.append({"id": m.group(1), "route": m.group(3), "body": content[m.end():end]})
+    return tasks
+
+
+def _plan_field(body, name):
+    m = re.search(r"^-\s+" + re.escape(name) + r"\s*:\s*(.*)$", body, re.M)
+    return m.group(1).strip() if m else None
+
+
+def _check_task(task, ids):
+    tid, route, body = task["id"], task["route"], task["body"]
+    out = []
+    if route not in PLAN_ROUTES:
+        out.append(f"{tid}: route '{route or '(thiếu)'}' không thuộc {'/'.join(PLAN_ROUTES)}")
+    for name in PLAN_FIELDS:
+        if _plan_field(body, name) is None:
+            out.append(f"{tid}: thiếu trường bắt buộc '{name}'")
+    for ph in _PLACEHOLDER.findall(body):
+        out.append(f"{tid}: còn placeholder '{ph}' — brief chưa kín")
+    deps = _plan_field(body, "Phụ thuộc") or ""
+    for d in re.findall(r"\bT\d+\b", deps):
+        if d not in ids:
+            out.append(f"{tid}: phụ thuộc '{d}' không có trong danh sách việc")
+    if route == "mechanical":
+        out.extend(_check_mechanical(tid, body))
+    return out
+
+
+def _check_mechanical(tid, body):
+    out = []
+    if "```" not in body:
+        out.append(f"{tid}: route:mechanical phải có khuôn cuối cùng từng ký tự trong fence ```")
+    touch = _plan_field(body, "Điểm chạm") or ""
+    paths = re.findall(r"`([^`]+)`", touch)
+    bad = [p for p in paths if re.search(r"[*?<>]", p)]
+    if not paths or bad:
+        out.append(f"{tid}: route:mechanical cần điểm chạm là đường dẫn tường minh trong backtick, không glob: {bad or touch!r}")
+    return out
+
+
+def _check_dependency_cycle(tasks):
+    deps = {t["id"]: set(re.findall(r"\bT\d+\b", _plan_field(t["body"], "Phụ thuộc") or "")) for t in tasks}
+    done = set()
+    while True:
+        ready = [t for t, d in deps.items() if t not in done and d <= done]
+        if not ready:
+            break
+        done.update(ready)
+    left = sorted(set(deps) - done)
+    return [f"phụ thuộc tạo vòng giữa: {', '.join(left)}"] if left else []
+
+
+def _check_pr_groups(content, ids):
+    seen = {}
+    for m in _PR_LINE.finditer(content):
+        for t in re.findall(r"\bT\d+\b", m.group(1)):
+            seen[t] = seen.get(t, 0) + 1
+    out = [f"{t}: không thuộc đơn vị PR nào (mục 'Nhóm PR')" for t in ids if t not in seen]
+    out += [f"{t}: nằm trong {n} đơn vị PR — mỗi việc đúng một PR" for t, n in seen.items() if n > 1]
+    out += [f"'Nhóm PR' nhắc việc '{t}' không có trong danh sách" for t in seen if t not in ids]
+    return out
+
+
+def check_plan(content):
+    """Danh sách lỗi (rỗng = PLAN hợp lệ) và số việc."""
+    tasks = _plan_tasks(content)
+    ids = [t["id"] for t in tasks]
+    findings = [] if tasks else ["không tìm thấy việc nào dạng '### Tn — <tên>   `route: …`'"]
+    for t in tasks:
+        findings += _check_task(t, ids)
+    findings += _check_dependency_cycle(tasks)
+    findings += _check_pr_groups(content, ids)
+    return findings, len(tasks)
+
+
+def _run_check_plan(path):
+    content = _read_context_file(path, DEFAULT_MAX_CONTEXT_BYTES)
+    findings, n = check_plan(content)
+    for f in findings:
+        print(f"PLAN: {f}")
+    if findings:
+        print(f"check-plan: {len(findings)} lỗi — KHÔNG dispatch cho tới khi brief kín.", file=sys.stderr)
+        raise SystemExit(1)
+    print(f"check-plan: OK — {n} việc, brief đủ trường, không placeholder, phụ thuộc hợp lệ, mỗi việc một PR.")
+
 
 def _build_parser():
     parser = argparse.ArgumentParser(description="Universal Subagent Dispatcher Engine")
@@ -155,6 +258,12 @@ def _build_parser():
         type=int,
         default=DEFAULT_MAX_CONTEXT_BYTES,
         help="Trần byte của --context-file; vượt → lỗi thoát 2, không tự cắt",
+    )
+    parser.add_argument(
+        "--check-plan",
+        type=str,
+        metavar="PLAN.md",
+        help="Khoá brief trước khi dispatch: lỗi → liệt kê + thoát 1; file thiếu/rỗng/không UTF-8 → thoát 2",
     )
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
     parser.add_argument(
@@ -259,6 +368,10 @@ def _print_payload(payload, harness, as_json):
 
 def main():
     args = _build_parser().parse_args()
+
+    if args.check_plan:
+        _run_check_plan(args.check_plan)
+        sys.exit(0)
 
     if args.tier:
         _print_tier_candidates(args.tier, args.json)
