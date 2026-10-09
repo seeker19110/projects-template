@@ -1166,3 +1166,14 @@ không chỉ sau khi đã merge drop-in bằng tay. Mọi workflow mẫu → đ�
 
 *Cổng chốt chặn:* drop-in tự `describe.skipIf(STAGED)` khi đường dẫn còn chứa `_framework-dropins`; `scripts/test-copy-framework.sh`
 grep hàng rào đó trong bản phát; `ci-target.yml` có bước `npm ci`/`pip install` có điều kiện theo lockfile/requirements.
+
+## 58. Cổng đo độ dài chỉ soi TIÊU ĐỀ PR — PR một commit được squash bằng tiêu đề COMMIT, lọt 90 ký tự lên `main`
+
+*Ngày:* 2026-10-09 (#234: tiêu đề PR rút còn 66 ký tự để qua cổng `metadata`, nhưng commit duy nhất giữ tiêu đề 90 ký tự → squash
+lấy tiêu đề commit → `main` nhận `db9bda6` với subject 90 ký tự). Cùng khuôn với B-01 (audit 2026-09-13): mọi chuỗi CÓ THỂ thành
+tiêu đề commit trên `main` đều phải qua cùng một bộ kiểm — cổng Conventional Commits đã soi commit subject từ B-01, cổng độ dài thì chưa.
+
+*Cách rà:* với mỗi điều kiện kiểm tiêu đề PR trong `pr-policy.yml`, hỏi "có áp cho `commitSubjects` chưa?"; GitHub squash dùng tiêu
+đề commit khi PR có đúng một commit và dùng tiêu đề PR khi nhiều commit.
+
+*Cổng chốt chặn:* `pr-policy.yml` job `metadata` fail khi bất kỳ commit subject nào > 72 ký tự (PR closeout 2026-10-09).

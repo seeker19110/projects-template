@@ -70,6 +70,13 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number,
             });
             const commitSubjects = commits.map(c => (c.commit.message || "").split("\n")[0]);
+            // Độ dài cũng phải soi ở tiêu đề commit: PR MỘT commit thì squash lấy tiêu đề commit, không lấy
+            // tiêu đề PR — #234 (tiêu đề PR 66 ký tự) đưa lên main một tiêu đề commit 90 ký tự (TRAPS mục 58).
+            const longSubjects = commitSubjects.filter(sub => sub.length > 72);
+            if (longSubjects.length) {
+              core.setFailed("Tiêu đề commit dài quá 72 ký tự (squash có thể lấy làm tiêu đề commit trên main): " +
+                longSubjects.map(s => `${s.length}: ${s}`).join(" | "));
+            }
             const badSubjects = commitSubjects.filter(sub => !title.test(sub));
             if (badSubjects.length) {
               core.setFailed(
