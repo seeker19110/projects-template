@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-09, nghiệm thu agent): 11 agent `.claude/agents/` được nghiệm thu bằng phiên subagent thật (3 đợt ≤ 5 song song,
+  `docs/reports/2026-10-09-agent-acceptance.md`); FEATURE-MAP cột Test FT-13..20 ghi kết cục. Phát hiện: subagent Claude Code không có
+  tool `Agent` → `coordinator` chỉ dùng được khi phiên chính đóng vai Tầng 2 (ghi vào `orchestration-3-tier.md`, `coordinator.md`).
 - Fixed (2026-10-09, F-309b): `node_has_script` nhánh node — tên script đặt sau `--` (không còn bị node đọc như cờ:
   `--require=x.js` từng chạy mã), `Object.hasOwn` thay `p.scripts[k]` (khoá kế thừa `toString` không còn là "script"),
   bỏ BOM UTF-8 trước parse (khớp nhánh jq), không jq lẫn node → cảnh báo stderr thay vì false âm thầm. Phát hiện bởi

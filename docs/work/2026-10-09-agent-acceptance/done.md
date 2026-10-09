@@ -8,7 +8,7 @@
   (chưa chạy PLAN.md đầu-cuối qua ba tầng thật): nghiệm thu bằng PHIÊN SUBAGENT THẬT theo đợt ≤ 5 agent song song,
   ghi báo cáo docs/reports/2026-10-09-agent-acceptance.md (tạo ở A-02), cột Test ghi đúng sự thật ("nghiệm thu phiên thật ngày …;
   không có test tự động").
-- Trạng thái: Active
+- Trạng thái: Done (nghiệm thu 2026-10-09, xem cuối hồ sơ)
 - Chủ trì / writer: phiên chính (Fable); subagent chỉ là ĐỐI TƯỢNG nghiệm thu, không ghi hồ sơ này
 - Mức rủi ro / số PR: S (tài liệu + đổi hằng số luật + test cập nhật); dự kiến 2–3 PR tuần tự trên
   `claude/relaxed-knuth-f1ejlq`: A-01 trần 3→5 + ADR-0011; A-02 báo cáo nghiệm thu + FEATURE-MAP; A-03 closeout
@@ -39,12 +39,20 @@
 
 ## Lần thử / blocker
 
-(chưa có)
+- A-01 commit lần 1 đỏ docs-consistency mục 1: đường dẫn báo cáo tương lai trong backtick (TRAPS cũ, #227) → bỏ backtick.
+- Đợt 3 lần 1: `coordinator` BLOCKED vì không có tool `Agent` (giới hạn harness, kiểm chứng độc lập) → chạy lại với phiên chính
+  đóng vai Tầng 2; không phải lỗi agent.
+- T2 sandbox: PLAN.md của Tầng 1 mơ hồ về dòng trống đầu khối → worker dừng đúng; kết quả README thiếu một dòng trống (chấp nhận ở sandbox).
 
 ## Bàn giao / bước tiếp theo
 
-Đang chạy A-01 và đợt 1 của A-02 song song.
+Không còn. Xem lại nghiệm thu khi sửa `.claude/agents/*.md` hoặc `scripts/model-capability-tiers.json`.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-(chưa)
+- A-01: PR #231 MERGED → `0668b86`. A-02: PR #232 MERGED → `a498792` (F-309b, 5 ca test đỏ-trước); báo cáo
+  `docs/reports/2026-10-09-agent-acceptance.md`: 11/11 agent đạt hợp đồng, 17 lượt, ≤ 5 song song, 0 vượt quyền.
+- A-03: PR closeout (FEATURE-MAP, orchestration/coordinator, COMPLETION-PLAN, PROGRESS, CHANGELOG) — SHA ghi ở PROGRESS sau merge.
+- Giới hạn còn lại: nghiệm thu thủ công một lần; coordinator-như-subagent không chạy được trong Claude Code (ghi rõ, không xoá agent);
+  FT-41 và việc cần tài khoản/repo đích vẫn ngoài phạm vi phiên này.
+- Ngày/người nghiệm thu: 2026-10-09, phiên chính theo ủy quyền của chủ repo ngày 2026-10-07.

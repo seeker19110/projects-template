@@ -32,14 +32,14 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ✅ | ❌ không có |
-| FT-14 | Worker `route:spec` | `spec-executor` | theo brief | ✅ | ❌ không có |
-| FT-15 | Worker `route:complex` | `complex-implementer` | theo brief | ✅ | ❌ không có |
-| FT-16 | Worker `route:standard` | `standard-worker` | theo brief | ✅ | ❌ không có |
-| FT-17 | Worker `route:mechanical` | `mechanical-worker` | theo brief | ✅ | ❌ không có |
-| FT-18 | Hậu kiểm diff | `reviewer` (skill `code-review`) | diff | ✅ | ❌ không có |
-| FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | ❌ không có |
-| FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | ❌ không có |
+| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ⚠️ chỉ khi phiên chính đóng vai Tầng 2 — subagent Claude Code không có tool `Agent` | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-14 | Worker `route:spec` | `spec-executor` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-15 | Worker `route:complex` | `complex-implementer` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-16 | Worker `route:standard` | `standard-worker` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-17 | Worker `route:mechanical` | `mechanical-worker` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-18 | Hậu kiểm diff | `reviewer` (skill `code-review`) | diff | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
 | FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 5 harness) — job `framework-lint` + smoke dự án đích |
 | FT-56 | Kiểm thử độc lập trước tích hợp | `tester` | lệnh gate và output test | ✅ | frontmatter/route được kiểm; nghiệm thu test cụ thể theo PR |
 | FT-57 | Review vùng nhạy cảm | `security-reviewer` | diff và threat model liên quan | ✅ | frontmatter/route được kiểm; review thủ công |
@@ -122,5 +122,5 @@
 1. **Copy khung → dự án đích chạy được** (FT-30/31 → FT-44, FT-50): `test-copy-framework.sh` và `test-adoption-smoke.sh` kiểm Node/Python thật, CI drop-in offline và bản PowerShell; hosted CI của một repo đích vẫn chưa có bằng chứng.
 2. **Cổng chặn commit/merge đỏ** (FT-04, FT-52, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; smoke Node/Python bắt phép cộng sai ở `test` rồi xanh sau sửa. Stack khác cần bằng chứng riêng.
 3. **Tài liệu ↔ code khung không lệch** (FT-26, FT-27): ✅ có test 2 chiều + negative test.
-4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): `test-telemetry-and-dispatch.sh` kiểm CLI dispatcher, payload và định tuyến; ❌ chưa có test chạy PLAN đầu-cuối qua ba tầng agent thật. Case-study thủ công chỉ là bằng chứng giới hạn.
+4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): `test-telemetry-and-dispatch.sh` kiểm CLI dispatcher, payload và định tuyến; ✅ có giới hạn: PLAN.md 2 đơn vị đã chạy đầu-cuối bằng agent thật (worker ∥ → reviewer/tester → merge) ngày 2026-10-09 với **phiên chính đóng vai Tầng 2**; `coordinator` chạy như subagent KHÔNG dispatch được trong Claude Code (không có tool `Agent` cho subagent) — xem `docs/reports/2026-10-09-agent-acceptance.md`. Vẫn là nghiệm thu thủ công, không phải test tự động.
 5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung nhưng **chưa chạy trên dự án đích thật**.
