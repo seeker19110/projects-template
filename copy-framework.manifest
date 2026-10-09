@@ -60,8 +60,11 @@ scripts/_test-lib.sh
 scripts/subagent-dispatch.sh
 scripts/model-rates.json
 scripts/model-capability-tiers.json
+# Helper `_` phải phát trước engine gọi nó (TRAPS.md mục 19).
+scripts/_telemetry_report.py
 scripts/telemetry-log.py
 scripts/telemetry-log.sh
+scripts/_spec_contract_gen.py
 scripts/spec-compiler.py
 scripts/spec-compiler.sh
 scripts/arch-health-radar.py

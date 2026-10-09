@@ -442,6 +442,12 @@ Tổng quát hơn: `grep -rn "$(basename FILE_MOI)" scripts/` phải khớp **c�
 `framework-lint`) — đã xanh trở lại sau khi thêm `_python-exec.sh` vào hai danh sách `cp`. Đo thật:
 exit 0/0 ở `HEAD~1`, exit 9/22 sau refactor, exit 0/0 sau bản vá.
 
+**Tái phát 2026-10-09** (tách `telemetry-log.py` → `_telemetry_report.py`): `scripts/test-hooks-session.sh` chép tay
+`telemetry-log.sh/.py` + `model-rates.json` + `_python-exec.sh` vào fixture → hook telemetry-record chết
+`ModuleNotFoundError` ở cổng commit, dù `test-telemetry-and-dispatch.sh` và `test-copy-framework.sh` đều xanh
+(manifest đã có helper; chỉ danh sách `cp` viết tay là không biết). Bắt bởi hook pre-commit-gate; vá: thêm
+helper vào dòng `cp` đó. Cách rà ở trên đúng — chỉ là chưa chạy nó trước khi commit.
+
 ## 20. Test xanh nhưng nhánh cần đo KHÔNG bị chạm — `chmod 000` vô hiệu dưới uid 0
 
 **Ngày/PR:** 2026-09-14, nhánh `claude/cool-gauss-4dk9ln` (bắt được TRƯỚC khi commit, khi tự kiểm).
