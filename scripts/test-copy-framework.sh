@@ -96,6 +96,24 @@ check_structure() {     # check_structure <mô tả> <target>
     [ "$(grep -c '^manifest: ' "$target/docs/framework/FRAMEWORK-VERSION" 2>/dev/null)" -gt 0 ] \
       || { echo "  FAIL [$label]: FRAMEWORK-VERSION thiếu dòng 'manifest:' (hash từng file Lớp 1)"; ok=0; }
   fi
+  # Khối required checks (fenced ĐẦU TIÊN của repository-settings.md) phải BẰNG ĐÚNG tập job thật của
+  # workflow phát kèm — vitest drop-in ci-workflow-policy.test.ts đối chiếu hai chiều đúng như vậy ở đích
+  # (TRAPS.md mục 54). Job id = đúng 2 khoảng trắng thụt lề rồi `<id>:` trong khối `jobs:` (như check-ci-policy.sh).
+  local settings="$target/docs/ops/repository-settings.md" wf actual declared
+  actual="$(for wf in ci.yml pr-policy.yml; do
+    tr -d '\r' < "$target/_framework-dropins/.github/workflows/$wf" 2>/dev/null | awk -v wf="$wf" '
+      /^jobs:$/ { j=1; next }
+      j && /^[A-Za-z]/ { j=0 }
+      j && match($0, /^  [A-Za-z0-9_-]+:([[:space:]]|$)/) { id=substr($0,3); sub(/:.*/,"",id); print wf ": " id }'
+  done | sort -u)"
+  declared="$(tr -d '\r' < "$settings" 2>/dev/null | awk '
+    /^```/ { if (b) exit; b=1; next }
+    b && /^[a-zA-Z0-9_.-]+\.yml:[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*$/ { gsub(/:[[:space:]]*/, ": "); sub(/[[:space:]]+$/, ""); print }' | sort -u)"
+  if [ "$actual" != "$declared" ]; then
+    while IFS= read -r l; do [ -n "$l" ] && echo "  FAIL [$label]: job '$l' có trong workflow phát kèm nhưng THIẾU trong khối required checks đầu tiên của docs/ops/repository-settings.md"; done < <(comm -23 <(printf '%s\n' "$actual") <(printf '%s\n' "$declared"))
+    while IFS= read -r l; do [ -n "$l" ] && echo "  FAIL [$label]: job '$l' khai trong khối required checks đầu tiên của docs/ops/repository-settings.md nhưng KHÔNG có trong workflow phát kèm"; done < <(comm -13 <(printf '%s\n' "$actual") <(printf '%s\n' "$declared"))
+    ok=0
+  fi
   [ "$ok" -eq 1 ] && echo "  ok [$label]: cấu trúc copy đúng kỳ vọng" || fail=1
 }
 
