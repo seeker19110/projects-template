@@ -15,6 +15,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   (`git rev-parse --show-toplevel`), không phải checkout chính khi phiên chạy trong worktree — TRAPS 45 tái phát, đo thật, test
   `test-hooks-session.sh` mục 8b đỏ-trước; `reviewer.md` + `/review` đối chiếu diff với `TRAPS.md` trước PR (5 mục TRAPS đã "Tái phát").
   Bản đối chiếu ba cột: `docs/reports/2026-10-09-doi-chieu-compound-engineering.md` (2 lấy / ~35, phần còn lại kèm điều kiện xem lại).
+- Fixed (2026-10-10, audit tự động hóa PR-1/F-S01, F-Q1..Q5): hook `block-dangerous-git.sh`/`pre-commit-gate.sh` không còn lọt
+  7 biến thể (nháy đơn trong nháy kép, refspec `+refs/heads/<nhánh chính>`, `HEAD:refs/heads/…`, cờ gộp `-fu`, tên nhánh trong nháy,
+  vỏ bọc `bash -c`/`eval`), heredoc `<<-`, `--no-verify` của lệnh khác; `check-shell-complexity.sh` bỏ qua `.claude/worktrees/`; TRAPS 62 (#256).
+
 - Added (2026-10-10, đối chiếu nguồn ngoài): `docs/reports/2026-10-10-doi-chieu-ralph.md` — đối chiếu `snarktank/ralph` theo ba cột
   (`adopt-from-outside.md`): 25 hạng mục → lấy 0 (ralph là tập con của khung); vòng lặp ngoài không giám sát "chưa cần" lần 3 kèm
   điều kiện xem lại + câu hỏi chờ chủ repo; bản đồ từ vựng ralph → khung cho dự án đích (#253).
