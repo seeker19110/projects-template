@@ -3,7 +3,7 @@
 - Work ID: 2026-10-09-ft41-github-run
 - Yêu cầu / outcome: chủ repo (2026-10-09) cho dùng tài khoản CLI `seeker19110`, tạo repo private, **chỉ làm phần GitHub**:
   branch protection + CI trên GitHub Actions thật cho dự án đích dựng theo runbook. Supabase (Bước 7) / Vercel (Bước 8) ngoài scope.
-- Trạng thái: Ready — chờ PR khung merge
+- Trạng thái: Done — PR #249 MERGED, nghiệm thu 2026-10-09 theo ủy quyền
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: S — 1 PR tài liệu/bằng chứng, phiên chính tự làm (§3c)
 - Scope / non-goal: dự án đích dựng trong scratchpad, push lên `seeker19110/case-study-ft41` (private). Không đổi hành vi script khung
@@ -57,7 +57,18 @@
 
 ## Bàn giao / bước tiếp theo
 
-PR khung `fix(ci): keep dependabot bot PRs below the WIP cap` → CI xanh → squash merge → checkpoint closeout (rename done.md).
-Sau đó chuyển `case-study-ft41` về private (`gh repo edit --visibility private`) theo chọn của chủ repo.
+Không còn việc trong scope. Bước 7–8 (Supabase/Vercel) chỉ mở khi chủ repo cấp tài khoản. Repo đích giữ lại (private) làm bằng chứng;
+chủ repo tự quyết xoá. Stash `backup: superseded local closeout checkpoint` và `epitaxy: pre-switch from fix/dependabot-wip-cap`
+giữ nguyên (nội dung đã merge ở #249 / đã lỗi thời) — chủ repo tự `git stash drop` nếu muốn.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
+
+- PR #249 MERGED (squash) → `main` `097fabe`; 12 check PR xanh gồm `framework-lint` + `framework-lint-windows` (3 suite đỏ/treo khi
+  chạy cục bộ là lỗi môi trường máy này, tái hiện y hệt trên base chưa sửa).
+- CI `main` `097fabe`: mọi job xanh trừ `progress-freshness` (PF-3 lệch #246/#247 — đã đỏ từ `1e9f962` #248, trước PR này; sửa trong
+  PR closeout này bằng SHA + dòng Giai đoạn). CodeQL, Secret scan, Scorecard, Release ✅.
+- Dependabot trên repo khung sau merge: log `multi-ecosystem-update: true`, nhóm `dependencies`; pip/actions ✅, npm ❌
+  "/package.json not found" — đã đỏ y vậy từ 2026-09-14 (repo khung không có package.json), không do thay đổi này.
+- Repo đích `seeker19110/case-study-ft41`: PR #6/#7 MERGED, `main` mọi workflow xanh; đã chuyển lại PRIVATE.
+- DoD: FT-41 bước 6/11 có bằng chứng thật; F-41a có test đỏ-trước/xanh-sau + TRAPS 61; giới hạn còn lại: chưa quan sát Dependabot
+  TẠO PR gộp (chưa có bản minor/patch), bước 7–8 chưa kiểm. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.
