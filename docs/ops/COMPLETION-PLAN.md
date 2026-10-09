@@ -1,4 +1,20 @@
-# COMPLETION-PLAN — trạng thái hiện hành 2026-10-08
+# COMPLETION-PLAN — trạng thái hiện hành 2026-10-09
+
+## Chu kỳ 2026-10-09 — hoàn thiện phần còn lại (nghiệm thu: `docs/reports/2026-10-09-completion-remaining.md`)
+
+Yêu cầu: chủ repo "hoàn thiện tiếp những phần còn lại" (2026-10-09). Hồ sơ nối phiên:
+`docs/work/2026-10-09-completion-remaining/done.md`. Phát hiện F-R01..F-R04 và DoC ở báo cáo.
+**Approved for implementation — phiên chính duyệt theo ủy quyền của chủ repo ngày 2026-10-07; ngày duyệt 2026-10-09.**
+
+| ID | Từ phát hiện | Việc | Tiêu chí nghiệm thu | Phụ thuộc | Sức | Trạng thái | PR / bằng chứng |
+|----|--------------|------|---------------------|-----------|-----|-----------|-----------------|
+| W-01 | F-R01 | Tách khối required checks chung cho đích (`gate`/`metadata`) khỏi bản kê job của repo khung (marker) trong `docs/ops/repository-settings.md`; `check-ci-policy.sh` đọc khối có marker; `test-copy-framework.sh` đối chiếu hai chiều khối đầu ↔ job thật của workflow phát kèm; TRAPS mục 54 | Test copy đỏ trước sửa, xanh sau; `check-ci-policy.sh` CP-1 vẫn bắt job thiếu; vitest drop-in xanh trên fixture đích | – | S | ✅ | #224 → `f166369`; vitest đích 38/38 sau sửa |
+| W-02 | F-R02, F-R03 | `check-docs-consistency.sh` mục 12 (mẫu mồ côi) + negative test; con trỏ tới 3 mẫu từ tài liệu phát sang đích; `test-hooks-session.sh` mục 11 (session-guide) và 12 (auto-format) | Mục 12 đỏ với 3 mẫu trước khi thêm con trỏ, xanh sau; ca negative đỏ; hook test xanh và negative bắt được hook rỗng | – | S | ✅ | #225 → `0e37c6e`; mục 12 đỏ 3 mẫu → xanh; 39 ca test-check-scripts |
+| W-03 | F-R04 | Closeout: FEATURE-MAP/CODEMAP hàng 54/AUDIT-STATUS/PROGRESS/report/work → done | Khớp main thật; docs-consistency + progress-freshness xanh | W-01, W-02 | S | ✅ | PR closeout (PR này) |
+
+Nhật ký hội tụ: 2026-10-09 sau W-02 — radar 99/100 (4 file mã > 400 dòng, thêm `scripts/test-check-scripts.sh` 417 vì hai ca
+mới; ghi `DEBT:` kèm điều kiện), sweep `--strict --no-deps` 🔴 0 🟡 0, docs-consistency 12/12, không phát hiện Cao/Trung mới.
+Chấp nhận/giữ nguyên: P-B11, P-C12, 3 file mã > 400 dòng cũ (lý do + điều kiện ở báo cáo); hosted CI/pilot/harness ngoài: không kiểm được ở phiên này.
 
 ## Chu kỳ 2026-10-08 — ĐÃ ĐÓNG 2026-10-08 (nghiệm thu: `docs/reports/2026-10-08-framework-completion.md`)
 

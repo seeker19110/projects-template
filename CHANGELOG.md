@@ -11,6 +11,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-09, #224): khối fenced đầu của `docs/ops/repository-settings.md` phát cho dự án đích giờ là required checks chung
+  (`ci.yml: gate`, `pr-policy.yml: metadata`) khớp `ci-target.yml`; bản kê job của riêng repo khung chuyển xuống khối có marker.
+  Trước đó vitest drop-in `ci-workflow-policy.test.ts` đỏ ngay trên dự án đích copy sạch (6 job "không còn tồn tại"). Dự án đích
+  đã sửa khối này bằng tay: giữ bản của mình khi `--upgrade` (merge 3 chiều). Thêm `check-docs-consistency.sh` mục 12 (#225).
+
 - Added (LD-03, nghiệm thu bằng bằng chứng): `dev-task.sh gate --evidence <file>` ghi JSON `gate-evidence/1`
   (trạng thái từng task PASS/FAIL/N/A/NOT_RUN, HEAD, hash config, vân tay working tree, số ca test hoặc `null`);
   `dev-task.sh evidence-check <file>` từ chối evidence cũ/thiếu task/không PASS. `spec-compiler` thêm C-4 (spec

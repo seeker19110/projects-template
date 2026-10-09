@@ -1,4 +1,14 @@
-# Trạng thái audit hiện hành của repo khung — 2026-10-08
+# Trạng thái audit hiện hành của repo khung — 2026-10-09
+
+## Chu kỳ 2026-10-09 — hoàn thiện phần còn lại
+
+Base `580fc91`. Đối chiếu 12 nhóm theo năng lực khung (chỉ đọc + đo), chi tiết ở
+`docs/reports/2026-10-09-completion-remaining.md`: Cao 0 · Trung 1 (F-R01: tài liệu
+`docs/ops/repository-settings.md` phát sang đích làm vitest drop-in đỏ ngày đầu — tái hiện bằng
+fixture copy sạch) · Thấp 2 (F-R02 3 mẫu mồ côi; F-R03 2 hook chưa có test chạy) · Thông tin 1. Sau W-01 (#224) và W-02 (#225 → `0e37c6e`): Cao 0 · Trung 0 · Thấp 0 mở;
+F-R04 đóng trong PR closeout.
+Chu kỳ 2026-10-08 bên dưới đã ĐÓNG (W-01 #216, W-02 #217 MERGED; goal COMPLETE) — đoạn "đang sửa"
+là trạng thái tại thời điểm ghi.
 
 ## Chu kỳ 2026-10-08
 

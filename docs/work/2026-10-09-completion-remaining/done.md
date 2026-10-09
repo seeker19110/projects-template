@@ -4,14 +4,14 @@
 - Yêu cầu / outcome: chủ repo 2026-10-09: "hoàn thiện tiếp những phần còn lại đi" → chạy `/completion`
   trên chính repo khung: rà mọi khoảng trống đã ghi (FEATURE-MAP "hạn chế", PROGRESS "Tiếp theo", radar,
   sweep), đưa từng mục tới kết cục có bằng chứng: sửa được ở đây thì sửa, không thì ghi rõ vì sao + điều kiện.
-- Trạng thái: Active
+- Trạng thái: Done (nghiệm thu 2026-10-09, xem cuối hồ sơ)
 - Chủ trì / writer: phiên chính (Fable); worker `standard-worker` cho đơn vị độc lập trong worktree riêng
 - Mức rủi ro / số PR: S; 3 PR tuần tự trên nhánh `claude/relaxed-knuth-f1ejlq` (W-01 fix copy, W-02 test/cổng, W-03 closeout)
 - Scope / non-goal: không mở lại P-B11/P-C12 (điều kiện xem lại chưa chạm); không chạy hosted CI/pilot/harness
   ngoài Claude Code (không có tài khoản/máy ở phiên này); không đổi ADR-0003 (bản kê hai chiều giữ nguyên).
 - Spec / goal / issue: kế hoạch + DoC ở `docs/ops/COMPLETION-PLAN.md` (chu kỳ 2026-10-09); báo cáo
   `docs/reports/2026-10-09-completion-remaining.md`
-- Nhánh / base SHA / thời điểm reconcile: `claude/relaxed-knuth-f1ejlq` đặt lại từ `origin/main` `f166369` (2026-10-09, sau #224)
+- Nhánh / base SHA / thời điểm reconcile: `claude/relaxed-knuth-f1ejlq` đặt lại từ `origin/main` `0e37c6e` (2026-10-09, sau #225)
 
 ## Kế hoạch và phân công
 
@@ -52,7 +52,17 @@ W-01 ∥ W-02 (worker, worktree riêng, file không chung) → phiên chính rev
 
 ## Bàn giao / bước tiếp theo
 
-W-02 đang ở PR (sau commit này). Sau khi merge: đặt lại nhánh từ `origin/main`, W-03 closeout — chèn mục chu kỳ 2026-10-09
-vào `docs/ops/COMPLETION-PLAN.md` và `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` (nháp ở scratchpad `w03/`), điền Pha 3/4 của
-báo cáo, sửa CODEMAP hàng "Đối chiếu một repo/khung/skill NGOÀI" (`CLAUDE.md` §11 → §1), cập nhật `PROGRESS.md`, đổi hồ sơ
-này thành `done.md` kèm SHA.
+- Không còn việc mở của chu kỳ. Việc không làm được ở phiên này (hosted CI repo đích, pilot, benchmark model, harness ngoài
+  Claude Code) ghi ở "Giới hạn" của báo cáo kèm điều kiện mở lại; P-B11/P-C12 giữ nguyên điều kiện cũ.
+
+## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
+
+- W-01 PR #224 MERGED (squash) → `f166369`; W-02 PR #225 MERGED (squash) → `0e37c6e`; cả hai 13 check xanh (gate aggregate,
+  framework-lint Linux + Windows, copy-framework-smoke, docs-consistency, protection-guard, metadata, dependency-review,
+  gitleaks, CodeQL ×3; progress-freshness skipped hợp lệ), không lần đỏ, không review thread. W-03 = PR closeout này.
+- DoC: (1) F-R01 có test đỏ-trước/xanh-sau trong `scripts/test-copy-framework.sh` (bash + pwsh) và vitest drop-in 38/38 trên
+  fixture đích sau sửa; (2) F-R02/F-R03 có cổng/test ở lại CI (docs-consistency mục 12 + negative; hooks-session mục 11–12);
+  (3) mọi PR CI xanh, squash, không bypass, full gate cục bộ trước mỗi commit; (4) FEATURE-MAP/CODEMAP/TRAPS/PROGRESS/
+  AUDIT-STATUS khớp main; mục không làm được ghi điều kiện. Quét lại: radar 99/100 (4 file > 400 dòng, đều có lý do/`DEBT:`),
+  sweep 🔴 0 🟡 0, không phát hiện Cao/Trung mới.
+- Nghiệm thu bởi phiên chính theo ủy quyền của chủ repo (2026-10-07), ngày 2026-10-09.
