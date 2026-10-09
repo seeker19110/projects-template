@@ -6,7 +6,13 @@
 # Chỉ đọc + ghi file cục bộ; không đổi gì trong repo. Fail-open (docs/CONVENTIONS.md §A).
 set -uo pipefail
 
-ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
+# ROOT = cây ĐANG làm việc (cwd của phiên — có thể là git worktree); CLAUDE_PROJECT_DIR chỉ là chỗ lùi về.
+# TRAPS 45 (tái phát 2026-10-09): phiên chạy trong worktree, CLAUDE_PROJECT_DIR vẫn trỏ checkout chính →
+# checkpoint chụp nhánh/diff của checkout chính, sau nén phiên mất dấu việc đang làm. Chốt chặn:
+# scripts/test-hooks-session.sh mục 8b. compact.log vẫn gộp về checkout chính (telemetry một chỗ).
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$ROOT" ] || ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
+LOG_ROOT="${CLAUDE_PROJECT_DIR:-$ROOT}"
 OUT="$ROOT/.claude/.compact-checkpoint"
 payload="$(cat 2>/dev/null || true)"
 trigger="$(printf '%s' "$payload" | jq -r '.trigger // .matcher // "unknown"' 2>/dev/null || echo unknown)"
@@ -24,6 +30,6 @@ trigger="$(printf '%s' "$payload" | jq -r '.trigger // .matcher // "unknown"' 2>
   fi
 } > "$OUT" 2>/dev/null || exit 0
 
-mkdir -p "$ROOT/.ai-telemetry" 2>/dev/null && printf '%s compact trigger=%s branch=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$trigger" "$(git -C "$ROOT" branch --show-current 2>/dev/null)" >> "$ROOT/.ai-telemetry/compact.log" 2>/dev/null || true
+mkdir -p "$LOG_ROOT/.ai-telemetry" 2>/dev/null && printf '%s compact trigger=%s branch=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$trigger" "$(git -C "$ROOT" branch --show-current 2>/dev/null)" >> "$LOG_ROOT/.ai-telemetry/compact.log" 2>/dev/null || true
 echo "[precompact-checkpoint] đã chụp trạng thái vào .claude/.compact-checkpoint — sau khi nén, đọc lại file này nếu mất dấu việc đang làm." >&2
 exit 0

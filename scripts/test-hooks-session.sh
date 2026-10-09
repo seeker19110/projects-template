@@ -143,11 +143,29 @@ echo "== 8. PreCompact: chụp checkpoint có nhánh + mục Đang làm, ghi com
 PC="$ROOT/.claude/hooks/precompact-checkpoint.sh"
 P3="$WORK/proj3"; mkdir -p "$P3/.claude"; git -C "$P3" init -q 2>/dev/null; git -C "$P3" switch -q -c feat/x 2>/dev/null || git -C "$P3" checkout -q -b feat/x
 printf '## Đang làm / chờ\n\n- DANG-LAM-CHECKPOINT\n\n## Bàn giao phiên\n\n- BAN-GIAO-CHECKPOINT\n' > "$P3/PROGRESS.md"
-printf '{"trigger":"auto"}' | CLAUDE_PROJECT_DIR="$P3" bash "$PC" 2>/dev/null; rc=$?
+# cwd = dự án giả (TRAPS 45: hook đọc cây ĐANG làm việc từ cwd, CLAUDE_PROJECT_DIR chỉ là chỗ lùi về)
+( cd "$P3" && printf '{"trigger":"auto"}' | CLAUDE_PROJECT_DIR="$P3" bash "$PC" 2>/dev/null ); rc=$?
 [ "$rc" -eq 0 ] && ok "hook thoát 0" || bad "hook thoát $rc"
 grep -q "Branch: feat/x" "$P3/.claude/.compact-checkpoint" && grep -q "DANG-LAM-CHECKPOINT" "$P3/.claude/.compact-checkpoint" && grep -q "BAN-GIAO-CHECKPOINT" "$P3/.claude/.compact-checkpoint" \
   && ok "checkpoint có nhánh + Đang làm + Bàn giao" || bad "checkpoint thiếu nội dung: $(head -c 300 "$P3/.claude/.compact-checkpoint" 2>/dev/null)"
 grep -q "trigger=auto" "$P3/.ai-telemetry/compact.log" && ok "compact.log ghi trigger" || bad "compact.log không ghi"
+
+echo "== 8b. PreCompact trong git worktree: chụp cây ĐANG làm việc, không phải checkout chính (TRAPS 45 tái phát 2026-10-09) =="
+# Phiên Claude Code chạy trong worktree: cwd = worktree, CLAUDE_PROJECT_DIR vẫn = checkout chính.
+# Đo thật 2026-10-09: checkpoint ghi nhánh + diff của checkout chính → sau nén, phiên mất dấu việc đang làm trong worktree.
+git -C "$P3" -c user.name=t -c user.email=t@t add -A >/dev/null 2>&1 && git -C "$P3" -c user.name=t -c user.email=t@t commit -qm "init" >/dev/null 2>&1
+P3WT="$WORK/proj3-wt"
+if git -C "$P3" worktree add -q -b feat/wt "$P3WT" >/dev/null 2>&1; then
+  mkdir -p "$P3WT/.claude"; printf 'x
+' > "$P3WT/WT-ONLY.txt"
+  ( cd "$P3WT" && printf '{"trigger":"manual"}' | CLAUDE_PROJECT_DIR="$P3" bash "$PC" 2>/dev/null ); rc=$?
+  [ "$rc" -eq 0 ] && ok "hook thoát 0 trong worktree" || bad "hook thoát $rc trong worktree"
+  grep -q "Branch: feat/wt" "$P3WT/.claude/.compact-checkpoint" 2>/dev/null && grep -q "WT-ONLY.txt" "$P3WT/.claude/.compact-checkpoint" 2>/dev/null     && ok "checkpoint nằm trong worktree, ghi đúng nhánh feat/wt + file chưa track của worktree"     || bad "checkpoint sai cây: $(head -c 200 "$P3WT/.claude/.compact-checkpoint" 2>/dev/null || echo '(không có file trong worktree)')"
+  grep -q "trigger=manual branch=feat/wt" "$P3/.ai-telemetry/compact.log" 2>/dev/null     && ok "compact.log gộp về checkout chính nhưng ghi đúng nhánh worktree" || bad "compact.log thiếu dòng nhánh feat/wt ở checkout chính"
+  git -C "$P3" worktree remove --force "$P3WT" >/dev/null 2>&1 || true
+else
+  bad "không tạo được git worktree tạm (môi trường thiếu git worktree?)"
+fi
 
 echo "== 9. UI detector chỉ chạy khi opt-in và chỉ nhận file UI tồn tại =="
 UI="$ROOT/.claude/hooks/ui-intelligence.sh"

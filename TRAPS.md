@@ -981,6 +981,16 @@ dự án giả, không phải cwd của test.
 
 *Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 15 (3 ca worktree) + `run_hook` đặt cwd = dự án.
 
+**Tái phát 2026-10-09 (đối chiếu compound-engineering-plugin, `docs/reports/2026-10-09-doi-chieu-compound-engineering.md`):**
+cùng khuôn ở `precompact-checkpoint.sh` — phiên chạy trong `.claude/worktrees/agent-*` (cwd = worktree,
+`CLAUDE_PROJECT_DIR` = checkout chính) → checkpoint trước nén ghi nhánh `fix/hooks-git-bypass` + diff của checkout chính thay
+vì của worktree; sau nén, phiên mất dấu việc đang làm. Đo bằng cách chạy hook với cwd = worktree thật. Bài học tổng quát:
+mục 15 chỉ chốt `pre-commit-gate.sh`; 7 hook còn lại vẫn lấy ROOT từ `CLAUDE_PROJECT_DIR` — hook nào ghi/đọc *trạng thái
+của cây đang làm việc* phải đi qua `git rev-parse --show-toplevel` trước. Sửa `precompact-checkpoint.sh` (checkpoint vào
+worktree, `compact.log` vẫn gộp về checkout chính); chốt chặn `scripts/test-hooks-session.sh` mục 8b (đỏ trước khi sửa: 2 ca).
+Các hook còn lại chưa đụng (session-resume/guide đọc PROGRESS + hồ sơ work — nội dung giống nhau giữa các cây; telemetry cố ý
+gộp về một chỗ) — xem lại khi một phiên worktree báo mất dấu qua các hook đó.
+
 ## 46. Chạy từng suite rồi chạy full gate làm kiểm thử Linux lặp toàn bộ
 
 *Ngày:* 2026-10-07, issue #198. CI gọi các suite bằng step riêng, sau đó gọi
