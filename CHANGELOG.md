@@ -11,6 +11,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-09, F-309b): `node_has_script` nhánh node — tên script đặt sau `--` (không còn bị node đọc như cờ:
+  `--require=x.js` từng chạy mã), `Object.hasOwn` thay `p.scripts[k]` (khoá kế thừa `toString` không còn là "script"),
+  bỏ BOM UTF-8 trước parse (khớp nhánh jq), không jq lẫn node → cảnh báo stderr thay vì false âm thầm. Phát hiện bởi
+  nghiệm thu agent `reviewer`/`security-reviewer` (TRAPS mục 56); 5 ca test đỏ-trước trong `test-dev-task.sh`.
 - Changed (2026-10-09, ADR-0011): trần subagent đang chạy trong toàn cây 3 → 5 theo chỉ thị chủ repo; coordinator còn bốn
   slot; điều kiện song song (độc lập, worktree riêng) và trần WIP 3 PR không đổi. Cổng `tests/test_adaptive_process.py`.
 - Fixed (2026-10-09, F-309): `scripts/_stack-detect.sh` `node_has_script` khi KHÔNG có jq đọc `package.json` bằng `node -e`

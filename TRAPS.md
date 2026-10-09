@@ -1135,3 +1135,19 @@ tên ở chỗ khác thì sao?"; nhánh fallback của công cụ nào cũng c�
 (wrapper bash tới binary thật trong PATH tối thiểu — không symlink để Git Bash Windows chạy được).
 
 *Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 1 — ca "không jq" (khoá `test` ở dependencies → rỗng; `build` thật → `npm run build`).
+
+## 56. Tham số đặt ngay sau `node -e '…'` (không có `--`) là CỜ của interpreter, và `obj[k]` thấy cả khoá kế thừa
+
+*Ngày:* 2026-10-09 (F-309b; lộ ra khi nghiệm thu agent `reviewer` + `security-reviewer` trên chính diff #229 — sửa F-309 mang
+theo hai lỗi mới). `node -e '…' "$1"` với `$1 = --version` in phiên bản và trả 0 (dương tính giả); `--require=x.js` CHẠY MÃ.
+Caller hiện chỉ truyền 5 tên cố định nên chưa khai thác được, nhưng hàm nhận tham số thì bất biến "tham số là dữ liệu" phải
+nằm ở hàm, không ở caller. Cùng dòng: `p.scripts[k]` với `k = toString` → "có script" vì tra cả `Object.prototype`.
+Thêm F1 của reviewer: không jq lẫn node (Bun/Deno thuần) → `node` exit 127 bị `2>/dev/null` nuốt → false âm thầm (khuôn T4).
+
+*Cách rà:* mọi chỗ interpreter nhận `-e/-c` rồi tham số động → phải có `--` (node, python `-c` không cần nhưng `-` đầu vẫn
+nguy hiểm với argparse) hoặc đưa qua biến môi trường; mọi tra khoá động trên object JS → `Object.hasOwn`; mọi nhánh fallback
+`else` gọi công cụ thứ hai → thêm `elif command -v` và nhánh cuối báo ra stderr. Nghiệm thu agent bằng diff THẬT vừa merge
+là cách rẻ để bắt lỗi do chính mình vừa gây ra.
+
+*Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 1 — ba ca F-309b (`--version` → rc≠0 & stdout rỗng; `toString` → không có;
+không jq+node → stderr "jq lẫn node") + ca BOM (reviewer F2) + ca khoá `config` khi có jq.
