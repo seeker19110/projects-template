@@ -10,9 +10,9 @@ Yêu cầu: chủ repo "tiếp tục cho đến khi xong đi" sau khi chu kỳ d
 |----|----|------|---------------------|-----|-----------|-----------------|
 | R-01 | radar | Tách `spec-compiler.py`/`telemetry-log.py` ra helper `_spec_contract_gen.py`/`_telemetry_report.py` | Output giống từng byte; ca test giữ + test tái xuất; ≤ 400 dòng | S | ✅ | #227 → `cde2eaa` |
 | R-02 | radar, 2 DEBT | Tách `test-check-scripts.sh` → `test-workflow-guards.sh`; `test_runtime_safety.py` → `_runtime_fixture.py` + `test_git_safety.py` | Ca test giữ nguyên (17 Python, 39 shell); CP-6/parity/manifest/FEATURE-MAP/CODEMAP nối; DEBT gỡ | S | ✅ | #228 → `949f09a` |
-| R-03 | FT-25, FT-50 (F-309), P-C12 | Sửa F-309 với test đỏ-trước; FT-25/FT-50 → ✅; dời benchmark sang `docs/reports/`; closeout | Test F-309 đỏ trước/xanh sau; FEATURE-MAP 0 ⚠️; docs-consistency xanh; radar 100/100 | S | ✅ | PR closeout (PR này) |
+| R-03 | FT-25, FT-50 (F-309), P-C12 | Sửa F-309 với test đỏ-trước; FT-25/FT-50 → ✅; dời benchmark sang `docs/reports/`; closeout | Test F-309 đỏ trước/xanh sau; cột Trạng thái FEATURE-MAP hết ⚠️; docs-consistency xanh; radar 100/100 | S | ✅ | #229 → `de8bf99` |
 
-Nhật ký hội tụ: sau R-03 — radar 100/100 (0 file mã > 400 dòng, 43/43 script có cổng), FEATURE-MAP 0 ❌ 0 ⚠️, sweep
+Nhật ký hội tụ: sau R-03 — radar 100/100 (0 file mã > 400 dòng, 43/43 script có cổng), cột Trạng thái FEATURE-MAP hết ⚠️/❌ (cột Test còn ❌ ở FT-13..20, FT-41: cần harness/tài khoản thật), sweep
 `--strict --no-deps` 🔴 0 🟡 0, docs-consistency 12/12. Giữ KHÔNG làm: P-B11 (lý do kỹ thuật); việc cần môi trường ngoài
 (hosted CI đích, pilot, benchmark model, harness ngoài Claude Code) chưa kiểm được ở phiên này.
 
@@ -26,7 +26,7 @@ Yêu cầu: chủ repo "hoàn thiện tiếp những phần còn lại" (2026-10
 |----|--------------|------|---------------------|-----------|-----|-----------|-----------------|
 | W-01 | F-R01 | Tách khối required checks chung cho đích (`gate`/`metadata`) khỏi bản kê job của repo khung (marker) trong `docs/ops/repository-settings.md`; `check-ci-policy.sh` đọc khối có marker; `test-copy-framework.sh` đối chiếu hai chiều khối đầu ↔ job thật của workflow phát kèm; TRAPS mục 54 | Test copy đỏ trước sửa, xanh sau; `check-ci-policy.sh` CP-1 vẫn bắt job thiếu; vitest drop-in xanh trên fixture đích | – | S | ✅ | #224 → `f166369`; vitest đích 38/38 sau sửa |
 | W-02 | F-R02, F-R03 | `check-docs-consistency.sh` mục 12 (mẫu mồ côi) + negative test; con trỏ tới 3 mẫu từ tài liệu phát sang đích; `test-hooks-session.sh` mục 11 (session-guide) và 12 (auto-format) | Mục 12 đỏ với 3 mẫu trước khi thêm con trỏ, xanh sau; ca negative đỏ; hook test xanh và negative bắt được hook rỗng | – | S | ✅ | #225 → `0e37c6e`; mục 12 đỏ 3 mẫu → xanh; 39 ca test-check-scripts |
-| W-03 | F-R04 | Closeout: FEATURE-MAP/CODEMAP hàng 54/AUDIT-STATUS/PROGRESS/report/work → done | Khớp main thật; docs-consistency + progress-freshness xanh | W-01, W-02 | S | ✅ | PR closeout (PR này) |
+| W-03 | F-R04 | Closeout: FEATURE-MAP/CODEMAP hàng 54/AUDIT-STATUS/PROGRESS/report/work → done | Khớp main thật; docs-consistency + progress-freshness xanh | W-01, W-02 | S | ✅ | #229 → `de8bf99` |
 
 Nhật ký hội tụ: 2026-10-09 sau W-02 — radar 99/100 (4 file mã > 400 dòng, thêm `scripts/test-check-scripts.sh` 417 vì hai ca
 mới; ghi `DEBT:` kèm điều kiện), sweep `--strict --no-deps` 🔴 0 🟡 0, docs-consistency 12/12, không phát hiện Cao/Trung mới.

@@ -27,7 +27,7 @@
 | Thước | Trước | Sau |
 |---|---|---|
 | Radar | 99/100, 4 file > 400 dòng | **100/100, 0 file > 400 dòng**; độ phủ cổng 43/43 |
-| FEATURE-MAP ⚠️ | 2 (FT-25, FT-50) | **0** (không ❌, không ⚠️) |
+| FEATURE-MAP cột Trạng thái ⚠️ | 2 (FT-25, FT-50) | **0**. Cột *Test hiện có* vẫn còn ❌ "không có" ở FT-13..20 (8 agent định nghĩa — test thật là chạy phiên subagent) và FT-41 (case-study bước 6–8 cần tài khoản thật), ⚠️ ở FT-01 và mục 5 (chưa chạy `/completion` trên dự án thật): đều thuộc "cần môi trường ngoài", ghi ở Giới hạn |
 | Sweep `--strict --no-deps` | 🔴 0 🟡 0 (2 DEBT có điều kiện) | 🔴 0 🟡 0 (DEBT còn lại: `maintenance-sweep.sh:156`, có điều kiện) |
 | Tài liệu nội bộ trong `docs/framework/` | 1 | 0 |
 
@@ -38,4 +38,5 @@
   phải điều kiện chờ. Mở lại chỉ khi có parser thứ ba cùng ngữ nghĩa.
 - Việc cần môi trường ngoài phiên này (không thể xác minh ở đây, không được coi là xong): hosted CI của một repo đích thật,
   pilot sản phẩm, benchmark model, phiên thật Codex/Gemini/OpenCode/Cursor/Copilot. Mở khi chủ repo cấp môi trường.
+- FEATURE-MAP cột Test: FT-13..20 ❌ (agent `coordinator`/worker/`reviewer`/`lookup`/`version-check` chỉ kiểm được bằng phiên subagent thật — `test-telemetry-and-dispatch.sh` kiểm CLI dispatcher, không kiểm hành vi agent), FT-41 ❌ (bước 6–8 cần tài khoản thật), FT-01/mục 5 ⚠️ (chưa chạy trên dự án thật). Không có cách kiểm trong phiên này; không được coi là xong.
 - Số đo radar/sweep là của chính repo khung; không chứng minh dự án dẫn xuất không lỗi.

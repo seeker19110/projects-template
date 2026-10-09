@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4–5 (Build/Verify). Đợt finishing 2026-10-09 COMPLETE: R-01 #227 (tách engine Python ra helper), R-02 #228 (tách hai suite test; radar 100/100, 0 file > 400 dòng), R-03 PR closeout (F-309 sửa có test đỏ-trước, FEATURE-MAP 0 ⚠️, benchmark dời `docs/reports/`). Chu kỳ hoàn thiện phần còn lại 2026-10-09 COMPLETE: W-01 #224 (khối required checks phát cho đích khớp `ci-target.yml`; vitest drop-in xanh trên fixture đích), W-02 #225 (docs-consistency mục 12 mẫu mồ côi; test hook session-guide/auto-format). Chu kỳ tối ưu quy trình 2026-10-08 COMPLETE: O-0..O-4a #218, O-4b #219, O-5 #221 (dời dò stack sang `_stack-detect.sh`, tài liệu lặp → con trỏ, CLAUDE.md −6,9 KB), O-6 #222 (một manifest cho hai script copy; P-B11/P-C12 quyết không làm kèm điều kiện xem lại). Chu kỳ hoàn thiện (W-01 #216, W-02 #217) COMPLETE, goal `docs/goals/2026-10-08-framework-completion.md` đã đóng.
+- Giai đoạn: GĐ 4–5 (Build/Verify). Đợt finishing 2026-10-09 COMPLETE: R-01 #227 (tách engine Python ra helper), R-02 #228 (tách hai suite test; radar 100/100, 0 file > 400 dòng), R-03 #229 (F-309 sửa có test đỏ-trước, cột Trạng thái FEATURE-MAP hết ⚠️, benchmark dời `docs/reports/`). Chu kỳ hoàn thiện phần còn lại 2026-10-09 COMPLETE: W-01 #224 (khối required checks phát cho đích khớp `ci-target.yml`; vitest drop-in xanh trên fixture đích), W-02 #225 (docs-consistency mục 12 mẫu mồ côi; test hook session-guide/auto-format). Chu kỳ tối ưu quy trình 2026-10-08 COMPLETE: O-0..O-4a #218, O-4b #219, O-5 #221 (dời dò stack sang `_stack-detect.sh`, tài liệu lặp → con trỏ, CLAUDE.md −6,9 KB), O-6 #222 (một manifest cho hai script copy; P-B11/P-C12 quyết không làm kèm điều kiện xem lại). Chu kỳ hoàn thiện (W-01 #216, W-02 #217) COMPLETE, goal `docs/goals/2026-10-08-framework-completion.md` đã đóng.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `949f09a` (`origin/main`, sau PR #228).
+- Default-branch SHA đã đối chiếu: `de8bf99` (`origin/main`, sau PR #229).
 - Ngày cập nhật: 2026-10-09
 
 ## Goal đã nghiệm thu
@@ -19,7 +19,7 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 ## Đang làm / chờ
 
 **Không có hồ sơ đang mở.** Đợt finishing 2026-10-09 COMPLETE: `docs/work/2026-10-09-finishing/done.md` (R-01 #227, R-02 #228,
-R-03 PR closeout); báo cáo `docs/reports/2026-10-09-finishing.md`. Chu kỳ hoàn thiện 2026-10-09 COMPLETE: `docs/work/2026-10-09-completion-remaining/done.md`
+R-03 #229); báo cáo `docs/reports/2026-10-09-finishing.md`. Chu kỳ hoàn thiện 2026-10-09 COMPLETE: `docs/work/2026-10-09-completion-remaining/done.md`
 (W-01 #224, W-02 #225); báo cáo `docs/reports/2026-10-09-completion-remaining.md`; kế hoạch/DoC ở `docs/ops/COMPLETION-PLAN.md`.
 
 Chu kỳ tối ưu quy trình 2026-10-08 COMPLETE: O-0..O-4a
@@ -89,7 +89,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Đợt finishing 2026-10-09 đã đóng: radar 100/100 (0 file mã > 400 dòng), FEATURE-MAP 0 ❌ 0 ⚠️, P-C12 xong (benchmark ở
+Đợt finishing 2026-10-09 đã đóng: radar 100/100 (0 file mã > 400 dòng), cột Trạng thái FEATURE-MAP hết ⚠️/❌ (cột Test còn ❌ "không có" ở FT-13..20 — agent chỉ kiểm được bằng phiên subagent thật — và FT-41 cần tài khoản thật), P-C12 xong (benchmark ở
 `docs/reports/2026-10-07-lean-delivery-benchmark.md`). Repo không còn mục nào tự đánh dấu "phải làm" kiểm được ở đây. Việc còn lại
 KHÔNG làm được ở phiên này (cần repo đích/tài khoản/harness thật): hosted CI của một repo đích, pilot sản phẩm, benchmark model,
 phiên thật Codex/Gemini/OpenCode/Cursor/Copilot — mở khi chủ repo cấp môi trường. P-B11 giữ không làm (lý do kỹ thuật).
