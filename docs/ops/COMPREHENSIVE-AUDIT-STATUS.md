@@ -1,5 +1,22 @@
 # Trạng thái audit hiện hành của repo khung — 2026-10-09
 
+## Vòng hoàn thiện trên dự án đích thật + nghiệm thu agent 2026-10-09 (mới nhất)
+
+Base `28f1e77` → `72afea6`. Hai đợt chạy **công cụ và agent thật**, không chỉ đọc tài liệu:
+- **Nghiệm thu 11 agent `.claude/agents/`** bằng phiên subagent thật (3 đợt ≤ 5 song song, ADR-0011 nâng trần 3→5):
+  F-309b sửa có test đỏ-trước (#232); phát hiện Cao mức kiến trúc: subagent Claude Code không có tool `Agent` → `coordinator`
+  chỉ chạy khi phiên chính đóng vai Tầng 2 (ghi `orchestration-3-tier.md`, `coordinator.md`; FT-13 cột Test ⚠️ có chủ ý).
+  Chi tiết: `docs/reports/2026-10-09-agent-acceptance.md`.
+- **`/completion` Pha 0→4 trên một dự án đích Node/vitest thật** (fixture, không phải sản phẩm production): 4 auditor song song
+  → Cao 2 · Trung 9 · Thấp 6 ở đích → W-1/W-2 TDD → re-audit **Cao 0 · Trung 0 · Thấp 4 ghi nhận**. Hai lỗi của KHUNG lộ ra và đã
+  sửa: F-T01 drop-in vitest bị đích gom (TRAPS 57), S-05 `ci-target.yml` không cài dependency (#234). Squash #234 lọt tiêu đề
+  commit 90 ký tự → cổng `metadata` đo cả commit subject (TRAPS 58, #235). Chi tiết: `docs/reports/2026-10-09-target-completion.md`.
+- Dọn radar: `test-dev-task.sh` 430 dòng → hai suite + lib chung, 119 ca giữ nguyên (#236).
+
+Trạng thái sau `72afea6`: radar không còn "Việc cần làm"; sweep 🔴 0 · 🟡 0; 0 issue mở, 0 PR mở; FEATURE-MAP Luồng chính 1–5 ✅
+(5 có giới hạn fixture); cột Test còn FT-13 ⚠️ (giới hạn harness) và FT-41 ❌ (bước 6–8 cần tài khoản thật). **Chưa kiểm được ở
+đây:** hosted CI trên repo đích thật, pilot người dùng thật, model benchmark, phiên Hermes/Gemini/Cursor/Copilot thật.
+
 ## Đợt finishing 2026-10-09 (sau chu kỳ dưới)
 
 Base `ac911e3`. Không audit mới; đưa mọi mục repo còn tự đánh dấu tới kết cục: radar 4 file > 400 dòng → 0 (#227, #228),

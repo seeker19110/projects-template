@@ -20,3 +20,4 @@
 ## Nghiệm thu cuối
 
 - `check-ci-policy.sh`, `check-docs-consistency.sh`, `check-progress-freshness.sh`, `test-check-scripts.sh` xanh; radar không còn "Việc cần làm"; PR qua cổng CI.
+- Merge: #236 → `72afea6`; checkpoint PROGRESS/COMPREHENSIVE-AUDIT-STATUS đi PR tài liệu ngay sau (§8 bước 5).
