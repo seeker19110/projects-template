@@ -11,6 +11,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Added (2026-10-10, đối chiếu nguồn ngoài): `docs/reports/2026-10-10-doi-chieu-ralph.md` — đối chiếu `snarktank/ralph` theo ba cột
+  (`adopt-from-outside.md`): 25 hạng mục → lấy 0 (ralph là tập con của khung); vòng lặp ngoài không giám sát "chưa cần" lần 3 kèm
+  điều kiện xem lại + câu hỏi chờ chủ repo; bản đồ từ vựng ralph → khung cho dự án đích (#253).
+
 - Changed (2026-10-09, radar): tách `scripts/test-dev-task.sh` (430 dòng > 400) thành `test-dev-task.sh` (resolver + strict gate)
   và `test-dev-task-evidence.sh` (LD-03 evidence, LD-04 review-check) với helper chung `scripts/_dev-task-test-lib.sh`; 119 ca
   giữ nguyên (66 + 53), CI Linux/Windows gọi cả hai; radar không còn "Việc cần làm".
