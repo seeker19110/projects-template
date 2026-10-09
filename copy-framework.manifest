@@ -1,0 +1,107 @@
+# copy-framework.manifest — MỘT nguồn danh sách file khung phát sang dự án đích, đọc bởi cả
+# copy-framework.sh (manifest_section) lẫn copy-framework.ps1 (Get-ManifestSection).
+# Trước 2026-10-08 hai script giữ hai danh sách ≈ 45 mục viết tay song song (khuôn TRAPS.md mục 19).
+# Cú pháp: mục `[tên]`; mỗi dòng một đường dẫn (tương đối gốc repo khung); mục [dropins] cho phép
+# cột 2 = file nguồn khác tên đích; dòng trống và dòng bắt đầu bằng # bị bỏ qua. KHÔNG chú thích cuối dòng.
+# Thư mục copy thẳng (docs/framework, docs/ops lọc *-PLAN/LOG/STATUS, .claude/commands), settings.json,
+# PROGRESS.md từ mẫu và FRAMEWORK-VERSION là bước riêng trong script, không nằm ở đây.
+
+[docs]
+# pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
+docs/specs/README.md
+docs/goals/README.md
+docs/adr/0000-template.md
+
+[root]
+# Chỉ copy nếu đích chưa có; có rồi thì để bản .framework-new. LICENSE KHÔNG copy (mỗi dự án tự chọn).
+CLAUDE.md
+# AGENTS.md: chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...).
+AGENTS.md
+# File cầu nối sang AGENTS.md cho công cụ CHƯA tự đọc agents.md — không lặp nội dung, chỉ trỏ sang
+# (Codex CLI đọc thẳng AGENTS.md — không cần file cầu nối riêng).
+GEMINI.md
+.clinerules
+.windsurfrules
+.cursor/rules
+.github/copilot-instructions.md
+PROJECT.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+# CODE_OF_CONDUCT: bản Contributor Covenant chung, dự án đích chỉ cần đổi kênh liên hệ.
+# SUPPORT/GOVERNANCE KHÔNG copy bản của khung (nội dung riêng repo này) — dự án đích tự sinh
+# từ docs/framework/templates/SUPPORT.template.md và GOVERNANCE.template.md.
+CODE_OF_CONDUCT.md
+.editorconfig
+.nvmrc
+# .mcp.json: MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3); .example = mẫu server phổ biến.
+.mcp.json
+.mcp.json.example
+# mẫu permission cá nhân, không dùng chung nhóm
+.claude/settings.local.json.example
+
+[scripts]
+.claude/hooks
+.claude/agents
+# Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota).
+scripts/dev-task.sh
+# _stack-detect.sh: dev-task.sh + maintenance-sweep.sh source; _commit-guard.sh: mẫu bí mật + ngưỡng file lớn
+# cho pre-commit-gate + githook + sweep; githooks/pre-commit: hàng rào harness-agnostic (core.hooksPath).
+scripts/_stack-detect.sh
+scripts/_commit-guard.sh
+scripts/githooks/pre-commit
+scripts/usage-estimate.sh
+scripts/test-usage-estimate.sh
+scripts/subagent-dispatch.py
+# Helper dùng chung — PHẢI phát trước các script source/exec chúng, nếu không dự án đích nhận
+# script gãy (khuôn lỗi TRAPS.md mục 19: danh sách file viết tay không biết về file mới).
+scripts/_python-exec.sh
+scripts/_test-lib.sh
+scripts/subagent-dispatch.sh
+scripts/model-rates.json
+scripts/model-capability-tiers.json
+scripts/telemetry-log.py
+scripts/telemetry-log.sh
+scripts/spec-compiler.py
+scripts/spec-compiler.sh
+scripts/arch-health-radar.py
+scripts/arch-health-radar.sh
+scripts/test-telemetry-and-dispatch.sh
+# tests/: test_telemetry_integrity cần cho self-test telemetry đã phát; test_runtime_safety cần cho CI drop-in.
+tests/test_telemetry_integrity.py
+tests/test_runtime_safety.py
+scripts/test-next-gen-engines.sh
+# Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test (smoke ở dự án đích)
+scripts/maintenance-sweep.sh
+scripts/maintain-run.sh
+scripts/test-maintenance-sweep.sh
+scripts/test-maintain-run.sh
+scripts/maintain-cron.sh
+scripts/test-maintain-cron.sh
+# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
+scripts/test-hooks-gate.sh
+# ghim radon/coverage cho ci.yml dropin (Dependabot pip theo dõi)
+scripts/requirements-ci.txt
+# 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung)
+.claude/project-commands.example.sh
+.claude/usage-budget.example.sh
+
+[dropins]
+# Lớp 2 — đưa vào _framework-dropins/ (KHÔNG đè); cột 2 = nguồn khi khác tên đích.
+.github/workflows/ci.yml docs/framework/templates/ci-target.yml
+.github/workflows/stale-pr-alert.yml
+.github/workflows/maintenance.yml
+.github/workflows/secret-scan.yml
+.github/workflows/dependency-review.yml
+.github/workflows/pr-policy.yml
+.github/workflows/release.yml
+.github/workflows/codeql.yml
+.github/workflows/scorecard.yml
+.github/pull_request_template.md
+.github/dependabot.yml
+.github/ISSUE_TEMPLATE
+.github/CODEOWNERS
+.github/rulesets/main.json
+.gitignore
+.gitattributes
+scripts/ci-workflow-policy.test.ts

@@ -33,6 +33,24 @@ run_logged() {          # run_logged <mô tả> <lệnh...>
   return 1
 }
 
+manifest_paths() {      # manifest_paths <mục> → cột 1 của mục đó trong copy-framework.manifest (cùng cách đọc với hai script copy)
+  awk -v s="[$1]" '/^\[/{on=($0==s); next} on && NF && $1 !~ /^#/ {print $1}' "$REPO_ROOT/copy-framework.manifest"
+}
+check_manifest() {      # check_manifest <mô tả> <target>: mọi mục manifest có mặt ở nguồn VÀ ở đích (một nguồn cho .sh/.ps1 — O-6 P-B10)
+  local label="$1" target="$2" sec rel ok=1
+  for sec in docs root scripts dropins; do
+    while read -r rel; do
+      [ -e "$REPO_ROOT/$rel" ] || { echo "  FAIL [$label]: manifest [$sec] kê '$rel' nhưng repo khung không có file đó (copy sẽ bỏ qua im lặng)"; ok=0; }
+      if [ "$sec" = dropins ]; then
+        [ -e "$target/_framework-dropins/$rel" ] || { echo "  FAIL [$label]: manifest [dropins] '$rel' không có ở _framework-dropins/"; ok=0; }
+      else
+        [ -e "$target/$rel" ] || [ -e "$target/$rel.framework-new" ] || { echo "  FAIL [$label]: manifest [$sec] '$rel' không được copy sang đích"; ok=0; }
+      fi
+    done < <(manifest_paths "$sec")
+  done
+  [ "$ok" -eq 1 ] && echo "  ok [$label]: $(manifest_paths docs | wc -l)+$(manifest_paths root | wc -l)+$(manifest_paths scripts | wc -l) file + $(manifest_paths dropins | wc -l) drop-in theo đúng manifest" || fail=1
+}
+
 check_structure() {     # check_structure <mô tả> <target>
   local label="$1" target="$2" ok=1
   [ -f "$target/docs/framework/new-project-runbook.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/new-project-runbook.md"; ok=0; }
@@ -133,6 +151,7 @@ echo "== bash / đích trống =="
 targetA="$(new_target)"
 run_logged "bash / đích trống" bash "$REPO_ROOT/copy-framework.sh" "$targetA"
 check_structure "bash / đích trống" "$targetA"
+check_manifest "bash / đích trống" "$targetA"
 
 echo "== .gitignore drop-in: chặn biến thể môi trường, giữ tệp mẫu =="
 env_target="$(new_target)"
@@ -232,6 +251,7 @@ if command -v pwsh >/dev/null 2>&1; then
   targetD="$(new_target)"
   run_logged "pwsh / đích trống" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
   check_structure "pwsh / đích trống" "$targetD"
+  check_manifest "pwsh / đích trống" "$targetD"
 
   echo ""
   echo "== pwsh / đích đã có CLAUDE.md + .claude/settings.json + .claude/hooks (không được đè) =="

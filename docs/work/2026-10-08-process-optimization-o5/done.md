@@ -5,7 +5,7 @@
   "chủ repo yêu cầu" của O-5/O-6 trong `docs/reports/2026-10-08-process-optimization.md`. O-5 = P-B7 (dời `_cmd_*`
   sang `scripts/_stack-detect.sh`, sửa usage) + P-C8..P-C11 (rút tài liệu lặp về con trỏ, một chỉ mục đủ). Không đổi
   luật, không hạ cổng, không dependency; đo radar/byte trước–sau.
-- Trạng thái: Đang làm.
+- Trạng thái: Done (2026-10-08).
 - Chủ trì / writer: phiên chính; ba worker trong worktree riêng (A: P-B7 · B: P-C8 + P-C11 · C: P-C9), phiên chính tự
   làm P-C10 (CLAUDE.md §1/§11, AGENTS.md, pr-flow.md:9) vì đụng file luật.
 - Mức rủi ro / số PR: M refactor/docs không đổi hành vi; một PR (ràng buộc nhánh của phiên), nhiều commit theo đơn vị.
@@ -46,7 +46,7 @@
   TRAPS mới — không phải bug, là trùng lặp tài liệu đã biết (khuôn 19 chỉ về danh sách copy).
 - Số đo: radar 99 → 100 (kích thước 95.6 → 96.7); `CLAUDE.md` 41 182 → 34 292 byte, 157 → 142 dòng; `dev-task.sh`
   585 → 399; `02-ai-rules` 179 → 65; 6 lệnh 244 → 89 dòng; `pr-flow.md:9` 3 576 ký tự → 8 gạch đầu dòng.
-- Commit 1 `4d6be23` (refactor P-B7) qua full gate của hook; commit 2 tài liệu (P-C8..P-C11) — xem log.
+- Commit 1 `4d6be23` (refactor P-B7) và commit 2 `e0a1419` (tài liệu P-C8..P-C11) đều qua full gate của hook.
 
 ## Lần thử / blocker
 
@@ -56,4 +56,12 @@
 
 ## Bàn giao / bước tiếp theo
 
-- O-6 sau khi O-5 merge.
+- O-6 (P-B10) đi PR kế tiếp, hồ sơ `docs/work/2026-10-08-process-optimization-o6/working.md`.
+
+## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
+
+- PR #221 MERGED (squash) 2026-10-08T23:58Z → `origin/main` = `7ab88e6`. CI head e0a1419: 12 check xanh
+  (framework-lint Linux + Windows, copy-framework-smoke, docs-consistency, protection-guard, metadata, dependency-review,
+  gitleaks, CodeQL ×3; progress-freshness skipped hợp lệ), không lần đỏ nào, không review thread.
+- DoD: không đổi hành vi (`--print` byte-identical, 111 ✅ test-dev-task; mọi luật giữ bằng con trỏ, docs-consistency
+  11 mục OK, test chuỗi 11 OK); số đo trước–sau ghi ở mục trên; tài liệu (report, CODEMAP, hồ sơ) đi cùng PR.
