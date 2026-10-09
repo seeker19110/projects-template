@@ -54,7 +54,7 @@ Cao mới ở phần đã re-audit; nghiệm thu toàn chu kỳ chờ PR cuối 
 ## Re-audit 2026-10-07 (chu kỳ 2026-10-06 — Pha 3 xong)
 
 Base `e2b70bf`. 12 nhóm quét lại: Cao 0 · Trung 1 (F-N01 FEATURE-MAP thiếu engine, không có cổng đối chiếu) ·
-Thấp 6 · Thông tin 2. Sau xử lý: Cao 0 · Trung 0 · Thấp mở 0 (F-N05 đã ghi nhận theo quyết định giữ nhánh của chủ repo). Chi tiết ở `docs/reports/2026-10-06-framework-audit.md`, kế hoạch ở `docs/ops/COMPLETION-PLAN.md`.
+Thấp 6 · Thông tin 2. Sau xử lý: Cao 0 · Trung 0 · Thấp mở 0 (F-N05 ghi nhận theo quyết định giữ nhánh 2026-10-07; ĐÓNG 2026-10-09 khi chủ repo tự xoá 7 nhánh remote tồn đọng, remote chỉ còn `main`). Chi tiết ở `docs/reports/2026-10-06-framework-audit.md`, kế hoạch ở `docs/ops/COMPLETION-PLAN.md`.
 
 ## Re-audit — 2026-10-05 (chu kỳ đã đóng 2026-10-06)
 
