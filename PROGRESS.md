@@ -5,9 +5,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 4–5 (Build/Verify). Chu kỳ tối ưu quy trình 2026-10-08: O-0..O-4a đã merge ở #218 (sửa đệ quy gate, hook cứng hơn, gỡ trùng lặp, căn tài liệu); O-4b đã merge ở #219 (một nguồn guard bí mật/1 MB, `finish`/`declared_cmd` dùng chung, test telemetry trên bản tạm) — chu kỳ đóng; O-5/O-6 giữ kế hoạch kèm điều kiện xem lại. Chu kỳ hoàn thiện (W-01 #216, W-02 #217) COMPLETE, goal `docs/goals/2026-10-08-framework-completion.md` đã đóng.
+- Giai đoạn: GĐ 4–5 (Build/Verify). Chu kỳ tối ưu quy trình 2026-10-08: O-0..O-4a #218, O-4b #219, O-5 #221 (dời dò stack sang `_stack-detect.sh`, tài liệu lặp → con trỏ, CLAUDE.md −6,9 KB); O-6 (một manifest cho hai script copy; P-B11/P-C12 quyết không làm kèm điều kiện) đang ở PR kế. Chu kỳ hoàn thiện (W-01 #216, W-02 #217) COMPLETE, goal `docs/goals/2026-10-08-framework-completion.md` đã đóng.
 - Giai đoạn trước đó: snapshot trước PR #179 được giữ nguyên trong `docs/changelog/0002-2026-09-25-progress-before-runtime-safety.md` (chỉ là lịch sử).
-- Default-branch SHA đã đối chiếu: `0eeede6` (`origin/main`, sau PR #219).
+- Default-branch SHA đã đối chiếu: `7ab88e6` (`origin/main`, sau PR #221).
 - Ngày cập nhật: 2026-10-08
 
 ## Goal đã nghiệm thu
@@ -18,10 +18,10 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Không có hồ sơ đang mở.** Chu kỳ tối ưu quy trình 2026-10-08 COMPLETE: O-0..O-4a
-`docs/work/2026-10-08-process-optimization/done.md` (#218), O-4b
-`docs/work/2026-10-08-process-optimization-o4b/done.md` (#219); báo cáo
-`docs/reports/2026-10-08-process-optimization.md` (O-5/O-6 chưa làm, có điều kiện xem lại).
+**Hồ sơ đang mở:** `docs/work/2026-10-08-process-optimization-o6/working.md` (O-6, PR đang chờ merge; đóng
+bằng closeout nhỏ sau merge). Đã đóng: O-0..O-4a `docs/work/2026-10-08-process-optimization/done.md` (#218), O-4b
+`docs/work/2026-10-08-process-optimization-o4b/done.md` (#219), O-5 `docs/work/2026-10-08-process-optimization-o5/done.md`
+(#221); báo cáo `docs/reports/2026-10-08-process-optimization.md`.
 
 Chu kỳ FC-2026-10-08 COMPLETE: `docs/work/2026-10-08-framework-completion/done.md`
 (W-01 `…-format/done.md` #216, W-02 `…-wip/done.md` #217); báo cáo
@@ -85,7 +85,7 @@ code/cổng đã rà; đây không phải chứng nhận không có lỗi trên 
 
 ## Tiếp theo
 
-Chu kỳ tối ưu quy trình đã đóng. Mở chu kỳ mới (O-5: dời dò stack, rút tài liệu; O-6: copy manifest,
-gộp parser) chỉ khi chạm điều kiện xem lại trong report (thêm/bớt file khung, gate > 15 phút) hoặc chủ repo yêu cầu.
+Sau khi PR O-6 merge: đổi hồ sơ O-6 thành `done.md`, cập nhật SHA ở đây — chu kỳ tối ưu quy trình 2026-10-08 đóng
+hoàn toàn. Các hạng mục không làm (P-B11, P-C12) có điều kiện xem lại ghi trong report; không mở chu kỳ mới nếu chưa chạm.
 Goal LD-01..08 và FC-2026-10-08 giữ nguyên Complete. Pilot/hosted CI dự án đích/model
 benchmark thuộc phạm vi riêng và vẫn chưa được kiểm chứng.

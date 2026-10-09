@@ -99,7 +99,7 @@ Test phụ thuộc chữ: `test_adaptive_process.py` (chuỗi trong §3c/orchest
 | O-3 | docs S | P-C1..P-C7 (mâu thuẫn + tham chiếu chết), không đổi luật | độc lập O-2 (không chung file) | subagent (standard) |
 | O-4 | refactor S | P-A4 `_commit-guard.sh` + P-B2..P-B6, P-B9 dọn trùng/dead/tác dụng phụ | O-2 merge (chung hook/test) | subagent |
 | O-5 | refactor/docs M | P-B7 (dời dò stack), P-C8..P-C11 (rút tài liệu) | O-3, O-4 merge | **đã làm** (PR sau #220, xem mục O-5 dưới) |
-| O-6 | refactor M | P-B10, P-B11, P-C12 | O-5 | **chưa làm** — xem lại khi thêm/bớt file khung hoặc thời gian gate > 15 phút |
+| O-6 | refactor M | P-B10, P-B11, P-C12 | O-5 | **đã làm P-B10** (PR sau #221); P-B11/P-C12 quyết không làm, lý do + điều kiện xem lại ở mục O-6 dưới |
 
 **Approved for implementation — phiên chính duyệt theo ủy quyền của chủ repo ngày
 2026-10-07; ngày duyệt thực tế 2026-10-08.** Phạm vi duyệt: O-0..O-4 (S, không đổi hành vi
@@ -182,7 +182,7 @@ thực thi −46 dòng ròng ở scripts (+55/−101) sau khi đã cộng thêm 
 (test đỏ-trước và `_lib.sh` là chi phí cố ý cho hai lỗ hổng hàng rào); radar/complexity không đổi
 (CC cao nhất 43/45). Đo lại radar + thời gian gate ở O-5 khi dời khối dò stack.
 
-**O-5 — đã làm (nhánh sau #220, hồ sơ `docs/work/2026-10-08-process-optimization-o5/working.md`).**
+**O-5 — đã làm (#221 → `7ab88e6`; nhánh sau #220, hồ sơ `docs/work/2026-10-08-process-optimization-o5/done.md`).**
 Ba worker standard trong worktree riêng (A: P-B7 · B: P-C8 + P-C11 · C: P-C9), phiên chính review + `git apply`, tự làm
 P-C10 (file luật) và dời thêm `resolve_format_file`:
 - P-B7: `node_has_script`, `_node_aliases`, 13 `_cmd_*`, `detected_cmd`, `declared_format_file`/`resolve_format_file` dời
@@ -208,3 +208,19 @@ P-C10 (file luật) và dời thêm `resolve_format_file`:
 Kiểm chứng trên cây tích hợp: docs-consistency 11 mục OK, `test_adaptive_process` + `test_profile_quality_matrix` 11 OK,
 test-check-scripts OK, progress-freshness PF-1..4 OK, test-dev-task/maintenance-sweep/runtime_safety OK; full gate qua hook
 ở mỗi commit. TDD: ngoại lệ 2 (P-B7) và 3 (tài liệu).
+
+**O-6 — đã làm P-B10 (nhánh sau #221, hồ sơ `docs/work/2026-10-08-process-optimization-o6/working.md`).**
+- P-B10: `copy-framework.manifest` (4 mục `[docs]`/`[root]`/`[scripts]`/`[dropins]`, cột 2 = nguồn khác tên đích) là một
+  nguồn cho `copy-framework.sh` (`manifest_section`, awk) và `copy-framework.ps1` (`Get-ManifestSection`); các bước có
+  thứ tự/điều kiện riêng (thư mục copy thẳng, `settings.json`, `PROGRESS.md` từ mẫu, FRAMEWORK-VERSION) giữ trong script.
+  Hai script +43/−157 (kể cả test); manifest 107 dòng (phần lớn là chú thích chuyển nguyên từ hai script). Không đổi hành
+  vi: chạy bản cũ và mới vào đích trống → `diff -r` sạch (trừ FRAMEWORK-VERSION) cho cả Bash lẫn PowerShell, 162 file.
+  `test-copy-framework.sh` thêm `check_manifest` (mọi mục có ở nguồn VÀ ở đích, hai runner) — chặn mục gõ sai bị
+  `copy_if_absent` bỏ qua im lặng. TDD ngoại lệ 2.
+- P-B11 **không làm**: hai parser transcript khác ngữ nghĩa (delta theo mốc vs cửa sổ 5 h có trọng số/ngân sách), gộp
+  phải thêm module dùng chung vào hook + mọi danh sách copy/fixture (TRAPS 19) để tiết kiệm ~25 dòng; CP-6 cho thông báo
+  trỏ đúng file hơn `test_ci_suite_parity`; gate cục bộ ~3 phút < 15. Xem lại khi có parser thứ ba hoặc gate > 15 phút.
+- P-C12 **không làm**: chỉ `lean-delivery-benchmark.md` là nội bộ thuần; hai file kia được runbook Phần D (phát sang đích)
+  và contract gate tham chiếu. Xem lại khi có file nội bộ thứ hai → chuyển sang `docs/reports/`, không thêm nhánh loại trừ.
+Kết luận chu kỳ: O-0..O-6 xong (O-5/O-6 theo yêu cầu tiếp tục của chủ repo 2026-10-08); mọi hạng mục còn lại đều có điều kiện
+xem lại ghi tại chỗ.
