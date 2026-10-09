@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-auto-complete-run
 - Yêu cầu / outcome: chủ repo gõ `/auto-complete` không kèm mô tả → phiên chính chốt outcome từ ngữ cảnh: đưa repo khung (brownfield) tới Definition of Complete theo trạng thái đo thật hôm nay.
-- Trạng thái: Ready (chờ PR merge)
+- Trạng thái: Done
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: S; 1 PR (refactor không đổi hành vi + closeout tài liệu cùng PR)
 - Scope / non-goal: chỉ phát hiện đo được bằng engine thật; không mở tính năng mới; FT-41 (cần tài khoản thật) và FT-13 (giới hạn harness) ghi BLOCKED/chấp nhận có điều kiện, không tự bịa bằng chứng.
@@ -29,8 +29,8 @@ Bước 1 `/auto` (brownfield): đo hiện trạng → 1 PR → phiên chính t�
 
 ## Bàn giao / bước tiếp theo
 
-PR-1 refactor → gate → PR auto-merge → Pha 4 re-audit → DoC.
+Đã xong: PR #242.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-(chưa)
+DoD/DoC đạt: PR #242 MERGED (squash) 2026-10-09 → `main` 8517a16; required checks xanh trên head `94185ae`; radar 100/100 "Việc cần làm" rỗng. Nợ có chủ đích: FT-41 BLOCKED (cần tài khoản thật). Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.
