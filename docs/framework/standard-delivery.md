@@ -141,6 +141,17 @@ người dùng có thể giới hạn hoặc thu hồi ủy quyền cho công vi
    hiện có, ADR chỉ khi đúng tiêu chí. Subagent làm trong contract được giao;
    phiên chính review và tích hợp, không dùng ủy quyền để bỏ qua kiểm tra.
 
+**Thứ tự ưu tiên khi hai phương án đạt chất lượng xung đột nhau** (áp cho mọi quyết định tự duyệt,
+kể cả `/auto-complete`; đi từ trên xuống, dừng ở bậc đầu tiên phân thắng bại — không đánh đổi bậc trên lấy bậc dưới):
+
+1. **Đúng + bảo mật + không mất dữ liệu** — không bao giờ là món đổi; phương án nào hụt một trong ba thì loại.
+2. **Ít hơn**: code, nhánh logic, dependency, cấu hình, abstraction, bước vận hành, việc bảo trì (thang `CLAUDE.md` §3.4).
+3. **Kiểm được**: có bằng chứng máy (test đỏ-trước, gate, CI) rẻ hơn và rõ hơn.
+4. **Nhanh và rẻ**: thời gian hoàn thành, token, chi phí model — chỉ khi ba bậc trên hoà.
+
+Mỗi quyết định tự duyệt ghi **một dòng** vào `docs/work/<id>/working.md` mục "Quyết định và bằng chứng":
+*phương án chọn · phương án loại · bậc phân thắng bại*. Không có dòng ghi = chưa quyết định, không phải "hiển nhiên".
+
 **Cách áp dụng các cổng phê duyệt:** mọi chỉ dẫn "người dùng quyết", "dừng chờ duyệt",
 "xin xác nhận" trong tài liệu/lệnh của khung phải đọc cùng §3d. Khi quyết định đã được
 ủy quyền, phiên chính tự review rồi ghi **"Approved for implementation — phiên chính
