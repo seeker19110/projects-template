@@ -11,6 +11,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-09, vòng hoàn thiện trên dự án đích thật): `/completion` Pha 0→4 chạy trọn trên một dự án Node/vitest đích
+  (fixture) bằng agent thật — 4 auditor song song, W-1/W-2 TDD, re-audit Cao/Trung 0 (`docs/reports/2026-10-09-target-completion.md`);
+  FEATURE-MAP Luồng chính 5 và FT-01 → ✅ có giới hạn. `pr-policy.yml` đo độ dài ≤ 72 cả tiêu đề COMMIT (squash PR một commit lấy
+  tiêu đề commit — #234 lọt 90 ký tự lên `main`; TRAPS mục 58).
 - Fixed (2026-10-09, F-T01/S-05 — chạy khung trên dự án đích thật): drop-in `ci-workflow-policy.test.ts` tự bỏ qua khi còn nằm trong
   `_framework-dropins/` (vitest của đích không còn đỏ ngay sau copy); `ci-target.yml` cài dependency có điều kiện (`npm ci` khi có
   `package-lock.json`, `pip install -r requirements.txt` khi có file) trước `dev-task.sh gate`. TRAPS mục 57.

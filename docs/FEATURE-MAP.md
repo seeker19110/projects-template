@@ -12,7 +12,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ⚠️ chỉ kiểm tồn tại + khớp CLAUDE.md (`check-docs-consistency.sh` §3) |
+| FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
@@ -123,4 +123,4 @@
 2. **Cổng chặn commit/merge đỏ** (FT-04, FT-52, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; smoke Node/Python bắt phép cộng sai ở `test` rồi xanh sau sửa. Stack khác cần bằng chứng riêng.
 3. **Tài liệu ↔ code khung không lệch** (FT-26, FT-27): ✅ có test 2 chiều + negative test.
 4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): `test-telemetry-and-dispatch.sh` kiểm CLI dispatcher, payload và định tuyến; ✅ có giới hạn: PLAN.md 2 đơn vị đã chạy đầu-cuối bằng agent thật (worker ∥ → reviewer/tester → merge) ngày 2026-10-09 với **phiên chính đóng vai Tầng 2**; `coordinator` chạy như subagent KHÔNG dispatch được trong Claude Code (không có tool `Agent` cho subagent) — xem `docs/reports/2026-10-09-agent-acceptance.md`. Vẫn là nghiệm thu thủ công, không phải test tự động.
-5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung nhưng **chưa chạy trên dự án đích thật**.
+5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ✅ có giới hạn — đã chạy trọn Pha 0→4 trên một dự án đích Node/vitest thật (fixture do phiên chính viết, không phải sản phẩm production; `docs/reports/2026-10-09-target-completion.md`); chưa chạy hosted CI trên repo đích thật.

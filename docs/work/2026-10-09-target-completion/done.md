@@ -6,7 +6,7 @@
   thật" (FT-08/FT-09) và FT-01 cột Test (`/consult` chỉ kiểm tồn tại). Outcome: chạy đủ Pha 0→4 của
   `docs/framework/project-completion.md` trên một dự án Node/vitest đích (copy khung bằng `copy-framework.sh`), audit bằng
   agent thật, sửa lỗi lộ ra theo TDD, re-audit hội tụ; ghi báo cáo docs/reports/2026-10-09-target-completion.md (tạo ở T-03).
-- Trạng thái: Active
+- Trạng thái: Done
 - Chủ trì / writer: phiên chính (Tầng 1 kiêm Tầng 2 — theo phát hiện 2026-10-09); auditor/worker là subagent (≤ 5 song song)
 - Mức rủi ro / số PR: S cho repo khung (chỉ tài liệu + FEATURE-MAP); dự án đích là sandbox ngoài repo (git cục bộ)
 - Scope / non-goal: dự án đích là fixture do phiên chính viết (`invoice-calc`, 4 module, 4 test) — KHÔNG phải sản phẩm
@@ -29,12 +29,14 @@
 
 ## Lần thử / blocker
 
-(chưa có)
+- 3 worker bị hook `pre-commit-gate.sh` của phiên khung chặn khi commit trong worktree đích (gate sai repo, 2 lần đỏ giả do suite chạy đồng thời); không bypass, phiên chính commit thay sau khi xác nhận cổng đích xanh. Ghi trong báo cáo.
+- #234: cổng `metadata` đỏ vì tiêu đề PR 75 ký tự → rút còn 66; squash vẫn lấy tiêu đề commit 90 ký tự → TRAPS 58 + cổng mới ở T-03.
 
 ## Bàn giao / bước tiếp theo
 
-Đang chạy T-01.
+Đã xong T-01..T-03. Ngoài tầm: hosted CI trên repo đích thật, pilot, model benchmark, harness khác.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-(chưa)
+- Đích `9bb2127`: 76 test pass ở TZ=UTC và TZ=America/New_York; `dev-task.sh gate` PASS, evidence VERIFIED; re-audit Cao 0 · Trung 0 · Thấp 4 ghi nhận.
+- Khung: #234 → `db9bda6` (F-T01/S-05); PR closeout T-03 (báo cáo `docs/reports/2026-10-09-target-completion.md`, FEATURE-MAP Luồng chính 5 + FT-01 ✅ có giới hạn, TRAPS 58).
