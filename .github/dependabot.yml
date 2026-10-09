@@ -1,30 +1,43 @@
 version: 2
+
+# MỘT PR bot nâng phiên bản cho mọi hệ sinh thái (F-41a, FT-41 2026-10-09): cổng WIP ở pr-policy.yml đếm
+# cả PR bot với trần 3. Trước đây 5+5+3 PR bot lấp trần ngay lần chạy đầu ở dự án đích → mọi PR của người
+# đỏ required check `metadata`. Gộp một nhóm → tối đa 1 PR bot, chừa ≥ 2 chỗ cho người
+# (test: tests/test_runtime_safety.py). PR cập nhật BẢO MẬT không chịu giới hạn này (GitHub tách riêng).
+# Bản major bị bỏ qua: đi qua /deps-upgrade (đọc changelog, sửa điểm chạm) — PR bot major thường đỏ CI
+# và giữ chỗ WIP mãi.
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: weekly
+
 updates:
   # Phụ thuộc của DỰ ÁN THẬT (kích hoạt khi có package.json). Repo khung chưa có
   # package.json nên mục này im lặng cho tới lúc đó — giữ sẵn để khỏi phải nhớ thêm.
   - package-ecosystem: npm
     directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
-  # Phụ thuộc của CHÍNH bộ khung: action trong .github/workflows/ (đã ghim full SHA — cổng CP-2);
-  # Dependabot mở PR nâng SHA + comment tag để bắt bản vá bảo mật.
+  # Action trong .github/workflows/ (đã ghim full SHA — cổng CP-2); Dependabot nâng SHA + comment tag.
+  # Cùng một nhóm nên init/analyze/upload-sarif của CodeQL luôn lên version cùng nhau.
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    # init/analyze/upload-sarif là các bước của cùng một CodeQL run: lệch version làm CI đỏ.
-    groups:
-      codeql-action:
-        patterns:
-          - "github/codeql-action/*"
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Công cụ Python của cổng CI (radon, coverage) ghim ở scripts/requirements-ci.txt —
   # trước đây ghim inline trong ci.yml nên không hệ sinh thái nào theo dõi (audit 2026-09-23, T8).
   - package-ecosystem: pip
     directory: /scripts
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 3
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
