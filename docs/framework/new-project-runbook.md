@@ -116,6 +116,7 @@ dự-án/
 - [ ] `e2e/smoke.spec.ts`: sửa cho khớp luồng chính thật.
 - [ ] `.github/pull_request_template.md` + `ISSUE_TEMPLATE/` + `CHANGELOG.md` đã ở đúng chỗ.
 - [ ] Thư mục `docs/adr/` sẵn sàng (viết ADR khi có quyết định kỹ thuật lớn).
+- [ ] `SUPPORT.md` + `GOVERNANCE.md` của dự án đích: tự sinh từ `docs/framework/templates/SUPPORT.template.md` và `docs/framework/templates/GOVERNANCE.template.md` (manifest cố ý không copy bản của khung).
 
 ### Bước 6 — Bật branch protection (GitHub UI)
 - [ ] Settings → Branches → rule cho `main`: yêu cầu **Pull request**, yêu cầu **status checks (job CI) xanh**, yêu cầu **nhánh cập nhật** trước khi merge.

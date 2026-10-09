@@ -63,7 +63,7 @@ một quy trình song song bằng cảm tính.
   xử lý bằng `/maintain` hoặc `scripts/maintain-run.sh` với CLI subscription cục bộ của mọi nhà cung cấp AI).
 - `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md` (Quy tắc ứng xử — Contributor Covenant v2.1 tiếng Việt),
-  `SUPPORT.md` + `GOVERNANCE.md` (kênh hỗ trợ + quản trị dự án).
+  `SUPPORT.md` + `GOVERNANCE.md` (kênh hỗ trợ + quản trị dự án; dự án đích tự sinh từ `docs/framework/templates/SUPPORT.template.md` và `docs/framework/templates/GOVERNANCE.template.md`).
 - `docs/framework/standard-delivery.md` — **nguồn vào chuẩn duy nhất**: artifact, Research/Spec gate,
   AI Goal Loop, DoR/DoD/Project Complete và stop conditions.
 - `docs/framework/templates/GOAL.template.md` + `FEATURE-SPEC.template.md` — checkpoint nhiều PR và

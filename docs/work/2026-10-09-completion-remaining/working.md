@@ -11,7 +11,7 @@
   ngoài Claude Code (không có tài khoản/máy ở phiên này); không đổi ADR-0003 (bản kê hai chiều giữ nguyên).
 - Spec / goal / issue: kế hoạch + DoC ở `docs/ops/COMPLETION-PLAN.md` (chu kỳ 2026-10-09); báo cáo
   `docs/reports/2026-10-09-completion-remaining.md`
-- Nhánh / base SHA / thời điểm reconcile: `claude/relaxed-knuth-f1ejlq` = `origin/main` `580fc91` (2026-10-09, sau #223)
+- Nhánh / base SHA / thời điểm reconcile: `claude/relaxed-knuth-f1ejlq` đặt lại từ `origin/main` `f166369` (2026-10-09, sau #224)
 
 ## Kế hoạch và phân công
 
@@ -44,8 +44,15 @@ W-01 ∥ W-02 (worker, worktree riêng, file không chung) → phiên chính rev
 
 ## Lần thử / blocker
 
-(chưa có)
+- W-01: `test-copy-framework.sh` đỏ-trước 12 FAIL (6 job × bash/pwsh) với tài liệu cũ, xanh sau sửa; vitest drop-in trên
+  fixture đích dựng lại từ cây đã sửa: 38/38 (hai bản file test, 19 ca mỗi bản); cây khung 25/25. Full gate qua hook
+  pre-commit exit 0. PR #224 MERGED → `main` `f166369` (13 check xanh).
+- W-02: mục 12 đỏ-trước đúng 3 mẫu (DATA-GOVERNANCE, GOVERNANCE, SUPPORT) rồi xanh sau khi thêm con trỏ; patch worker
+  áp sạch trừ hàng CODEMAP (ngữ cảnh đụng W-01) → sửa tay cùng nội dung.
 
 ## Bàn giao / bước tiếp theo
 
-Viết brief cho 2 worker (W-01, W-02); sau khi nhận patch: review, áp, chạy `scripts/dev-task.sh gate`, PR.
+W-02 đang ở PR (sau commit này). Sau khi merge: đặt lại nhánh từ `origin/main`, W-03 closeout — chèn mục chu kỳ 2026-10-09
+vào `docs/ops/COMPLETION-PLAN.md` và `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` (nháp ở scratchpad `w03/`), điền Pha 3/4 của
+báo cáo, sửa CODEMAP hàng "Đối chiếu một repo/khung/skill NGOÀI" (`CLAUDE.md` §11 → §1), cập nhật `PROGRESS.md`, đổi hồ sơ
+này thành `done.md` kèm SHA.

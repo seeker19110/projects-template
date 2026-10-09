@@ -221,4 +221,52 @@ printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$P6" bash "$P6/.cl
   && ok "usage-estimate.sh lỗi → exit 0 + cảnh báo stderr có exit code" \
   || bad "usage-estimate.sh lỗi → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[usage-guard] usage-estimate.sh lỗi (exit 4)')"
 
-finish "hook session (telemetry-record, session-resume) ghi số thật, nạp gọn, không ghi trùng."
+# ── 11. session-guide: gợi ý theo trạng thái thật ───────────────────────────────
+echo "== 11. session-guide: gợi ý theo trạng thái thật (có GĐ / chưa có tiến độ / không phải dự án khung) =="
+# guide_ok <hook> <proj>: 0 nếu hook thoát 0 và systemMessage chứa GĐ + model thật (phép kiểm (a)).
+guide_ok() {
+  local out
+  out="$(printf '{"model":"claude-test-model"}' | CLAUDE_PROJECT_DIR="$2" bash "$1" 2>/dev/null)" || return 1
+  printf '%s' "$out" | jq -e '.systemMessage' >/dev/null 2>&1 || return 1
+  printf '%s' "$out" | jq -r '.systemMessage' | grep -qF 'GĐ 3 — thử nghiệm' || return 1
+  printf '%s' "$out" | jq -r '.systemMessage' | grep -qF 'Model phiên: claude-test-model' || return 1
+}
+G1="$WORK/guide-phase"; mkdir -p "$G1/docs/framework" "$G1/.claude/hooks"
+printf '# Tiến độ\n\n## Giai đoạn hiện tại\n- Giai đoạn: GĐ 3 — thử nghiệm\n\n## Khác\n' > "$G1/PROGRESS.md"
+cp "$ROOT/.claude/hooks/session-guide.sh" "$G1/.claude/hooks/"
+guide_ok "$G1/.claude/hooks/session-guide.sh" "$G1" && ok "session-guide: có GĐ + model trong systemMessage" \
+  || bad "session-guide: không hiện 'GĐ 3 — thử nghiệm' + 'Model phiên: claude-test-model'"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$WORK/guide-empty.sh"
+guide_ok "$WORK/guide-empty.sh" "$G1" && bad "negative: hook rỗng mà phép kiểm (a) vẫn xanh (xanh giả)" \
+  || ok "negative: hook rỗng bị phép kiểm session-guide bắt"
+
+G2="$WORK/guide-nostate"; mkdir -p "$G2/docs/framework"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$G2" bash "$ROOT/.claude/hooks/session-guide.sh" 2>/dev/null)"; rc=$?
+[ "$rc" -eq 0 ] && printf '%s' "$out" | jq -r '.systemMessage' | grep -qF 'Chưa có tiến độ' \
+  && ok "session-guide: chưa có tiến độ → gợi ý bắt đầu" || bad "session-guide: chưa có tiến độ → rc=$rc, out='$(printf '%s' "$out" | head -c 200)'"
+
+G3="$WORK/guide-foreign"; mkdir -p "$G3"
+out="$(printf '{}' | CLAUDE_PROJECT_DIR="$G3" bash "$ROOT/.claude/hooks/session-guide.sh" 2>/dev/null)"; rc=$?
+[ "$rc" -eq 0 ] && [ -z "$out" ] && ok "session-guide: không phải dự án khung → exit 0, stdout rỗng" \
+  || bad "session-guide: không marker → rc=$rc, stdout='$(printf '%s' "$out" | head -c 200)'"
+
+# ── 12. auto-format ─────────────────────────────────────────────────────────────
+echo "== 12. auto-format: gọi dev-task.sh format-file đúng file, no-op khi thiếu đường dẫn/dev-task =="
+AF="$WORK/af"; mkdir -p "$AF/scripts"
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$@" > "$AF_LOG"\nexit "${AF_RC:-0}"\n' > "$AF/scripts/dev-task.sh"; chmod +x "$AF/scripts/dev-task.sh"
+HOOK="$ROOT/.claude/hooks/auto-format.sh"
+rm -f "$WORK/af.log"
+printf '{"tool_input":{"file_path":"src/a b.ts"}}' | AF_LOG="$WORK/af.log" CLAUDE_PROJECT_DIR="$AF" bash "$HOOK" >/dev/null 2>&1; rc=$?
+[ "$rc" -eq 0 ] && [ "$(wc -l < "$WORK/af.log")" -eq 2 ] && [ "$(sed -n 1p "$WORK/af.log")" = "format-file" ] && [ "$(sed -n 2p "$WORK/af.log")" = "src/a b.ts" ] \
+  && ok "auto-format: gọi 'format-file' đúng file (giữ khoảng trắng)" || bad "auto-format: rc=$rc, log='$(cat "$WORK/af.log" 2>/dev/null)'"
+rm -f "$WORK/af.log"
+printf '{}' | AF_LOG="$WORK/af.log" CLAUDE_PROJECT_DIR="$AF" bash "$HOOK" >/dev/null 2>&1; rc=$?
+[ "$rc" -eq 0 ] && [ ! -e "$WORK/af.log" ] && ok "auto-format: thiếu đường dẫn → exit 0, không gọi dev-task" || bad "auto-format: payload {} → rc=$rc, stub bị gọi=$([ -e "$WORK/af.log" ] && echo có || echo không)"
+AF2="$WORK/af-nostub"; mkdir -p "$AF2"
+printf '{"tool_input":{"file_path":"x.ts"}}' | CLAUDE_PROJECT_DIR="$AF2" bash "$HOOK" >/dev/null 2>"$WORK/err.txt"; rc=$?
+[ "$rc" -eq 0 ] && grep -qF '[auto-format] không thấy scripts/dev-task.sh' "$WORK/err.txt" && ok "auto-format: thiếu dev-task.sh → exit 0 + cảnh báo stderr" \
+  || bad "auto-format: thiếu dev-task.sh → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")'"
+printf '{"tool_input":{"file_path":"x.ts"}}' | AF_RC=7 AF_LOG="$WORK/af.log" CLAUDE_PROJECT_DIR="$AF" bash "$HOOK" >/dev/null 2>&1; rc=$?
+[ "$rc" -eq 0 ] && ok "auto-format: dev-task exit 7 → hook vẫn exit 0 (best-effort)" || bad "auto-format: dev-task lỗi làm hook exit $rc"
+
+finish "hook session (telemetry-record, session-resume, session-guide, auto-format) ghi số thật, nạp gọn, không ghi trùng, no-op đúng chỗ."

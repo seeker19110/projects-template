@@ -26,6 +26,8 @@
 6. **Log không chứa PII thô** (không log mật khẩu, số thẻ, token phiên) — che/hash trước khi ghi log.
 7. **Có thời hạn giữ dữ liệu** (retention) đã quyết định và ghi trong ADR/`PROJECT.md`, không giữ vô thời hạn mặc định.
 
+Ghi inventory, vòng đời, kiểm soát và bằng chứng của dữ liệu cá nhân vào docs/DATA-GOVERNANCE.md theo mẫu `docs/framework/templates/DATA-GOVERNANCE.template.md`.
+
 Vi phạm mục nào trong 7 mục trên khi đụng dữ liệu người dùng thật → dừng và hỏi chỉ theo CLAUDE.md §9 (thiếu mục tiêu/dữ kiện không tự xác minh · không có phương án đạt chất lượng trong scope/budget · cần quyền chưa cấp) và `docs/framework/standard-delivery.md` §3d; không tự quyết định thay người dùng.
 
 ---
