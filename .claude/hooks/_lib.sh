@@ -42,25 +42,72 @@ read_hook_command() {
 #   - `cat << EOF` (có khoảng trắng — POSIX cho phép) không được nhận là heredoc nữa, nên thân nó
 #     vẫn bị quét → có thể chặn oan. Đây là đánh đổi CỐ Ý: chặn oan thì người dùng thấy ngay và nói,
 #     còn để lọt thì không ai biết. Chọn chiều an toàn.
+#   - vỏ bọc chạy chuỗi (`bash -c`, `eval`) chỉ nhận dạng khi chuỗi đứng ngay sau (có thể qua cờ `-c`/`-lc`);
+#     `cmd=…; eval "$cmd"` hay script ghi ra file rồi chạy thì hook KHÔNG thấy lệnh thật — hook là lưới đỡ
+#     cho lỗi vô ý, không phải hàng rào chống người cố né (ruleset trên GitHub mới là hàng rào cứng).
 # \047 = nháy đơn, \042 = nháy kép (escape bát phân của awk). Dùng chúng thay vì viết nháy thật để
 # CẢ chương trình awk nằm gọn trong một cặp nháy đơn của shell — không có chỗ nào phải thoát nháy
 # lồng nhau, thứ vừa khó đọc vừa dễ hỏng lặng lẽ khi ai đó sửa.
+#
+# Audit 2026-10-09 (TRAPS.md mục 62) vá thêm hai chỗ bỏ NHẦM dòng lệnh:
+#   - `<<-EOF`: bash bỏ TAB đầu dòng trước khi so terminator → so `$0` sau khi bỏ tab; bản cũ so nguyên dòng nên
+#     terminator thụt tab không bao giờ khớp và MỌI dòng sau (kể cả `git reset --hard`) bị nuốt.
+#   - `<<` nằm TRONG chuỗi nháy (`echo "x <<EOF"`) không phải heredoc: chỉ nhận `<<` khi phần trước nó, sau khi bỏ
+#     các cặp nháy đã đóng, không còn ký tự nháy lẻ (tức `<<` không ở trong chuỗi chưa đóng).
 strip_heredoc_bodies() {
   awk '
-    BEGIN { delim = "" }
+    BEGIN { delim = ""; dash = 0 }
     {
-      if (delim != "") { if ($0 == delim) { delim = "" } ; next }
-      if (match($0, /<<-?[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
-        d = substr($0, RSTART, RLENGTH)
-        sub(/^<<-?/, "", d)
-        gsub(/[\047\042]/, "", d)
-        delim = d
+      if (delim != "") {
+        line = $0
+        if (dash) sub(/^\t+/, "", line)
+        if (line == delim) delim = ""
+        next
+      }
+      rest = $0; pre = ""
+      while (match(rest, /<<-?[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
+        before = pre substr(rest, 1, RSTART - 1)
+        d = substr(rest, RSTART, RLENGTH)
+        q = before
+        gsub(/\047[^\047]*\047|\042[^\042]*\042/, "", q)
+        if (q !~ /[\047\042]/) {
+          dash = (d ~ /^<<-/)
+          sub(/^<<-?/, "", d)
+          gsub(/[\047\042]/, "", d)
+          delim = d
+          break
+        }
+        pre = before d
+        rest = substr(rest, RSTART + RLENGTH)
       }
       print
     }'
 }
 
-# Bỏ phần TRONG DẤU NHÁY (đơn và kép) — dạng 1 ở trên.
+# Bỏ phần TRONG DẤU NHÁY (đơn và kép) — dạng 1 ở trên. MỘT lượt trái→phải (một regex xen kẽ), không phải hai lượt
+# nối tiếp: bản cũ bỏ nháy đơn trước nên `"don't" && git push --force origin main && echo "it's"` mất cả lệnh giữa
+# (cặp `'…'` ghép từ hai chuỗi nháy kép khác nhau) — TRAPS.md mục 62.
 strip_quoted() {
-  sed "s/'[^']*'//g; s/\"[^\"]*\"//g"
+  sed -E "s/'[^']*'|\"[^\"]*\"//g"
+}
+
+# Chỉ bỏ KÝ TỰ nháy, giữ nội dung: dùng khi phần trong nháy có thể LÀ lệnh/tên nhánh (`-f origin "main"`,
+# `bash -c 'git reset --hard'`). Rộng hơn strip_quoted → chỉ dùng ở chỗ chặn oan rẻ hơn để lọt.
+strip_quote_marks() {
+  tr -d "'\""
+}
+
+# Vỏ bọc chạy CHUỖI như lệnh: `bash -c '…'`, `sh -c "…"`, `zsh -lc '…'`, `eval "…"`.
+HOOK_WRAPPER_RE="(^|[[:space:]])(bash|sh|zsh|eval)[[:space:]]+(-[A-Za-z]+[[:space:]]+)*[\"']"
+
+# Văn bản để so khớp: bỏ thân heredoc, rồi bỏ phần trong nháy — TRỪ KHI lệnh có vỏ bọc chạy chuỗi, lúc đó phần trong
+# nháy chính là lệnh nên chỉ bỏ ký tự nháy (chặn oan `echo "bash -c '…'"` là đánh đổi cố ý, chiều an toàn).
+hook_scan_text() {   # $1 = lệnh gốc
+  local body
+  body="$(printf '%s' "$1" | strip_heredoc_bodies)"
+  if printf '%s' "$body" | grep -Eq "$HOOK_WRAPPER_RE"; then
+    printf '%s' "$body" | strip_quote_marks
+  else
+    printf '%s' "$body" | strip_quoted
+  fi
 }

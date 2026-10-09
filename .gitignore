@@ -47,3 +47,6 @@ docs/ops/MAINTENANCE-REPORT.md
 # coverage.py (scripts/test-py-coverage.sh sinh ở gốc)
 .coverage
 htmlcov/
+
+# Worktree do Claude Code tạo cho subagent (isolation: worktree) — repo lồng, không đưa vào git
+.claude/worktrees/

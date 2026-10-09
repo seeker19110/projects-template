@@ -38,3 +38,16 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
 - (chưa)
+
+- 2026-10-09 (tích hợp PR-1): #248 merge sau rebase (xung đột PROGRESS.md với #246/#247, giữ cả hai phía). Khi commit PR-1
+  ở checkout chính, `pre-commit-gate.sh` → `dev-task.sh gate` BLOCKED "không đọc được working tree": `git ls-files -o` liệt kê
+  `.claude/worktrees/agent-*/` (repo lồng) → `hash-object --stdin-paths` "Unable to hash (NULL)"; hook dòng 103 `wc -c <dir`
+  in "0
+0" → `[: integer expected`. Quyết: thêm `.claude/worktrees/` vào `.gitignore` ngay trong PR-1 (ngoại lệ 3, config
+  thuần; T12 bỏ mục này). Nợ ghi vào T12: `untracked_listing` (dev-task) và vòng `wc` của hook phải bỏ qua đường dẫn thư mục
+  (`/$`) kèm test tái hiện — không sửa trong PR-1 để giữ PR nhỏ. Cổng tổng T1/T3 chạy nền trong worktree (log `$TMP/gate/`).
+- 2026-10-09 (PR-1, lần commit 2): cổng commit đỏ oan ở `check-shell-complexity.sh` — `find .` quét vào `.claude/worktrees/`
+  và bắt probe tạm `zz-probe-shcc-*.sh` của suite đang chạy ở worktree khác (CC 47 > 45). Sửa trong PR-1: loại
+  `./.claude/worktrees/*` khỏi phép đo + ca 4b `test-check-shell-complexity.sh` (đỏ trước: rc=1). Ghi T12: `arch-health-radar.py`
+  `EXCLUDE_DIRS` chưa loại `.claude/worktrees` (chỉ lệch số đếm báo cáo, không chặn) → thêm kèm ca test khi làm T12.
+

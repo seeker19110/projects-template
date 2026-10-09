@@ -36,8 +36,9 @@ if ! ( cd vendor/shellmetrics && $SHA_CMD -c SHA256SUMS ) >/dev/null 2>&1; then
 fi
 
 # vendor/ bị loại khỏi phép đo: không áp trần của mình lên mã của người khác (nó vẫn qua
-# hai cổng đó trong cùng job CI vẫn soi nó).
-mapfile -t SH_FILES < <(find . -name '*.sh' -not -path './node_modules/*' -not -path './vendor/*' | sort)
+# hai cổng đó trong cùng job CI vẫn soi nó). .claude/worktrees/ là worktree lồng của subagent
+# (gitignore) — probe tạm của suite đang chạy ở đó từng làm cổng checkout chính đỏ oan (2026-10-09).
+mapfile -t SH_FILES < <(find . -name '*.sh' -not -path './node_modules/*' -not -path './vendor/*' -not -path './.claude/worktrees/*' | sort)
 if [ "${#SH_FILES[@]}" -eq 0 ]; then
   echo "::error::Không tìm thấy file .sh nào để đo — cổng rỗng luôn xanh là cổng hỏng." >&2
   exit 1
