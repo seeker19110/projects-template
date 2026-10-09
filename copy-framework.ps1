@@ -108,6 +108,16 @@ function Copy-IfAbsent {        # chỉ copy nếu đích chưa có; nếu có t
   }
 }
 
+function Get-ManifestSection {  # các dòng của mục [Name] trong copy-framework.manifest (một nguồn cho .sh và .ps1)
+  param([string] $Name)
+  $on = $false
+  foreach ($line in Get-Content -LiteralPath (Join-Path $Src 'copy-framework.manifest') -Encoding UTF8) {
+    $t = $line.Trim()
+    if ($t.StartsWith('[')) { $on = ($t -eq "[$Name]"); continue }
+    if ($on -and $t -and -not $t.StartsWith('#')) { ,@($t -split '\s+', 2) }
+  }
+}
+
 function Add-Dropin {           # đưa vào _framework-dropins/ (không đụng file đang chạy)
   param([string] $Rel, [string] $SourceRel = $Rel)
   $relN = Resolve-Rel $Rel
@@ -130,10 +140,8 @@ Copy-Into "docs/framework"
 Get-ChildItem -LiteralPath (Join-Path $Src 'docs/ops') -Filter '*.md' | ForEach-Object {
   if ($_.Name -notmatch '-(PLAN|LOG|STATUS)\.md$') { Copy-Into ("docs/ops/" + $_.Name) }
 }
-Copy-IfAbsent "docs/specs/README.md"                # pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
-Copy-IfAbsent "docs/goals/README.md"
-Copy-Into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug
-Copy-IfAbsent "docs/adr/0000-template.md"
+Copy-Into ".claude/commands"                   # slash commands của khung (khớp copy-framework.sh)
+foreach ($e in Get-ManifestSection docs) { Copy-IfAbsent $e[0] }
 
 # ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
 # Để dự án đích biết mình đang dùng khung bản nào; muốn cập nhật thì so CHANGELOG.md
@@ -152,16 +160,7 @@ try {
 Write-Host "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FrameworkCommit)"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
-Copy-IfAbsent "CLAUDE.md"
-Copy-IfAbsent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
-# File cầu nối sang AGENTS.md cho công cụ CHƯA tự đọc agents.md — không lặp nội dung, chỉ trỏ sang.
-Copy-IfAbsent "GEMINI.md"                     # Gemini CLI
-# (Codex CLI đọc thẳng AGENTS.md — không cần file cầu nối riêng.)
-Copy-IfAbsent ".clinerules"                   # Cline / Roo Code
-Copy-IfAbsent ".windsurfrules"                # Windsurf
-Copy-IfAbsent ".cursor/rules"                 # Cursor
-Copy-IfAbsent ".github/copilot-instructions.md"  # GitHub Copilot
-Copy-IfAbsent "PROJECT.md"
+foreach ($e in Get-ManifestSection root) { Copy-IfAbsent $e[0] }
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
 $progressDest = Join-Path $Target 'PROGRESS.md'
@@ -172,18 +171,6 @@ else {
   Copy-Item -LiteralPath (Join-Path $Src 'PROGRESS.template.md') -Destination $progressDest
   Write-Host "  + PROGRESS.md (từ mẫu sạch PROGRESS.template.md)"
 }
-Copy-IfAbsent "CHANGELOG.md"
-Copy-IfAbsent "CONTRIBUTING.md"
-Copy-IfAbsent "SECURITY.md"
-# Quy tắc ứng xử: bản Contributor Covenant chung (SUPPORT/GOVERNANCE của khung KHÔNG copy —
-# dự án đích tự sinh từ docs/framework/templates/).
-Copy-IfAbsent "CODE_OF_CONDUCT.md"
-Copy-IfAbsent ".editorconfig"
-Copy-IfAbsent ".nvmrc"
-Copy-IfAbsent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
-Copy-IfAbsent ".mcp.json.example"             # mẫu MCP server phổ biến (github/filesystem/postgres) — dự án tự bật khi cần
-Copy-IfAbsent ".claude/settings.local.json.example"  # mẫu permission cá nhân, không dùng chung nhóm
-# LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
 Write-Host ""
@@ -201,60 +188,11 @@ else {
   Write-Host "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 }
 
-Copy-IfAbsent ".claude/hooks"
-Copy-IfAbsent ".claude/agents"
-# Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
-Copy-IfAbsent "scripts/dev-task.sh"
-Copy-IfAbsent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
-Copy-IfAbsent "scripts/_commit-guard.sh"          # mẫu bí mật + ngưỡng file lớn: pre-commit-gate + githook + sweep source
-Copy-IfAbsent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
-Copy-IfAbsent "scripts/usage-estimate.sh"
-Copy-IfAbsent "scripts/test-usage-estimate.sh"
-Copy-IfAbsent "scripts/subagent-dispatch.py"
-# Helper dung chung — PHAI phat truoc cac script source/exec chung (xem TRAPS.md muc 19).
-Copy-IfAbsent "scripts/_python-exec.sh"
-Copy-IfAbsent "scripts/_test-lib.sh"
-Copy-IfAbsent "scripts/subagent-dispatch.sh"
-Copy-IfAbsent "scripts/model-rates.json"
-Copy-IfAbsent "scripts/model-capability-tiers.json"
-Copy-IfAbsent "scripts/telemetry-log.py"
-Copy-IfAbsent "scripts/telemetry-log.sh"
-Copy-IfAbsent "scripts/spec-compiler.py"
-Copy-IfAbsent "scripts/spec-compiler.sh"
-Copy-IfAbsent "scripts/arch-health-radar.py"
-Copy-IfAbsent "scripts/arch-health-radar.sh"
-Copy-IfAbsent "scripts/test-telemetry-and-dispatch.sh"
-Copy-IfAbsent "tests/test_telemetry_integrity.py"  # required by the shipped telemetry self-test
-Copy-IfAbsent "tests/test_runtime_safety.py"  # required by the CI drop-in; copy-only cases are template-scoped
-Copy-IfAbsent "scripts/test-next-gen-engines.sh"
-# Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test
-Copy-IfAbsent "scripts/maintenance-sweep.sh"
-Copy-IfAbsent "scripts/maintain-run.sh"
-Copy-IfAbsent "scripts/test-maintenance-sweep.sh"
-Copy-IfAbsent "scripts/test-maintain-run.sh"
-Copy-IfAbsent "scripts/maintain-cron.sh"
-Copy-IfAbsent "scripts/test-maintain-cron.sh"
-# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
-Copy-IfAbsent "scripts/test-hooks-gate.sh"
-Copy-IfAbsent "scripts/requirements-ci.txt"       # ghim radon/coverage cho ci.yml dropin (Dependabot pip theo dõi)
-# 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
-Copy-IfAbsent ".claude/project-commands.example.sh"
-Copy-IfAbsent ".claude/usage-budget.example.sh"
+foreach ($e in Get-ManifestSection scripts) { Copy-IfAbsent $e[0] }
 
 Write-Host ""
 Write-Host "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
-Add-Dropin '.github/workflows/ci.yml' 'docs/framework/templates/ci-target.yml'
-$dropins = @(
-  '.github/workflows/stale-pr-alert.yml', '.github/workflows/maintenance.yml',
-  '.github/workflows/secret-scan.yml', '.github/workflows/dependency-review.yml',
-  '.github/workflows/pr-policy.yml', '.github/workflows/release.yml',
-  '.github/workflows/codeql.yml', '.github/workflows/scorecard.yml',
-  '.github/pull_request_template.md', '.github/dependabot.yml', '.github/ISSUE_TEMPLATE', '.github/CODEOWNERS',
-  '.github/rulesets/main.json',
-  'scripts/ci-workflow-policy.test.ts',
-  '.gitignore', '.gitattributes'
-)
-foreach ($f in $dropins) { Add-Dropin $f }
+foreach ($e in Get-ManifestSection dropins) { if ($e.Count -gt 1) { Add-Dropin $e[0] $e[1] } else { Add-Dropin $e[0] } }
 
 Write-Host ""
 Write-Host "[4/4] Xong. Tiếp theo trong dự án đích:"

@@ -141,6 +141,9 @@ copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì đ�
     echo "  + $rel"
   fi
 }
+manifest_section() {   # in các dòng của mục [$1] trong copy-framework.manifest (một nguồn cho .sh và .ps1; bỏ # và dòng trống)
+  awk -v s="[$1]" '/^\[/{on=($0==s); next} on && NF && $1 !~ /^#/' "$SRC/copy-framework.manifest"
+}
 stage() {               # đưa vào _framework-dropins/ (không đụng file đang chạy)
   local rel="$1" source_rel="${2:-$1}"
   [ -e "$SRC/$source_rel" ] || return 0
@@ -171,10 +174,8 @@ for f in "$SRC"/docs/ops/*.md; do
     *) copy_into "docs/ops/$(basename "$f")" ;;
   esac
 done
-copy_if_absent "docs/specs/README.md"                # pr-policy.yml (Lớp 2) đòi docs/specs/ tồn tại cho PR feat
-copy_if_absent "docs/goals/README.md"
-copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain /contract /deps-upgrade /review
-copy_if_absent "docs/adr/0000-template.md"
+copy_into ".claude/commands"                   # slash commands của khung (/consult /bootstrap /auto /gate /adr /ui-ux /audit-* /completion /incident /grill /debug /maintain /contract /deps-upgrade /review)
+while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section docs)
 
 # Không ghi stamp thành công khi còn merge lỗi/xung đột; giữ baseline cũ cho đối chiếu.
 if [ "$N_ERROR" -gt 0 ]; then echo "Nâng bản bị chặn: $N_ERROR lỗi merge; FRAMEWORK-VERSION giữ nguyên." >&2; exit 3; fi
@@ -205,16 +206,7 @@ echo "  + $STAMP_REL (bản khung: v$FRAMEWORK_VER @ $FRAMEWORK_COMMIT, manifest
 [ "$UPGRADE" -eq 1 ] && echo "  → --upgrade: $N_UPD cập nhật · $N_MERGE merge 3 chiều · $N_ASIDE giữ đích + .framework-new"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
-copy_if_absent "CLAUDE.md"
-copy_if_absent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
-# File cầu nối sang AGENTS.md cho công cụ CHƯA tự đọc agents.md — không lặp nội dung, chỉ trỏ sang.
-copy_if_absent "GEMINI.md"                     # Gemini CLI
-# (Codex CLI đọc thẳng AGENTS.md — không cần file cầu nối riêng.)
-copy_if_absent ".clinerules"                   # Cline / Roo Code
-copy_if_absent ".windsurfrules"                # Windsurf
-copy_if_absent ".cursor/rules"                 # Cursor
-copy_if_absent ".github/copilot-instructions.md"  # GitHub Copilot
-copy_if_absent "PROJECT.md"
+while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section root)
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
 if [ -e "$TARGET/PROGRESS.md" ]; then
@@ -223,19 +215,6 @@ else
   cp "$SRC/PROGRESS.template.md" "$TARGET/PROGRESS.md"
   echo "  + PROGRESS.md (từ mẫu sạch PROGRESS.template.md)"
 fi
-copy_if_absent "CHANGELOG.md"
-copy_if_absent "CONTRIBUTING.md"
-copy_if_absent "SECURITY.md"
-# Quy tắc ứng xử: bản Contributor Covenant chung, dự án đích chỉ cần đổi kênh liên hệ.
-# SUPPORT/GOVERNANCE KHÔNG copy bản của khung (nội dung riêng repo này) — dự án đích tự sinh
-# từ docs/framework/templates/SUPPORT.template.md và GOVERNANCE.template.md.
-copy_if_absent "CODE_OF_CONDUCT.md"
-copy_if_absent ".editorconfig"
-copy_if_absent ".nvmrc"
-copy_if_absent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
-copy_if_absent ".mcp.json.example"             # mẫu MCP server phổ biến (github/filesystem/postgres) — dự án tự bật khi cần
-copy_if_absent ".claude/settings.local.json.example"  # mẫu permission cá nhân, không dùng chung nhóm
-# LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
 echo ""
@@ -248,64 +227,13 @@ else
   cp "$SRC/.claude/settings-shared-default.json" "$TARGET/.claude/settings.json"
   echo "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 fi
-copy_if_absent ".claude/hooks"
-copy_if_absent ".claude/agents"
-# Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
-copy_if_absent "scripts/dev-task.sh"
-copy_if_absent "scripts/_stack-detect.sh"          # dev-task.sh + maintenance-sweep.sh source file này
-copy_if_absent "scripts/_commit-guard.sh"          # mẫu bí mật + ngưỡng file lớn: pre-commit-gate + githook + sweep source
-copy_if_absent "scripts/githooks/pre-commit"       # hàng rào harness-agnostic: git config core.hooksPath scripts/githooks
-copy_if_absent "scripts/usage-estimate.sh"
-copy_if_absent "scripts/test-usage-estimate.sh"
-copy_if_absent "scripts/subagent-dispatch.py"
-# Helper dùng chung — PHẢI phát trước các script source/exec chúng, nếu không dự án đích nhận
-# script gãy (khuôn lỗi TRAPS.md mục 19: danh sách file viết tay không biết về file mới).
-copy_if_absent "scripts/_python-exec.sh"
-copy_if_absent "scripts/_test-lib.sh"
-copy_if_absent "scripts/subagent-dispatch.sh"
-copy_if_absent "scripts/model-rates.json"
-copy_if_absent "scripts/model-capability-tiers.json"
-copy_if_absent "scripts/telemetry-log.py"
-copy_if_absent "scripts/telemetry-log.sh"
-copy_if_absent "scripts/spec-compiler.py"
-copy_if_absent "scripts/spec-compiler.sh"
-copy_if_absent "scripts/arch-health-radar.py"
-copy_if_absent "scripts/arch-health-radar.sh"
-copy_if_absent "scripts/test-telemetry-and-dispatch.sh"
-copy_if_absent "tests/test_telemetry_integrity.py"  # required by the shipped telemetry self-test
-copy_if_absent "tests/test_runtime_safety.py"  # required by the CI drop-in; copy-only cases are template-scoped
-copy_if_absent "scripts/test-next-gen-engines.sh"
-# Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test (smoke ở dự án đích)
-copy_if_absent "scripts/maintenance-sweep.sh"
-copy_if_absent "scripts/maintain-run.sh"
-copy_if_absent "scripts/test-maintenance-sweep.sh"
-copy_if_absent "scripts/test-maintain-run.sh"
-copy_if_absent "scripts/maintain-cron.sh"
-copy_if_absent "scripts/test-maintain-cron.sh"
-# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
-copy_if_absent "scripts/test-hooks-gate.sh"
-copy_if_absent "scripts/requirements-ci.txt"       # ghim radon/coverage cho ci.yml dropin (Dependabot pip theo dõi)
-# 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
-copy_if_absent ".claude/project-commands.example.sh"
-copy_if_absent ".claude/usage-budget.example.sh"
+while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section scripts)
 chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
 echo "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
-stage ".github/workflows/ci.yml" "docs/framework/templates/ci-target.yml"
-for f in \
-  .github/workflows/stale-pr-alert.yml .github/workflows/maintenance.yml \
-  .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
-  .github/workflows/pr-policy.yml .github/workflows/release.yml \
-  .github/workflows/codeql.yml .github/workflows/scorecard.yml \
-  .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
-  .github/rulesets/main.json \
-  .gitignore .gitattributes \
-  scripts/ci-workflow-policy.test.ts \
-; do
-  stage "$f"
-done
+while read -r rel src; do stage "$rel" ${src:+"$src"}; done < <(manifest_section dropins)
 
 echo ""
 echo "[4/4] Xong. Tiếp theo trong dự án đích:"
