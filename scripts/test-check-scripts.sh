@@ -254,8 +254,8 @@ rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được job skip-được nhưng thiếu trong sổ SKIP_ALLOWED (CP-5)" || bad "KHÔNG bắt được job skip-được ngoài sổ (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
-# (b) chiều ngược: bỏ `if:` của progress-freshness → nó không skip được nữa mà sổ vẫn kê tên
-perl -0pi -e "s/^    if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\n//m" "$d/.github/workflows/ci.yml"
+# (b) chiều ngược: sổ kê tên một job KHÔNG có `if:` (không skip được) → sổ nói dối
+sed -i 's/SKIP_ALLOWED: ""/SKIP_ALLOWED: "protection-guard"/' "$d/.github/workflows/ci.yml"
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được sổ SKIP_ALLOWED kê thừa một job không còn skip được (CP-5)" || bad "KHÔNG bắt được sổ kê thừa (rc=$rc)"
 
@@ -344,5 +344,25 @@ sed -i "s/^- Giai đoạn:.*/- Giai đoạn: GĐ 8. PR #69→#501 đã merge./" 
 git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn bị ca đối chứng PF-3"
 rc="$(run_check "$d" check-progress-freshness.sh)"
 [ "$rc" = "0" ] && ok "PF-3 XANH khi 'Giai đoạn' >= PR của SHA (không đỏ oan)" || bad "PF-3 đỏ oan dù 'Giai đoạn' đã khớp (rc=$rc)"
+
+# Nối dây: job `progress-freshness` phải chạy CẢ ở PR (không có `if:` chỉ-main). Khi nó chỉ chạy
+# trên main, PROGRESS.md lỗi thời vẫn để PR xanh rồi làm đỏ main SAU khi merge (TRAPS 8, tái phát #245).
+pf_if="$(awk '/^  progress-freshness:/{f=1;next} f&&/^  [A-Za-z]/{f=0} f&&/^    if:/' "$ROOT/.github/workflows/ci.yml")"
+[ -z "$pf_if" ] && ok "job progress-freshness chạy cả ở PR (không có 'if:' chỉ-main)" || bad "job progress-freshness vẫn bị 'if:' loại khỏi PR: $pf_if"
+
+# Đối chứng ngữ cảnh PR: CI checkout merge ref (main + nhánh PR, HEAD tách rời) và "Nhánh đang làm"
+# là chính nhánh PR còn mở → PHẢI xanh, chạy ở PR không được báo oan.
+d="$(setup_repo)" || exit 1
+git init -q --bare "$WORK/origin-pr.git"
+git -C "$d" remote add origin "$WORK/origin-pr.git"
+git -C "$d" push -q origin HEAD:main 2>/dev/null
+git -C "$d" checkout -qb feat-dang-mo
+sed -i 's/^- Nhánh đang làm:.*/- Nhánh đang làm: `feat-dang-mo`/' "$d/PROGRESS.md"
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PR: PROGRESS.md trỏ nhánh đang mở"
+git -C "$d" push -q origin HEAD:feat-dang-mo 2>/dev/null
+git -C "$d" checkout -q --detach main
+git -C "$d" -c user.email=t@t.local -c user.name=test merge -q --no-ff -m "Merge feat-dang-mo into main" feat-dang-mo
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "0" ] && ok "XANH trên merge ref của PR đang mở (không báo oan khi chạy ở PR)" || bad "đỏ OAN trên merge ref của PR (rc=$rc)"
 
 finish "3 gate script bắt đúng lỗi + không chặn oan."

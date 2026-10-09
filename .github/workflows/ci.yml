@@ -273,10 +273,11 @@ jobs:
       - name: Node/Python target adoption smoke (copy, real gate, offline CI boundary)
         run: bash scripts/test-adoption-smoke.sh
 
-  # CHỈ chạy khi push thẳng vào main (một PR vừa merge) — lúc PR còn mở, nhánh của nó vẫn tồn tại
-  # là bình thường, kiểm lúc đó sẽ báo oan. fetch-depth: 0 bắt buộc để đối chiếu ancestor (PF-1).
+  # Chạy CẢ ở PR lẫn push vào main. Trước đây chỉ chạy trên main nên PROGRESS.md lỗi thời vẫn để PR
+  # xanh rồi làm đỏ main sau khi merge (TRAPS 8, tái phát #245). Ở PR, HEAD là merge ref chứa lịch sử
+  # main (PF-1 đúng) và nhánh PR còn mở nên tồn tại (PF-2 không báo oan) — test-check-scripts.sh có
+  # ca đối chứng. fetch-depth: 0 bắt buộc để đối chiếu ancestor (PF-1).
   progress-freshness:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -363,12 +364,11 @@ jobs:
       - name: Kết luận từ mọi job cổng
         env:
           # Sổ job ĐƯỢC PHÉP `skipped`, cách nhau bằng khoảng trắng. Chỉ job có `if:` mới skip được,
-          # và mỗi cái phải có LÝ DO ở đây. `progress-freshness` có `if: push && ref == main` vì lúc
-          # PR còn mở, nhánh của nó vẫn tồn tại là bình thường — kiểm khi ấy sẽ báo oan (xem comment
-          # ở chính job đó). Sổ này được `scripts/check-ci-policy.sh` (CP-5) so BẰNG ĐÚNG với tập
+          # và mỗi cái phải có LÝ DO ở đây. Hiện RỖNG: không job cổng nào được skip (`progress-freshness`
+          # đã chạy cả ở PR). Sổ này được `scripts/check-ci-policy.sh` (CP-5) so BẰNG ĐÚNG với tập
           # job thật sự có `if:`, hai chiều: thêm `if:` cho một job mà quên kê ⇒ đỏ; kê thừa một job
           # không còn `if:` ⇒ cũng đỏ.
-          SKIP_ALLOWED: "progress-freshness"
+          SKIP_ALLOWED: ""
           # toJSON(needs) giữ TÊN job, khác `join(needs.*.result)` chỉ cho mảng kết quả trần — không
           # có tên thì không thể phân biệt "skip hợp lệ" với "skip vì `if:` viết hỏng".
           NEEDS_JSON: ${{ toJSON(needs) }}

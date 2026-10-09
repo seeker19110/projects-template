@@ -18,8 +18,9 @@
 #   PF-4  Tối đa 1 khối "- Giai đoạn trước đó" (lịch sử đi docs/changelog/, không tích trong file)
 #         (hai dòng cùng mô tả MỘT mốc đối chiếu, lệch nhau là lỗi thời)
 #
-# Job wiring (ci.yml): job này CHỈ chạy khi push thẳng vào main (sau khi một PR vừa merge) — lúc
-# PR còn mở, nhánh vẫn tồn tại là bình thường, kiểm lúc đó sẽ báo oan. Cần lịch sử đầy đủ
+# Job wiring (ci.yml): job này chạy CẢ ở PR lẫn push vào main — chỉ chạy trên main thì PROGRESS.md
+# lỗi thời vẫn để PR xanh rồi làm đỏ main sau merge (TRAPS 8, #245). Ở PR, HEAD là merge ref chứa
+# lịch sử main và nhánh PR còn tồn tại, nên không báo oan. Cần lịch sử đầy đủ
 # (fetch-depth: 0) để đối chiếu ancestor — checkout nông sẽ luôn báo PF-1 sai.
 #
 # Chạy: bash scripts/check-progress-freshness.sh
