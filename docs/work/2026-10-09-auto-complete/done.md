@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-auto-complete
 - Yêu cầu / outcome: chủ repo: "1 agent thay tôi quyết định tất cả khi ở chế độ /auto-complete, ưu tiên chất lượng cao, ít code, bảo mật"; "gộp cả 2 vào" → một lệnh nối `/auto` → `/completion`, phiên chính là người quyết định theo thang ưu tiên §3d.
-- Trạng thái: Ready (chờ #239 merge → PR)
+- Trạng thái: Done
 - Chủ trì / writer: phiên chính (một PR)
 - Mức rủi ro / số PR: M; 1 PR (feat, spec gọn Approved)
 - Scope / non-goal: spec §5
@@ -25,8 +25,8 @@ Một đơn vị, phiên chính tự làm; đi sau #239 theo FIFO.
 
 ## Bàn giao / bước tiếp theo
 
-Đợi #239 merge → restart nhánh từ main → gate → commit → push → PR + auto-merge.
+Đã xong: PR #240.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-(chưa)
+DoD đạt: PR #240 MERGED (squash) 2026-10-09 → `main` 06c3368; required checks xanh trên head `a4c867f`; 3/3 AC map test. Giới hạn: thang ưu tiên là luật cho model tuân, không có cổng máy đếm quyết định. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.
