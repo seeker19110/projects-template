@@ -4,6 +4,9 @@
 > từ hai PR phải giao subagent đủ năng lực, độc lập thì song song, phụ thuộc thì tuần tự
 > (`standard-delivery.md` §3c). Mặc định gọn: phiên chính → worker; thêm coordinator chỉ khi cần.
 > **Tối đa 5 subagent đang chạy trong toàn cây**, gồm coordinator/reviewer/tester/agent lồng.
+> **Giới hạn harness đã kiểm 2026-10-09:** trong Claude Code, subagent KHÔNG có tool `Agent` (không tạo được agent lồng) →
+> `coordinator` gọi như subagent sẽ BLOCKED ngay; Tầng 2 phải do **phiên chính** đảm nhiệm (mặc định ADR-0010), hoặc chạy ở
+> harness ngoài có nested agent. Bằng chứng: `docs/reports/2026-10-09-agent-acceptance.md` đợt 3.
 
 > Mô hình vận hành tự động của khung: tách bạch **NGHĨ** (lập kế hoạch) — **CHẠY** (điều phối) —
 > **LÀM** (thực thi), định tuyến worker theo 2 trục *độ phức tạp × độ kín đặc tả*.

@@ -11,6 +11,9 @@ description: >-
   được người dùng duyệt và cần chạy tới hoàn thành. KHÔNG đổi kế hoạch/đặc tả, KHÔNG
   tự code, KHÔNG tự tay merge (chỉ bật auto-merge — CI xanh mới thật sự merge).
 tools: Read, Glob, Grep, Bash, Agent
+# Lưu ý (nghiệm thu 2026-10-09): Claude Code KHÔNG cấp tool `Agent` cho subagent → file này chạy như subagent sẽ
+# BLOCKED không dispatch được. Dùng khi phiên chính tự đóng vai Tầng 2 (đọc file này làm playbook) hoặc harness ngoài
+# có nested agent. Xem docs/reports/2026-10-09-agent-acceptance.md.
 model: sonnet
 effort: low
 memory: project

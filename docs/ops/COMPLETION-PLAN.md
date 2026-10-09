@@ -1,5 +1,20 @@
 # COMPLETION-PLAN — trạng thái hiện hành 2026-10-09
 
+## Đợt nghiệm thu agent 2026-10-09 — ĐÃ ĐÓNG (nghiệm thu: `docs/reports/2026-10-09-agent-acceptance.md`)
+
+Yêu cầu: chủ repo "tiếp tục cho đến khi xong dự án, chạy song song tối đa 5 subagent" → nâng trần 3→5 (ADR-0011) và đưa
+cột Test FT-13..20 + Luồng chính mục 4 (chỉ kiểm được bằng phiên subagent thật) tới kết cục. Hồ sơ: `docs/work/2026-10-09-agent-acceptance/done.md`.
+**Approved for implementation — phiên chính duyệt theo ủy quyền của chủ repo ngày 2026-10-07; ngày duyệt 2026-10-09.**
+
+| ID | Từ | Việc | Tiêu chí nghiệm thu | Sức | Trạng thái | PR / bằng chứng |
+|----|----|------|---------------------|-----|-----------|-----------------|
+| A-01 | chỉ thị chủ repo | Trần subagent 3→5 ở 8 file luật + ADR-0011 + test | `grep "3 subagent"` chỉ còn ADR-0010/spec lịch sử; test luật xanh | S | ✅ | #231 → `0668b86` |
+| A-02 | FT-13..20, Luồng chính 4 | Nghiệm thu 11 agent bằng phiên thật, 3 đợt ≤ 5 song song; sửa lỗi lộ ra | mỗi agent đúng hợp đồng/không vượt quyền; lỗi thật → PR có test đỏ-trước | S | ✅ | F-309b #232; báo cáo |
+| A-03 | A-02 | Closeout: FEATURE-MAP cột Test, ghi giới hạn harness vào orchestration/coordinator, PROGRESS/CHANGELOG | docs-consistency + progress-freshness xanh | S | ✅ | PR closeout này |
+
+Phát hiện mức Cao (kiến trúc, không sửa code): subagent Claude Code không tạo được agent lồng → Tầng 2 = phiên chính; ghi
+vào `orchestration-3-tier.md` và `coordinator.md` thay vì xoá agent (vẫn là playbook cho phiên chính và harness ngoài).
+
 ## Đợt finishing 2026-10-09 — ĐÃ ĐÓNG 2026-10-09 (nghiệm thu: `docs/reports/2026-10-09-finishing.md`)
 
 Yêu cầu: chủ repo "tiếp tục cho đến khi xong đi" sau khi chu kỳ dưới đã đóng → mọi mục repo còn tự đánh dấu phải làm
