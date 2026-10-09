@@ -92,7 +92,7 @@ Phát hiện mới ở lượt quét lại: không (Cao/Trung/Thấp). Mọi F-R
 - Hosted CI của một repo đích thật, pilot sản phẩm, benchmark model, phiên thật của harness ngoài Claude Code
   (Codex/Gemini/OpenCode/Cursor/Copilot) và cưỡng chế trần ngữ cảnh runtime: **không kiểm được ở phiên này**
   (không có repo/tài khoản/máy tương ứng). Điều kiện: chủ repo cấp một repo đích thật hoặc chạy harness tương ứng;
-  khi đó dùng `docs/framework/lean-delivery-benchmark.md` làm protocol.
+  khi đó dùng `docs/reports/2026-10-07-lean-delivery-benchmark.md` làm protocol.
 - Vitest drop-in chỉ chạy TAY trên fixture (cần `npm i -D vitest`, mạng); CI của repo khung không chạy vitest
   (không có `package.json`, ADR-0004). Cổng ở lại là bản shell trong `test-copy-framework.sh` (hai chiều khối ↔ job).
 - Điểm radar 100 là kỷ luật đo được của chính repo, không phải chứng nhận kiến trúc/bảo mật.

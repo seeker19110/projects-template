@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL = ROOT / 'docs/framework/lean-delivery-benchmark.md'
+PROTOCOL = ROOT / 'docs/reports/2026-10-07-lean-delivery-benchmark.md'
 
 
 def run(*args, cwd, expected=0):

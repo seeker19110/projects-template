@@ -54,7 +54,7 @@ Linux/Windows xanh. Blocker tạo PR (3 lỗi dịch vụ) đã được chủ r
 lại khi GitHub hoạt động; REST tạo #209 thành công, không bypass hook/ruleset.
 
 LD-08 có regression Node/Python runtime thật và protocol ở
-`docs/framework/lean-delivery-benchmark.md`. AC-1..8 nối tới test hiện hữu trong spec;
+`docs/reports/2026-10-07-lean-delivery-benchmark.md`. AC-1..8 nối tới test hiện hữu trong spec;
 trace đầy đủ là ánh xạ, không tự chứng minh hành vi. Required checks Linux/Windows
 và gate của #210 đã xanh trước merge. Hồ sơ
 `docs/reports/2026-10-07-lean-delivery-acceptance.md` ghi AC/evidence và giới hạn;

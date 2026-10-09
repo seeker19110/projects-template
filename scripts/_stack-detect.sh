@@ -41,12 +41,14 @@ declared_cmd() {
 }
 
 node_has_script() {
-  # $1 = tên script; true nếu package.json khai báo nó.
+  # $1 = tên script; true nếu package.json khai báo nó. jq rồi node — cả hai đọc JSON THẬT.
+  # Bản cũ (F-309, 2026-09-01 → sửa 2026-10-09) không jq thì grep `"$1":` trên CẢ file → khoá cùng tên ở
+  # dependencies/config bị coi là script. Dự án Node không có node thì cũng không chạy được `npm run`.
   [ -f "$ROOT/package.json" ] || return 1
   if command -v jq >/dev/null 2>&1; then
     jq -e --arg s "$1" '.scripts[$s] // empty' "$ROOT/package.json" >/dev/null 2>&1
   else
-    grep -Eq "\"$1\"[[:space:]]*:" "$ROOT/package.json"
+    node -e 'const p=JSON.parse(require("fs").readFileSync(0,"utf8"));process.exit(p.scripts&&p.scripts[process.argv[1]]?0:1)' "$1" < "$ROOT/package.json" 2>/dev/null
   fi
 }
 

@@ -6,8 +6,8 @@
   (a) radar "Việc cần làm": 4 file mã > 400 dòng (`spec-compiler.py` 476, `telemetry-log.py` 426,
   `test-check-scripts.sh` 418, `tests/test_runtime_safety.py` 443) → radar 100/100, danh sách rỗng;
   (b) FEATURE-MAP ⚠️ FT-25 (trích F-014) và FT-50 (F-309) → ✅ hoặc đóng có căn cứ; (c) P-C12: tài liệu nội
-  bộ `docs/framework/lean-delivery-benchmark.md` đang phát sang đích → dời sang `docs/reports/`.
-- Trạng thái: Working
+  bộ lean-delivery-benchmark.md (trước ở docs/framework/) đang phát sang đích → dời sang `docs/reports/`.
+- Trạng thái: Done (nghiệm thu 2026-10-09, xem cuối hồ sơ)
 - Chủ trì / writer: phiên chính (Fable); 2 `standard-worker` trong worktree riêng cho R-01 và R-02
 - Mức rủi ro / số PR: S (refactor không đổi hành vi + tài liệu + 1 sửa nhỏ có test đỏ-trước); 3 PR tuần tự
   trên `claude/relaxed-knuth-f1ejlq`: R-01 engine Python, R-02 suite test, R-03 tài liệu + FT-25/FT-50 + closeout
@@ -41,10 +41,10 @@ Pha 1 (đơn vị):
 - R-01 (worker A, worktree): `scripts/_spec_contract_gen.py` nhận `generate_python_contract_test` (dời nguyên văn);
   `scripts/_telemetry_report.py` nhận `fmt_cost` + render Markdown/HTML thuần; engine giữ wrapper cùng tên/chữ ký;
   test khẳng định engine tái xuất đúng hàm của helper (`assertIs`); manifest + CODEMAP; golden trước–sau.
-- R-02 (worker B, worktree): scripts/test-workflow-guards.sh (R-02) nhận mục 4–5 (+`step_body`) của `test-check-scripts.sh`;
+- R-02 (worker B, worktree): `scripts/test-workflow-guards.sh` nhận mục 4–5 (+`step_body`) của `test-check-scripts.sh`;
   `tests/_runtime_fixture.py` (helper dùng chung) + `tests/test_git_safety.py` (lease/report publish + upgrade merge);
   wiring ci.yml/project-commands/parity/manifest/FEATURE-MAP/CODEMAP; gỡ 2 DEBT; số ca test giữ nguyên.
-- R-03 (phiên chính): dời `lean-delivery-benchmark.md` → docs/reports/2026-10-07-lean-delivery-benchmark.md (R-03) + mọi
+- R-03 (phiên chính): dời `lean-delivery-benchmark.md` → `docs/reports/2026-10-07-lean-delivery-benchmark.md` + mọi
   tham chiếu; FT-25 → ✅ (sửa trích dẫn + test cột); FT-50 → ✅ sau sửa F-309 với test đỏ-trước trong
   `test-dev-task.sh`; closeout COMPLETION-PLAN/report/PROGRESS/CHANGELOG; radar đo lại.
 R-01 ∥ R-02 (file không chung ngoài CODEMAP/manifest — phiên chính hợp nhất khi áp patch) → PR tuần tự.
@@ -65,11 +65,19 @@ R-01 ∥ R-02 (file không chung ngoài CODEMAP/manifest — phiên chính hợp
   docs-consistency/python-complexity xanh; radar trong worktree 100/100 (còn 2 file của R-02). Phiên chính review diff, áp `git apply --index`. PR #227 MERGED (squash) → `cde2eaa`, 13 check xanh; cổng commit lần đầu đỏ đúng ở `test-hooks-session.sh` (fixture `cp` tay thiếu helper — TRAPS 19 tái phát, đã ghi); CodeQL báo `fmt_cost` import không dùng → bỏ tái xuất.
 - R-02 (worker B, wt-r02): test-check-scripts 418→331 + `test-workflow-guards.sh` 111; test_runtime_safety 443→230 +
   `test_git_safety.py` 185 + `_runtime_fixture.py` 57; ca test giữ nguyên (Python 17=8+9; shell 39 ✅=32+7); ci.yml/
-  project-commands/parity/manifest/FEATURE-MAP/CODEMAP đã nối; 2 DEBT gỡ; sweep --strict 0 🟡 DEBT. Chờ áp sau khi R-01 merge.
+  project-commands/parity/manifest/FEATURE-MAP/CODEMAP đã nối; 2 DEBT gỡ; sweep --strict 0 🟡 DEBT. PR #228 MERGED (squash) → `949f09a`, 13 check xanh.
 - R-03 (phiên chính, wt-r03): F-309 tái hiện đỏ-trước bằng PATH không jq (`npm run test` cho package.json chỉ có
-  `dependencies.test`) → sửa `node_has_script` (jq → node) → xanh; benchmark dời docs/reports/2026-10-07-lean-delivery-benchmark.md (R-03);
-  FT-25/FT-50 → ✅; docs-consistency, test_lean_adoption, --trace lean spec, copy-framework xanh. Chờ áp sau R-02.
+  `dependencies.test`) → sửa `node_has_script` (jq → node) → xanh; benchmark dời `docs/reports/2026-10-07-lean-delivery-benchmark.md`;
+  FT-25/FT-50 → ✅; docs-consistency, test_lean_adoption, --trace lean spec, copy-framework xanh. Áp vào PR closeout (PR này) cùng COMPLETION-PLAN/report/PROGRESS/CHANGELOG/AUDIT-STATUS/TRAPS 55.
 
 ## Bàn giao / bước tiếp theo
 
-- (cập nhật khi checkpoint)
+- Không còn việc mở. Radar 100/100 (0 file > 400 dòng, 43/43 script có cổng); FEATURE-MAP 0 ❌ 0 ⚠️; sweep 🔴 0 🟡 0;
+  docs-consistency 12/12. P-B11 giữ không làm (lý do kỹ thuật). Việc cần môi trường ngoài (hosted CI đích, pilot, benchmark
+  model, harness ngoài) ghi ở "Không làm / giới hạn" của báo cáo.
+
+## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
+
+- R-01 PR #227 MERGED (squash) → `cde2eaa`; R-02 PR #228 MERGED (squash) → `949f09a`; cả hai 13 check xanh, không review thread.
+- R-03 = PR closeout này (F-309 fix có test đỏ-trước; FT-25/FT-50 ✅; benchmark dời; closeout). DoD đạt khi PR này merge với CI xanh;
+  PROGRESS đã trỏ SHA `949f09a` (sau #228).
