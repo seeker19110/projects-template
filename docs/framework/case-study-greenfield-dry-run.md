@@ -82,6 +82,34 @@ không triệt để vì `_framework-dropins/` tự tái tạo lại vấn đề
 `_framework-dropins/` trước khi chạy gate/commit đầu tiên**. Xác nhận: sau khi loại `_framework-dropins/`
 khỏi staging, toàn bộ chuỗi hook (`pre-commit` → `commit-msg`) chạy đúng như tài liệu mô tả.
 
+## Chạy thật phần GitHub (FT-41, 2026-10-09)
+
+Dự án đích `create-next-app@latest` (Next 16.4.0) + `copy-framework.sh` + toàn bộ `_framework-dropins/`, thêm `type-check`/`test`
+(vitest) → `dev-task.sh gate` PASS cục bộ. Repo thật `seeker19110/case-study-ft41` (tạo private, chuyển public để bật bảo vệ nhánh).
+Supabase (Bước 7) và Vercel (Bước 8) **ngoài phạm vi**, vẫn chưa kiểm chứng.
+
+| Kiểm | Kết quả thật |
+|---|---|
+| Ruleset `main` trên repo **private, gói Free** | 403 "Upgrade to GitHub Pro or make this repository public" — cả ruleset lẫn branch protection kiểu cũ |
+| Import `.github/rulesets/main.json` (repo public) | active: `deletion`, `non_fast_forward`, `pull_request`, `required_status_checks` |
+| Push thẳng `main` | `remote rejected` — "Changes must be made through a pull request", "2 of 2 required status checks are expected" |
+| PR #6, #7 (squash) | `gate`, `metadata`, gitleaks, dependency-review, CodeQL (`javascript-typescript`/`python`/`actions`) ✅ → MERGED |
+| `main` sau merge (`161f4ef`) | CI, CodeQL, Secret scan, OpenSSF Scorecard, Release ✅ |
+
+Phát hiện (đều do chạy thật mới thấy):
+
+- **F-41a (lỗi khung, đã sửa — TRAPS 61):** Dependabot mở 5 PR bot ngay lần đầu → cổng WIP (trần 3, đếm bot) chặn PR của người.
+  Sửa: một `multi-ecosystem-group` (≤ 1 PR bot nâng phiên bản) + bỏ qua `semver-major`. Đưa cấu hình mới lên đích (PR #7): log
+  Dependabot ghi `multi-ecosystem-update: true`, nhóm `dependencies`, áp ignore major → 0 PR (5 bản có sẵn đều major). Chưa quan sát
+  được lúc tạo PR gộp vì chưa có bản minor/patch.
+- **Repo private gói Free:** không có bảo vệ nhánh, Code scanning (CodeQL đỏ khi upload SARIF), Scorecard đỏ ("Resource not
+  accessible by integration"). Dự án đích private cần GitHub Pro/Team hoặc bỏ các job đó có chủ đích.
+- **Dependency graph** không tự bật khi repo tạo private rồi chuyển public → `dependency-review` đỏ đến khi bật
+  (`PUT repos/<repo>/vulnerability-alerts`) — đã có trong `docs/ops/repository-settings.md` (checklist bảo mật).
+- **gitleaks lần push đầu:** push chứa commit gốc (create-next-app luôn tạo) → `fatal: ambiguous argument '<root>^..<head>'`; lần
+  push sau xanh. Đỏ một lần, không phải rò bí mật.
+- CodeQL drop-in chỉ có `python`, `actions`: đích Next.js phải thêm `javascript-typescript` (đúng chú thích của drop-in; PR #6).
+
 ## Bài học cho các lần "chạy thử" sau
 
 - Chạy thật luôn phát hiện được lỗi mà đọc lại tài liệu không thấy — cả 3 lỗi ở trên đều "đúng trên giấy"

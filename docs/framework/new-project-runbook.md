@@ -121,6 +121,7 @@ dự-án/
 ### Bước 6 — Bật branch protection (GitHub UI)
 - [ ] Settings → Branches → rule cho `main`: yêu cầu **Pull request**, yêu cầu **status checks (job CI) xanh**, yêu cầu **nhánh cập nhật** trước khi merge.
 - **Tuân thủ:** từ đây, không gì vào `main` khi CI chưa xanh.
+- **Lưu ý gói:** repo **private** trên tài khoản GitHub Free không bật được ruleset/branch protection (API trả 403) và không có Code scanning — cần Pro/Team hoặc repo public (đo thật FT-41, `case-study-greenfield-dry-run.md`).
 
 ### Bước 7 — Kết nối Supabase + migration đầu tiên
 - [ ] `npx supabase init` → `link` tới project; commit thư mục `supabase/`.
