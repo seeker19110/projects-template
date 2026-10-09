@@ -11,7 +11,7 @@
 set -uo pipefail   # cố ý KHÔNG -e (docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DT="$ROOT/scripts/dev-task.sh"
+DT="$ROOT/scripts/dev-task.sh"; ROOT_REPO="$ROOT"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 # shellcheck source=scripts/_test-lib.sh
@@ -52,9 +52,29 @@ if command -v node >/dev/null 2>&1; then
   [ "$got" = "" ] && ok "không jq: khoá 'test' ở dependencies KHÔNG bị coi là script (F-309)" || bad "không jq: F-309 dương tính giả → '$got'"
   got="$(PATH="$NOJQ" CLAUDE_PROJECT_DIR="$d" "$BASH" "$DT" --print build 2>/dev/null)"
   [ "$got" = "npm run build" ] && ok "không jq: script thật vẫn được nhận (đọc JSON bằng node)" || bad "không jq: script 'build' bị bỏ sót → '$got'"
+  # F-309b (nghiệm thu agent 2026-10-09, reviewer F3 + security-reviewer #1): gọi thẳng node_has_script với tên tùy ý —
+  # "$1" đứng sau `-e` bị node đọc như CỜ (`--version` in phiên bản và trả 0; `--require=x.js` chạy mã), và `p.scripts[k]`
+  # thấy cả khoá kế thừa từ Object.prototype (`toString` → "có script"). Caller hiện chỉ truyền tên cố định; cổng này giữ bất biến.
+  nhs() { ( ROOT="$d"; . "$ROOT_REPO/scripts/_stack-detect.sh"; export PATH="$NOJQ"; node_has_script "$1" ); }
+  got="$(nhs --version 2>/dev/null)"; rc=$?
+  [ "$rc" -ne 0 ] && [ -z "$got" ] && ok "không jq: tên bắt đầu bằng '-' không thành cờ của node (F-309b)" || bad "không jq: '--version' → rc=$rc, stdout='$got' (option injection)"
+  nhs toString >/dev/null 2>&1 && bad "không jq: khoá kế thừa 'toString' bị coi là script (F-309b)" || ok "không jq: chỉ nhận khoá sở hữu của scripts (F-309b)"
+  # Không jq LẪN không node (reviewer F1): phải báo ra stderr, không im lặng trả false.
+  mkdir -p "$NOJQ/none"; cp "$NOJQ/grep" "$NOJQ/dirname" "$NOJQ/none/"
+  err="$( ( ROOT="$d"; . "$ROOT_REPO/scripts/_stack-detect.sh"; export PATH="$NOJQ/none"; node_has_script build ) 2>&1 >/dev/null )"
+  [[ "$err" == *"jq lẫn node"* ]] && ok "không jq, không node: cảnh báo ra stderr thay vì im lặng (F-309b)" || bad "không jq, không node: im lặng → stderr='$err'"
+  # BOM UTF-8 đầu package.json: jq bỏ qua BOM, JSON.parse thì ném → hai nhánh phải cùng kết quả (reviewer F2).
+  d="$(fx node5)"; printf '\xEF\xBB\xBF{"scripts":{"build":"x"}}\n' > "$d/package.json"
+  got="$(PATH="$NOJQ" CLAUDE_PROJECT_DIR="$d" "$BASH" "$DT" --print build 2>/dev/null)"
+  [ "$got" = "npm run build" ] && ok "không jq: package.json có BOM vẫn nhận script (khớp nhánh jq)" || bad "không jq: BOM làm mất script 'build' → '$got'"
 else
   echo "  ℹ️ không có node — bỏ qua ca không-jq (F-309)"
 fi
+
+# Có jq: khoá cùng tên ở `config` không phải script (chỉ đọc `.scripts[...]`).
+d="$(fx node6)"; printf '{"config":{"lint":"x"},"scripts":{"build":"y"}}\n' > "$d/package.json"
+expect "$d" lint "" "có jq: khoá 'lint' ở config KHÔNG bị coi là script, không bịa 'npm run lint'"
+expect "$d" build "npm run build" "có jq: script 'build' thật vẫn được nhận"
 
 echo "== 2. Python: venv / uv / poetry / PATH, marker requirements.txt =="
 d="$(fx py1)"; : > "$d/requirements.txt"; mkdir -p "$d/.venv/bin"; printf '#!/usr/bin/env bash\nexit 0\n' > "$d/.venv/bin/ruff"; chmod +x "$d/.venv/bin/ruff"

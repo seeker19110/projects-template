@@ -43,12 +43,17 @@ declared_cmd() {
 node_has_script() {
   # $1 = tên script; true nếu package.json khai báo nó. jq rồi node — cả hai đọc JSON THẬT.
   # Bản cũ (F-309, 2026-09-01 → sửa 2026-10-09) không jq thì grep `"$1":` trên CẢ file → khoá cùng tên ở
-  # dependencies/config bị coi là script. Dự án Node không có node thì cũng không chạy được `npm run`.
+  # dependencies/config bị coi là script. F-309b (2026-10-09): "$1" đặt sau `-e` bị node đọc như CỜ (`--require=x.js`
+  # chạy mã) → đưa sau `--`; `p.scripts[k]` thấy cả khoá kế thừa (`toString`) → Object.hasOwn. Không jq lẫn node (Bun/Deno
+  # thuần) thì báo ra stderr thay vì im lặng trả false (khuôn T4: cổng bỏ qua âm thầm). BOM UTF-8 đầu file: jq chấp
+  # nhận, JSON.parse ném → bỏ `\uFEFF` trước parse để hai nhánh cùng kết quả (viết escape, không dán ký tự BOM vào mã).
   [ -f "$ROOT/package.json" ] || return 1
   if command -v jq >/dev/null 2>&1; then
     jq -e --arg s "$1" '.scripts[$s] // empty' "$ROOT/package.json" >/dev/null 2>&1
+  elif command -v node >/dev/null 2>&1; then
+    node -e 'const p=JSON.parse(require("fs").readFileSync(0,"utf8").replace(/^\uFEFF/,""));process.exit(p.scripts&&Object.hasOwn(p.scripts,process.argv[1])?0:1)' -- "$1" < "$ROOT/package.json" 2>/dev/null
   else
-    node -e 'const p=JSON.parse(require("fs").readFileSync(0,"utf8"));process.exit(p.scripts&&p.scripts[process.argv[1]]?0:1)' "$1" < "$ROOT/package.json" 2>/dev/null
+    printf '[stack-detect] không có jq lẫn node — không đọc được package.json, coi như không có script %s\n' "$1" >&2; return 1
   fi
 }
 
