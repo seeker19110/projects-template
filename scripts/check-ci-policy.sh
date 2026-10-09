@@ -184,8 +184,8 @@ fi
 
 
 # --- 6b. CP-5: sổ job ĐƯỢC PHÉP skip phải khớp bằng đúng tập job có `if:`. ---
-# VÌ SAO: `gate` tính `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy trên push vào
-# nhánh chính). Hệ quả không ai canh: một job bị `if:` viết hỏng loại ra sẽ KHÔNG chạy và vẫn qua
+# VÌ SAO: `gate` phải tính `skipped` của job có `if:` có chủ đích là đạt (từng cần cho
+# `progress-freshness` khi nó chỉ chạy trên main; nay sổ rỗng). Hệ quả không ai canh: một job bị `if:` viết hỏng loại ra sẽ KHÔNG chạy và vẫn qua
 # cổng — cổng xanh giả, cùng họ với CP-4 nhưng vào bằng cửa khác. Sổ `SKIP_ALLOWED` trong bước
 # "Kết luận từ mọi job cổng" là danh sách tường minh; kiểm này giữ nó khớp CHÍNH XÁC hai chiều:
 # thêm `if:` cho một job mà quên kê ⇒ đỏ (job mới skip được mà không ai biết); kê thừa một job không

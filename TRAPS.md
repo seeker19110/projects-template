@@ -167,7 +167,7 @@ tồn tại không; `git log origin/main` xem SHA "đã đối chiếu" có ph�
 
 **Cổng chốt chặn:** `scripts/check-progress-freshness.sh` (PF-1: SHA đã đối chiếu là tổ tiên của
 HEAD; PF-2: nhánh nêu trong "Nhánh đang làm" còn tồn tại trên remote) + job CI `progress-freshness`
-(chỉ chạy khi push vào `main`, `needs:` của `gate`) + `CLAUDE.md` §8 bắt buộc cập nhật `PROGRESS.md`
+(chạy cả ở PR lẫn push vào `main` từ 2026-10-09, `needs:` của `gate`) + `CLAUDE.md` §8 bắt buộc cập nhật `PROGRESS.md`
 ngay sau khi quay về `main`.
 
 **Tái phát 2026-10-09 (#245):** PR chốt hồ sơ cập nhật "SHA đã đối chiếu" sang #244 nhưng dòng "Giai đoạn" vẫn nêu
@@ -175,7 +175,8 @@ ngay sau khi quay về `main`.
 lỗi PF-3 in ở giữa nên lọt (đúng bẫy `CLAUDE.md` §4 bước 3). Job `progress-freshness` chỉ chạy trên `main` nên PR
 vẫn xanh. *Cách rà thêm:* PR chốt hồ sơ phải chạy `bash scripts/check-progress-freshness.sh` và đọc **mã thoát**
 (`echo $?`), không đọc đuôi output; sửa "SHA đã đối chiếu" thì sửa dòng "Giai đoạn" trong cùng commit. Sửa ở PR
-chốt hồ sơ #246.
+chốt hồ sơ #246. *Cổng thêm (2026-10-09):* job `progress-freshness` chạy cả ở PR (bỏ `if:` chỉ-main, sổ
+`SKIP_ALLOWED` rỗng); `test-check-scripts.sh` khoá việc nối dây + ca đối chứng merge ref không báo oan.
 
 ## 9. Nhãn "C1 — MẶC ĐỊNH" gây thiên lệch web cho dự án không phải web
 
