@@ -25,7 +25,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
-from _telemetry_report import fmt_cost, markdown_summary, widget_html  # noqa: E402,F401  (fmt_cost tái xuất cho tests)
+from _telemetry_report import markdown_summary, widget_html  # noqa: E402
 # Thư mục log TRUNG LẬP harness: khung này là khung cho Claude Code, không gắn với một
 # runner cụ thể. (Trước đây là ".hermes" — tên một harness khác lọt vào mặc định.)
 LOG_DIR = os.path.join(ROOT_DIR, ".ai-telemetry")

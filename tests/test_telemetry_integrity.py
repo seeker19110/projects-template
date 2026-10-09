@@ -37,10 +37,10 @@ class TelemetryIntegrityTests(TestCase):
             5, 1, "PASSED", 100, 20,
         )
 
-    def test_fmt_cost_reexported_from_report_helper(self):
+    def test_report_renderers_come_from_helper_module(self):
         # Engine nạp helper qua sys.path nên module nằm sẵn trong sys.modules; nạp lại bằng
         # spec_from_file_location sẽ ra bản sao khác danh tính.
-        self.assertIs(self.engine.fmt_cost, sys.modules["_telemetry_report"].fmt_cost)
+        self.assertIs(self.engine.markdown_summary, sys.modules["_telemetry_report"].markdown_summary)
 
     def test_new_log_and_empty_summary(self):
         self.assertFalse(self.log.exists())
