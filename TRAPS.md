@@ -1177,3 +1177,18 @@ tiêu đề commit trên `main` đều phải qua cùng một bộ kiểm — c�
 đề commit khi PR có đúng một commit và dùng tiêu đề PR khi nhiều commit.
 
 *Cổng chốt chặn:* `pr-policy.yml` job `metadata` fail khi bất kỳ commit subject nào > 72 ký tự (PR closeout 2026-10-09).
+
+## 59. Brief cho worker tự nhận "0 quyết định để ngỏ" nhưng mâu thuẫn với chính khuôn nó đưa — worker dừng đúng, Tầng 1 mất một vòng
+
+*Ngày:* 2026-10-09 (nghiệm thu agent đợt 3, `docs/reports/2026-10-09-agent-acceptance.md`): PLAN.md giao `mechanical-worker` nối
+một khối README "kể cả dòng trống đầu" nhưng khối trong fence không có dòng trống đầu → worker chọn khối đúng từng ký tự theo fence,
+báo mơ hồ và xin quyết định; kết quả lệch đúng như worker cảnh báo. Cùng đợt: worker không chạy cổng vì brief không đòi; reviewer không
+xác minh được đỏ-trước vì worker không nộp output; worker thử `git reset --hard` (hook chặn). Bốn lỗi đều của **brief**, không của worker.
+
+*Cách rà:* trước khi dispatch hỏi "nếu worker làm đúng từng chữ brief này thì có ra đúng kết quả mình muốn không?" — với `mechanical`
+tự chạy `od -c`/`cat -A` lên khuôn trong fence; với mọi route: brief có đòi cổng + output đỏ/xanh + cấm hoàn tác lịch sử chưa.
+
+*Cổng chốt chặn:* `scripts/subagent-dispatch.sh --check-plan PLAN.md` (thoát 1 khi thiếu trường/placeholder/route lạ/phụ thuộc
+sai-vòng/việc không thuộc đúng một PR/mechanical không có fence hoặc điểm chạm glob); mẫu `docs/framework/templates/PLAN.template.md`
+có sẵn khối "Luật chung" (cổng, output đỏ/xanh, cấm hoàn tác) để dán vào brief. Cổng kiểm hình thức kín, không kiểm khuôn đúng —
+phần đó vẫn là việc của Tầng 1 (PR 2026-10-09).

@@ -136,40 +136,24 @@ subagent `version-check` hoặc nguồn sống trước khi dùng thật (CLAUDE
 - Không quyết định kiến trúc-cấp-dự-án, không chọn công nghệ, không đụng §9 (đẩy lên).
 - Không commit/merge (do `/gate` điều phối). Chống ảo giác §4.
 
-## Định dạng PLAN.md (Tầng 1 xuất, Tầng 2 đọc nguyên văn)
+## Định dạng PLAN.md và cổng khoá brief trước khi dispatch
 
-```markdown
-# PLAN.md — <tên thay đổi>
+Mẫu đầy đủ: `docs/framework/templates/PLAN.template.md` (copy, điền, giữ đúng khuôn dòng vì cổng đọc máy).
+Khối "Luật chung cho mọi việc" trong mẫu dán nguyên vào brief từng worker: chỉ sửa file trong Điểm chạm,
+test đỏ-trước + nộp output đỏ/xanh, chạy cổng trước khi báo xong, không hoàn tác lịch sử, mơ hồ thì dừng.
 
-## Bối cảnh & mục tiêu
-<1–3 câu: vấn đề, kết quả mong muốn>
+**Cổng (bắt buộc, Tầng 1 chạy trước khi giao việc đầu tiên):**
 
-## Đặc tả dùng chung
-- Schema/DDL: <bảng, cột, ràng buộc, index>
-- API: <chữ ký endpoint/hàm, kiểu vào/ra, mã lỗi>
-- Quy ước: <đặt tên, thư mục, migration>
-
-## Nhóm PR (đơn vị mở PR)
-- **PR-1** (<tên>): gồm việc T1, T2 — độc lập, chạy song song với PR-2
-- **PR-2** (<tên>): gồm việc T3 — độc lập, chạy song song với PR-1
-- **PR-3** (<tên>): gồm việc T4 — phụ thuộc PR-1 (rebase sau khi PR-1 merge), chạy tuần tự
-
-## Danh sách việc
-### T1 — <tên việc>   `route: standard`
-- Điểm chạm: `<đường-dẫn-file-1>`, `<đường-dẫn-file-2>`
-- Đặc tả: <cụ thể tới mức worker thi hành không phải đoán>
-- Phụ thuộc: <none | T?>
-- Tiêu chí chấp nhận: <kiểm được: test nào xanh, hành vi nào đúng>
-
-### T2 — <tên việc>   `route: complex`
-- ... (chừa rõ phần được tự quyết, nêu ranh giới)
-
-## Thứ tự tích hợp & migration
-<PR-1 → PR-3; ai đánh số migration; điểm rebase — khớp phần "Nhóm PR" ở trên>
-
-## Duyệt cuối (Tầng 1)
-<những gì Tầng 1 sẽ kiểm khi nghiệm thu tổng>
+```bash
+scripts/subagent-dispatch.sh --check-plan PLAN.md   # 0 = kín; 1 = liệt kê lỗi, KHÔNG dispatch; 2 = file thiếu/rỗng/không UTF-8
 ```
+
+Cổng chặn đúng khuôn lỗi đã mắc thật ở nghiệm thu 2026-10-09 đợt 3 (brief `route:mechanical` tự nhận "0 quyết định
+để ngỏ" nhưng mâu thuẫn với fence → worker dừng đúng, Tầng 1 mất một vòng — TRAPS mục 59): mỗi việc có route hợp lệ +
+đủ 4 trường (Điểm chạm · Đặc tả · Phụ thuộc · Tiêu chí chấp nhận), không còn placeholder `<…>`, phụ thuộc có thật và
+không tạo vòng, mỗi việc thuộc đúng một đơn vị PR; `route:mechanical` phải có khuôn trong fence và điểm chạm là đường
+dẫn tường minh (không glob). Cổng kiểm **hình thức kín** của brief, không kiểm nội dung đúng — Tầng 1 vẫn tự soát khuôn
+(dòng trống, đầu/cuối) trước khi giao.
 
 ## Ranh giới với phần còn lại của khung
 - **"Tầng" ở đây là tầng ĐIỀU PHỐI (nghĩ/chạy/làm).** 5 *tầng vòng đời* (Product & UX → Design →

@@ -137,3 +137,116 @@ class TestDispatchMain(unittest.TestCase):
             self.assertIn("prepare-only", err)
             data = json.loads(out)
             self.assertEqual((data["mode"], data["executed"]), ("prepare-only", False), harness)
+
+
+GOOD_PLAN = """# PLAN.md — vi du
+
+## Nhóm PR (đơn vị mở PR)
+- **PR-1** (mean): gồm việc T1 — độc lập
+- **PR-2** (docs): gồm việc T2 — phụ thuộc PR-1
+
+## Danh sách việc
+### T1 — Thêm hàm mean   `route: standard`
+- Điểm chạm: `src/stats.py`, `tests/test_stats.py`
+- Đặc tả: mean([]) trả None; mean([1,2,3]) trả 2.0
+- Phụ thuộc: none
+- Tiêu chí chấp nhận: `python -m unittest tests/test_stats.py` xanh, có ca đỏ trước
+
+### T2 — Nối khối README   `route: mechanical`
+- Điểm chạm: `README.md`
+- Đặc tả: nối đúng từng ký tự khối dưới vào cuối file
+```markdown
+
+## Cách dùng
+`python -m stats`
+```
+- Phụ thuộc: T1
+- Tiêu chí chấp nhận: `tail -n 4 README.md` khớp từng byte khối trên
+"""
+
+
+class TestCheckPlan(unittest.TestCase):
+    """`--check-plan`: khoá brief TRƯỚC khi dispatch (nghiệm thu 2026-10-09 đợt 3: brief mechanical
+    "0 quyết định để ngỏ" nhưng mâu thuẫn với fence → mất một vòng worker)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = self._tmp.name
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def check(self, text):
+        path = write(self.dir, "PLAN.md", text)
+        out, err = io.StringIO(), io.StringIO()
+        saved = sys.argv, sys.stdout, sys.stderr
+        sys.argv = ["subagent-dispatch.py", "--check-plan", path]
+        sys.stdout, sys.stderr = out, err
+        code = None
+        try:
+            dispatch.main()
+        except SystemExit as exc:
+            code = exc.code
+        finally:
+            sys.argv, sys.stdout, sys.stderr = saved
+        return code, out.getvalue() + err.getvalue()
+
+    def test_plan_hop_le_thoat_0_va_dem_viec(self):
+        code, text = self.check(GOOD_PLAN)
+        self.assertEqual(code, 0, text)
+        self.assertIn("2 việc", text)
+
+    def test_thieu_truong_bat_buoc_neu_ten_viec_va_truong(self):
+        code, text = self.check(GOOD_PLAN.replace("- Tiêu chí chấp nhận: `python", "- Ghi chú: `python"))
+        self.assertEqual(code, 1)
+        self.assertIn("T1", text)
+        self.assertIn("Tiêu chí chấp nhận", text)
+
+    def test_placeholder_con_sot_la_loi(self):
+        code, text = self.check(GOOD_PLAN.replace("mean([]) trả None", "<điền đặc tả>"))
+        self.assertEqual(code, 1)
+        self.assertIn("<điền đặc tả>", text)
+
+    def test_route_la_hoac_thieu_la_loi(self):
+        code, text = self.check(GOOD_PLAN.replace("`route: standard`", "`route: wizard`"))
+        self.assertEqual(code, 1)
+        self.assertIn("wizard", text)
+        code, text = self.check(GOOD_PLAN.replace("   `route: standard`", ""))
+        self.assertEqual(code, 1)
+        self.assertIn("T1", text)
+
+    def test_phu_thuoc_khong_ton_tai_hoac_vong_la_loi(self):
+        code, text = self.check(GOOD_PLAN.replace("- Phụ thuộc: T1", "- Phụ thuộc: T9"))
+        self.assertEqual(code, 1)
+        self.assertIn("T9", text)
+        code, text = self.check(GOOD_PLAN.replace("- Phụ thuộc: none", "- Phụ thuộc: T2"))
+        self.assertEqual(code, 1)
+        self.assertIn("vòng", text)
+
+    def test_nhom_pr_phai_phu_moi_viec_dung_mot_lan(self):
+        code, text = self.check(GOOD_PLAN.replace("gồm việc T2 — phụ thuộc PR-1", "gồm việc T1 — phụ thuộc PR-1"))
+        self.assertEqual(code, 1)
+        self.assertIn("T2", text)
+        self.assertIn("T1", text)
+
+    def test_mechanical_phai_co_fence_va_diem_cham_tuong_minh(self):
+        no_fence = GOOD_PLAN.replace("```markdown\n\n## Cách dùng\n`python -m stats`\n```\n", "")
+        code, text = self.check(no_fence)
+        self.assertEqual(code, 1)
+        self.assertIn("T2", text)
+        self.assertIn("khuôn", text)
+        code, text = self.check(GOOD_PLAN.replace("- Điểm chạm: `README.md`", "- Điểm chạm: `docs/*.md`"))
+        self.assertEqual(code, 1)
+        self.assertIn("docs/*.md", text)
+
+    def test_file_plan_khong_ton_tai_thoat_2(self):
+        out, err = io.StringIO(), io.StringIO()
+        saved = sys.argv, sys.stdout, sys.stderr
+        sys.argv = ["subagent-dispatch.py", "--check-plan", os.path.join(self.dir, "khong-co.md")]
+        sys.stdout, sys.stderr = out, err
+        try:
+            with self.assertRaises(SystemExit) as cm:
+                dispatch.main()
+        finally:
+            sys.argv, sys.stdout, sys.stderr = saved
+        self.assertEqual(cm.exception.code, 2)

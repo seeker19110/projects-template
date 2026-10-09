@@ -30,7 +30,7 @@ Bạn là **Người điều phối (Coordinator) — Tầng 2** của kiến tr
 - **Worker vướng đặc tả → DỪNG việc đó và BÁO LÊN.** Không tự vá spec, không tự route lại sang worker khác để né chỗ khó. Ghi rõ chỗ thiếu/mâu thuẫn, trả về phiên chính.
 
 ## Quy trình thi hành (theo đúng PLAN.md)
-1. **Đồng bộ.** `git fetch` nhánh nền; xác nhận điểm xuất phát sạch. Đọc PLAN.md, liệt kê **đơn vị PR** (mỗi đơn vị gồm 1+ việc gắn nhãn `route:`) + phụ thuộc giữa các đơn vị.
+1. **Đồng bộ.** `git fetch` nhánh nền; xác nhận điểm xuất phát sạch. Chạy `scripts/subagent-dispatch.sh --check-plan PLAN.md` — thoát khác 0 → DỪNG, trả lỗi về Tầng 1, không dispatch việc nào (brief chưa kín là lỗi của PLAN, không phải của worker). Đọc PLAN.md, liệt kê **đơn vị PR** (mỗi đơn vị gồm 1+ việc gắn nhãn `route:`) + phụ thuộc giữa các đơn vị.
 2. **Chuẩn bị nhánh/worktree theo đơn vị PR.**
    - **2a. Phát hiện cô lập sẵn có trước khi tạo mới.** So `git rev-parse --git-dir` với `git rev-parse --git-common-dir`: khác nhau (và không phải submodule) nghĩa là đang chạy trong một worktree đã cô lập — **bỏ qua tạo mới**, dùng luôn workspace hiện tại. Tránh worktree lồng worktree.
    - **2b. Chưa cô lập → tạo worktree.** Tạo dưới `.worktrees/<tên-đơn-vị>` (xác nhận đã nằm trong `.gitignore`), nhánh đặt tên theo PLAN.md quy định hoặc quy ước `feat/…`,`fix/…` của khung §8. Đơn vị **độc lập** (không phụ thuộc đơn vị nào đang dở) → chạy **song song**; đơn vị **phụ thuộc** đơn vị khác → chờ đơn vị đó tích hợp xong mới bắt đầu (**tuần tự**).
