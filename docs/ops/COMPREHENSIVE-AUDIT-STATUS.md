@@ -4,7 +4,7 @@
 
 Base `ac911e3`. Không audit mới; đưa mọi mục repo còn tự đánh dấu tới kết cục: radar 4 file > 400 dòng → 0 (#227, #228),
 FEATURE-MAP FT-25/FT-50 ⚠️ → ✅ (F-309 sửa có test đỏ-trước; FT-25 là trích dẫn sai), P-C12 xong. Sau R-03: radar 100/100,
-FEATURE-MAP 0 ❌ 0 ⚠️, sweep 🔴 0 🟡 0. Chi tiết: `docs/reports/2026-10-09-finishing.md`.
+cột Trạng thái FEATURE-MAP hết ⚠️/❌ (cột Test còn ❌ ở FT-13..20, FT-41 — cần harness/tài khoản thật), sweep 🔴 0 🟡 0. Chi tiết: `docs/reports/2026-10-09-finishing.md`.
 
 ## Chu kỳ 2026-10-09 — hoàn thiện phần còn lại
 

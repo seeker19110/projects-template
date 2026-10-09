@@ -72,7 +72,7 @@ R-01 ∥ R-02 (file không chung ngoài CODEMAP/manifest — phiên chính hợp
 
 ## Bàn giao / bước tiếp theo
 
-- Không còn việc mở. Radar 100/100 (0 file > 400 dòng, 43/43 script có cổng); FEATURE-MAP 0 ❌ 0 ⚠️; sweep 🔴 0 🟡 0;
+- Không còn việc mở. Radar 100/100 (0 file > 400 dòng, 43/43 script có cổng); cột Trạng thái FEATURE-MAP hết ⚠️/❌ (cột Test còn ❌ FT-13..20/FT-41 — cần harness/tài khoản thật); sweep 🔴 0 🟡 0;
   docs-consistency 12/12. P-B11 giữ không làm (lý do kỹ thuật). Việc cần môi trường ngoài (hosted CI đích, pilot, benchmark
   model, harness ngoài) ghi ở "Không làm / giới hạn" của báo cáo.
 
