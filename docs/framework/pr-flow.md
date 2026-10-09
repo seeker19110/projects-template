@@ -20,6 +20,6 @@
 
 ## 3. Cổng máy liên quan
 
-- `pr-policy.yml` (job `metadata`): tiêu đề PR **và mọi tiêu đề commit** (kể cả merge/autofix — `TRAPS.md` mục 48) conventional, tiêu đề ≤ 72 ký tự, đủ mục PR template, Feature gate cho `feat`, trần WIP 3 PR mở, nhắc `TRAPS.md` cho `fix:`.
+- `pr-policy.yml` (job `metadata`): tiêu đề PR **và mọi tiêu đề commit** (kể cả merge/autofix — `TRAPS.md` mục 48) conventional, tiêu đề ≤ 72 ký tự, đủ mục PR template, Feature gate cho `feat`, trần WIP 3 PR mở, nhắc `TRAPS.md` cho `fix:`; dòng `Work ID: <ngày-slug>` phải trỏ tới `docs/work/<id>/working.md` hoặc `done.md` có thật trên nhánh PR (miễn trừ draft/bot).
 - `check-progress-freshness.sh` (job `progress-freshness`): PF-1..PF-4 — bước (5) "cập nhật PROGRESS.md ngay sau khi về main" có cổng thật.
 - `block-dangerous-git.sh` khuôn 3: cấm `--abort`; khuôn 1/5: cấm force-push / xoá / ép ghi đè nhánh chính.

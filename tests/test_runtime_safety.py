@@ -19,8 +19,13 @@ from _runtime_fixture import RuntimeFixture, ROOT, BASH, run, write
 class RuntimeSafety(RuntimeFixture):
     def pr_policy(self, pr, others):
         workflow = (ROOT / ".github/workflows/pr-policy.yml").read_text(encoding="utf-8")
-        _, marker, script = workflow.partition("          script: |\n")
+        _, marker, rest = workflow.partition("          script: |\n")
         self.assertTrue(marker, "Workflow must expose the actual github-script body")
+        # Thân script dừng ở dòng không rỗng đầu tiên thụt < 12 khoảng trắng (step YAML kế tiếp).
+        lines = rest.splitlines(keepends=True)
+        end = next((i for i, line in enumerate(lines)
+                    if line.strip() and not line.startswith(" " * 12)), len(lines))
+        script = "".join(lines[:end])
         fixture = self.tmp / "pr-policy.json"
         write(fixture, json.dumps({"script": textwrap.dedent(script), "pr": pr,
                                   "open": [pr, *others]}, ensure_ascii=False))

@@ -361,6 +361,12 @@ else
       fail=1
     fi
   done
+  # 11b. ID FT-xx là khoá tra cứu (audit/PR/spec trỏ tới) — trùng là hai tính năng lẫn nhau (TRAPS 60).
+  dup_ids="$(grep -oE '^\| FT-[0-9]+ ' "$FEATURE_MAP_FILE" | sort | uniq -d | tr -d '| ' | tr '\n' ' ' || true)"
+  if [ -n "$dup_ids" ]; then
+    echo "::error file=$FEATURE_MAP_FILE::ID trùng trong $FEATURE_MAP_FILE: $dup_ids— cấp ID mới = số lớn nhất + 1, không dùng lại."
+    fail=1
+  fi
 fi
 
 # VÌ SAO (2026-10-09): ba mẫu DATA-GOVERNANCE/GOVERNANCE/SUPPORT tồn tại mà không tài liệu hướng dẫn
@@ -382,6 +388,30 @@ else
     fi
   done
 fi
+
+# VÌ SAO (2026-10-09): tên thư mục docs/work/<id>/ CHÍNH LÀ Work ID mà mô tả PR phải ghi (pr-policy.yml),
+# và tên file CHÍNH LÀ trạng thái (working.md = chưa xong, done.md = đã merge + DoD; standard-delivery §3e).
+# Thư mục sai khuôn, có cả hai hoặc không có file nào thì `ls docs/work/*/working.md` báo sai việc còn dở.
+echo "== 13. Hồ sơ công việc (docs/work/<id>/) — khuôn Work ID + đúng một trạng thái =="
+check_work_record() {  # $1 = thư mục docs/work/<id>/; in lỗi và trả 1 khi sai
+  local dir="$1" id n=0 rc=0
+  id="$(basename "$dir")"
+  if ! [[ "$id" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+    echo "::error file=$dir::Work ID '$id' sai khuôn YYYY-MM-DD-slug (chữ thường, số, gạch nối)."
+    rc=1
+  fi
+  [ -f "$dir/working.md" ] && n=$((n+1))
+  [ -f "$dir/done.md" ] && n=$((n+1))
+  if [ "$n" -ne 1 ]; then
+    echo "::error file=$dir::Hồ sơ '$id' phải có đúng MỘT trong working.md/done.md (đang có $n)."
+    rc=1
+  fi
+  return "$rc"
+}
+for dir in docs/work/*/; do
+  [ -d "$dir" ] || continue
+  check_work_record "$dir" || fail=1
+done
 
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."

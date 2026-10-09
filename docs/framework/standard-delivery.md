@@ -178,7 +178,10 @@ hoặc yêu cầu thay đổi, tạo work ID mới và liên kết hồ sơ cũ,
 **Một yêu cầu một thư mục** `docs/work/<ngày>-<slug>/`; tạo `working.md` từ
 `docs/framework/templates/WORK.template.md` trước research/thực thi. Đây là hồ sơ
 nối phiên, không thay Project/spec/goal/Issue/PR. Với goal nhiều PR, dẫn tới checklist
-goal; không sao chép cùng checklist/trạng thái vào nhiều file. `PROGRESS.md` giữ tóm tắt
+goal; không sao chép cùng checklist/trạng thái vào nhiều file. **Tên thư mục là Work ID, tên file là
+trạng thái** — không lập sổ ID thứ hai: mọi PR ghi `Work ID: <id>` (cổng `pr-policy.yml`), thư mục
+đúng khuôn `YYYY-MM-DD-slug` và có đúng một `working.md`/`done.md` (`check-docs-consistency.sh` mục 13);
+việc còn dở = `ls docs/work/*/working.md`. `PROGRESS.md` giữ tóm tắt
 và đường dẫn active; Git/PR/CI là nguồn sự thật về commit, test và merge.
 
 - Ghi yêu cầu/outcome, scope/non-goal, owner, phân loại S/M/L, số PR dự kiến,
