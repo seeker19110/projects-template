@@ -22,7 +22,7 @@ Kế hoạch phải bao trùm: mục tiêu & phạm vi (DoR), các giai đoạn/
 Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại từng bước:
 - **Sonnet 5** viết code theo từng phần nhỏ, hoàn chỉnh, kiểm tra được.
 - Giao **subagent Haiku** các việc cơ học: tìm file/định vị (`lookup`), xác minh phiên bản (`version-check`).
-- **Phân tích và phân chia** (`docs/framework/standard-delivery.md` §3c): phiên chính chọn S/M/L và số PR; một PR có thể tự làm, từ hai PR giao subagent đủ năng lực theo contract, độc lập thì song song/phụ thuộc thì tuần tự. Tối đa **3 subagent đang chạy toàn cây**, gồm coordinator/reviewer/tester/agent lồng; ba tầng tùy chọn. Phiên chính giữ kế hoạch/quyết định khó, review, tích hợp và chạy đủ cổng; mỗi đơn vị một PR, FIFO/WIP/auto-merge theo §8.
+- **Phân tích và phân chia** (`docs/framework/standard-delivery.md` §3c): phiên chính chọn S/M/L và số PR; một PR có thể tự làm, từ hai PR giao subagent đủ năng lực theo contract, độc lập thì song song/phụ thuộc thì tuần tự. Tối đa **5 subagent đang chạy toàn cây**, gồm coordinator/reviewer/tester/agent lồng; ba tầng tùy chọn. Phiên chính giữ kế hoạch/quyết định khó, review, tích hợp và chạy đủ cổng; mỗi đơn vị một PR, FIFO/WIP/auto-merge theo §8.
 - **Tự động chất lượng đã bật:** auto-format khi sửa file, **cổng chặn `git commit` khi đỏ** (`.claude/hooks/`), qua `scripts/dev-task.sh`. Điền `.claude/project-commands.sh` (copy từ `.example.sh`) nếu dự án có lệnh riêng.
 - Trước việc đọc/tạo `docs/work/<id>/working.md`, checkpoint mỗi mốc/trước nén; `PROGRESS.md` trỏ hồ sơ. Chỉ rename sang done.md sau DoD + mọi PR merge thật (contract §3e); commit theo conventional commits.
 

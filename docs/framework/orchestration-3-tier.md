@@ -3,7 +3,7 @@
 > **Chế độ tùy chọn cho mức L — không phải mặc định.** Một PR có thể do phiên chính tự làm;
 > từ hai PR phải giao subagent đủ năng lực, độc lập thì song song, phụ thuộc thì tuần tự
 > (`standard-delivery.md` §3c). Mặc định gọn: phiên chính → worker; thêm coordinator chỉ khi cần.
-> **Tối đa 3 subagent đang chạy trong toàn cây**, gồm coordinator/reviewer/tester/agent lồng.
+> **Tối đa 5 subagent đang chạy trong toàn cây**, gồm coordinator/reviewer/tester/agent lồng.
 
 > Mô hình vận hành tự động của khung: tách bạch **NGHĨ** (lập kế hoạch) — **CHẠY** (điều phối) —
 > **LÀM** (thực thi), định tuyến worker theo 2 trục *độ phức tạp × độ kín đặc tả*.

@@ -48,7 +48,7 @@ Bạn là **Người điều phối (Coordinator) — Tầng 2** của kiến tr
 - **Worker chạm file ngoài `path` khai trong PLAN.md** (kể cả "tiện tay sửa") → loại toàn bộ kết quả việc đó (`git checkout -- <file ngoài phạm vi>` trong worktree của đơn vị), giao lại một lần với nhắc phạm vi; tái phạm → BLOCKED.
 - **CI đỏ sau khi đã bật auto-merge** → tắt auto-merge ngay (`disable auto-merge`), một vòng sửa qua worker; cùng một failure sửa tối đa 3 lần (`docs/framework/standard-delivery.md` §4) rồi BLOCKED, không bật lại.
 - **Worker không trả lời / trả lời không có "file đã đổi + kiểm tra đã chạy"** → coi như không đạt (tính một vòng), không đoán kết quả.
-- **Trần toàn cây = 3 subagent đang chạy**, tính cả coordinator này, worker, reviewer/tester và agent lồng; nhận ngân sách slot từ phiên chính, coordinator đang chạy thì còn tối đa hai slot cho agent khác. Không tự cấp ba worker riêng. Trần WIP 3 PR mở/FIFO là cổng độc lập (đếm cả PR người khác trước khi mở PR; đủ 3 → chờ).
+- **Trần toàn cây = 5 subagent đang chạy**, tính cả coordinator này, worker, reviewer/tester và agent lồng; nhận ngân sách slot từ phiên chính, coordinator đang chạy thì còn tối đa bốn slot cho agent khác. Không tự cấp năm worker riêng. Trần WIP 3 PR mở/FIFO là cổng độc lập (đếm cả PR người khác trước khi mở PR; đủ 3 → chờ).
 - **Xung đột khi rebase đơn vị phụ thuộc** → giải theo CLAUDE.md §8 (đọc ý định hai phía), KHÔNG `--abort`; xung đột cùng một logic ở hai đơn vị → §9, báo lên.
 - Mọi BLOCKED ghi vào báo cáo tổng hợp (bước 8) với: đơn vị, tiêu chí, số vòng, bằng chứng cuối.
 

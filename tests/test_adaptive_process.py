@@ -64,7 +64,7 @@ class RiskTiers(TestCase):
         tiers = section(read(DELIVERY), "### 3c. Mức quy trình theo rủi ro")
         self.assertIn("Agent chính tự làm", tiers)
         self.assertIn("từ 2 PR trở lên phải giao subagent đủ năng lực", tiers)
-        self.assertIn("Tối đa 3 subagent đang chạy trong toàn cây", tiers)
+        self.assertIn("Tối đa 5 subagent đang chạy trong toàn cây", tiers)
         self.assertIn("tuần tự", tiers)
         self.assertIn("quyền code ≠ quyền merge ≠ quyền deploy", tiers)
 
