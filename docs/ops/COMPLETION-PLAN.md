@@ -1,5 +1,23 @@
 # COMPLETION-PLAN — trạng thái hiện hành 2026-10-09
 
+## Lượt `/auto-complete` 2026-10-09 trên chính repo khung — ĐÃ ĐÓNG (nghiệm thu: `docs/reports/2026-10-09-auto-complete-run.md`)
+
+Yêu cầu: chủ repo gõ `/auto-complete` không kèm mô tả → phiên chính chốt outcome theo §3d: đưa khung (brownfield) tới Definition of
+Complete theo trạng thái đo thật. Hồ sơ: `docs/work/2026-10-09-auto-complete-run/` (mọi quyết định tự duyệt ghi một dòng ở đó).
+
+| ID | Từ | Việc | Tiêu chí nghiệm thu | Sức | Trạng thái | PR / bằng chứng |
+|---|---|---|---|---|---|---|
+| AC-01 | radar "Việc cần làm" (base a208b4f) | `scripts/subagent-dispatch.py` 404 dòng (> 400, do #239) → tách luật `--check-plan` ra helper thuần `scripts/_plan_check.py` (khuôn R-01), import muộn | 0 file mã > 400 dòng; 46/46 script có cổng; 51 ca characterization xanh (50 cũ + 1 helper); coverage ≥ 95 %; manifest copy có helper | S | ✅ | PR lượt này |
+| AC-02 | FEATURE-MAP FT-41 🚧 | Case-study greenfield bước 6–8 cần tài khoản thật | — | — | ⏸ BLOCKED §8 (secret/tài khoản mới — không tự quyết) | ghi `PROGRESS.md` nợ có chủ đích |
+| AC-03 | FEATURE-MAP FT-13 ⚠️ | `coordinator` chạy như subagent không dispatch được trong Claude Code | — | — | ➖ chấp nhận có điều kiện: xem lại khi harness cấp nested agent | `orchestration-3-tier.md` đã ghi |
+
+Pha 1 (đo, không sửa): radar 100/100 nhưng 1 "Việc cần làm"; sweep `--strict --no-deps` 🔴 0 🟡 0; docs-consistency ✅; ci-policy ✅;
+`dev-task.sh gate` PASS; FEATURE-MAP chỉ còn FT-13/FT-41 như trên. Pha 4 (sau AC-01): radar 100/100, "Việc cần làm" rỗng,
+46/46 script có cổng; không phát sinh phát hiện mới.
+
+**Definition of Complete (lượt này):** 0 Cao mở ✅ · Trung/Thấp có kết cục ✅ (AC-02 BLOCKED có chủ đích, AC-03 chấp nhận có điều kiện) ·
+cổng khung xanh ✅ · tài liệu khớp code ✅ (CODEMAP/manifest/FEATURE-MAP/PROGRESS) · `PROGRESS.md` đúng trạng thái ✅.
+
 ## Vòng hoàn thiện trên dự án đích thật 2026-10-09 — ĐÃ ĐÓNG (nghiệm thu: `docs/reports/2026-10-09-target-completion.md`)
 
 Yêu cầu: chủ repo "tiếp tục cho đến khi xong đi" → mục ⚠️ cuối còn kiểm được ở đây: Luồng chính 5 (FT-08/FT-09 chưa chạy trên dự án

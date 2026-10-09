@@ -9,6 +9,7 @@ import unittest
 from .common import _load, write
 
 dispatch = _load("dispatch_under_test", "subagent-dispatch.py")
+plan_check = _load("plan_check_under_test", "_plan_check.py")
 
 
 class TestDispatchMain(unittest.TestCase):
@@ -190,6 +191,13 @@ class TestCheckPlan(unittest.TestCase):
         finally:
             sys.argv, sys.stdout, sys.stderr = saved
         return code, out.getvalue() + err.getvalue()
+
+    def test_helper_thuan_tra_findings_va_so_viec(self):
+        """`_plan_check.check_plan` thuần: không in, không thoát; CLI chỉ bọc kết quả này."""
+        self.assertEqual(plan_check.check_plan(GOOD_PLAN), ([], 2))
+        findings, n = plan_check.check_plan("khong co viec nao")
+        self.assertEqual(n, 0)
+        self.assertEqual(len(findings), 1)
 
     def test_plan_hop_le_thoat_0_va_dem_viec(self):
         code, text = self.check(GOOD_PLAN)

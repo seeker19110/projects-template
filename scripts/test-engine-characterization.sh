@@ -3,7 +3,8 @@
 # của hai engine Python:
 #   - scripts/arch-health-radar.py :: scan_codebase_health (+ _scripts_inventory, _spec_quality)
 #   - scripts/spec-compiler.py     :: parse_spec_markdown
-#   - scripts/subagent-dispatch.py :: main (CLI: --list, --json, lỗi thiếu/sai agent, render 4 harness)
+#   - scripts/subagent-dispatch.py :: main (CLI: --list, --json, lỗi thiếu/sai agent, render 4 harness, --check-plan)
+#   - scripts/_plan_check.py       :: check_plan (helper thuần của --check-plan, tách 2026-10-09 vì trần 400 dòng)
 #
 # VÌ SAO TỒN TẠI: hai hàm này là logic ĐO ĐẠC thật của khung (điểm sức khoẻ repo, hợp đồng spec).
 # Trước khi hạ độ phức tạp của chúng (radon CC 18 → < 12) phải KHOÁ HÀNH VI TỪNG NHÁNH lại,

@@ -1,5 +1,11 @@
 # Trạng thái audit hiện hành của repo khung — 2026-10-09
 
+## Lượt `/auto-complete` 2026-10-09 trên chính repo khung (mới nhất)
+
+Pha 1 đo bằng engine thật (base a208b4f): Cao 0 · Trung 0 · Thấp 1 (radar: `subagent-dispatch.py` 404 dòng sau #239) · Thông tin 2
+(FT-41 cần tài khoản thật → BLOCKED §8; FT-13 giới hạn harness → chấp nhận có điều kiện). Sau AC-01 (tách `_plan_check.py`):
+radar 100/100, "Việc cần làm" rỗng, 46/46 script có cổng, sweep 🔴 0 🟡 0. Chi tiết: `docs/reports/2026-10-09-auto-complete-run.md`.
+
 ## Vòng hoàn thiện trên dự án đích thật + nghiệm thu agent 2026-10-09 (mới nhất)
 
 Base `28f1e77` → `72afea6`. Hai đợt chạy **công cụ và agent thật**, không chỉ đọc tài liệu:
