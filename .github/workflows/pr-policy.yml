@@ -95,3 +95,24 @@ jobs:
                   "Tiêu đề kiểu feat: " + featureSubjects.join(" | "));
               }
             }
+      # Work ID (2026-10-09): mỗi PR ghi `Work ID: <ngày-slug>` trỏ tới hồ sơ docs/work/<id>/ có thật trên
+      # nhánh PR, để truy được từ PR về việc đã giao (standard-delivery §3e). Cùng miễn trừ draft/bot như trên.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ !github.event.pull_request.draft && !contains(fromJSON('["dependabot[bot]","renovate[bot]","github-actions[bot]"]'), github.event.pull_request.user.login) }}
+        with:
+          persist-credentials: false
+      - name: Work ID trỏ tới hồ sơ có thật
+        if: ${{ !github.event.pull_request.draft && !contains(fromJSON('["dependabot[bot]","renovate[bot]","github-actions[bot]"]'), github.event.pull_request.user.login) }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          id="$(printf '%s\n' "$PR_BODY" | tr -d '\r' | sed -n 's/^[-*[:space:]]*Work ID:[[:space:]]*`\{0,1\}\([^`[:space:]]*\)`\{0,1\}[[:space:]]*$/\1/p' | head -n 1)"
+          if ! [[ "$id" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::Mô tả PR thiếu dòng 'Work ID: YYYY-MM-DD-slug' hợp lệ (nhận: '${id}') — mục Issue / Goal."
+            exit 1
+          fi
+          if [ ! -f "docs/work/$id/working.md" ] && [ ! -f "docs/work/$id/done.md" ]; then
+            echo "::error::Work ID '$id' không có hồ sơ docs/work/$id/working.md hoặc done.md trên nhánh PR."
+            exit 1
+          fi
+          echo "Work ID $id → docs/work/$id/"

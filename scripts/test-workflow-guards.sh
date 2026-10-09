@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# test-workflow-guards.sh — CHỨNG MINH thân step `protection-guard` (ci.yml) và `Detect project manifest`
-# (dependency-review.yml) chạy đúng với API/manifest giả lập: bắt đúng lỗi, không chặn oan.
+# test-workflow-guards.sh — CHỨNG MINH thân step `protection-guard` (ci.yml), `Detect project manifest`
+# (dependency-review.yml) và `Work ID trỏ tới hồ sơ có thật` (pr-policy.yml) chạy đúng với API/manifest giả lập: bắt đúng lỗi, không chặn oan.
 #
 # VÌ SAO TÁCH khỏi `test-check-scripts.sh` (2026-10-09): suite gốc vượt 400 dòng (radar). Hai mục này
 # kiểm step trong workflow (trích bằng `step_body`), không kiểm gate script nên tách riêng theo đối tượng.
@@ -108,4 +108,39 @@ else
 fi
 
 
-finish "protection-guard và dependency-review bắt đúng lỗi + không chặn oan."
+## ============================================================
+## 6. pr-policy: dòng Work ID trong mô tả PR trỏ tới hồ sơ docs/work có thật
+## ============================================================
+echo "== 6. pr-policy Work ID =="
+step_body "Work ID trỏ tới hồ sơ có thật" pr-policy.yml "$WORK/work-id.sh"
+if [ ! -s "$WORK/work-id.sh" ]; then
+  echo 'không tìm thấy thân step Work ID' > "$WORK/check-output"
+  bad "không thể trích step Work ID từ pr-policy.yml"
+else
+  d="$WORK/work-id-repo"
+  mkdir -p "$d/docs/work/2026-10-09-co-that" "$d/docs/work/2026-10-08-da-xong" "$d/docs/x"
+  : > "$d/docs/work/2026-10-09-co-that/working.md"
+  : > "$d/docs/work/2026-10-08-da-xong/done.md"
+  : > "$d/docs/x/working.md"
+  crlf=$'## Issue / Goal\r\n- Work ID: 2026-10-09-co-that\r\n'
+  # nhãn|mã thoát mong đợi|thân PR
+  while IFS='|' read -r label want body; do
+    (cd "$d" && PR_BODY="$(printf '%b' "$body")" bash "$WORK/work-id.sh" > "$WORK/check-output" 2>&1)
+    rc=$?
+    [ "$rc" = "$want" ] && ok "Work ID $label → rc=$want" || bad "Work ID $label: muốn rc=$want, nhận rc=$rc"
+  done <<'EOF'
+thiếu dòng|1|## Summary\n- x
+để trống như mẫu|1|- Work ID:\n
+không có hồ sơ|1|- Work ID: 2026-10-09-khong-co
+leo thư mục|1|- Work ID: ../x
+sai khuôn|1|- Work ID: Ten_Sai
+hồ sơ working.md|0|## Issue / Goal\n- Work ID: 2026-10-09-co-that\n
+hồ sơ done.md trong backtick|0|- Work ID: `2026-10-08-da-xong`
+EOF
+  (cd "$d" && PR_BODY="$crlf" bash "$WORK/work-id.sh" > "$WORK/check-output" 2>&1)
+  rc=$?
+  [ "$rc" = 0 ] && ok "Work ID thân PR CRLF → rc=0" || bad "Work ID thân PR CRLF chặn oan (rc=$rc)"
+fi
+
+
+finish "protection-guard, dependency-review và Work ID bắt đúng lỗi + không chặn oan."

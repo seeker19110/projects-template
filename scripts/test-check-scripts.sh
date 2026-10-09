@@ -186,6 +186,23 @@ sed -i 's|scripts/spec-compiler.sh|scripts/DA-XOA-KHOI-AGENTS.sh|g' "$d/AGENTS.m
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được engine khai ở CLAUDE.md nhưng thiếu trong AGENTS.md (mục 7)" || bad "KHÔNG bắt được lệch CLAUDE.md/AGENTS.md (rc=$rc)"
 
+# Mục 13 (2026-10-09): thư mục docs/work/ là Work ID — khuôn ngày-slug và đúng MỘT hồ sơ trạng thái.
+for case_ in "ten-sai:Ten_Sai:working.md" "ca-hai:2026-10-09-ca-hai:working.md done.md" "khong-ho-so:2026-10-09-rong:"; do
+  IFS=: read -r label dir files <<<"$case_"
+  d="$(setup_repo)" || exit 1
+  mkdir -p "$d/docs/work/$dir"
+  for f in $files; do printf '# x\n' > "$d/docs/work/$dir/$f"; done
+  [ -n "$files" ] || printf 'x\n' > "$d/docs/work/$dir/note.txt"
+  rc="$(run_check "$d" check-docs-consistency.sh)"
+  [ "$rc" = "1" ] && grep -q 'mục 13\|docs/work' "$WORK/check-output" && ok "bắt được hồ sơ docs/work sai ($label, mục 13)" || bad "KHÔNG bắt được hồ sơ docs/work sai ($label, rc=$rc)"
+done
+
+d="$(setup_repo)" || exit 1
+# Mục 11b (2026-10-09): ID FT-xx trùng trong FEATURE-MAP (đã xảy ra thật: FT-66 cấp hai lần ở #240).
+printf '| FT-01 | Trùng ID giả lập | x | | ✅ | test |\n' >> "$d/docs/FEATURE-MAP.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'FT-01' "$WORK/check-output" && ok "bắt được ID trùng trong FEATURE-MAP.md (mục 11b)" || bad "KHÔNG bắt được ID FT trùng (rc=$rc)"
+
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================

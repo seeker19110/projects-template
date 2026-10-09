@@ -6,6 +6,9 @@
 
 ## Issue / Goal
 
+<!-- Work ID = folder name docs/work/<YYYY-MM-DD-slug>/ holding working.md or done.md (checked by pr-policy). -->
+
+- Work ID:
 Closes #
 
 ## Research / Spec

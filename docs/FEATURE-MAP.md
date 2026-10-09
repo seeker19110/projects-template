@@ -15,7 +15,7 @@
 | FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
-| FT-66 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định) | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3 |
+| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định) | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3 |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
 | FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |
@@ -54,6 +54,7 @@
 | FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
 | FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | `scripts/test-hooks-session.sh` mục 11 (có GĐ / chưa có tiến độ / không phải dự án khung, negative test) + mục 10 (thiếu jq) |
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `docs/work/*/working.md`, `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm active trước PROGRESS, không nạp lịch sử done/nội dung, chọn trạng thái và giới hạn ngữ cảnh |
+| FT-72 | Work ID cho mọi công việc: tên thư mục `docs/work/<id>/` là ID, tên file là trạng thái; PR ghi `Work ID:` | `check-docs-consistency.sh` mục 13, `pr-policy.yml` step Work ID | `docs/work/*/`, mô tả PR | ✅ | negative test ở `test-check-scripts.sh` (3 ca) + `test-workflow-guards.sh` mục 6 (8 ca) |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ✅ (trích dẫn F-014 cũ là nhầm: F-014 = dọn nhánh đã merge, đã đóng) | `test-usage-estimate.sh` kiểm engine; `scripts/test-hooks-session.sh` chạy hook với payload thật (thiếu công cụ → nói ra rồi exit 0; `usage-estimate.sh` lỗi → stderr `[usage-guard] … (exit 4)`, không nuốt); `test-copy-framework.sh` kiểm hook được copy |
 | FT-58 | Chặn lệnh Git nguy hiểm | `block-dangerous-git.sh` | lệnh Git sắp chạy | ✅ | `scripts/test-hooks-gate.sh` có ca chặn và không chặn oan |
 | FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |

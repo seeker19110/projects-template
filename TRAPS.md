@@ -1192,3 +1192,16 @@ tự chạy `od -c`/`cat -A` lên khuôn trong fence; với mọi route: brief c
 sai-vòng/việc không thuộc đúng một PR/mechanical không có fence hoặc điểm chạm glob); mẫu `docs/framework/templates/PLAN.template.md`
 có sẵn khối "Luật chung" (cổng, output đỏ/xanh, cấm hoàn tác) để dán vào brief. Cổng kiểm hình thức kín, không kiểm khuôn đúng —
 phần đó vẫn là việc của Tầng 1 (PR 2026-10-09).
+
+## 60. ID tra cứu cấp bằng tay bị dùng lại — hai tính năng cùng `FT-66` mà không cổng nào báo
+
+*Ngày:* 2026-10-09 (phát hiện khi làm Work ID cho mọi công việc): #240 thêm `/auto-complete` vào `docs/FEATURE-MAP.md` với `FT-66`
+trong khi `FT-66` (telemetry) đã có từ trước — người viết đọc số ở phần đầu bảng, không phải số lớn nhất của cả file. Spec
+`docs/specs/2026-10-09-auto-complete.md` vẫn ghi `FT-66` theo thời điểm viết (không sửa lịch sử); hàng đó nay là `FT-71`.
+
+*Cách rà:* ID cấp tay (FT-xx, W-xx, T-n, Work ID) → luôn lấy "số lớn nhất + 1" của **toàn file**, không dùng lại; Work ID dùng
+`<ngày>-<slug>` nên trùng chỉ khi trùng cả slug cùng ngày (thư mục đã tồn tại thì tạo slug khác).
+
+*Cổng chốt chặn:* `scripts/check-docs-consistency.sh` mục 11b (ID FT trùng) và mục 13 (thư mục `docs/work/` đúng khuôn, đúng một
+`working.md`/`done.md`); `pr-policy.yml` step "Work ID trỏ tới hồ sơ có thật"; negative test ở `scripts/test-check-scripts.sh` và
+`scripts/test-workflow-guards.sh` mục 6 (PR 2026-10-09).
