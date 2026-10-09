@@ -8,13 +8,14 @@
 > đó. "Dữ liệu đụng tới" = file/thư mục nó đọc-ghi. Lập từ việc đọc file thật (`ls`, `copy-framework.sh`,
 > `scripts/*.sh`, `.github/workflows/*`) — không đoán.
 
-## A. Slash command (16; `/maintain` được ghi cùng agent ở mục B) — `.claude/commands/`
+## A. Slash command (17; `/maintain` được ghi cùng agent ở mục B) — `.claude/commands/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
+| FT-66 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định) | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3 |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
 | FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |

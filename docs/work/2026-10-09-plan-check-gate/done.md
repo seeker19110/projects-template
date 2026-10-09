@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-plan-check-gate
 - Yêu cầu / outcome: chủ repo: "tối ưu quy trình [phân chia việc phiên chính ↔ subagent] lên mức hoàn hảo nhất, chất lượng cao nhất mà hoàn thành nhanh nhất" → chọn phạm vi: bịt 4 tổn thất đã đo ở nghiệm thu 2026-10-09 bằng mẫu brief + cổng máy.
-- Trạng thái: Ready (chờ PR/merge)
+- Trạng thái: Done
 - Chủ trì / writer: phiên chính (một PR → tự làm, §3c)
 - Mức rủi ro / số PR: M; 1 PR (feat, spec gọn Approved)
 - Scope / non-goal: xem spec §5
@@ -30,4 +30,4 @@ Chạy đủ cổng (docs-consistency, coverage, characterization, shellcheck, g
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-(chưa)
+DoD đạt: PR #239 MERGED (squash) 2026-10-09 → `main` 9561889; CI required checks xanh trên head `71d5ca5` (framework-lint, framework-lint-windows, copy-framework-smoke, docs-consistency, metadata, protection-guard, gitleaks, CodeQL); 7/7 AC map evidence. Giới hạn: cổng kiểm hình thức kín của brief, không kiểm nội dung khuôn. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.

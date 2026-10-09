@@ -111,3 +111,28 @@ class CompactSpec(TestCase):
 
 if __name__ == "__main__":
     main()
+
+
+class DecisionOrder(TestCase):
+    """`/auto-complete`: người quyết định là phiên chính theo thứ tự ưu tiên §3d; lệnh chỉ nối /auto → /completion."""
+
+    ORDER = ("Đúng + bảo mật + không mất dữ liệu", "Ít hơn", "Kiểm được", "Nhanh và rẻ")
+
+    def test_contract_ranks_priorities_in_fixed_order(self):
+        rule = section(read(DELIVERY), "### 3d. Ủy quyền quyết định: chất lượng cao nhất, phương án tối giản nhất")
+        positions = [rule.find(f"**{p}**") for p in self.ORDER]
+        self.assertTrue(all(pos >= 0 for pos in positions), f"§3d thiếu bậc ưu tiên: {positions}")
+        self.assertEqual(positions, sorted(positions), "thứ tự bậc ưu tiên trong §3d bị đảo")
+        self.assertIn("không đánh đổi bậc trên lấy bậc dưới", rule)
+        self.assertIn("working.md", rule)
+
+    def test_auto_complete_chains_existing_playbooks_under_3d(self):
+        cmd = read(".claude/commands/auto-complete.md")
+        for ref in ("`/auto`", "`/completion`", "§3d", "§8", "--check-plan", "working.md", "Definition of Complete"):
+            self.assertIn(ref, cmd, f"auto-complete.md phải trỏ {ref}")
+        for never in ("deploy/production", "thanh toán", "dữ liệu thật", "quá 3 lần"):
+            self.assertIn(never, cmd, f"auto-complete.md phải giữ mốc không tự quyết: {never}")
+
+    def test_entry_docs_mention_auto_complete(self):
+        for rel in ("CLAUDE.md", "AGENTS.md"):
+            self.assertIn("/auto-complete", read(rel), f"{rel} phải nhắc /auto-complete")

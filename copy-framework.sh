@@ -174,7 +174,7 @@ for f in "$SRC"/docs/ops/*.md; do
     *) copy_into "docs/ops/$(basename "$f")" ;;
   esac
 done
-copy_into ".claude/commands"                   # slash commands của khung (/consult /bootstrap /auto /gate /adr /ui-ux /audit-* /completion /incident /grill /debug /maintain /contract /deps-upgrade /review)
+copy_into ".claude/commands"                   # slash commands của khung (/consult /bootstrap /auto /gate /adr /ui-ux /audit-* /auto-complete /completion /incident /grill /debug /maintain /contract /deps-upgrade /review)
 while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section docs)
 
 # Không ghi stamp thành công khi còn merge lỗi/xung đột; giữ baseline cũ cho đối chiếu.
