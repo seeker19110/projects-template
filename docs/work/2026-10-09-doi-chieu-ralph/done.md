@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-doi-chieu-ralph
 - Yêu cầu / outcome: người dùng: "nghiên cứu repo và tích hợp vào cho dự án khung và dự án đích: https://github.com/snarktank/ralph" → TRIGGER `docs/framework/adopt-from-outside.md` (đọc trước khi chép một dòng): bản đối chiếu ba cột lưu `docs/reports/2026-10-10-doi-chieu-ralph.md`; chỉ lấy hạng mục qua cổng §2 (sự cố thật) và không mâu thuẫn luật (§4).
-- Trạng thái: Active
+- Trạng thái: Done (PR #253 MERGED)
 - Chủ trì / writer: phiên chính (Fable 5.1), tự làm (một PR, mức S).
 - Mức rủi ro / số PR: S — 1 PR `docs:` (báo cáo + hồ sơ + con trỏ PROGRESS). Không sửa source/luật vì kết quả đo là lấy 0.
 - Scope / non-goal: Scope = đọc toàn bộ nguồn (`ralph.sh`, `prompt.md`, `CLAUDE.md`, `prd.json.example`, 2 skill, plugin manifest, README), grep cổng đang chạy ở khung, viết bản đối chiếu. Non-goal = không viết runner vòng lặp không giám sát (quyết định chủ repo, §9 quyền mới); không chép skill/prompt của ralph; không đổi manifest copy-framework (không có file mới để phát sang đích).
@@ -33,4 +33,10 @@ Một outcome / một PR, phiên chính tự làm: (1) clone nguồn vào scratc
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-- (chưa — điền sau khi PR merge)
+- PR #253 MERGED (squash) → `main` @ `0adcafb`; CI 13/13 xanh (framework-lint Linux+Windows, docs-consistency,
+  copy-framework-smoke, progress-freshness, protection-guard, metadata, CodeQL, gitleaks, dependency-review).
+- Local: docs-consistency OK (sau 2 lần sửa: tham chiếu hai script copy viết gộp một chuỗi; `|` trong ô bảng), progress-freshness
+  PF-1..4 OK, format/lint OK; test 854 dòng: đúng 12 ❌ = F-Q6 `test-hooks-session.sh` (đỏ giả Windows, đã ghi), suite khác xanh.
+- Tiêu đề PR/commit ban đầu 88 ký tự bị `metadata` chặn (TRAPS 58) → gộp 3 commit thành 1 tiêu đề 70 ký tự, force-with-lease nhánh riêng.
+- DoD: bản đối chiếu đủ ba cột + đính chính + điều kiện xem lại; lấy 0; không sửa luật/script. Giới hạn: câu hỏi runner không
+  giám sát kiểu `ralph.sh` còn mở, chờ chủ repo. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-10.
