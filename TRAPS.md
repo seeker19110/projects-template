@@ -170,6 +170,13 @@ HEAD; PF-2: nhánh nêu trong "Nhánh đang làm" còn tồn tại trên remote)
 (chỉ chạy khi push vào `main`, `needs:` của `gate`) + `CLAUDE.md` §8 bắt buộc cập nhật `PROGRESS.md`
 ngay sau khi quay về `main`.
 
+**Tái phát 2026-10-09 (#245):** PR chốt hồ sơ cập nhật "SHA đã đối chiếu" sang #244 nhưng dòng "Giai đoạn" vẫn nêu
+#242 → PF-3 đỏ, CI `main` đỏ sau merge. Script có chạy cục bộ trước commit nhưng chỉ đọc `tail -2` của output —
+lỗi PF-3 in ở giữa nên lọt (đúng bẫy `CLAUDE.md` §4 bước 3). Job `progress-freshness` chỉ chạy trên `main` nên PR
+vẫn xanh. *Cách rà thêm:* PR chốt hồ sơ phải chạy `bash scripts/check-progress-freshness.sh` và đọc **mã thoát**
+(`echo $?`), không đọc đuôi output; sửa "SHA đã đối chiếu" thì sửa dòng "Giai đoạn" trong cùng commit. Sửa ở PR
+chốt hồ sơ #246.
+
 ## 9. Nhãn "C1 — MẶC ĐỊNH" gây thiên lệch web cho dự án không phải web
 
 **Ngày/nguồn:** 2026-09-13, phát hiện qua phân tích ngoài phiên.
