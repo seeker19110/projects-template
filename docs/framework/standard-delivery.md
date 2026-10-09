@@ -176,7 +176,8 @@ không tạo lại công việc đã có chỉ vì một phiên mới không nh�
 hoặc yêu cầu thay đổi, tạo work ID mới và liên kết hồ sơ cũ, không ghi đè lịch sử.
 
 **Một yêu cầu một thư mục** `docs/work/<ngày>-<slug>/`; tạo `working.md` từ
-`docs/framework/templates/WORK.template.md` trước research/thực thi. Đây là hồ sơ
+`docs/framework/templates/WORK.template.md` trước research/thực thi — bằng lệnh
+`bash scripts/new-work.sh <slug> ["tên công việc"]` (điền sẵn Work ID, nhánh, SHA; không ghi đè ID có sẵn). Đây là hồ sơ
 nối phiên, không thay Project/spec/goal/Issue/PR. Với goal nhiều PR, dẫn tới checklist
 goal; không sao chép cùng checklist/trạng thái vào nhiều file. **Tên thư mục là Work ID, tên file là
 trạng thái** — không lập sổ ID thứ hai: mọi PR ghi `Work ID: <id>` (cổng `pr-policy.yml`), thư mục

@@ -18,7 +18,7 @@ ngày 2026-10-07. Issue #198 và hồ sơ nghiệm thu giữ các PR/CI cùng gi
 
 ## Đang làm / chờ
 
-**Không có hồ sơ đang mở.** Đóng 2026-10-09: `docs/work/2026-10-09-task-id-tracking/done.md` (#244) — Work ID cho mọi công việc: PR ghi `Work ID:` (`pr-policy.yml`), `check-docs-consistency.sh` mục 13/11b; sửa FT-66 trùng, TRAPS 60. Lượt `/auto-complete` 2026-10-09 đóng: `docs/work/2026-10-09-auto-complete-run/done.md` (#242). Nợ có chủ đích: FT-41 case-study bước 6–8 chờ tài khoản thật (BLOCKED §8). Đóng 2026-10-09: `docs/work/2026-10-09-plan-check-gate/done.md` (#239) và `docs/work/2026-10-09-auto-complete/done.md` (#240).
+**Hồ sơ đang mở:** `docs/work/2026-10-09-new-work-script/working.md` — `scripts/new-work.sh` tạo hồ sơ một lệnh (spec `docs/specs/2026-10-09-new-work-script.md`, FT-73); chờ merge. Đóng 2026-10-09: `docs/work/2026-10-09-task-id-tracking/done.md` (#244) — Work ID cho mọi công việc: PR ghi `Work ID:` (`pr-policy.yml`), `check-docs-consistency.sh` mục 13/11b; sửa FT-66 trùng, TRAPS 60. Lượt `/auto-complete` 2026-10-09 đóng: `docs/work/2026-10-09-auto-complete-run/done.md` (#242). Nợ có chủ đích: FT-41 case-study bước 6–8 chờ tài khoản thật (BLOCKED §8). Đóng 2026-10-09: `docs/work/2026-10-09-plan-check-gate/done.md` (#239) và `docs/work/2026-10-09-auto-complete/done.md` (#240).
 
 Vòng hoàn thiện trên dự án đích thật 2026-10-09 COMPLETE: `docs/work/2026-10-09-target-completion/done.md`
 (T-01/T-02 sandbox đích, F-T01/S-05 #234, T-03 closeout); báo cáo `docs/reports/2026-10-09-target-completion.md`. Đợt nghiệm thu agent 2026-10-09 COMPLETE: `docs/work/2026-10-09-agent-acceptance/done.md` (A-01 #231,
