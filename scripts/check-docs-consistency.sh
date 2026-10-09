@@ -363,6 +363,26 @@ else
   done
 fi
 
+# VÌ SAO (2026-10-09): ba mẫu DATA-GOVERNANCE/GOVERNANCE/SUPPORT tồn tại mà không tài liệu hướng dẫn
+# nào trỏ tới (chỉ có comment trong manifest) → dự án đích không biết có mẫu để dùng. Mỗi file trong
+# templates/ phải được ≥ 1 tài liệu NGOÀI templates/, work/, reports/, changelog/ nhắc tên.
+echo "== 12. Mẫu (docs/framework/templates/) ↔ tài liệu hướng dẫn trỏ tới =="
+TEMPLATES_DIR="docs/framework/templates"
+if [ ! -d "$TEMPLATES_DIR" ]; then
+  echo "::notice::Không có $TEMPLATES_DIR — bỏ qua mục 12."
+else
+  for f in "$TEMPLATES_DIR"/*; do
+    [ -f "$f" ] || continue
+    base="$(basename "$f")"
+    hits=$(git grep --untracked -l -F -- "$base" -- '*.md' '*.sh' '*.ps1' \
+      ':!docs/framework/templates/*' ':!docs/work/*' ':!docs/reports/*' ':!docs/changelog/*' ':!CHANGELOG.md' 2>/dev/null || true)
+    if [ -z "$hits" ]; then
+      echo "::error file=$f::Mẫu '$base' MỒ CÔI — không tài liệu hướng dẫn nào nhắc tên. Trỏ tới nó từ tài liệu được copy sang đích (docs/framework/*.md hoặc .claude/commands/*.md), hoặc xoá mẫu nếu không còn dùng."
+      fail=1
+    fi
+  done
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi

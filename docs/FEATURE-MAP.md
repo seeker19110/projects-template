@@ -49,9 +49,9 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | `test-copy-framework.sh` kiểm hook được copy; `tests/test_runtime_safety.py` kiểm formatter nhận filename literal (binary giả), template và best-effort; chưa kiểm runtime hook Claude thật |
+| FT-51 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | `test-copy-framework.sh` kiểm hook được copy; `tests/test_runtime_safety.py` kiểm formatter nhận filename literal (binary giả), template và best-effort; `scripts/test-hooks-session.sh` mục 12 chạy hook với payload thật (đúng file, no-op khi thiếu, best-effort) |
 | FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
-| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | chỉ kiểm copy; chưa có test chạy hook |
+| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | `scripts/test-hooks-session.sh` mục 11 (có GĐ / chưa có tiến độ / không phải dự án khung, negative test) + mục 10 (thiếu jq) |
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `docs/work/*/working.md`, `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm active trước PROGRESS, không nạp lịch sử done/nội dung, chọn trạng thái và giới hạn ngữ cảnh |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | chỉ kiểm copy hook; `test-usage-estimate.sh` kiểm engine, chưa chạy hook guard |
 | FT-58 | Chặn lệnh Git nguy hiểm | `block-dangerous-git.sh` | lệnh Git sắp chạy | ✅ | `scripts/test-hooks-gate.sh` có ca chặn và không chặn oan |
@@ -103,7 +103,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Trạng thái | Test hiện có |
 |----|-------------------|----------|-----------|--------------|
-| FT-43 | 13 bản mẫu Markdown: AI-EVAL, FEATURE-MAP, CONVENTIONS, CODEMAP, COMPLETION-PLAN, FEATURE-SPEC, GOAL, GOLDEN-TEST, TRAPS, THREAT-MODEL, DATA-GOVERNANCE, GOVERNANCE, SUPPORT | copy thủ công / theo pha | ✅ | link-check; ❌ chưa kiểm toàn bộ "mẫu ↔ tài liệu hướng dẫn còn khớp" |
+| FT-43 | 13 bản mẫu Markdown: AI-EVAL, FEATURE-MAP, CONVENTIONS, CODEMAP, COMPLETION-PLAN, FEATURE-SPEC, GOAL, GOLDEN-TEST, TRAPS, THREAT-MODEL, DATA-GOVERNANCE, GOVERNANCE, SUPPORT | copy thủ công / theo pha | ✅ | link-check; `check-docs-consistency.sh` mục 12: mỗi mẫu được ≥ 1 tài liệu hướng dẫn trỏ tới (negative test ở `test-check-scripts.sh`) |
 
 ## H. Dropins Lớp 2 (CI/quy ước GitHub tổng quát — KHÔNG đè dự án đích)
 

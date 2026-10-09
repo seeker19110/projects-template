@@ -111,6 +111,15 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được CLAUDE.md có dòng > 2000 ký tự (mục 9)" || bad "KHÔNG bắt được dòng dài trong CLAUDE.md (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mục 12: mẫu mới trong templates/ mà không tài liệu nào nhắc tên → phải đỏ (F-R02, 2026-10-09).
+# Dựng tên lúc chạy để chính file test này không phải là "tài liệu nhắc tên" hay bị mục 1 bắt.
+zeta="ZETA-MO-COI"
+printf '# mẫu mồ côi\n' > "$d/docs/framework/templates/${zeta}.template.md"
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q "template" "$WORK/check-output" && ok "bắt được mẫu mồ côi (mục 12)" || bad "KHÔNG bắt được mẫu mồ côi (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
 # Mục 11: script mới có trong CODEMAP.md nhưng KHÔNG có trong FEATURE-MAP.md → phải đỏ đúng ở mục 11 (F-N01, 2026-10-06:
 # FEATURE-MAP từng thiếu 7 engine/cổng mà không cổng nào báo). Khai CODEMAP để cô lập: mục 6 không được là lý do đỏ.
 zeta="zeta-engine"   # dựng tên lúc chạy: viết literal trong backtick sẽ bị mục 1 coi là tham chiếu hỏng của chính file test này
