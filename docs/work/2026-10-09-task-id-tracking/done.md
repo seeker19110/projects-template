@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-task-id-tracking
 - Yêu cầu / outcome: chủ repo muốn mỗi công việc có mã ID trước khi làm để kiểm soát đã làm/chưa; sau nghiên cứu, chốt làm phần bổ sung tùy chọn (2026-10-09).
-- Trạng thái: Active
+- Trạng thái: Done (2026-10-09)
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: S; 1 PR (cổng tài liệu + một step CI, không đổi kiến trúc)
 - Scope / non-goal: không lập sổ ID thứ hai; dùng tên thư mục `docs/work/<id>/` làm ID, tên file làm trạng thái
@@ -22,6 +22,9 @@
 - `tests/test_runtime_safety.py` trích thân github-script tới hết file → vỡ khi có step sau; sửa cho dừng ở dòng thụt < 12.
 - `FT-66` (/auto-complete) → `FT-71`; hàng mới `FT-72`.
 
-## Bàn giao / bước tiếp theo
+## Nghiệm thu cuối
 
-Chạy `/gate`, commit, push nhánh; mở PR khi chủ repo yêu cầu (PR này phải ghi `Work ID: 2026-10-09-task-id-tracking`).
+- PR [#244](https://github.com/seeker19110/projects-template/pull/244) MERGED (squash) → `ed2019b` trên `main`; 12 check xanh/skip đúng (`progress-freshness` chỉ chạy trên main), không review thread mở.
+- Lượt chạy thật đầu tiên của step Work ID trong job `metadata` (#244): log `Work ID 2026-10-09-task-id-tracking → docs/work/2026-10-09-task-id-tracking/`.
+- DoD: cổng `dev-task.sh gate` PASS trước commit; test đỏ-trước → xanh (mục 13 ×3, 11b, workflow mục 6 ×8). Rủi ro còn lại: PR do bot ngoài danh sách miễn trừ phải ghi Work ID.
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.
