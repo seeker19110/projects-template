@@ -41,8 +41,13 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const ROOT = process.cwd()
+// Còn nằm trong _framework-dropins/ (copy-framework.sh vừa phát, chưa merge vào scripts/) thì vitest của
+// dự án đích vẫn gom file này theo mẫu **/*.test.ts → đỏ ngay sau khi copy vì .github/workflows chưa có
+// (TRAPS 57, 2026-10-09). Tự bỏ qua cho tới khi được chuyển vào chỗ thật; CP-2 vẫn tự bảo vệ khỏi suite rỗng.
+const STAGED = fileURLToPath(import.meta.url).split(/[\\/]/).includes('_framework-dropins')
 const WORKFLOW_FILES = ['ci.yml', 'pr-policy.yml']
 const SETTINGS_FILE = join(ROOT, 'docs', 'ops', 'repository-settings.md')
 
@@ -81,7 +86,7 @@ function parseDeclaredJobs(md: string): Set<string> {
   return declared
 }
 
-describe('required checks — .github/workflows/{ci,pr-policy}.yml ↔ docs/ops/repository-settings.md', () => {
+describe.skipIf(STAGED)('required checks — .github/workflows/{ci,pr-policy}.yml ↔ docs/ops/repository-settings.md', () => {
   it('docs/ops/repository-settings.md tồn tại và có khối required checks', () => {
     expect(existsSync(SETTINGS_FILE), 'thiếu docs/ops/repository-settings.md — copy lại khung').toBe(
       true
@@ -125,7 +130,7 @@ describe('required checks — .github/workflows/{ci,pr-policy}.yml ↔ docs/ops/
 
 // ── CP-2: mọi GitHub Action phải ghim full commit SHA ──
 // Tag di động (`@v4`) nghĩa là mã chạy trong CI có thể đổi dưới chân bạn mà không có PR nào.
-describe('CP-2 — chuỗi cung ứng: action ghim full commit SHA', () => {
+describe.skipIf(STAGED)('CP-2 — chuỗi cung ứng: action ghim full commit SHA', () => {
   const wfDir = join(ROOT, '.github', 'workflows')
   const files = existsSync(wfDir)
     ? readdirSync(wfDir).filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'))
@@ -151,7 +156,7 @@ describe('CP-2 — chuỗi cung ứng: action ghim full commit SHA', () => {
 
 // ── CP-3: node-version trong workflow khớp .nvmrc ──
 // Lệch nghĩa là CI test bằng Node khác Node dev — hỏng im lặng, rất khó lần ra.
-describe('CP-3 — node-version khớp .nvmrc', () => {
+describe.skipIf(STAGED)('CP-3 — node-version khớp .nvmrc', () => {
   const nvmrcPath = join(ROOT, '.nvmrc')
   const wfDir = join(ROOT, '.github', 'workflows')
 

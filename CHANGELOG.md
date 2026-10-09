@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-09, F-T01/S-05 — chạy khung trên dự án đích thật): drop-in `ci-workflow-policy.test.ts` tự bỏ qua khi còn nằm trong
+  `_framework-dropins/` (vitest của đích không còn đỏ ngay sau copy); `ci-target.yml` cài dependency có điều kiện (`npm ci` khi có
+  `package-lock.json`, `pip install -r requirements.txt` khi có file) trước `dev-task.sh gate`. TRAPS mục 57.
 - Changed (2026-10-09, nghiệm thu agent): 11 agent `.claude/agents/` được nghiệm thu bằng phiên subagent thật (3 đợt ≤ 5 song song,
   `docs/reports/2026-10-09-agent-acceptance.md`); FEATURE-MAP cột Test FT-13..20 ghi kết cục. Phát hiện: subagent Claude Code không có
   tool `Agent` → `coordinator` chỉ dùng được khi phiên chính đóng vai Tầng 2 (ghi vào `orchestration-3-tier.md`, `coordinator.md`).

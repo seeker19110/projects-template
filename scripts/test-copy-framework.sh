@@ -79,6 +79,8 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/docs/framework/templates/CODEMAP.template.md" ] || { echo "  FAIL [$label]: thiếu CODEMAP template"; ok=0; }
   [ -f "$target/docs/framework/templates/GOLDEN-TEST.template.md" ] || { echo "  FAIL [$label]: thiếu GOLDEN-TEST template"; ok=0; }
   [ -f "$target/_framework-dropins/scripts/ci-workflow-policy.test.ts" ] || { echo "  FAIL [$label]: thiếu ci-workflow-policy.test.ts drop-in"; ok=0; }
+  # TRAPS 57: vitest của đích gom cả file đang nằm trong _framework-dropins/ → phải có hàng rào tự bỏ qua khi còn staged
+  grep -q "describe.skipIf(STAGED)" "$target/_framework-dropins/scripts/ci-workflow-policy.test.ts" 2>/dev/null || { echo "  FAIL [$label]: drop-in vitest thiếu hàng rào skipIf(STAGED) — npm test của đích sẽ đỏ ngay sau copy"; ok=0; }
   [ ! -e "$target/TRAPS.md" ] || { echo "  FAIL [$label]: TRAPS.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
   [ ! -e "$target/CODEMAP.md" ] || { echo "  FAIL [$label]: CODEMAP.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
   for st in MAINTENANCE-LOG.md MAINTENANCE-PLAN.md COMPLETION-PLAN.md COMPREHENSIVE-AUDIT-STATUS.md; do

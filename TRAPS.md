@@ -1151,3 +1151,18 @@ là cách rẻ để bắt lỗi do chính mình vừa gây ra.
 
 *Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 1 — ba ca F-309b (`--version` → rc≠0 & stdout rỗng; `toString` → không có;
 không jq+node → stderr "jq lẫn node") + ca BOM (reviewer F2) + ca khoá `config` khi có jq.
+
+## 57. Drop-in test của khung nằm trong `_framework-dropins/` vẫn bị test runner của ĐÍCH gom → `npm test` đỏ ngay sau copy
+
+*Ngày:* 2026-10-09 (lộ ra khi chạy `/completion` trên một dự án đích Node thật — xem `docs/reports/2026-10-09-target-completion.md`).
+`copy-framework.sh` để `ci-workflow-policy.test.ts` ở `_framework-dropins/scripts/` cho người dùng tự merge; nhưng vitest mặc định gom
+`**/*.test.ts` toàn repo, và `.github/workflows/` chưa có → ca "tìm thấy ít nhất một workflow" đỏ. Cổng `dev-task.sh gate` của đích
+FAIL ngay bước đầu tiên dù code đích không lỗi — ấn tượng đầu tiên về khung là "nó làm hỏng test của tôi". Cùng lượt: `ci-target.yml`
+không có bước cài dependency nên cổng trên runner sạch cũng đỏ (S-05).
+
+*Cách rà:* mọi file khung PHÁT SANG đích mà một công cụ của đích có thể tự tìm thấy theo mẫu tên (test runner, linter, formatter,
+pre-commit) → hỏi "công cụ đích sẽ làm gì với file này KHI NÓ CÒN NẰM Ở CHỖ TẠM?"; đọc output `npm test`/gate của đích NGAY SAU copy,
+không chỉ sau khi đã merge drop-in bằng tay. Mọi workflow mẫu → đọc từng bước và hỏi "runner sạch có cái gì để chạy bước này?".
+
+*Cổng chốt chặn:* drop-in tự `describe.skipIf(STAGED)` khi đường dẫn còn chứa `_framework-dropins`; `scripts/test-copy-framework.sh`
+grep hàng rào đó trong bản phát; `ci-target.yml` có bước `npm ci`/`pip install` có điều kiện theo lockfile/requirements.
