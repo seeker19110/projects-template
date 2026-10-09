@@ -209,7 +209,7 @@ Kiểm chứng trên cây tích hợp: docs-consistency 11 mục OK, `test_adapt
 test-check-scripts OK, progress-freshness PF-1..4 OK, test-dev-task/maintenance-sweep/runtime_safety OK; full gate qua hook
 ở mỗi commit. TDD: ngoại lệ 2 (P-B7) và 3 (tài liệu).
 
-**O-6 — đã làm P-B10 (nhánh sau #221, hồ sơ `docs/work/2026-10-08-process-optimization-o6/working.md`).**
+**O-6 — đã làm P-B10 (#222 → `23cf656`; nhánh sau #221, hồ sơ `docs/work/2026-10-08-process-optimization-o6/done.md`).**
 - P-B10: `copy-framework.manifest` (4 mục `[docs]`/`[root]`/`[scripts]`/`[dropins]`, cột 2 = nguồn khác tên đích) là một
   nguồn cho `copy-framework.sh` (`manifest_section`, awk) và `copy-framework.ps1` (`Get-ManifestSection`); các bước có
   thứ tự/điều kiện riêng (thư mục copy thẳng, `settings.json`, `PROGRESS.md` từ mẫu, FRAMEWORK-VERSION) giữ trong script.
