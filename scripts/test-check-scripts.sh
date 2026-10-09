@@ -211,6 +211,14 @@ sed -i.bak '/^ci\.yml: framework-lint$/d' "$d/docs/ops/repository-settings.md" &
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được job thật thiếu trong bản kê repository-settings.md (CP-1)" || bad "KHÔNG bắt được job thiếu trong bản kê (rc=$rc)"
 
+d="$(setup_repo)" || exit 1
+# Xoá dòng marker (dựng lúc chạy) → không còn bản kê job của repo khung; KHÔNG được xanh giả vì đọc nhầm
+# khối required checks chung (chỉ gate+metadata).
+marker_head='<!-- check-ci-policy:'
+sed -i.bak "/^${marker_head}/d" "$d/docs/ops/repository-settings.md" && rm -f "$d/docs/ops/repository-settings.md.bak"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được thiếu marker bản kê repo khung (CP-1, không đọc nhầm khối required checks chung)" || bad "KHÔNG bắt được thiếu marker (rc=$rc)"
+
 # CP-5 — sổ job ĐƯỢC PHÉP skip. `gate` tính `skipped` là đạt, nên một job bị `if:` hỏng loại ra
 # sẽ im lặng qua cổng. Hai chiều, vì sổ chỉ có giá trị khi khớp CHÍNH XÁC cả hai phía.
 d="$(setup_repo)" || exit 1

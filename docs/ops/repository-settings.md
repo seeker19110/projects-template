@@ -33,15 +33,26 @@ rule/check hoặc giá trị `strict` khai trong file → lỗi (bảo vệ yế
 trong file → cảnh báo (không yếu đi, nhưng import lại sẽ xoá mất). Lý do cần vế hai: sửa ruleset qua
 UI có thể làm rơi một rule mà không báo gì — CI vẫn xanh nếu không có đối chiếu này.
 
-Khối dưới đây là **bản kê toàn bộ job** của hai workflow đó (không phải danh sách cần tick):
-`scripts/check-ci-policy.sh` đối chiếu hai chiều bản kê này với job thật và chặn CI nếu lệch
-(job `docs-consistency`), đồng thời kiểm mọi job của `ci.yml` đều có mặt trong `needs:` của `gate`.
-Đổi tên/xoá/thêm job thì sửa bản kê này **trong cùng PR**.
+Khối dưới đây là **required checks chung cho mọi dự án dùng khung**: `ci.yml: gate` và
+`pr-policy.yml: metadata`. Đây là thứ vitest drop-in `scripts/ci-workflow-policy.test.ts` đối chiếu hai chiều
+với job thật trong `.github/workflows/{ci,pr-policy}.yml` ở **DỰ ÁN ĐÍCH**. Dự án đích thêm/đổi/xoá job thì
+sửa khối này **trong cùng PR**.
 
 Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release.yml`, `stale-pr-alert.yml`, `maintenance.yml` ở đây — các workflow
 đó không thuộc cổng merge bắt buộc cho mọi PR (scheduled/optional/advisory theo cấu hình từng dự án
 đích); bật required check cho chúng là lựa chọn riêng của mỗi dự án, không phải bất biến của khung.
 
+```
+ci.yml: gate
+pr-policy.yml: metadata
+```
+
+Bản kê dưới đây là bản kê toàn bộ job của hai workflow của **RIÊNG repo khung**: `scripts/check-ci-policy.sh`
+(CP-1, ADR-0003) đối chiếu hai chiều với khối này và chặn CI nếu lệch (job `docs-consistency`), đồng thời kiểm
+mọi job của `ci.yml` đều có mặt trong `needs:` của `gate`. Đổi tên/xoá/thêm job của repo khung thì sửa khối này
+trong cùng PR. **Dự án đích bỏ qua khối này.**
+
+<!-- check-ci-policy: bản kê job của repo khung -->
 ```
 ci.yml: framework-lint
 ci.yml: framework-lint-windows

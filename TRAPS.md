@@ -1101,3 +1101,18 @@ không chép; hook nào còn bản sao riêng là ứng viên lệch.
 *Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 16 (thân heredoc chứa `git commit`/`git add` không kích hoạt
 cổng/tự-stage; `git commit` THẬT sau heredoc vẫn qua cổng) + mục 7–8 cho `block-dangerous-git` — cả hai hook
 `source` cùng `_lib.sh` nên một lần sửa áp cho cả hai.
+
+## 54. Tài liệu phát sang đích mang bản kê của repo khung — test drop-in đỏ ngày đầu
+
+*Ngày:* 2026-10-09, F-R01 chu kỳ hoàn thiện (PR: điền khi mở). `docs/ops/repository-settings.md` được
+`copy-framework.sh`/`.ps1` phát nguyên văn sang đích, nhưng khối fenced đầu của nó là bản kê job của RIÊNG repo
+khung (7 job `ci.yml` + `pr-policy.yml: metadata`) trong khi đích nhận `ci-target.yml` (chỉ có `gate`). Vitest
+drop-in `scripts/ci-workflow-policy.test.ts` đọc đúng khối đó và đối chiếu hai chiều → đỏ ngay trên dự án đích
+copy sạch ("Job đã khai nhưng không còn tồn tại trong ci.yml", 6 job). Chưa từng chạy vitest trên fixture đích
+nên không ai thấy.
+
+*Cách rà:* bất kỳ file tài liệu nào được một cổng MÁY đọc (shell lẫn drop-in) mà phát nguyên văn sang đích →
+hỏi "cổng ở đích đọc được gì từ file này?" và chạy cổng ở đích ít nhất một lần trên fixture copy sạch.
+
+*Cổng chốt chặn:* `scripts/test-copy-framework.sh` `check_structure` (hai chiều khối required checks đầu ↔ job
+thật của workflow phát kèm) + `scripts/test-check-scripts.sh` ca marker (xoá marker → `check-ci-policy.sh` đỏ).

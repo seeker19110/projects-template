@@ -18,7 +18,10 @@
 # Hai bản KHÔNG được gộp — xem CODEMAP.md khi có.
 #
 # BẢNG KIỂM (mỗi kiểm một ID — khai ở ĐÂY là nguồn sự thật; xem mục 8 và W-302):
-#   CP-1  job id trong workflow ↔ bản kê required checks (hai chiều)
+#   CP-1  job id trong workflow ↔ bản kê job của repo khung (hai chiều). Bản kê = khối ``` NGAY SAU dòng
+#         marker `<!-- check-ci-policy: bản kê job của repo khung -->` trong repository-settings.md. Khối ``` ĐẦU
+#         TIÊN của file đó là required checks chung cho đích (chỉ `gate`+`metadata`), do vitest drop-in và
+#         test-copy-framework.sh đọc — script này KHÔNG đọc khối đó.
 #   CP-2  mọi `uses:` ghim full commit SHA
 #   CP-3  `node-version:` khớp .nvmrc
 #   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`
@@ -66,7 +69,8 @@ for wf in "${WORKFLOWS[@]}"; do
   done < <(tr -d '\r' < "$f")
 done
 
-# --- 2. Trích danh sách khai báo từ khối fenced code block "```" đầu tiên trong repository-settings.md. ---
+# --- 2. Trích bản kê job của repo khung: khối fenced "```" ngay sau dòng marker trong repository-settings.md. ---
+MARKER='<!-- check-ci-policy: bản kê job của repo khung -->'
 if [ ! -f "$SETTINGS_FILE" ]; then
   echo "::error::Không tìm thấy $SETTINGS_FILE"
   exit 1
@@ -74,8 +78,13 @@ fi
 
 declare -A declared_jobs=() # key "wf:job" -> 1
 in_block=0
+seen_marker=0
 while IFS= read -r line; do
   line="${line%$'\r'}"
+  if [ "$seen_marker" -eq 0 ]; then
+    [[ "$line" == "$MARKER" ]] && seen_marker=1
+    continue
+  fi
   if [[ "$line" == '```' ]]; then
     if [ "$in_block" -eq 0 ]; then in_block=1; continue; else break; fi
   fi
@@ -87,7 +96,7 @@ while IFS= read -r line; do
 done < <(tr -d '\r' < "$SETTINGS_FILE")
 
 if [ "${#declared_jobs[@]}" -eq 0 ]; then
-  echo "::error::Không đọc được mục nào trong khối 'Required checks — nguồn sự thật' của $SETTINGS_FILE"
+  echo "::error::Không đọc được mục nào trong bản kê job của repo khung (khối fenced ngay sau marker '$MARKER') trong $SETTINGS_FILE"
   exit 1
 fi
 
