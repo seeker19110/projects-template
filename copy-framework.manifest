@@ -71,6 +71,9 @@ scripts/spec-compiler.sh
 scripts/arch-health-radar.py
 scripts/arch-health-radar.sh
 scripts/test-telemetry-and-dispatch.sh
+# Tạo hồ sơ docs/work/<id>/ — đích cũng chịu cổng Work ID của pr-policy.yml (spec 2026-10-09-new-work-script).
+scripts/new-work.sh
+scripts/test-new-work.sh
 # tests/: test_telemetry_integrity cần cho self-test telemetry đã phát; test_runtime_safety cần cho CI drop-in (import _runtime_fixture dùng chung với test_git_safety).
 tests/test_telemetry_integrity.py
 tests/test_runtime_safety.py

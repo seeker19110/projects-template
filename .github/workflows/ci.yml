@@ -57,6 +57,9 @@ jobs:
       - name: Step protection-guard và dependency-review chạy đúng với API/manifest giả lập
         run: bash scripts/test-workflow-guards.sh
 
+      - name: new-work.sh tạo hồ sơ docs/work đúng khuôn Work ID, không ghi đè
+        run: bash scripts/test-new-work.sh
+
       # 4 engine (spec-compiler, arch-health-radar, subagent-dispatch, telemetry-log) được thêm ở
       # PR #89/#91 KÈM self-test, nhưng self-test không được nối vào CI — nên ~650 dòng Python chạy
       # được mà không cổng nào bảo vệ (audit 2026-09-13, mục CAO-1; khuôn lỗi ghi ở TRAPS.md).
@@ -208,6 +211,7 @@ jobs:
           bash scripts/test-telemetry-and-dispatch.sh
           bash scripts/test-engine-characterization.sh
           bash scripts/test-usage-estimate.sh
+          bash scripts/test-new-work.sh
 
       - name: Hook cổng chặn thật trên Windows (21 ca — cần jq, TRAPS mục 26)
         run: bash scripts/test-hooks-gate.sh
