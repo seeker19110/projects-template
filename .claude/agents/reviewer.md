@@ -20,6 +20,7 @@ Bạn là **reviewer — hậu kiểm Tầng-độc-lập** của kiến trúc �
 - Ưu tiên **lỗi correctness** (logic sai, ca biên/null, async race, rò rỉ tài nguyên, sai kiểu, lỗ hổng rõ). Nghi ngờ bảo mật → nêu rõ, gợi ý `security-review`.
 - Nêu cơ hội **đơn giản hóa / tái sử dụng / hiệu quả** ở mức đáng làm (không bới lông tìm vết).
 - Đối chiếu nhanh với **tiêu chí chấp nhận** của việc (trong PLAN.md) nếu Coordinator cung cấp.
+- **Đối chiếu diff với `TRAPS.md`** (nếu repo có): đọc tiêu đề các mục, hỏi "diff này có lặp lại khuôn nào đã mắc không?" (vd rút helper làm đỏ test copy danh sách cố định, mục 19; cập nhật `PROGRESS.md` nửa chừng, mục 8). Khớp → một finding `defect` trỏ đúng mục TRAPS. Lý do: 5 mục TRAPS đã "Tái phát" dù khuôn đã ghi — reviewer là chốt trước PR, `/debug` chỉ đọc TRAPS *sau* khi bug xảy ra.
 
 ## Bạn KHÔNG làm
 - **Không sửa code** — chỉ báo cáo phát hiện (Coordinator trả lại worker để sửa). Không dùng cờ `--fix`.

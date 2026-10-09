@@ -13,6 +13,9 @@ Kích hoạt **rà soát code trước khi mở Pull Request**. Đây là bướ
 ## Bước 2 — Gọi skill `code-review`
 Dùng `Skill(code-review)` ở effort phù hợp độ rủi ro của diff (mặc định `medium`; nâng `high` nếu diff chạm nhiều file/luồng nghiệp vụ chính). Skill tìm lỗi correctness + cơ hội tái sử dụng/đơn giản hóa/hiệu quả.
 
+## Bước 2b — Đối chiếu diff với `TRAPS.md`
+Repo có `TRAPS.md` (gốc) → đọc tiêu đề các mục và hỏi: diff này có lặp lại một khuôn đã mắc không? Khớp → ghi thành finding `defect` trỏ đúng mục. `/debug` chỉ tra TRAPS *sau* khi bug xảy ra; review là chốt *trước* PR — 5 mục TRAPS đã "Tái phát" dù khuôn đã ghi.
+
 ## Bước 3 — Gọi thêm `security-review` nếu chạm vùng nhạy cảm
 Diff đụng auth, thanh toán, dữ liệu người dùng thật, quyền truy cập, hoặc input từ bên ngoài chưa rõ đã validate → gọi thêm `Skill(security-review)` (vùng nhạy cảm theo `docs/framework/standard-delivery.md` §3d).
 
