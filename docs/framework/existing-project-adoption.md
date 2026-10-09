@@ -40,7 +40,7 @@ pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 # hoặc: powershell -ExecutionPolicy Bypass -File .\copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 ```
 Script **không đè** file đang chạy: tài liệu khung + `CLAUDE.md` (nếu chưa có) copy thẳng; file cấu hình
-theo stack được đưa vào `_framework-dropins/` để bạn tự merge. Sau đó **mở phiên Claude Code trong dự án đích**
+theo stack được đưa vào `_framework-dropins/` để bạn tự merge. (Test drop-in `ci-workflow-policy.test.ts` tự bỏ qua chừng nào còn nằm trong `_framework-dropins/` — `npm test` của bạn không đỏ vì khung; nó chỉ chạy thật sau khi bạn chuyển vào `scripts/` cùng `.github/workflows/`.) Sau đó **mở phiên Claude Code trong dự án đích**
 → AI tự đọc `CLAUDE.md` và chạy Bước 0 (tự dò stack). *Vì sao phải copy chứ không "đưa link": một phiên
 chỉ tự nạp luật từ chính repo của nó (và `~/.claude/CLAUDE.md`), không đọc được repo khác qua link — luật
 phải NẰM TRONG repo đích thì phiên mới đọc được.*

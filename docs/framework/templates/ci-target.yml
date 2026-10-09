@@ -21,6 +21,16 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
+      # Cài dependency TRƯỚC cổng: gate chạy lệnh thật của dự án (vd `npm test` → vitest trong devDependencies);
+      # runner sạch không có node_modules thì cổng đỏ ở bước đầu (phát hiện S-05 khi chạy khung trên dự án đích,
+      # 2026-10-09). Chỉ cài khi có lockfile/requirements — template vẫn dùng được cho mọi stack; pnpm/yarn/poetry
+      # thì thay dòng tương ứng khi merge drop-in.
+      - name: Install Node dependencies (lockfile present)
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+      - name: Install Python dependencies (requirements.txt present)
+        if: hashFiles('requirements.txt') != ''
+        run: python -m pip install -r requirements.txt
       - name: Check target commands and installed runtimes
         run: bash scripts/dev-task.sh doctor
       - name: Run reviewed build, typecheck, lint and test commands
