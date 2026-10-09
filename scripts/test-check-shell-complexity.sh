@@ -14,7 +14,7 @@ set -uo pipefail   # cố ý KHÔNG -e (docs/CONVENTIONS.md §A)
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 PROBE="$ROOT/scripts/zz-probe-shcc-$$.sh"
-trap 'rm -f "$PROBE"' EXIT
+trap 'rm -f "$PROBE"; rm -r "$ROOT/.claude/worktrees/zz-probe-wt-$$" 2>/dev/null' EXIT
 
 source "$ROOT/scripts/_test-lib.sh"
 
@@ -65,6 +65,14 @@ rc="$(run_gate SH_CC_MAIN_MAX=99)"
 rm -f "$PROBE"
 rc="$(run_gate _=_)"
 [ "$rc" = "0" ] && ok "dọn file thăm dò → xanh trở lại" || bad "sau khi dọn vẫn đỏ (rc=$rc)"
+
+echo "== 4b. File trong .claude/worktrees/ (worktree lồng của subagent) KHÔNG được đo — probe của suite khác đang chạy ở đó từng làm cổng checkout chính đỏ oan (2026-10-09) =="
+WT_PROBE_DIR="$ROOT/.claude/worktrees/zz-probe-wt-$$/scripts"
+mkdir -p "$WT_PROBE_DIR"
+PROBE="$WT_PROBE_DIR/zz-probe-shcc-$$.sh"; make_probe 46 main
+rc="$(run_gate _=_)"
+[ "$rc" = "0" ] && ok "thân script CC 47 nằm trong .claude/worktrees/ → bỏ qua, rc=0"                 || bad "cổng quét vào .claude/worktrees/ (rc=$rc) — chạy song song với worktree khác sẽ đỏ oan"
+rm -r "$ROOT/.claude/worktrees/zz-probe-wt-$$"; PROBE="$ROOT/scripts/zz-probe-shcc-$$.sh"
 
 echo "== 5. Checksum bản vendor sai → ĐỎ (không đo bằng công cụ lạ) =="
 BACKUP="$(mktemp)"

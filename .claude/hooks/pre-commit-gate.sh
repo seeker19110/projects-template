@@ -25,8 +25,9 @@ case "$cmd" in *git*) ;; *) exit 0 ;; esac   # không có chữ `git` thì khôn
 
 # Bỏ DỮ LIỆU trước khi so khớp — CÙNG bộ lọc với block-dangerous-git (_lib.sh): phần TRONG DẤU NHÁY (audit
 # 2026-09-12: `echo 'git commit ...'`) và THÂN HEREDOC (O-2 2026-10-08: `python3 - <<PY … git commit … PY` chạy
-# cổng oan; message heredoc nhắc `git add` bật tự-stage oan — TRAPS.md "bản sao hook lệch nhau").
-cmd_scan="$(printf '%s' "$cmd" | strip_heredoc_bodies | strip_quoted)"
+# cổng oan; message heredoc nhắc `git add` bật tự-stage oan — TRAPS.md "bản sao hook lệch nhau"). Vỏ bọc
+# `bash -c '…'`/`eval "…"` thì phần trong nháy LÀ lệnh → chỉ bỏ ký tự nháy (hook_scan_text, TRAPS.md mục 62).
+cmd_scan="$(hook_scan_text "$cmd")"
 
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
 if ! printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then
@@ -35,8 +36,9 @@ fi
 
 # Người dùng chủ động bỏ qua cổng?
 # Chỉ nhận đúng cờ git hợp lệ `--no-verify` (`-n` của git commit là --no-verify nhưng cũng là
-# cờ của nhiều lệnh khác trong chuỗi → không nhận, tránh bỏ cổng nhầm).
-if printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)'; then
+# cờ của nhiều lệnh khác trong chuỗi → không nhận, tránh bỏ cổng nhầm). Cờ phải nằm CÙNG segment với `commit`
+# (không qua `|`/`&`/`;`): `git commit -m x && rm --no-verify` từng bỏ cổng vì cờ của lệnh khác (TRAPS.md mục 62).
+if printf '%s' "$cmd_scan" | grep -Eq 'commit[^|&;]*[[:space:]]--no-verify([[:space:]]|$)'; then
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
 fi

@@ -360,6 +360,65 @@ rc="$(run_hook "$nolib" 'git commit -m "x"' "" "$nolib/.claude/hooks/pre-commit-
   || bad "pre-commit-gate: thiếu _commit-guard.sh mà không chặn/không nhắc (exit $rc)"
 fi
 
+echo "== 18. Bộ lọc dữ liệu/nháy KHÔNG được tự khớp nhầm — biến thể lọt (audit 2026-10-09, TRAPS.md mục 62) =="
+# VÌ SAO (F-S01, F-Q1..Q5): mỗi ca "chặn" dưới đo thật là exit 0 (LỌT) ở bản trước. Nháy đơn trong nháy kép (`don't`)
+# làm bộ lọc nháy nuốt lệnh giữa; refspec đầy đủ `refs/heads/main`, cờ gộp `-fu`, tên nhánh trong nháy `"main"`;
+# vỏ bọc `bash -c '…'`; `<<-EOF` có terminator thụt tab; `<<` nằm trong chuỗi; `--no-verify` của lệnh KHÁC.
+if [ "$HAS_JQ" = "0" ]; then skip "mục 18 — hook không đọc được lệnh"; else
+tab="$(printf '\t')"
+for pair in \
+  "git commit -m \"don't break\" && git push --force origin main && echo \"it's done\"|nháy đơn trong nháy kép không nuốt force-push main" \
+  "git push origin +refs/heads/main|refspec +refs/heads/main" \
+  "git push origin +HEAD:refs/heads/main|refspec +HEAD:refs/heads/main" \
+  "git push -fu origin main|cờ gộp -fu + main" \
+  "git push -f origin \"main\"|tên nhánh trong nháy \"main\"" \
+  "git push -f origin HEAD:refs/heads/main|-f + HEAD:refs/heads/main" \
+  "bash -c 'git reset --hard'|vỏ bọc bash -c '…'" \
+  "cat <<-EOF
+${tab}du lieu
+${tab}EOF
+git reset --hard|<<-EOF terminator thụt tab, lệnh nguy hiểm ở dòng sau" \
+  "git push --delete origin refs/heads/main|--delete refs/heads/main" \
+  "sh -c \"git push --force origin master\"|vỏ bọc sh -c \"…\"" \
+  "eval \"git reset --hard\"|vỏ bọc eval \"…\"" \
+  "echo \"x <<EOF\"
+git reset --hard|'<<EOF' nằm trong chuỗi không phải heredoc" \
+; do
+  c="${pair%%|*}"; label="${pair##*|}"
+  rc="$(run_hook "$any" "$c" "" "$DG")"
+  [ "$rc" = "2" ] && ok "chặn: $label" || bad "KHÔNG chặn: $label (exit $rc, kỳ vọng 2)"
+done
+for pair in \
+  "git push -f origin feat/x|force-push nhánh riêng (chỉ cảnh báo)" \
+  "echo \"git reset --hard\"|chuỗi trong nháy kép không phải lệnh" \
+  "git commit -m \"don't\"|message có nháy đơn trong nháy kép" \
+  "rm -rf build && git push origin main|cờ gộp có chữ f của lệnh KHÁC không phải force-push" \
+  "git push --force origin main:feat/x|force-push ghi vào nhánh riêng (dst khác main)" \
+  "git commit -F - <<-EOF
+${tab}quay ve main
+${tab}EOF
+git push -u origin claude/abc --force-with-lease|<<-EOF thụt tab: chữ 'main' chỉ trong thân, push nhánh riêng" \
+; do
+  c="${pair%%|*}"; label="${pair##*|}"
+  rc="$(run_hook "$any" "$c" "" "$DG")"
+  [ "$rc" = "0" ] && ok "cho qua: $label" || bad "chặn OAN: $label (exit $rc, kỳ vọng 0)"
+done
+rc="$(run_hook "$any" 'git push -f origin feat/x' "" "$DG")"
+[ "$rc" = "0" ] && grep -q '⚠️' "$WORK/stderr.txt" && ok "force-push nhánh riêng vẫn có cảnh báo ⚠️" \
+  || bad "force-push nhánh riêng mất cảnh báo ⚠️ (exit $rc)"
+rc="$(run_hook "$red" 'git commit -m x && rm --no-verify')"
+[ "$rc" = "2" ] && ! grep -q 'phát hiện --no-verify' "$WORK/stderr.txt" && ok "--no-verify của lệnh KHÁC không bỏ cổng (cổng đỏ → exit 2)" \
+  || bad "--no-verify ở segment khác bỏ cổng (exit $rc, kỳ vọng 2 và không có 'phát hiện --no-verify')"
+rc="$(run_hook "$red" "bash -c 'git commit -m x'")"
+[ "$rc" = "2" ] && ok "git commit trong vỏ bọc bash -c vẫn qua cổng (cổng đỏ → exit 2)" \
+  || bad "git commit trong bash -c bỏ qua cổng (exit $rc, kỳ vọng 2)"
+rc="$(run_hook "$red" 'git commit --no-verify -m x && echo xong')"
+[ "$rc" = "0" ] && ok "--no-verify cùng segment commit vẫn bỏ qua có chủ đích" || bad "--no-verify cùng segment không còn tác dụng (exit $rc)"
+rc="$(run_hook "$green" "git commit -m \"don't\"")"
+[ "$rc" = "0" ] && ok "pre-commit-gate: git commit -m \"don't\" trên nhánh riêng, cổng xanh → cho qua" \
+  || bad "pre-commit-gate chặn OAN git commit -m \"don't\" (exit $rc)"
+fi
+
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."

@@ -1227,3 +1227,24 @@ cộng trần của chúng; tổng nguồn không phải người phải chừa 
 *Cổng chốt chặn:* `tests/test_runtime_safety.py::test_dependabot_version_prs_leave_wip_room_for_humans` — đọc trần từ
 `pr-policy.yml`, tính số PR bot tối đa từ `dependabot.yml` (một `multi-ecosystem-group` = 1 PR; ngược lại cộng
 `open-pull-requests-limit`, mặc định 5), đòi ≤ trần − 1 và mọi hệ sinh thái bỏ qua `semver-major` (major đi `/deps-upgrade`).
+
+## 62. Bộ lọc dữ liệu/nháy của hook tự khớp nhầm — 7 biến thể lọt
+
+*Ngày:* 2026-10-09 (audit `docs/reports/2026-10-09-audit-full-automation.md` Nhóm 2, F-S01, F-Q1..Q5). Bộ lọc "bỏ dữ liệu
+trước khi so khớp" của `.claude/hooks/_lib.sh` bỏ NHẦM phần là lệnh, và khuôn so tên nhánh chỉ nhận dạng ngắn — đo bằng hook
+thật, tất cả exit 0 (lọt): (1) `git commit -m "don't break" && git push --force origin main && echo "it's done"` — `strip_quoted`
+bỏ nháy đơn TRƯỚC nên cặp `'t break" … echo "it'` ghép từ hai chuỗi nháy kép nuốt cả lệnh giữa; (2) `git push origin
++refs/heads/main`; (3) `+HEAD:refs/heads/main`; (4) `-fu origin main` (cờ gộp); (5) `-f origin "main"` (tên nhánh trong nháy bị
+bỏ cùng nháy); (6) `-f origin HEAD:refs/heads/main`; (7) `bash -c 'git reset --hard'` (lệnh trong vỏ bọc bị coi là dữ liệu).
+Cùng khuôn: `<<-EOF` có terminator thụt tab không bao giờ khớp → mọi dòng sau bị nuốt; `echo "x <<EOF"` bị nhận là heredoc;
+`git commit -m x && rm --no-verify` bỏ cổng vì `--no-verify` của lệnh khác.
+
+*Cách rà:* bộ lọc "bỏ dữ liệu" hỏng theo chiều NGUY HIỂM (để lọt), không theo chiều phiền — mỗi lần sửa nó tự hỏi "chuỗi nào
+khiến bộ lọc bỏ một dòng/đoạn LÀ LỆNH?": nháy lồng khác loại, nháy không cân, `<<` trong chuỗi, `<<-` có tab, vỏ bọc chạy chuỗi.
+Khuôn so tên nhánh/cờ thì liệt kê đủ cú pháp git cho cùng ý nghĩa (`refs/heads/`, `src:dst`, `+`, cờ gộp) và so trên dạng đã
+chuẩn hoá, không so chuỗi thô. Cờ bỏ cổng (`--no-verify`) chỉ tính khi cùng segment với lệnh nó thuộc về.
+
+*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 18 — 12 ca phải chặn (7 biến thể trên + `<<-EOF` thụt tab, `--delete
+refs/heads/main`, `sh -c "…"`, `eval "…"`, `<<EOF` trong chuỗi) + 2 ca pre-commit-gate (`rm --no-verify` ở segment khác, `git
+commit` trong `bash -c`) đều đo ĐỎ trước khi sửa; cùng các ca đối chứng không chặn oan (`-f origin feat/x` chỉ ⚠️, `echo "git
+reset --hard"`, `git commit -m "don't"`, `rm -rf … && git push origin main`, `main:feat/x`) (PR 2026-10-09).

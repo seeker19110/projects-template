@@ -13,6 +13,8 @@
 #      riêng là hợp lệ theo quy ước repo.
 #   5. `push` xoá hoặc ép ghi đè nhánh chính không qua chữ --force: refspec `+main`, `:main`,
 #      `--delete main` (audit 2026-09-23).
+# Khuôn 1/5 so trên ĐÍCH PUSH đã chuẩn hoá (`+`, `src:dst`, `refs/heads/`, nháy quanh tên nhánh) và tính cờ gộp
+# `-fu` là force; lệnh trong vỏ bọc `bash -c '…'`/`eval "…"` cũng được soi (audit 2026-10-09, TRAPS.md mục 62).
 #
 # Bỏ qua có chủ đích: đặt ALLOW_DANGEROUS_GIT=1 trong môi trường (tường minh, có chủ ý).
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên (xem docs/CONVENTIONS.md §A)
@@ -34,10 +36,32 @@ cmd="$(printf '%s' "$payload" | read_hook_command)"
 case "$cmd" in *git*) ;; *) exit 0 ;; esac
 
 # Bỏ DỮ LIỆU (thân heredoc + phần trong nháy) trước khi so khớp — lý do và giới hạn: _lib.sh.
-cmd_scan="$(printf '%s' "$cmd" | strip_heredoc_bodies | strip_quoted)"
+cmd_scan="$(hook_scan_text "$cmd")"
 # `git … push` dùng ở khuôn 1, 5, 4 → so một lần.
 is_push=0
 printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?push([[:space:]]|$)' && is_push=1
+
+# Đoạn `git … push …` (tới `|`/`&`/`;`/xuống dòng) với ký tự nháy đã bỏ — tên nhánh trong nháy (`"main"`) vẫn thấy.
+# Chỉ soi ĐOẠN push nên cờ gộp `-rf` của lệnh khác không bị coi là force (TRAPS.md mục 62).
+push_segs=""
+[ "$is_push" = 1 ] && push_segs="$(printf '%s' "$cmd" | strip_heredoc_bodies | strip_quote_marks \
+  | grep -oE '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?push([[:space:]][^|&;]*)?')"
+# Đích push đã chuẩn hoá, mỗi dòng "<có +><là :dst> <nhánh>": bỏ `+` đầu, `src:dst` lấy `dst`, bỏ `refs/heads/`
+# → `+refs/heads/main`, `+HEAD:refs/heads/main`, `HEAD:refs/heads/main` đều thành `main`.
+targets="$(printf '%s\n' "$push_segs" | tr -s '[:space:]' '\n' | awk '
+  { t = $0; plus = 0; del = 0
+    if (t ~ /^\+/) { plus = 1; t = substr(t, 2) }
+    if (t ~ /^:/) del = 1
+    sub(/^.*:/, "", t); sub(/^refs\/heads\//, "", t)
+    print plus del " " t }')"
+# Force: khuôn cũ trên cả lệnh (giữ nguyên, không nới) HOẶC cờ gộp có `f` (`-fu`) trong đoạn push.
+# is_force_hard (không tính --force-with-lease) dùng cho cảnh báo khuôn 4 — giữ đúng hành vi cũ của cảnh báo.
+COMBINED_F='-[A-Za-z]*f[A-Za-z]*'
+is_force=0; is_force_hard=0
+{ printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])(--force|-f)([[:space:]]|$)' \
+  || printf '%s\n' "$push_segs" | grep -Eq "(^|[[:space:]])(--force|$COMBINED_F)([[:space:]]|\$)"; } && is_force_hard=1
+{ [ "$is_force_hard" = 1 ] \
+  || printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--force-with-lease(=[^[:space:]]*)?([[:space:]]|$)'; } && is_force=1
 
 block() {
   echo "🚫 Lệnh bị chặn bởi block-dangerous-git.sh: $1" >&2
@@ -47,9 +71,9 @@ block() {
 }
 
 # --- 1. force-push vào nhánh chính ---
-if [ "$is_push" = 1 ] \
-   && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])(--force|--force-with-lease(=[^[:space:]]*)?|-f)([[:space:]]|$)' \
-   && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]:])(main|master)([[:space:]]|$)'; then
+if [ "$is_push" = 1 ] && [ "$is_force" = 1 ] \
+   && { printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]:])(main|master)([[:space:]]|$)' \
+        || printf '%s\n' "$targets" | grep -Eq '^[01]{2} (main|master)$'; }; then
   block "force-push vào nhánh chính" "CLAUDE.md §8: không push thẳng nhánh chính; force-push xoá lịch sử của người khác."
 fi
 
@@ -71,14 +95,16 @@ fi
 if [ "$is_push" = 1 ]; then
   tokens="$(printf '%s' "$cmd_scan" | tr -s '[:space:]' '\n')"
   if printf '%s\n' "$tokens" | grep -Eq '^\+([^:]*:)?(main|master)$|^:(main|master)$' \
-     || { printf '%s\n' "$tokens" | grep -Eq '^(--delete|-d)$' && printf '%s\n' "$tokens" | grep -Eq '^(main|master)$'; }; then
+     || { printf '%s\n' "$tokens" | grep -Eq '^(--delete|-d)$' && printf '%s\n' "$tokens" | grep -Eq '^(main|master)$'; } \
+     || printf '%s\n' "$targets" | grep -Eq '^(1[01]|01) (main|master)$' \
+     || { printf '%s\n' "$push_segs" | grep -Eq '(^|[[:space:]])(--delete|-d)([[:space:]]|$)' \
+          && printf '%s\n' "$targets" | grep -Eq '^[01]{2} (main|master)$'; }; then
     block "push xoá / ép ghi đè nhánh chính" "CLAUDE.md §8: nhánh chính chỉ nhận thay đổi qua PR; refspec '+main', ':main' hay --delete main xoá lịch sử/nhánh của mọi người."
   fi
 fi
 
 # --- 4. force-push nhánh khác: cảnh báo, không chặn ---
-if [ "$is_push" = 1 ] \
-   && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])(--force|-f)([[:space:]]|$)'; then
+if [ "$is_push" = 1 ] && [ "$is_force_hard" = 1 ]; then
   echo "⚠️  force-push (không phải nhánh chính): chỉ hợp lệ trên nhánh DO BẠN tạo. Nhánh của người khác → dùng merge commit (CLAUDE.md §8)." >&2
 fi
 
