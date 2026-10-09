@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-progress-freshness-on-pr
 - Yêu cầu / outcome: người dùng "cho progress-freshness chạy cả ở PR" — PROGRESS.md lỗi thời phải đỏ ngay ở PR, không lọt vào `main` (TRAPS 8, #245).
-- Trạng thái: In progress
+- Trạng thái: Done
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: S, 1 PR (đổi dây CI + test, không đổi logic script)
 - Scope / non-goal: bỏ `if:` chỉ-main của job `progress-freshness`, sổ `SKIP_ALLOWED` rỗng, test khoá nối dây + đối chứng merge ref, sửa tài liệu nói "chỉ trên main". Non-goal: đổi PF-1..4.
@@ -31,10 +31,14 @@ Chưa có.
 
 ## Bàn giao / bước tiếp theo
 
-Chạy `bash scripts/dev-task.sh gate`, commit, mở PR có `Work ID: 2026-10-09-progress-freshness-on-pr`.
+Không còn — đã đóng.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- PR #250 MERGED → `98a64be` trên `main` (squash). Trước merge có xung đột `PROGRESS.md` với #249, đã giải bằng
+  merge commit `3fde248`, giữ nội dung của cả hai phía.
+- CI head `3fde248`: 13/13 check xanh, trong đó `progress-freshness` chạy thật trên PR (lần đầu) và xanh; head trước
+  `bfa0689` cũng xanh toàn bộ.
+- DoD: job chạy ở PR, test khoá nối dây + đối chứng merge ref, CP-5 khớp sổ rỗng, tài liệu không còn nói "chỉ trên main".
+- Giới hạn: `main` lỗi thời sẽ làm đỏ mọi PR tới khi sửa (cố ý).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-09.
