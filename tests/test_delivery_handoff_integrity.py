@@ -73,6 +73,10 @@ class ApprovalMetadataTests(unittest.TestCase):
 
 
 class HandoffIntegrityTests(unittest.TestCase):
+    def test_contract_generator_reexported_from_helper(self):
+        self.assertIs(compiler.generate_python_contract_test,
+                      importlib.import_module("_spec_contract_gen").generate_python_contract_test)
+
     def setUp(self):
         self.exporter = importlib.import_module("delivery-handoff")
         self.tmp = tempfile.TemporaryDirectory()

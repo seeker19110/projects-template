@@ -20,7 +20,7 @@ fi
 
 # ── Dự án giả: đủ để hook tìm thấy engine telemetry ─────────────────────────────
 PROJ="$WORK/proj"; mkdir -p "$PROJ/scripts" "$PROJ/.claude/hooks"
-cp "$ROOT/scripts/telemetry-log.sh" "$ROOT/scripts/telemetry-log.py" "$ROOT/scripts/model-rates.json" \
+cp "$ROOT/scripts/telemetry-log.sh" "$ROOT/scripts/telemetry-log.py" "$ROOT/scripts/_telemetry_report.py" "$ROOT/scripts/model-rates.json" \
    "$ROOT/scripts/_python-exec.sh" "$PROJ/scripts/"
 cp "$ROOT/.claude/hooks/telemetry-record.sh" "$PROJ/.claude/hooks/"
 chmod +x "$PROJ/scripts/"*.sh "$PROJ/.claude/hooks/"*.sh
