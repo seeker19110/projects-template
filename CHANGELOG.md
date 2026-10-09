@@ -11,6 +11,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-09, F-309): `scripts/_stack-detect.sh` `node_has_script` khi KHÔNG có jq đọc `package.json` bằng `node -e`
+  thay cho grep `"<task>":` trên cả file — khoá cùng tên ở `dependencies`/config không còn bị coi là script (test PATH không jq
+  trong `test-dev-task.sh`). Refactor không đổi hành vi: `spec-compiler.py`/`telemetry-log.py` tách helper `_spec_contract_gen.py`/
+  `_telemetry_report.py` (#227); `test-check-scripts.sh` → thêm `test-workflow-guards.sh`, `tests/test_runtime_safety.py` →
+  `_runtime_fixture.py` + `test_git_safety.py` (#228). Tài liệu nội bộ `lean-delivery-benchmark.md` dời sang `docs/reports/`
+  (không còn phát sang dự án đích).
+
 - Fixed (2026-10-09, #224): khối fenced đầu của `docs/ops/repository-settings.md` phát cho dự án đích giờ là required checks chung
   (`ci.yml: gate`, `pr-policy.yml: metadata`) khớp `ci-target.yml`; bản kê job của riêng repo khung chuyển xuống khối có marker.
   Trước đó vitest drop-in `ci-workflow-policy.test.ts` đỏ ngay trên dự án đích copy sạch (6 job "không còn tồn tại"). Dự án đích

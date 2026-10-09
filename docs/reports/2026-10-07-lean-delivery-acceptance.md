@@ -22,7 +22,7 @@ pilot thật, hosted CI dự án đích, hiệu quả model hay production.
 | AC-5 | Prepare-only; context thiếu/rỗng/hỏng/quá lớn bị từ chối, không thực thi agent | `tests/engine_characterization/test_dispatch.py` qua 42 characterization tests |
 | AC-6 | C1–C10 đủ hành vi/UX-DX/dữ liệu/bảo mật/release và độ sâu S/M/L; ma trận gãy bị bắt | `tests/test_profile_quality_matrix.py`, 3/3 |
 | AC-7 | Usage thiếu là unknown; attempt khác accepted work; cộng cả chi phí lần thất bại | `tests/test_telemetry_integrity.py`, 15/15; `scripts/test-hooks-session.sh` |
-| AC-8 | Node/Python runtime thật, upgrade giữ config/ghi chú, evidence cũ/FAIL bị từ chối; giới hạn benchmark rõ | `tests/test_lean_adoption.py`, 2/2; `docs/framework/lean-delivery-benchmark.md` |
+| AC-8 | Node/Python runtime thật, upgrade giữ config/ghi chú, evidence cũ/FAIL bị từ chối; giới hạn benchmark rõ | `tests/test_lean_adoption.py`, 2/2; `docs/reports/2026-10-07-lean-delivery-benchmark.md` |
 
 `spec-compiler.sh --trace docs/specs/2026-10-07-lean-delivery.md`: AC-1..8 MAPPED,
 TRACE COMPLETE. Đây là kiểm ánh xạ tồn tại; kết quả thực thi nằm ở gate/CI bên dưới.

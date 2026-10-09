@@ -53,7 +53,7 @@
 | FT-52 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | `scripts/test-hooks-gate.sh` chạy hook thật với gate fixture đỏ/xanh |
 | FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | `scripts/test-hooks-session.sh` mục 11 (có GĐ / chưa có tiến độ / không phải dự án khung, negative test) + mục 10 (thiếu jq) |
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `docs/work/*/working.md`, `PROGRESS.md`, git log | ✅ | `scripts/test-hooks-session.sh` kiểm active trước PROGRESS, không nạp lịch sử done/nội dung, chọn trạng thái và giới hạn ngữ cảnh |
-| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | chỉ kiểm copy hook; `test-usage-estimate.sh` kiểm engine, chưa chạy hook guard |
+| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ✅ (trích dẫn F-014 cũ là nhầm: F-014 = dọn nhánh đã merge, đã đóng) | `test-usage-estimate.sh` kiểm engine; `scripts/test-hooks-session.sh` chạy hook với payload thật (thiếu công cụ → nói ra rồi exit 0; `usage-estimate.sh` lỗi → stderr `[usage-guard] … (exit 4)`, không nuốt); `test-copy-framework.sh` kiểm hook được copy |
 | FT-58 | Chặn lệnh Git nguy hiểm | `block-dangerous-git.sh` | lệnh Git sắp chạy | ✅ | `scripts/test-hooks-gate.sh` có ca chặn và không chặn oan |
 | FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |
 | FT-60 | Ghi telemetry khi dừng phiên/subagent | `telemetry-record.sh` | transcript và `.ai-telemetry/` | ✅ | `scripts/test-hooks-session.sh` |
@@ -93,7 +93,7 @@
 | FT-35 | Research-first chọn công nghệ | `03-tech-selection-and-proactive-advice.md` | `docs/research/` | ✅ | link-check |
 | FT-36 | Điều phối 3 tầng | `orchestration-3-tier.md` | `.claude/agents/` | ✅ | link-check |
 | FT-37 | Bổ sung chất lượng (Nhóm 1+2, theme, i18n/PWA/SEO) | `quality-supplements.md` | dropins | ✅ | link-check |
-| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ cho copy/gate Node và Python tối thiểu; các stack khác chưa nghiệm thu | `test-adoption-smoke.sh` (đỏ/xanh Node/Python, clone sạch, CI offline); `tests/test_lean_adoption.py` (upgrade giữ config/ghi chú, evidence cũ/FAIL bị từ chối); protocol `docs/framework/lean-delivery-benchmark.md` (metric model unknown); báo cáo `docs/reports/2026-10-05-adoption-smoke.md` |
+| FT-38 | Áp khung lên dự án có sẵn | `existing-project-adoption.md` | — | ✅ cho copy/gate Node và Python tối thiểu; các stack khác chưa nghiệm thu | `test-adoption-smoke.sh` (đỏ/xanh Node/Python, clone sạch, CI offline); `tests/test_lean_adoption.py` (upgrade giữ config/ghi chú, evidence cũ/FAIL bị từ chối); protocol `docs/reports/2026-10-07-lean-delivery-benchmark.md` (metric model unknown); báo cáo `docs/reports/2026-10-05-adoption-smoke.md` |
 | FT-39 | Model + tự động hoá + tối ưu token | `models-and-automation.md` | `.claude/settings*.json` | ✅ | link-check |
 | FT-40 | Spec-driven tuỳ chọn (OpenSpec) | `spec-driven-openspec.md` | `openspec/` | ✅ | link-check |
 | FT-41 | Case-study greenfield chạy thật | `case-study-greenfield-dry-run.md` | — | 🚧 Bước 6–8 chưa kiểm chứng (cần tài khoản thật) | ❌ |
@@ -114,7 +114,7 @@
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-44 | Cổng CI dự án đích (9 workflow nguồn; `ci.yml` phát bản riêng) | `.github/workflows/*`, `docs/framework/templates/ci-target.yml` | ci, secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance, codeql, scorecard | ✅ cho template Node/Python offline; hosted CI của repo đích chưa nghiệm thu | `check-ci-policy.sh`, `test-adoption-smoke.sh`; khối required checks phát cho đích được `test-copy-framework.sh` đối chiếu với workflow phát kèm; vitest drop-in đã chạy tay trên fixture (xem báo cáo chu kỳ 2026-10-09) |
-| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh`, `test-dev-task.sh` (resolver/doctor/gate fixture; một số binary giả), `test-usage-estimate.sh`, `tests/test_runtime_safety.py` (Python venv path có khoảng trắng/ký tự shell); Node/Python runtime thật trong adoption smoke |
+| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ✅ (F-309 đã sửa 2026-10-09: không jq → đọc JSON bằng `node`, hết dương tính giả từ khoá cùng tên ngoài `scripts`) | `test-copy-framework.sh`, `test-dev-task.sh` (resolver/doctor/gate fixture; một số binary giả; ca PATH không jq cho F-309), `test-usage-estimate.sh`, `tests/test_runtime_safety.py` (Python venv path có khoảng trắng/ký tự shell); Node/Python runtime thật trong adoption smoke |
 | FT-62 | Cầu nối delivery opt-in | `scripts/delivery-handoff.py` | spec/goal và contract từ consumer đã pin | ✅ | `tests/test_delivery_handoff_integrity.py`; CI Linux/Windows |
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)

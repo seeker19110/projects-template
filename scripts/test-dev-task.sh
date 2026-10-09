@@ -41,6 +41,20 @@ expect "$d" format "bun run fmt" "alias 'fmt' cho format"
 d="$(fx node3)"; printf '{"scripts":{"build":"next build"}}\n' > "$d/package.json"; : > "$d/pnpm-lock.yaml"
 expect "$d" build "pnpm run build" "pnpm theo pnpm-lock.yaml"
 expect "$d" typecheck "" "không có script nào khớp → rỗng (no-op), không bịa lệnh"
+# F-309 (ghi nhận 2026-09-01, đóng 2026-10-09): KHÔNG có jq, bản cũ grep `"<task>"` trên CẢ package.json → khoá cùng tên
+# ở dependencies/config bị coi là script → in `npm run test` cho dự án không có script test. Dựng PATH tối thiểu không jq
+# bằng wrapper bash tới binary thật (không symlink — Git Bash Windows), chạy dev-task bằng $BASH tuyệt đối.
+d="$(fx node4)"; printf '{"dependencies":{"test":"1.0.0"},"scripts":{"build":"x"}}\n' > "$d/package.json"
+if command -v node >/dev/null 2>&1; then
+  NOJQ="$WORK/nojq"; mkdir -p "$NOJQ"
+  for b in node grep dirname; do printf '#!%s\nexec %q "$@"\n' "$BASH" "$(command -v "$b")" > "$NOJQ/$b"; chmod +x "$NOJQ/$b"; done
+  got="$(PATH="$NOJQ" CLAUDE_PROJECT_DIR="$d" "$BASH" "$DT" --print test 2>/dev/null)"
+  [ "$got" = "" ] && ok "không jq: khoá 'test' ở dependencies KHÔNG bị coi là script (F-309)" || bad "không jq: F-309 dương tính giả → '$got'"
+  got="$(PATH="$NOJQ" CLAUDE_PROJECT_DIR="$d" "$BASH" "$DT" --print build 2>/dev/null)"
+  [ "$got" = "npm run build" ] && ok "không jq: script thật vẫn được nhận (đọc JSON bằng node)" || bad "không jq: script 'build' bị bỏ sót → '$got'"
+else
+  echo "  ℹ️ không có node — bỏ qua ca không-jq (F-309)"
+fi
 
 echo "== 2. Python: venv / uv / poetry / PATH, marker requirements.txt =="
 d="$(fx py1)"; : > "$d/requirements.txt"; mkdir -p "$d/.venv/bin"; printf '#!/usr/bin/env bash\nexit 0\n' > "$d/.venv/bin/ruff"; chmod +x "$d/.venv/bin/ruff"

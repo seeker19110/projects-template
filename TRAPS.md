@@ -1122,3 +1122,16 @@ hỏi "cổng ở đích đọc được gì từ file này?" và chạy cổng 
 
 *Cổng chốt chặn:* `scripts/test-copy-framework.sh` `check_structure` (hai chiều khối required checks đầu ↔ job
 thật của workflow phát kèm) + `scripts/test-check-scripts.sh` ca marker (xoá marker → `check-ci-policy.sh` đỏ).
+
+## 55. Dò khoá JSON bằng grep trên cả file — khoá cùng tên ở mục khác thành dương tính giả
+
+*Ngày:* 2026-09-01 ghi nhận (F-309, "chấp nhận rủi ro"); sửa 2026-10-09 (đợt finishing, PR closeout). `node_has_script`
+trong `scripts/_stack-detect.sh` khi không có jq dùng `grep -Eq "\"$1\"[[:space:]]*:" package.json` → một dự án có
+`dependencies.test` nhưng không có `scripts.test` vẫn được dev-task in `npm run test` (tái hiện bằng PATH tối thiểu không jq).
+Rủi ro "thấp" nằm im 5 tuần vì môi trường dev/CI luôn có jq nên nhánh fallback không bao giờ chạy trong test.
+
+*Cách rà:* mọi `grep` trên file có cấu trúc (JSON/YAML/TOML) để trả lời câu hỏi về MỘT khoá ở MỘT vị trí → hỏi "khoá cùng
+tên ở chỗ khác thì sao?"; nhánh fallback của công cụ nào cũng cần một ca test dựng đúng môi trường thiếu công cụ đó
+(wrapper bash tới binary thật trong PATH tối thiểu — không symlink để Git Bash Windows chạy được).
+
+*Cổng chốt chặn:* `scripts/test-dev-task.sh` mục 1 — ca "không jq" (khoá `test` ở dependencies → rỗng; `build` thật → `npm run build`).
