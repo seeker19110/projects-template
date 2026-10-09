@@ -7,7 +7,7 @@ cổng đã review → chạy test runtime thật → ghi/kiểm evidence → `-
 config và ghi chú địa phương → chạy lại → đổi source → từ chối evidence cũ →
 kiểm thử đỏ và từ chối evidence FAIL. Mỗi lượt xanh phải đếm được đúng một test.
 `scripts/test-copy-framework.sh` bổ sung Bash/PowerShell, upgrade có/không manifest,
-xung đột và bảo toàn file; `tests/test_runtime_safety.py` kiểm lỗi merge/lease.
+xung đột và bảo toàn file; `tests/test_git_safety.py` kiểm lỗi merge/lease.
 
 Đây là kiểm thử local và CI của **repo khung**. Kiểm cấu trúc CI drop-in offline
 khác với **hosted CI** trên repo đích; fixture khác với **pilot** sản phẩm thật.

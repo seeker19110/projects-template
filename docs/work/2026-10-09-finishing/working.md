@@ -62,7 +62,7 @@ R-01 ∥ R-02 (file không chung ngoài CODEMAP/manifest — phiên chính hợp
 - R-01 (worker A, wt-r01): spec-compiler 476→362, telemetry-log 426→324; helper `_spec_contract_gen.py` 124, `_telemetry_report.py` 116.
   Golden giống từng byte (compile-all --json 102351 B; summary/widget telemetry qua `cmp`; chuỗi generator trên 23 spec);
   unittest 122→124 (+2 test tái xuất); py-coverage 96% (helper 100%); next-gen-engines/telemetry-and-dispatch/copy-framework/
-  docs-consistency/python-complexity xanh; radar trong worktree 100/100 (còn 2 file của R-02). Phiên chính review diff, áp `git apply --index`.
+  docs-consistency/python-complexity xanh; radar trong worktree 100/100 (còn 2 file của R-02). Phiên chính review diff, áp `git apply --index`. PR #227 MERGED (squash) → `cde2eaa`, 13 check xanh; cổng commit lần đầu đỏ đúng ở `test-hooks-session.sh` (fixture `cp` tay thiếu helper — TRAPS 19 tái phát, đã ghi); CodeQL báo `fmt_cost` import không dùng → bỏ tái xuất.
 - R-02 (worker B, wt-r02): test-check-scripts 418→331 + `test-workflow-guards.sh` 111; test_runtime_safety 443→230 +
   `test_git_safety.py` 185 + `_runtime_fixture.py` 57; ca test giữ nguyên (Python 17=8+9; shell 39 ✅=32+7); ci.yml/
   project-commands/parity/manifest/FEATURE-MAP/CODEMAP đã nối; 2 DEBT gỡ; sweep --strict 0 🟡 DEBT. Chờ áp sau khi R-01 merge.
