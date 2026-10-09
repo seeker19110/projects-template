@@ -11,7 +11,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
-- Fixed (2026-10-09, đối chiếu `EveryInc/compound-engineering-plugin` — #PRNUM): `precompact-checkpoint.sh` chụp cây ĐANG làm việc
+- Fixed (2026-10-09, đối chiếu `EveryInc/compound-engineering-plugin` — #255): `precompact-checkpoint.sh` chụp cây ĐANG làm việc
   (`git rev-parse --show-toplevel`), không phải checkout chính khi phiên chạy trong worktree — TRAPS 45 tái phát, đo thật, test
   `test-hooks-session.sh` mục 8b đỏ-trước; `reviewer.md` + `/review` đối chiếu diff với `TRAPS.md` trước PR (5 mục TRAPS đã "Tái phát").
   Bản đối chiếu ba cột: `docs/reports/2026-10-09-doi-chieu-compound-engineering.md` (2 lấy / ~35, phần còn lại kèm điều kiện xem lại).
