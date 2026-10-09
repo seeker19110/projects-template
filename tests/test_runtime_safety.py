@@ -4,6 +4,7 @@ All repositories are disposable, local-only fixtures. No AI CLI, credentials,
 production files or network are used. Run: python3 tests/test_runtime_safety.py
 """
 import json
+import re
 import os
 from pathlib import Path
 import shlex
@@ -88,6 +89,25 @@ new AsyncFunction("context", "core", "github", input.script)(context, core, gith
                 for fragment, failure in zip(expected, output["failures"]):
                     self.assertIn(fragment, failure)
                 self.assertEqual(output["calls"].count("list"), 1, output)
+
+    def test_dependabot_version_prs_leave_wip_room_for_humans(self):
+        # F-41a (FT-41 trên repo đích thật): 5+5+3 PR bot lấp trần WIP 3 → mọi PR người đỏ `metadata`.
+        policy = (ROOT / ".github/workflows/pr-policy.yml").read_text(encoding="utf-8")
+        cap = int(re.search(r"others\.length >= (\d+)", policy).group(1))
+        config = (ROOT / ".github/dependabot.yml").read_text(encoding="utf-8")
+        entries = re.split(r"\n  - package-ecosystem:", config)[1:]
+        self.assertTrue(entries, "dependabot.yml must declare update entries")
+        groups = set(re.findall(r"multi-ecosystem-group: (\S+)", config))
+        if len(groups) == 1 and all("multi-ecosystem-group:" in entry for entry in entries):
+            max_bot_prs = 1
+        else:
+            max_bot_prs = sum(int(m.group(1)) if (m := re.search(r"open-pull-requests-limit: (\d+)", e)) else 5
+                              for e in entries)
+        self.assertLessEqual(max_bot_prs, cap - 1, f"{max_bot_prs} bot PRs can fill the WIP cap {cap}")
+        for entry in entries:
+            with self.subTest(ecosystem=entry.split()[0]):
+                # Bản major đi qua /deps-upgrade (đọc changelog, sửa điểm chạm); PR bot major đỏ CI sẽ giữ chỗ WIP mãi.
+                self.assertIn("version-update:semver-major", entry)
 
     def formatter_fixture(self, tool=None, template=None, tool_exit=0, root=None):
         root = root or self.tmp / (tool or "no-formatter")

@@ -1212,3 +1212,17 @@ trong khi `FT-66` (telemetry) đã có từ trước — người viết đọc 
 *Cổng chốt chặn:* `scripts/check-docs-consistency.sh` mục 11b (ID FT trùng) và mục 13 (thư mục `docs/work/` đúng khuôn, đúng một
 `working.md`/`done.md`); `pr-policy.yml` step "Work ID trỏ tới hồ sơ có thật"; negative test ở `scripts/test-check-scripts.sh` và
 `scripts/test-workflow-guards.sh` mục 6 (PR 2026-10-09).
+
+## 61. Hai cấu hình đúng riêng lẻ, sai khi ghép: Dependabot mở 13 PR bot, cổng WIP đếm bot với trần 3 → PR của người kẹt
+
+*Ngày:* 2026-10-09 (FT-41 chạy thật trên `seeker19110/case-study-ft41`): `dependabot.yml` phát cho đích cho phép npm 5 +
+actions 5 + pip 3 PR; #217 cho cổng WIP đếm mọi PR mở kể cả bot (trần 3). Lần chạy Dependabot đầu tiên mở 5 PR (đều bản major,
+một PR đỏ CI) → PR #6 của người đỏ required check `metadata` "đã có 5 PR khác đang mở", mergeState BLOCKED. Mỗi file có test
+riêng xanh; không test nào đối chiếu HAI file với nhau.
+
+*Cách rà:* với mọi giới hạn số lượng (WIP, concurrency, quota), liệt kê MỌI nguồn sinh ra thứ bị đếm (người, bot, cron, agent) và
+cộng trần của chúng; tổng nguồn không phải người phải chừa ≥ 1 chỗ.
+
+*Cổng chốt chặn:* `tests/test_runtime_safety.py::test_dependabot_version_prs_leave_wip_room_for_humans` — đọc trần từ
+`pr-policy.yml`, tính số PR bot tối đa từ `dependabot.yml` (một `multi-ecosystem-group` = 1 PR; ngược lại cộng
+`open-pull-requests-limit`, mặc định 5), đòi ≤ trần − 1 và mọi hệ sinh thái bỏ qua `semver-major` (major đi `/deps-upgrade`).
