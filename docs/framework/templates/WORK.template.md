@@ -12,7 +12,7 @@
 ## Kế hoạch và phân công
 
 <Một outcome/PR; owner/cấp năng lực, input/output, file được ghi, dependency,
-test/AC và nhánh/worktree. Từ 2 PR giao subagent; tối đa 3 subagent chạy toàn cây.
+test/AC và nhánh/worktree. Từ 2 PR giao subagent; tối đa 5 subagent chạy toàn cây.
 Song song nếu độc lập, tuần tự nếu phụ thuộc hoặc ghi chung.>
 
 ## Quyết định và bằng chứng

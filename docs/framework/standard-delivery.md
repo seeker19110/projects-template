@@ -95,9 +95,9 @@ phép với một PR; **từ 2 PR trở lên phải giao subagent đủ năng l�
 kể cả các PR phụ thuộc cần chạy tuần tự. Không chia PR giả tạo để kích hoạt subagent.
 Giữ quyết định khó/contract và nghiệm thu ở phiên chính; không phải mọi mức L đều cần nhiều PR.
 
-- **Tối đa 3 subagent đang chạy trong toàn cây**, tính cả coordinator, reviewer, tester
-  và agent do subagent tạo. Coordinator đang chạy thì còn tối đa hai slot cho agent khác.
-  Một phiên chính quản lý ngân sách slot; không để mỗi coordinator tự cấp thêm ba slot.
+- **Tối đa 5 subagent đang chạy trong toàn cây**, tính cả coordinator, reviewer, tester
+  và agent do subagent tạo. Coordinator đang chạy thì còn tối đa bốn slot cho agent khác.
+  Một phiên chính quản lý ngân sách slot; không để mỗi coordinator tự cấp thêm năm slot.
 - Mỗi đơn vị có owner, cấp năng lực/model đã xác minh, input/output, acceptance/test,
   phạm vi ghi, nhánh/worktree và PR riêng. Nếu brief chưa đủ kín cho worker đủ năng lực,
   phiên chính chốt thiết kế trước; không hạ chất lượng hoặc mặc định chọn model rẻ nhất.

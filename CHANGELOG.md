@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-09, ADR-0011): trần subagent đang chạy trong toàn cây 3 → 5 theo chỉ thị chủ repo; coordinator còn bốn
+  slot; điều kiện song song (độc lập, worktree riêng) và trần WIP 3 PR không đổi. Cổng `tests/test_adaptive_process.py`.
 - Fixed (2026-10-09, F-309): `scripts/_stack-detect.sh` `node_has_script` khi KHÔNG có jq đọc `package.json` bằng `node -e`
   thay cho grep `"<task>":` trên cả file — khoá cùng tên ở `dependencies`/config không còn bị coi là script (test PATH không jq
   trong `test-dev-task.sh`). Refactor không đổi hành vi: `spec-compiler.py`/`telemetry-log.py` tách helper `_spec_contract_gen.py`/
