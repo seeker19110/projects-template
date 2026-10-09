@@ -52,6 +52,11 @@ jobs:
       - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
         run: bash scripts/test-check-scripts.sh
 
+      # Thân step protection-guard (ci.yml) và Detect project manifest (dependency-review.yml) cũng
+      # phải được chứng minh chạy đúng với API/manifest giả lập, không chỉ "có mặt" trong workflow.
+      - name: Step protection-guard và dependency-review chạy đúng với API/manifest giả lập
+        run: bash scripts/test-workflow-guards.sh
+
       # 4 engine (spec-compiler, arch-health-radar, subagent-dispatch, telemetry-log) được thêm ở
       # PR #89/#91 KÈM self-test, nhưng self-test không được nối vào CI — nên ~650 dòng Python chạy
       # được mà không cổng nào bảo vệ (audit 2026-09-13, mục CAO-1; khuôn lỗi ghi ở TRAPS.md).
@@ -87,6 +92,9 @@ jobs:
 
       - name: Runtime safety (Git local thật, CLI hữu hạn, upgrade giữ dữ liệu)
         run: python3 tests/test_runtime_safety.py
+
+      - name: Git safety (lease maintain-cron, upgrade merge giữ dữ liệu)
+        run: python3 tests/test_git_safety.py
 
       # Radar độ phủ cổng (arch-health-radar) chỉ ra usage-estimate.sh là script DUY NHẤT
       # không có test — nó quyết định lúc nào phiên AI bị nhắc sắp hết quota (audit 2026-09-13).
@@ -226,6 +234,7 @@ jobs:
         run: |
           PY=python3; command -v python3 >/dev/null || PY=python
           "$PY" tests/test_runtime_safety.py
+          "$PY" tests/test_git_safety.py
 
       - name: copy-framework trên Windows thật (cả .sh lẫn .ps1)
         run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh

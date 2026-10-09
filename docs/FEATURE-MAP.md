@@ -97,7 +97,7 @@
 | FT-39 | Model + tự động hoá + tối ưu token | `models-and-automation.md` | `.claude/settings*.json` | ✅ | link-check |
 | FT-40 | Spec-driven tuỳ chọn (OpenSpec) | `spec-driven-openspec.md` | `openspec/` | ✅ | link-check |
 | FT-41 | Case-study greenfield chạy thật | `case-study-greenfield-dry-run.md` | — | 🚧 Bước 6–8 chưa kiểm chứng (cần tài khoản thật) | ❌ |
-| FT-42 | Vận hành: sự cố, post-mortem, release, repo settings, chuỗi cung ứng | `docs/ops/*` | GitHub settings thật | ✅ ruleset active, `strict=true` qua API 2026-10-05 | `protection-guard` kiểm live; W-04 bổ sung kiểm tham số `strict` và negative test |
+| FT-42 | Vận hành: sự cố, post-mortem, release, repo settings, chuỗi cung ứng | `docs/ops/*` | GitHub settings thật | ✅ ruleset active, `strict=true` qua API 2026-10-05 | `protection-guard` kiểm live; W-04 bổ sung kiểm tham số `strict` và negative test; `scripts/test-workflow-guards.sh` chạy thân step `protection-guard`/`Detect project manifest` với API/manifest giả lập |
 
 ## G. Bản mẫu (13 Markdown + 1 CI) — `docs/framework/templates/`
 

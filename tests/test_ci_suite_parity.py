@@ -53,6 +53,7 @@ class CiSuiteParity(TestCase):
         config = (ROOT / '.claude/project-commands.sh').read_text(encoding='utf-8')
         self.assertIn('for suite in scripts/test-*.sh; do REQUIRE_PWSH=1 bash "$suite" || exit 1; done', config)
         self.assertIn('python3 tests/test_runtime_safety.py', config)
+        self.assertIn('python3 tests/test_git_safety.py', config)
         self.assertIn('python3 tests/test_ci_suite_parity.py', config)
         self.assertIn('python3 tests/test_profile_quality_matrix.py', config)
         self.assertIn('python3 tests/test_lean_adoption.py', config)
