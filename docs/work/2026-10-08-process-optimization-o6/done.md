@@ -4,7 +4,7 @@
 - Yêu cầu / outcome: hạng mục cuối của chu kỳ tối ưu quy trình 2026-10-08 (`docs/reports/2026-10-08-process-optimization.md`
   O-6), mở theo yêu cầu "tiếp các việc khác cho đến khi xong" của chủ repo. Outcome: `copy-framework.sh` và `.ps1` đọc
   cùng một danh sách file; cây đích không đổi.
-- Trạng thái: Đang làm (chờ PR merge).
+- Trạng thái: Done (2026-10-09).
 - Chủ trì / writer: phiên chính (một PR → tự làm, §2).
 - Mức rủi ro / số PR: S refactor không đổi hành vi; một PR.
 - Scope / non-goal: `copy-framework.sh`, `copy-framework.ps1`, `copy-framework.manifest` (mới), `scripts/test-copy-framework.sh`,
@@ -43,5 +43,13 @@
 
 ## Bàn giao / bước tiếp theo
 
-- Sau khi PR merge: đổi hồ sơ này thành `done.md`, cập nhật SHA ở PROGRESS (closeout nhỏ, như #220). Chu kỳ tối ưu quy
-  trình 2026-10-08 đóng hoàn toàn (O-0..O-6).
+- Không còn việc mở của chu kỳ. Hạng mục không làm (P-B11, P-C12) có điều kiện xem lại ghi ở trên và trong report.
+
+## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
+
+- PR #222 MERGED (squash) 2026-10-09T00:15Z → `origin/main` = `23cf656`. CI head 4d368c7: 13 check xanh (gate aggregate,
+  framework-lint Linux + Windows, copy-framework-smoke, docs-consistency, protection-guard, metadata, dependency-review,
+  gitleaks, CodeQL ×3; progress-freshness skipped hợp lệ), không lần đỏ, không review thread.
+- DoD: cây đích Bash/PowerShell giống hệt trước–sau (diff -r sạch, 162 file); `check_manifest` chạy trong CI ở cả hai
+  runner; tài liệu (report, CODEMAP, hồ sơ, PROGRESS) đi cùng PR. Chu kỳ tối ưu quy trình 2026-10-08 đóng hoàn toàn
+  (O-0..O-6: #218, #219, #221, #222; closeout #220 và PR này).

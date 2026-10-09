@@ -56,7 +56,7 @@
 
 ## Bàn giao / bước tiếp theo
 
-- O-6 (P-B10) đi PR kế tiếp, hồ sơ `docs/work/2026-10-08-process-optimization-o6/working.md`.
+- O-6 (P-B10) đi PR kế tiếp, hồ sơ `docs/work/2026-10-08-process-optimization-o6/done.md`.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
