@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-09, radar): tách `scripts/test-dev-task.sh` (430 dòng > 400) thành `test-dev-task.sh` (resolver + strict gate)
+  và `test-dev-task-evidence.sh` (LD-03 evidence, LD-04 review-check) với helper chung `scripts/_dev-task-test-lib.sh`; 119 ca
+  giữ nguyên (66 + 53), CI Linux/Windows gọi cả hai; radar không còn "Việc cần làm".
 - Changed (2026-10-09, vòng hoàn thiện trên dự án đích thật): `/completion` Pha 0→4 chạy trọn trên một dự án Node/vitest đích
   (fixture) bằng agent thật — 4 auditor song song, W-1/W-2 TDD, re-audit Cao/Trung 0 (`docs/reports/2026-10-09-target-completion.md`);
   FEATURE-MAP Luồng chính 5 và FT-01 → ✅ có giới hạn. `pr-policy.yml` đo độ dài ≤ 72 cả tiêu đề COMMIT (squash PR một commit lấy

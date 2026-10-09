@@ -75,6 +75,8 @@ jobs:
       # dự án Node điển hình, 8 stack §0b no-op) — fixture + binary giả, không cần cài stack thật.
       - name: dev-task.sh phân giải đúng lệnh cho 13 stack
         run: bash scripts/test-dev-task.sh
+      - name: dev-task.sh evidence gắn phiên bản (LD-03) + review có căn cứ (LD-04)
+        run: bash scripts/test-dev-task-evidence.sh
 
       # Characterization test khoá HÀNH VI TỪNG NHÁNH của scan_codebase_health + parse_spec_markdown
       # (không chỉ "chạy không crash"): hai hàm này là logic ĐO của khung, refactor sai làm số liệu
@@ -212,6 +214,8 @@ jobs:
 
       - name: Strict gate và fixture Node thực trên Windows
         run: bash scripts/test-dev-task.sh
+      - name: Evidence và review-check trên Windows (jq CRLF, TRAPS mục 26)
+        run: bash scripts/test-dev-task-evidence.sh
 
       # Đây là cổng bắt CRLF: checkout trên Windows với autocrlf mặc định từng đổi
       # `vendor/shellmetrics` sang CRLF → SHA256 lệch → chính cổng CC shell từ chối chạy (TRAPS mục 27).
