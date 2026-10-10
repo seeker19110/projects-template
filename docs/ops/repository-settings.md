@@ -45,6 +45,8 @@ sửa khối này **trong cùng PR**.
 Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release.yml`, `stale-pr-alert.yml`, `maintenance.yml` ở đây — các workflow
 đó không thuộc cổng merge bắt buộc cho mọi PR (scheduled/optional/advisory theo cấu hình từng dự án
 đích); bật required check cho chúng là lựa chọn riêng của mỗi dự án, không phải bất biến của khung.
+`dependabot-auto-merge.yml` cũng **không phải required check**: nó chỉ hẹn auto-merge (squash) cho PR Dependabot
+patch/minor, còn merge vẫn chờ `gate` + `metadata` xanh; cần bật "Allow auto-merge" (bảng Evidence bên dưới).
 
 ```
 ci.yml: checks
@@ -114,4 +116,5 @@ pr-policy.yml: metadata
 | Auto-merge (squash) cho PR | bật | chủ repo | 2026-09-23 | `enable_pr_auto_merge` thành công ở PR #166–#172 | mỗi quý |
 | `allow_auto_merge` (Settings → General → Pull Requests → Allow auto-merge) | bật | chủ repo | 2026-10-10 | job `protection-guard` của `ci-target.yml` bước "Setting repo cần cho PR flow" (`jq -e '.allow_auto_merge == true'`) — đích chạy trên mọi PR; repo khung: `enable_pr_auto_merge` thành công #166–#264 | mỗi quý |
 | `delete_branch_on_merge` (Automatically delete head branches) | bật | chủ repo | 2026-10-10 | cùng bước trên (`jq -e '.delete_branch_on_merge == true'`); repo khung: PF-2 thấy nhánh biến mất sau merge | mỗi quý |
+| Secret `RELEASE_PLEASE_TOKEN` (PAT fine-grained contents + pull-requests write, hoặc token GitHub App) | chưa tạo | chủ repo | — | chưa có: `release.yml` đang rơi về `GITHUB_TOKEN` nên release PR không kích `gate`/`metadata` (TRAPS 5b) | khi tạo secret / khi PAT hết hạn |
 | Secret scanning (gitleaks) + CodeQL + Scorecard | workflow chạy trên PR/push/lịch | khung | 2026-09-23 | check run `gitleaks`, `Analyze (python\|actions)`, `CodeQL` trên PR #170 | khi đổi workflow |
