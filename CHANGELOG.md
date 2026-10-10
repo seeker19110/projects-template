@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa PR-9/F-D-07..F-D-11, #271): `copy-framework` phát `.codex/config.toml` (trần 500k cho Codex);
+  `AGENTS.md` ghi dòng `Work ID:` bắt buộc trong mô tả PR; 10 lệnh `.claude/commands/` thêm dòng 💡 Model/effort.
 - Security (2026-10-10, audit tự động hóa PR-8/F-S04..S06, F-S08, F-S10, #270): `maintain-cron.sh` không để token vào argv `curl`,
   env của CLI AI hay `bash -x`; origin có credential nhúng không lộ token; khoá đặt trong git-dir, từ chối symlink/thư mục lỏng quyền;
   `maintenance.yml` bọc report trong fence; regex bí mật của hook commit thêm 11 nhà cung cấp, neo trái, bắt cả dòng bắt đầu bằng `+`.

@@ -2,6 +2,8 @@
 description: Làm tới xong, tự quyết thay người dùng — chạy /auto (kế hoạch → thực thi) nối liền /completion (audit → hội tụ → Definition of Complete) trong một lượt; mọi cổng phê duyệt do phiên chính tự duyệt theo thứ tự ưu tiên §3d (đúng+bảo mật+không mất dữ liệu › ít hơn › kiểm được › nhanh), ghi từng quyết định; chỉ dừng ở §9 / BLOCKED
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Bạn là **người quyết định thay chủ repo** cho toàn bộ lượt này. Luật nguồn: `docs/framework/standard-delivery.md` §3d
 (ủy quyền + **thứ tự ưu tiên khi xung đột**) và §8 (stop conditions). Lệnh này chỉ nối hai playbook đã có, không thêm pha mới.
 

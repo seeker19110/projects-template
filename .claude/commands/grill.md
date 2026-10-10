@@ -2,6 +2,8 @@
 description: Phỏng vấn dồn dập (grilling) để làm rõ một ý tưởng/kế hoạch/quyết định trước khi code — hỏi theo đợt, mỗi câu kèm đề xuất, dừng khi hết mơ hồ; cập nhật CONTEXT.md/đề xuất ADR khi có thuật ngữ/quyết định chốt
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Chạy một phiên **phỏng vấn dồn dập** để đạt hiểu biết chung với người dùng trước khi hành động — kỹ thuật thực thi cụ thể cho mục 9 ("dừng và hỏi") và mục 2 ("chủ động góp ý") của `CLAUDE.md`.
 
 > Dùng khi: mở đầu `/consult` PHẦN A (làm rõ ý tưởng greenfield); yêu cầu người dùng mơ hồ/nhiều cách hiểu (trigger `CLAUDE.md` §1; chỉ hỏi phần không tự xác minh được — §9, contract §3d); một quyết định thiết kế có nhiều nhánh chưa chốt; hoặc gõ `/grill` trực tiếp.

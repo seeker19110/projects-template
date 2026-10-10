@@ -2,6 +2,8 @@
 description: Review code trước khi mở PR — gọi skill code-review (+ security-review nếu chạm vùng nhạy cảm) đọc logic/thiết kế trên diff, khác /gate (chỉ máy chạy build/lint/test)
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Kích hoạt **rà soát code trước khi mở Pull Request**. Đây là bước đọc-hiểu (logic/thiết kế/tái sử dụng), bổ sung cho `/gate` (chỉ chạy máy build/type/lint/test) — làm **cả hai**, không thay thế nhau.
 
 > **TRIGGER:** người dùng nói đã xong một tính năng/sửa lỗi và sắp mở PR ("xong rồi", "review giúp trước khi PR", "chuẩn bị PR"), hoặc tự thấy diff đủ lớn/đủ rủi ro logic trước khi đề xuất mở PR.

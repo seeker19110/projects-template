@@ -33,7 +33,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ⚠️ chỉ khi phiên chính đóng vai Tầng 2 — subagent Claude Code không có tool `Agent` | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
+| FT-13 | Điều phối Tầng 2 | `coordinator` (Sonnet·low, frontmatter `effort`) | `PLAN.md`, git worktree | ⚠️ chỉ khi phiên chính đóng vai Tầng 2 — subagent Claude Code không có tool `Agent`; danh sách tools trong `.claude/agents/coordinator.md` là nguồn sự thật, harness có thể nạp bản cache | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
 | FT-14 | Worker `route:spec` | `spec-executor` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
 | FT-15 | Worker `route:complex` | `complex-implementer` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
 | FT-16 | Worker `route:standard` | `standard-worker` | theo brief | ✅ | nghiệm thu phiên thật 2026-10-09 (`docs/reports/2026-10-09-agent-acceptance.md`); không có test tự động |
