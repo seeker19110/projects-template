@@ -35,3 +35,8 @@ jobs:
         run: bash scripts/dev-task.sh doctor
       - name: Run reviewed build, typecheck, lint and test commands
         run: bash scripts/dev-task.sh gate
+      # Spec-Anchored (đối chiếu SDD 2026-10-10): spec Approved trong docs/specs/ phải còn trỏ tới file touchpoint và bằng
+      # chứng AC có thật (contract C-1..C-4 do scripts/spec-compiler.sh sinh). Engine đã phát sang đích từ 2026-09-13 nhưng
+      # không job nào gọi → chết im lặng (TRAPS mục 11/25). Chưa có spec: compile in thông báo, không có test → bỏ qua.
+      - name: Spec contracts (docs/specs Approved → C-1..C-4)
+        run: bash scripts/spec-compiler.sh --compile-all && { ! ls tests/contracts/test_contract_*.py >/dev/null 2>&1 || python3 -m unittest discover -s tests/contracts; }
