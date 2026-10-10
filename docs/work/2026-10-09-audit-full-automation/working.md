@@ -57,3 +57,10 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   (suite báo "FAIL — 2 ca hỏng" khi chưa có mục 14) → thêm mục 14 `check-docs-consistency.sh` (hai chiều settings ↔ bảng Hook)
   → mục 14 xanh, bảng Hook 9/9, shellcheck + CC xanh. Phát sinh: thư mục rác tên là output `git status` xuất hiện trong
   worktree khi máy quá tải (EAGAIN, 1229 tiến trình) — đã xoá; chưa rõ suite nào tạo, ghi T12 rà `mkdir -p "$(…)"`.
+- 2026-10-10 (đợt 1, PR-2 = T2 tích hợp): worker trả xong trong worktree `agent-af90…` (branch `fix/copy-framework-idempotent`, staged,
+  im lặng ~3 giờ); phiên chính xuất patch staged → worktree riêng `fix/copy-framework-idempotent-pr` từ `main` @ c7ca562 (sau #260),
+  không đụng cây worker (TRAPS 63). Cổng: shellcheck/CC/docs/test-hooks-gate OK; `test-copy-framework.sh` (pwsh) **lộ lỗi của PR-4**:
+  mục 19 so `settings.json` với `settings-shared-default.json` nhưng đích chỉ nhận `settings.json` → smoke đích đỏ. Sửa trong PR-2
+  (bỏ qua phép so khi không có bản shared-default; đỏ-trước = chính smoke) → smoke đích xanh. Ghi T12: mọi ca test-hooks-gate mới
+  phải tự hỏi "ở đích file này có không?".
+
