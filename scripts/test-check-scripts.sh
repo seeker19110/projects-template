@@ -206,6 +206,16 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================
+# Mục 14 (audit 2026-10-09, T5): hook nối trong settings phải có trong bảng Hook của models-and-automation.md và ngược lại.
+d="$(setup_repo)" || exit 1
+sed -i '/^| `block-dangerous-git.sh` | PreToolUse(Bash) |/d' "$d/docs/framework/models-and-automation.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && ok "negative: hook có trong settings nhưng mất khỏi bảng Hook → đỏ" || bad "negative: xoá dòng bảng Hook mà vẫn xanh (mục 14 chưa bắt)"
+d="$(setup_repo)" || exit 1
+sed -i '/^| `precompact-checkpoint.sh` | PreCompact |/a | `ma-hook.sh` | Stop | dòng mồ côi trong bảng |' "$d/docs/framework/models-and-automation.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && ok "negative: bảng Hook có hook không nối trong settings → đỏ" || bad "negative: hook mồ côi trong bảng mà vẫn xanh"
+
 echo "== 2. check-ci-policy.sh =="
 
 d="$(setup_repo)" || exit 1

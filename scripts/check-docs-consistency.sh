@@ -413,6 +413,31 @@ for dir in docs/work/*/; do
   check_work_record "$dir" || fail=1
 done
 
+echo "== 14. Hook nối trong .claude/settings.json ↔ bảng Hook của models-and-automation.md =="
+# VÌ SAO (audit 2026-10-09, F-D-01..03): bảng Hook từng kê 4/9 hook — tài liệu phát sang đích mô tả một bộ hàng rào
+# nhỏ hơn bộ thật. Hai chiều: hook nối trong settings phải có hàng trong bảng; hàng trong bảng phải là hook có nối.
+hooks_in_settings() {   # tên file hook (basename) nối trong settings.json, mỗi dòng một tên
+  grep -oE '\$\{CLAUDE_PROJECT_DIR\}/\.claude/hooks/[A-Za-z0-9_.-]+\.sh' .claude/settings.json 2>/dev/null | sed 's|.*/||' | sort -u
+}
+hooks_in_table() {      # tên hook trong bảng "**Hook — `.claude/hooks/`**" của models-and-automation.md
+  awk '/^\*\*Hook — `\.claude\/hooks\/`\*\*/{f=1; next} f && /^\*\*/{exit} f' docs/framework/models-and-automation.md     | grep -oE '^\| `[A-Za-z0-9_.-]+\.sh`' | tr -d '|` ' | sort -u
+}
+check_hook_table() {    # in lỗi, trả 1 khi lệch
+  local rc=0 h
+  for h in $(comm -23 <(hooks_in_settings) <(hooks_in_table)); do
+    echo "::error file=docs/framework/models-and-automation.md::Hook '$h' nối trong .claude/settings.json nhưng KHÔNG có hàng trong bảng Hook §6 — thêm hàng (sự kiện + làm gì)."
+    rc=1
+  done
+  for h in $(comm -13 <(hooks_in_settings) <(hooks_in_table)); do
+    echo "::error file=docs/framework/models-and-automation.md::Bảng Hook §6 kê '$h' nhưng .claude/settings.json KHÔNG nối hook đó — xoá hàng hoặc nối hook."
+    rc=1
+  done
+  return "$rc"
+}
+if [ -f .claude/settings.json ] && [ -f docs/framework/models-and-automation.md ]; then
+  check_hook_table || fail=1
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi
