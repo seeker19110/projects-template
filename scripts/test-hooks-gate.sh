@@ -344,6 +344,42 @@ done
 g5="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$g5/conf.txt"; git -C "$g5" add conf.txt
 rc="$( cd "$g5" && bash "$GH" >/dev/null 2>&1; echo $? )"
 [ "$rc" = "1" ] && ok "githooks: chặn bí mật staged (exit 1)" || bad "githooks: LỌT bí mật staged (exit $rc, kỳ vọng 1)"
+# Tiền tố nhà cung cấp mở rộng (F-S06): mỗi tiền tố một ca staged diff phải bị chặn. Mẫu DỰNG LÚC CHẠY bằng
+# ghép mảnh + lặp ký tự — file test không chứa khoá giả nguyên khối (chính guard/gitleaks sẽ chặn file này).
+rpt() { printf "%${2}s" "" | tr ' ' "$1"; }   # $1 ký tự, $2 số lần
+guard_case() {   # $1 nhãn, $2 nội dung, $3 exit kỳ vọng (1 = chặn, 0 = cho qua)
+  local p rc; p="$(setup_project 0)"; printf 'v=%s\n' "$2" > "$p/conf.txt"; git -C "$p" add conf.txt
+  rc="$( cd "$p" && bash "$GH" >/dev/null 2>"$p/err.txt"; echo $? )"
+  if [ "$3" = 1 ]; then
+    [ "$rc" = 1 ] && grep -q 'khoá/token' "$p/err.txt" && ok "githooks: chặn $1 staged" || bad "githooks: LỌT $1 staged (exit $rc, kỳ vọng 1)"
+  else
+    [ "$rc" = 0 ] && ok "githooks: KHÔNG chặn oan $1 (exit 0)" || bad "githooks: chặn OAN $1 (exit $rc, kỳ vọng 0)"
+  fi
+}
+guard_case "Anthropic sk-ant-"      "sk-""ant-api03-$(rpt a 24)" 1
+for gp in o u s r; do guard_case "GitHub gh${gp}_" "gh${gp}""_$(rpt B 36)" 1; done
+guard_case "Stripe sk_live_"        "sk""_live_$(rpt c 24)" 1
+guard_case "Stripe rk_live_"        "rk""_live_$(rpt c 24)" 1
+guard_case "JWT eyJ….eyJ…"          "ey""J$(rpt d 12).ey""J$(rpt e 12)" 1
+guard_case "npm npm_"               "np""m_$(rpt F 36)" 1
+guard_case "Slack webhook"          "https://hooks.sl""ack.com/services/T$(rpt G 8)/B$(rpt H 8)/$(rpt x 24)" 1
+guard_case "SendGrid SG."           "S""G.$(rpt i 22).$(rpt j 43)" 1
+guard_case "Hugging Face hf_"       "h""f_$(rpt K 34)" 1
+guard_case "DigitalOcean dop_v1_"   "dop""_v1_$(rpt f 64)" 1
+guard_case "Azure AccountKey="      "Account""Key=$(rpt L 44)" 1
+guard_case "chuỗi sk-ant- ngắn (đối chứng)" "sk-""ant-short" 0
+# Vòng 2 (rà bảo mật): tiền tố ngắn neo trái — từ thường chứa tiền tố ở giữa không bị chặn oan.
+guard_case "từ thường task-ant-… (đối chứng neo trái)" "tas""k-ant-colony-optimization-scheduler" 0
+guard_case "từ thường task_live_… (đối chứng neo trái)" "tas""k_live_$(rpt m 20)" 0
+guard_case "OpenAI sk-proj-"         "sk-""proj-$(rpt n 24)" 1
+# Dòng NỘI DUNG bắt đầu bằng '+' thành '++…' trong diff — bộ lọc cũ '^\+[^+]' bỏ sót.
+pp="$(setup_project 0)"; printf '++%s\n' "$fakekey" > "$pp/plus.txt"; git -C "$pp" add plus.txt
+rc="$( cd "$pp" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: chặn bí mật trên dòng bắt đầu bằng '+'" || bad "githooks: LỌT bí mật trên dòng bắt đầu bằng '+' (exit $rc, kỳ vọng 1)"
+if [ "$HAS_JQ" = "0" ]; then skip "mục 17 — pre-commit-gate dòng bắt đầu bằng '+'"; else
+rc="$(run_hook "$pp" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "pre-commit-gate: chặn bí mật trên dòng bắt đầu bằng '+'" || bad "pre-commit-gate: LỌT bí mật trên dòng bắt đầu bằng '+' (exit $rc, kỳ vọng 2)"
+fi
 g6="$(setup_project 0)"; head -c 1100000 /dev/zero > "$g6/blob.bin"; git -C "$g6" add blob.bin
 rc="$( cd "$g6" && bash "$GH" >/dev/null 2>&1; echo $? )"
 [ "$rc" = "1" ] && ok "githooks: chặn file staged > 1 MB (exit 1)" || bad "githooks: LỌT file lớn staged (exit $rc, kỳ vọng 1)"
