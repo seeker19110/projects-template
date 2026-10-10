@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-10-doi-chieu-sdd-ba-vai
 - Yêu cầu / outcome: người dùng gửi ảnh reel "Spec-Driven Development — 3 roles of specification in SDLC" và hỏi "dự án đã áp dụng chưa? tích hợp sâu vào dự án khung và dự án đích" → TRIGGER `docs/framework/adopt-from-outside.md` (đọc trước khi chép một dòng): bản đối chiếu ba cột `docs/reports/2026-10-10-doi-chieu-sdd-ba-vai.md`; chỉ lấy hạng mục qua cổng §2 (sự cố thật) và không mâu thuẫn luật (§4).
-- Trạng thái: Active
+- Trạng thái: Active (PR #261 mở 2026-10-10, auto-merge sau khi CI xanh)
 - Chủ trì / writer: phiên chính (Fable 5.1), tự làm (một PR, mức S theo §3c: `fix`/`ci`/`docs`, không đổi schema/API/auth).
 - Mức rủi ro / số PR: S; 1 PR. Lý do một PR: cổng CI đích + test + sửa engine + báo cáo mô tả cùng một thay đổi (CLAUDE.md §8 bước 0: tài liệu đi cùng PR).
 - Scope / non-goal: Scope = đo 12 hạng mục của sơ đồ với cổng đang chạy; lấy đúng điểm nông (CI đích không chạy contract spec); sửa lỗi lộ ra (pyc cũ). Non-goal = không thêm cổng "mọi PR phải nêu spec cũ" (chưa có sự cố, mâu thuẫn luật spec-theo-thời-điểm → câu hỏi cho chủ repo); không sinh PLAN từ AC; không sửa `dev-task.sh` (399 dòng, sát trần).
@@ -28,7 +28,7 @@ Một outcome / một PR, phiên chính tự làm: (1) đọc `adopt-from-outsid
 
 ## Bàn giao / bước tiếp theo
 
-- Chạy cổng tay (shellcheck, docs-consistency, ci-policy, progress-freshness, complexity, suite liên quan); commit; push; mở PR ghi `Work ID: 2026-10-10-doi-chieu-sdd-ba-vai`; commit 2 ghi số PR vào CHANGELOG/TRAPS 64; bật auto-merge; sau merge đổi file này thành `done.md` kèm SHA.
+- Đã làm: cổng tay xanh; commit `c4d623c`; PR #261 (`subscribe_pr_activity` bật); commit 2 ghi số PR vào CHANGELOG/TRAPS 64. Còn: bật auto-merge; sau merge đổi file này thành `done.md` kèm SHA, cập nhật PROGRESS.
 - Chờ chủ repo trả lời câu hỏi cuối báo cáo (cổng hẹp "PR sửa file bằng chứng phải nêu spec": mở ngay / giữ chưa cần).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)

@@ -11,7 +11,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
-- Fixed (2026-10-10, đối chiếu SDD ba vai — PR #TBD): CI drop-in cho dự án đích (`ci-target.yml`) thêm bước "Spec contracts": spec
+- Fixed (2026-10-10, đối chiếu SDD ba vai — PR #261): CI drop-in cho dự án đích (`ci-target.yml`) thêm bước "Spec contracts": spec
   Approved trỏ touchpoint/bằng chứng không còn tồn tại → đỏ (engine `spec-compiler` phát sang đích từ 2026-09-13 nhưng không job nào
   gọi — TRAPS 11/25); `spec-compiler.py` xoá `__pycache__` trước khi sinh (pyc cũ cùng giây/cùng cỡ làm test chạy bản trước — TRAPS 64,
   tái hiện trong `test-adoption-smoke.sh`); `docs/specs/README.md` bản đồ Spec-First/Anchored/as-Source → cổng đang chạy. Bản đối
