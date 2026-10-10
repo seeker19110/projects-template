@@ -33,8 +33,12 @@ rule/check hoặc giá trị `strict` khai trong file → lỗi (bảo vệ yế
 trong file → cảnh báo (không yếu đi, nhưng import lại sẽ xoá mất). Lý do cần vế hai: sửa ruleset qua
 UI có thể làm rơi một rule mà không báo gì — CI vẫn xanh nếu không có đối chiếu này.
 
-Khối dưới đây là **required checks chung cho mọi dự án dùng khung**: `ci.yml: gate` và
-`pr-policy.yml: metadata`. Đây là thứ vitest drop-in `scripts/ci-workflow-policy.test.ts` đối chiếu hai chiều
+Khối dưới đây là **bản kê job của hai workflow phát cho mọi dự án dùng khung** (`ci-target.yml` → `ci.yml`,
+`pr-policy.yml`). Required check trên ruleset `.github/rulesets/main.json` vẫn chỉ là **`gate` + `metadata`**: `gate` ở đích là
+job tổng hợp `if: always()` + `needs: [checks, protection-guard]` (cùng khuôn ADR-0003), nên đỏ của `checks` hay
+`protection-guard` đều chặn merge mà không phải sửa ruleset. Đích nhận `protection-guard` từ `ci-target.yml`: ngoài đối chiếu
+ruleset như repo khung, job này còn kiểm `allow_auto_merge` + `delete_branch_on_merge` qua API (đọc không được bằng `GITHUB_TOKEN`
+→ cảnh báo, không đỏ oan). Đây là thứ vitest drop-in `scripts/ci-workflow-policy.test.ts` đối chiếu hai chiều
 với job thật trong `.github/workflows/{ci,pr-policy}.yml` ở **DỰ ÁN ĐÍCH**. Dự án đích thêm/đổi/xoá job thì
 sửa khối này **trong cùng PR**.
 
@@ -43,6 +47,8 @@ Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release
 đích); bật required check cho chúng là lựa chọn riêng của mỗi dự án, không phải bất biến của khung.
 
 ```
+ci.yml: checks
+ci.yml: protection-guard
 ci.yml: gate
 pr-policy.yml: metadata
 ```
@@ -106,4 +112,6 @@ pr-policy.yml: metadata
 | Ruleset `main` import từ `.github/rulesets/main.json` | active, bypass_actors rỗng | chủ repo | 2026-09-13 | job `protection-guard` xanh trên mọi PR (đối chiếu live rules ↔ file) | mỗi quý / khi đổi file ruleset (đổi gần nhất 2026-09-23: `strict_required_status_checks_policy: true` — **cần import lại**) |
 | Auto-delete branch sau merge | bật | chủ repo | 2026-09-23 | nhánh `claude/eager-darwin-k1f1y6` biến mất ngay sau PR #166 merge (PF-2 báo) | mỗi quý |
 | Auto-merge (squash) cho PR | bật | chủ repo | 2026-09-23 | `enable_pr_auto_merge` thành công ở PR #166–#172 | mỗi quý |
+| `allow_auto_merge` (Settings → General → Pull Requests → Allow auto-merge) | bật | chủ repo | 2026-10-10 | job `protection-guard` của `ci-target.yml` bước "Setting repo cần cho PR flow" (`jq -e '.allow_auto_merge == true'`) — đích chạy trên mọi PR; repo khung: `enable_pr_auto_merge` thành công #166–#264 | mỗi quý |
+| `delete_branch_on_merge` (Automatically delete head branches) | bật | chủ repo | 2026-10-10 | cùng bước trên (`jq -e '.delete_branch_on_merge == true'`); repo khung: PF-2 thấy nhánh biến mất sau merge | mỗi quý |
 | Secret scanning (gitleaks) + CodeQL + Scorecard | workflow chạy trên PR/push/lịch | khung | 2026-09-23 | check run `gitleaks`, `Analyze (python\|actions)`, `CodeQL` trên PR #170 | khi đổi workflow |
