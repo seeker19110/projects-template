@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-10, audit tự động hóa PR-3/F-Q6, F-Q9, F-Q10, #272): cổng tổng `dev-task.sh gate` chạy xanh trên Windows lần đầu —
+  `test-hooks-session.sh` (đường dẫn MSYS, PATH tối giản), `test-py-coverage-exit.sh` (launcher `python3` chạy shebang của đối số,
+  cp1252), `test-workflow-guards.sh` (jq CRLF); `auto-format.sh` không nuốt lỗi; `usage-estimate.sh` dò `python`; TRAPS 65, 66.
 - Changed (2026-10-10, audit tự động hóa PR-9/F-D-07..F-D-11, #271): `copy-framework` phát `.codex/config.toml` (trần 500k cho Codex);
   `AGENTS.md` ghi dòng `Work ID:` bắt buộc trong mô tả PR; 10 lệnh `.claude/commands/` thêm dòng 💡 Model/effort.
 - Security (2026-10-10, audit tự động hóa PR-8/F-S04..S06, F-S08, F-S10, #270): `maintain-cron.sh` không để token vào argv `curl`,
