@@ -119,6 +119,23 @@ check_structure() {     # check_structure <mô tả> <target>
   [ "$ok" -eq 1 ] && echo "  ok [$label]: cấu trúc copy đúng kỳ vọng" || fail=1
 }
 
+check_ci_target_stacks() {  # check_ci_target_stacks <mô tả> <target> — ci.yml phát sang đích cài dependency đủ 17 stack + guard setting + gate tổng hợp (T6, TRAPS 57)
+  local label="$1" target="$2" ok=1 lock wf
+  wf="$target/_framework-dropins/.github/workflows/ci.yml"
+  # Một chuỗi hashFiles(...) cho mỗi stack: thiếu một = stack đó đỏ trên runner sạch dù code đích không lỗi (S-05).
+  for lock in "'package-lock.json'" "'pnpm-lock.yaml'" "'yarn.lock'" "'bun.lock', 'bun.lockb'" "'requirements.txt'" "'uv.lock'" \
+      "'poetry.lock'" "'go.mod'" "'Cargo.toml'" "'pom.xml', 'build.gradle', 'build.gradle.kts'" \
+      "'**/*.csproj', '**/*.sln', 'global.json'" "'Gemfile.lock'" "'composer.lock'" "'pubspec.lock'" "'mix.lock'" \
+      "'deno.json', 'deno.jsonc'" "'Package.swift'"; do
+    grep -qF "hashFiles($lock)" "$wf" 2>/dev/null || { echo "  FAIL [$label]: ci.yml phát kèm thiếu bước cài dependency có điều kiện hashFiles($lock)"; ok=0; }
+  done
+  grep -q '^  protection-guard:' "$wf" 2>/dev/null || { echo "  FAIL [$label]: ci.yml phát kèm thiếu job protection-guard (ruleset + allow_auto_merge/delete_branch_on_merge phải có hiệu lực thật)"; ok=0; }
+  # Job tổng hợp `gate` phải `if: always()` — thiếu thì gate bị SKIP khi job cha đỏ và GitHub coi required check skipped là ĐẠT.
+  tr -d '\r' < "$wf" 2>/dev/null | awk '/^  gate:$/ { g=1; next } g && /^  [A-Za-z]/ { g=0 } g && /^    if: always\(\)$/ { found=1 } END { exit !found }' \
+    || { echo "  FAIL [$label]: ci.yml phát kèm thiếu job tổng hợp gate với 'if: always()'"; ok=0; }
+  [ "$ok" -eq 1 ] && echo "  ok [$label]: ci.yml phát kèm cài dependency theo 17 stack, có protection-guard + gate if: always()" || fail=1
+}
+
 check_no_overwrite() {  # check_no_overwrite <mô tả> <target>
   local label="$1" target="$2"
   if grep -q "SENTINEL-KHONG-DUOC-DE" "$target/CLAUDE.md" 2>/dev/null; then
@@ -194,6 +211,7 @@ targetA="$(new_target)"
 run_logged "bash / đích trống" bash "$REPO_ROOT/copy-framework.sh" "$targetA"
 check_structure "bash / đích trống" "$targetA"
 check_manifest "bash / đích trống" "$targetA"
+check_ci_target_stacks "bash / đích trống" "$targetA"
 
 echo "== .gitignore drop-in: chặn biến thể môi trường, giữ tệp mẫu =="
 env_target="$(new_target)"
@@ -295,6 +313,7 @@ if command -v pwsh >/dev/null 2>&1; then
   run_logged "pwsh / đích trống" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
   check_structure "pwsh / đích trống" "$targetD"
   check_manifest "pwsh / đích trống" "$targetD"
+  check_ci_target_stacks "pwsh / đích trống" "$targetD"
   check_git_exec_bit "pwsh / đích trống" "$targetD"
 
   echo ""
