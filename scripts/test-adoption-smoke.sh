@@ -72,6 +72,26 @@ install_and_check_ci() { # $1: target
   if [ "$?" -eq 0 ] && grep -Fq 'READY:' "$WORK/doctor.log"; then ok "$(basename "$dir"): lệnh doctor của CI trả READY";
   else bad "$(basename "$dir"): lệnh doctor của CI không READY"; cat "$WORK/doctor.log" >&2; fi
   gate_expect "$dir" 0 'PASS: 3 kiểm tra đã chạy thành công'
+  spec_contract_expect "$dir"
+}
+
+spec_contract_expect() { # CI drop-in phải CHẠY contract C-1..C-4 của spec Approved: engine phát sang đích từ 2026-09-13
+  # nhưng không job nào gọi → chết im lặng (TRAPS mục 11/25; đối chiếu SDD 2026-10-10). Chạy đúng dòng `run:` của drop-in.
+  local dir="$1" name cmd spec missing="scripts/khong-co.sh"  # biến: docs-consistency không soi đường dẫn giả trong backtick
+  name="$(basename "$dir")"; spec="$dir/docs/specs/2099-01-01-ca-am.md"
+  cmd="$(grep -E '^[[:space:]]+run: .*spec-compiler\.sh --compile-all' "$dir/.github/workflows/ci.yml" | sed -E 's/^[[:space:]]+run: //')"
+  if [ -z "$cmd" ]; then bad "$name: CI drop-in không chạy spec-compiler → spec Approved không cổng nào kiểm"; return; fi
+  if (cd "$dir" && bash -ec "$cmd") >"$WORK/spec.log" 2>&1; then ok "$name: chưa có spec → bước contract xanh";
+  else bad "$name: chưa có spec nhưng bước contract đỏ"; cat "$WORK/spec.log" >&2; fi
+  printf '%s\n' '# Feature spec: ca âm' '' '| Thuộc tính | Giá trị |' '| --- | --- |' '| State | Approved for implementation |' '' \
+    '## 9. Acceptance criteria' '' '- AC-1 Có file thật.' '' '| AC | Bằng chứng |' '| --- | --- |' '| AC-1 | `'"$missing"'` |' '' \
+    '## 11. Architecture và code touchpoints' '' '- `'"$missing"'`' > "$spec"
+  if (cd "$dir" && bash -ec "$cmd") >"$WORK/spec.log" 2>&1; then bad "$name: spec Approved trỏ file không có mà bước contract vẫn xanh"; cat "$WORK/spec.log" >&2;
+  else ok "$name: spec Approved trỏ file không có → bước contract đỏ"; fi
+  sed -i "s|$missing|scripts/dev-task.sh|g" "$spec"
+  if (cd "$dir" && bash -ec "$cmd") >"$WORK/spec.log" 2>&1; then ok "$name: sửa về file có thật → bước contract xanh";
+  else bad "$name: file có thật nhưng bước contract đỏ"; cat "$WORK/spec.log" >&2; fi
+  rm -f "$spec"; rm -rf "$dir/tests/contracts"
 }
 
 clone_ci_expect() { # CI chỉ thấy file đã commit, không thấy config bị ignore ở máy dev.
@@ -165,4 +185,4 @@ else
   echo '  ℹ️  không có pwsh; chưa đối chiếu bản PowerShell trên máy này'
 fi
 
-finish "Node/Python copy + gate thật xanh sau ca đỏ; CI drop-in chỉ kiểm cấu trúc offline."
+finish "Node/Python copy + gate thật xanh sau ca đỏ; CI drop-in kiểm cấu trúc offline + bước spec contract chạy thật."

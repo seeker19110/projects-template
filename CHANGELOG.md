@@ -16,6 +16,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   `gh api/repo/secret/release`); deny mở rộng (xoá/publish/push ép nhánh chính/đọc bí mật); `dontAsk` chỉ opt-in ở `settings.local.json.example`.
   `test-hooks-gate.sh` mục 19 (cmp hai bản); `check-docs-consistency.sh` mục 14 (settings ↔ bảng Hook `models-and-automation.md`, 9/9 hook) (#260).
 
+- Fixed (2026-10-10, đối chiếu SDD ba vai — PR #261): CI drop-in cho dự án đích (`ci-target.yml`) thêm bước "Spec contracts": spec
+  Approved trỏ touchpoint/bằng chứng không còn tồn tại → đỏ (engine `spec-compiler` phát sang đích từ 2026-09-13 nhưng không job nào
+  gọi — TRAPS 11/25); `spec-compiler.py` xoá `__pycache__` trước khi sinh (pyc cũ cùng giây/cùng cỡ làm test chạy bản trước — TRAPS 64,
+  tái hiện trong `test-adoption-smoke.sh`); `docs/specs/README.md` bản đồ Spec-First/Anchored/as-Source → cổng đang chạy. Bản đối
+  chiếu ba cột `docs/reports/2026-10-10-doi-chieu-sdd-ba-vai.md` (12 hạng mục → lấy 2; cổng "mọi PR phải nêu spec cũ" chưa cần, câu hỏi
+  chờ chủ repo).
 - Added (2026-10-10, TRAPS 63 — #259): hai phiên AI chung một checkout → `git switch` của phiên này mang staged change của phiên
   kia, commit rơi vào nhánh lạ (sự cố thật #257/#258); cách rà qua `reflog`, cách cứu, quy ước mỗi phiên một worktree.
 - Fixed (2026-10-09, đối chiếu `EveryInc/compound-engineering-plugin` — #255): `precompact-checkpoint.sh` chụp cây ĐANG làm việc
