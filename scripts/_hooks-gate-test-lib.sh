@@ -41,10 +41,22 @@ EOF
   printf '%s\n' "$dir"
 }
 
+# Chuỗi → JSON string. python3 trên Windows là bí danh WindowsApps, có lúc trả "Permission denied" (TRAPS mục 66): payload
+# rỗng làm hook không đọc được lệnh và exit 0 → ca "phải chặn" đỏ chập chờn. Thử python3 rồi python; cả hai hỏng → báo to.
+hook_json_str() {
+  local py out
+  for py in python3 python; do
+    out="$(printf '%s' "$1" | "$py" -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null)" || continue
+    [ -n "$out" ] && { printf '%s' "$out"; return 0; }
+  done
+  echo "hook_json_str: python3/python đều không mã hoá được JSON — payload hỏng, kết quả ca này vô nghĩa" >&2
+  return 1
+}
+
 # Gọi hook với payload JSON như Claude Code gửi thật (PreToolUse, tool_input.command).
 run_hook() {        # $1 = project dir, $2 = lệnh bash, [$3 = "no-jq"], [$4 = hook path]
   local dir="$1" cmd="$2" mode="${3:-}" hook="${4:-$HOOK}" path_override=""
-  local payload; payload="$(printf '{"tool_input":{"command":%s}}' "$(printf '%s' "$cmd" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")"
+  local payload; payload="$(printf '{"tool_input":{"command":%s}}' "$(hook_json_str "$cmd")")"
   if [ "$mode" = "no-jq" ]; then
     # PATH tối giản KHÔNG có jq (giữ coreutils/bash/git để hook chạy được).
     mkdir -p "$WORK/nojq-bin"

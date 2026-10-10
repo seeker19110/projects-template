@@ -173,11 +173,20 @@ if command -v jq >/dev/null 2>&1; then
   else
     bad "deny thiếu Bash(git push -f*) (F-S07)"
   fi
+  # Rà lại audit 2026-10-10: githook là hàng rào cho harness ngoài Claude Code → sửa phải hỏi (F-S02); deny publish/chạy mã
+  # từ xa bắt cả dạng có tham số đứng trước (`mvn clean deploy`, `./gradlew clean publish`, `deno run --allow-all https://…`) (F-S07).
+  rules=('ask|Edit(scripts/githooks/**)' 'deny|Bash(mvn * deploy*)' 'deny|Bash(./gradlew * publish*)'
+         'deny|Bash(deno run *https://*)' 'deny|Bash(deno run *http://*)')
+  for rule in "${rules[@]}"; do
+    if jq -e --arg k "${rule%%|*}" --arg r "${rule#*|}" '.permissions[$k] | index($r)' "$ROOT/.claude/settings.json" >/dev/null 2>&1; then
+      ok "${rule%%|*} có ${rule#*|}"
+    else
+      bad "${rule%%|*} thiếu ${rule#*|} (rà lại audit F-S02/F-S07)"
+    fi
+  done
   # NEGATIVE: hai file lệch tạm trong repo giả → phép cmp phải đỏ (không thì cổng xanh giả)
   neg="$WORK/settings-neg"; mkdir -p "$neg/.claude"
-  printf '{"a":1}
-' > "$neg/.claude/settings.json"; printf '{"a":2}
-' > "$neg/.claude/settings-shared-default.json"
+  printf '{"a":1}\n' > "$neg/.claude/settings.json"; printf '{"a":2}\n' > "$neg/.claude/settings-shared-default.json"
   if cmp -s "$neg/.claude/settings.json" "$neg/.claude/settings-shared-default.json"; then
     bad "negative: hai file lệch mà cmp vẫn xanh"
   else

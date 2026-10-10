@@ -232,6 +232,13 @@ rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được action chưa ghim full SHA (CP-2)" || bad "KHÔNG bắt được action chưa ghim SHA (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mẫu CI phát cho đích (ci-target.yml) cũng phải ghim SHA: bản trước chỉ quét .github/workflows/ → mẫu có thể trôi về
+# tag di động mà không cổng nào bắt (rà lại audit 2026-10-10, F-A3).
+sed -i -E '0,/uses: [^@]+@[0-9a-f]{40}/s//uses: actions\/checkout@v4/' "$d/docs/framework/templates/ci-target.yml"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được action chưa ghim SHA trong mẫu ci-target.yml (CP-2)" || bad "KHÔNG bắt được action chưa ghim trong mẫu ci-target.yml (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
 # ci.yml hiện không còn bước Node nào (ADR-0004 gỡ scaffold) — CP-3 vô hại nếu không có dòng
 # node-version: nào để so; thêm 1 dòng giả vào job có thật để thực sự bài test được nhánh này.
 printf '\n      - run: echo test\n        with:\n          node-version: "99.99.99"\n' >> "$d/.github/workflows/ci.yml"

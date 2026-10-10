@@ -137,6 +137,10 @@
       "Bash(flutter pub publish*)",
       "Bash(./gradlew publish*)",
       "Bash(deno run -A https://*)",
+      "Bash(mvn * deploy*)",
+      "Bash(./gradlew * publish*)",
+      "Bash(deno run *https://*)",
+      "Bash(deno run *http://*)",
       "Read(**/.env.*)",
       "Read(**/secrets/**)",
       "Read(**/*.pem)",
@@ -162,7 +166,9 @@
       "Edit(scripts/_commit-guard.sh)",
       "Edit(scripts/dev-task.sh)",
       "Edit(scripts/_dev-task-verify.sh)",
-      "Edit(scripts/_stack-detect.sh)"
+      "Edit(scripts/_stack-detect.sh)",
+      "Edit(scripts/githooks/**)",
+      "Write(scripts/githooks/**)"
     ]
   },
   "hooks": {

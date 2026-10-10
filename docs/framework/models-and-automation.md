@@ -296,8 +296,9 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 > luật thật (`AGENTS.md`) chỉ cấm force-push **vào `main`/`master`**. Chia ba lớp:
 >
 > 1. `permissions.deny` — các cách viết nhắm thẳng `main`/`master` (`... main`, `...:main`, `-f`,
->    `--force`, `--force-with-lease`): **chặn cứng, không hỏi**. Lớp này không phụ thuộc `jq`.
-> 2. `permissions.ask` — mọi force-push còn lại: **hỏi người dùng từng lần**, không im lặng cho qua.
+>    `--force`, `--force-with-lease`): **chặn cứng, không hỏi**; riêng dạng ngắn `-f` bị chặn cứng với **mọi** nhánh
+>    (deny `git push -f*` — muốn ghi đè nhánh riêng thì dùng `--force-with-lease`). Lớp này không phụ thuộc `jq`.
+> 2. `permissions.ask` — `--force`/`--force-with-lease` sang nhánh riêng: **hỏi người dùng từng lần**, không im lặng cho qua.
 > 3. `.claude/hooks/block-dangerous-git.sh` — lớp hiểu NGỮ CẢNH: chặn khi có `main`/`master`,
 >    chỉ **cảnh báo** với nhánh riêng, và đã loại trừ dữ liệu trong nháy/heredoc để không chặn oan.
 >

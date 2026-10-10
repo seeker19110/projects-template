@@ -1355,6 +1355,11 @@ gỡ một suite đỏ ở đầu chuỗi fail-fast, chạy lại TOÀN BỘ chu
 `framework-lint-windows` chạy `test-hooks-session.sh` (PR-3). Chưa có cổng máy cấm `python3 - <file có shebang>` (`DEBT: chỉ rà bằng
 grep | trần: quy ước | xem lại khi: khuôn này tái phát ở suite khác`).
 
+*Tái phát (2026-10-10, cùng hồ sơ):* `_hooks-gate-test-lib.sh` `run_hook` mã hoá payload bằng `python3`; bí danh WindowsApps
+một lần trả "Permission denied" → payload `{"command":}` hỏng → hook không đọc được lệnh, exit 0 → ca "phải chặn" đỏ chập chờn
+(chạy lại 3 lần xanh). Tái hiện chắc chắn bằng shim `python3` exit 126 trong PATH. Sửa: `hook_json_str` thử `python3` rồi `python`,
+cả hai hỏng thì báo to thay vì gửi payload hỏng.
+
 ## 67. Repo git lồng chưa theo dõi hiện thành mục THƯ MỤC trong danh sách file → cổng BLOCKED, vòng đo cỡ file lỗi so số
 
 *Ngày:* 2026-10-09 gặp, 2026-10-10 sửa (hồ sơ `docs/work/2026-10-09-audit-full-automation/`). Worker subagent tạo
