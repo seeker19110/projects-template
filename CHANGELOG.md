@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Added (2026-10-10, audit tự động hóa PR-7/F-A1, F-A2, F-A6, #269): drop-in `dependabot-auto-merge.yml` (patch/minor tự hẹn
+  auto-merge, major chờ duyệt); `release.yml` dùng secret `RELEASE_PLEASE_TOKEN` và dò `release-type` theo manifest (không manifest,
+  không `version.txt` → bỏ qua); `codeql.yml` dò ngôn ngữ repo qua API thay matrix cố định.
 - Fixed (2026-10-10, audit tự động hóa PR-6/F-A7, F-A5, #266): `copy-framework.sh`/`.ps1` đặt `core.hooksPath=scripts/githooks` ở đích
   có `.git` (cờ `--no-hooks`/`-NoHooks`; không ghi đè giá trị đã có), dropin CODEOWNERS mang `@OWNER-CHANGE-ME` thay vì owner của
   khung; `dev-task.sh doctor` cảnh báo hooksPath chưa trỏ; `maintenance-sweep.sh` 🟡 hooksPath + CODEOWNERS placeholder.
