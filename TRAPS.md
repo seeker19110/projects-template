@@ -1183,7 +1183,12 @@ pre-commit) → hỏi "công cụ đích sẽ làm gì với file này KHI NÓ C
 không chỉ sau khi đã merge drop-in bằng tay. Mọi workflow mẫu → đọc từng bước và hỏi "runner sạch có cái gì để chạy bước này?".
 
 *Cổng chốt chặn:* drop-in tự `describe.skipIf(STAGED)` khi đường dẫn còn chứa `_framework-dropins`; `scripts/test-copy-framework.sh`
-grep hàng rào đó trong bản phát; `ci-target.yml` có bước `npm ci`/`pip install` có điều kiện theo lockfile/requirements.
+grep hàng rào đó trong bản phát; `ci-target.yml` có bước cài dependency có điều kiện theo lockfile/manifest cho 17 stack; `scripts/test-copy-framework.sh`
+`check_ci_target_stacks` grep đủ 17 chuỗi `hashFiles(...)` + job `protection-guard` + `gate` có `if: always()` trong bản phát.
+
+*Tái phát:* 2026-10-10 (audit F-A3, PR-5 của `docs/work/2026-10-09-audit-full-automation/`): cổng chốt lần đầu chỉ cài npm/pip —
+15 stack khác (pnpm/yarn/bun/uv/poetry/Go/Rust/Java/.NET/Ruby/PHP/Dart/Elixir/Deno/Swift) vẫn đỏ trên runner sạch đúng khuôn S-05.
+Bài học: "có bước cài dependency" chưa phải cổng — cổng phải liệt kê ĐỦ tập stack mà `_stack-detect.sh` nhận ra.
 
 ## 58. Cổng đo độ dài chỉ soi TIÊU ĐỀ PR — PR một commit được squash bằng tiêu đề COMMIT, lọt 90 ký tự lên `main`
 

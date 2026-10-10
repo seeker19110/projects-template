@@ -64,3 +64,11 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   (bỏ qua phép so khi không có bản shared-default; đỏ-trước = chính smoke) → smoke đích xanh. Ghi T12: mọi ca test-hooks-gate mới
   phải tự hỏi "ở đích file này có không?".
 
+- 2026-10-10 (đợt 2, PR-5 = T6): #264 merge xong mới làm (phụ thuộc T2, cùng sửa `test-copy-framework.sh`). Đỏ-trước:
+  `check_ci_target_stacks` chạy trên template cũ → 17 FAIL × 2 ca (bash/pwsh: thiếu 15 `hashFiles`, thiếu `protection-guard`,
+  thiếu `gate` `if: always()`); thay `ci-target.yml` (3 job `checks`/`protection-guard`/`gate`, 18 `uses:` ghim SHA) → smoke
+  REQUIRE_PWSH=1 rc=0, adoption-smoke OK, check-ci-policy CP-1..6 OK, pyyaml parse OK. **Lệch spec có chủ đích:** (1) khối
+  fenced đầu của `repository-settings.md` phải liệt kê cả `checks` + `protection-guard` — CP-1 (vitest drop-in + `check_structure`)
+  so HAI CHIỀU tập job thật ↔ khối, không phải "required checks"; ruleset vẫn chỉ khoá `gate`+`metadata`, đã ghi rõ ở đoạn dẫn.
+  (2) `allow_auto_merge`/`delete_branch_on_merge` trả `null` với `GITHUB_TOKEN` thiếu quyền → `::warning` + exit 0, không đỏ oan.
+  (3) Đếm lại: 17 stack (npm + pip + 15 khác), spec viết "15" là số stack *khác* — TRAPS 57 ghi đúng 15 khác.

@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa PR-5/F-A3, F-A4, F-A9, #265): `ci-target.yml` phát cho đích gồm 3 job — `checks` cài
+  dependency có điều kiện `hashFiles` cho 17 stack, `protection-guard` (ruleset + `allow_auto_merge`/`delete_branch_on_merge`),
+  `gate` tổng hợp `if: always()`; smoke `check_ci_target_stacks` chốt chặn; TRAPS 57 tái phát; Evidence ở `repository-settings.md`.
 - Fixed (2026-10-10, audit tự động hóa PR-2/F-Q7, F-Q8, F-D-04/05): `copy-framework.sh`/`.ps1` idempotent — đích giống hệt nguồn thì
   in `= REL`, không rải `.framework-new` khi chạy lại; `.ps1` ghi exec-bit vào index git của đích và stamp `FRAMEWORK-VERSION` đủ
   version/manifest như `.sh`; smoke `test-copy-framework.sh` copy hai lần + chạy 7 self-test ở đích; `test-hooks-gate.sh` mục 19 bỏ qua
