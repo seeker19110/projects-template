@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-10-traps-shared-checkout
 - Yêu cầu / outcome: người dùng: "ghi mục TRAPS mới" cho sự cố hai phiên chung checkout (#257/#258) → TRAPS 63 + CHANGELOG + PROGRESS, một PR docs-only (#259), ngoại lệ 3.
-- Trạng thái: Active (chờ PR #259 merge rồi đổi done ở checkpoint kế)
+- Trạng thái: Done (nghiệm thu 2026-10-10, PR #259 MERGED)
 - Chủ trì / writer: phiên chính (Fable 5.1), worktree riêng `scratchpad/wt-traps`.
 - Mức rủi ro / số PR: S; 1 PR (chỉ tài liệu).
 - Scope / non-goal: Scope = TRAPS 63 + nhật ký. Non-goal = không thêm hook phát hiện (ghi DEBT kèm điều kiện xem lại).
@@ -31,6 +31,6 @@ Không ghi test xanh từ lời khai hoặc dùng kết quả trước thay đ�
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- PR #259 MERGED (squash) → `main` @ `2ac2a37`; CI xanh (auto-merge chỉ merge khi required checks xanh).
+- DoD: TRAPS 63 đủ triệu chứng / cách rà / cách cứu / cổng (DEBT có `xem lại khi:`); CHANGELOG #259; PROGRESS.
+- Giới hạn: cổng máy cho khuôn này chưa có (DEBT ở mục 63). Nghiệm thu: phiên chính theo §3d, 2026-10-10.
