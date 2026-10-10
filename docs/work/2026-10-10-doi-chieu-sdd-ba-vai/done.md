@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-10-doi-chieu-sdd-ba-vai
 - Yêu cầu / outcome: người dùng gửi ảnh reel "Spec-Driven Development — 3 roles of specification in SDLC" và hỏi "dự án đã áp dụng chưa? tích hợp sâu vào dự án khung và dự án đích" → TRIGGER `docs/framework/adopt-from-outside.md` (đọc trước khi chép một dòng): bản đối chiếu ba cột `docs/reports/2026-10-10-doi-chieu-sdd-ba-vai.md`; chỉ lấy hạng mục qua cổng §2 (sự cố thật) và không mâu thuẫn luật (§4).
-- Trạng thái: Active (PR #261 mở 2026-10-10, auto-merge sau khi CI xanh)
+- Trạng thái: Done (PR #261 MERGED)
 - Chủ trì / writer: phiên chính (Fable 5.1), tự làm (một PR, mức S theo §3c: `fix`/`ci`/`docs`, không đổi schema/API/auth).
 - Mức rủi ro / số PR: S; 1 PR. Lý do một PR: cổng CI đích + test + sửa engine + báo cáo mô tả cùng một thay đổi (CLAUDE.md §8 bước 0: tài liệu đi cùng PR).
 - Scope / non-goal: Scope = đo 12 hạng mục của sơ đồ với cổng đang chạy; lấy đúng điểm nông (CI đích không chạy contract spec); sửa lỗi lộ ra (pyc cũ). Non-goal = không thêm cổng "mọi PR phải nêu spec cũ" (chưa có sự cố, mâu thuẫn luật spec-theo-thời-điểm → câu hỏi cho chủ repo); không sinh PLAN từ AC; không sửa `dev-task.sh` (399 dòng, sát trần).
@@ -33,4 +33,11 @@ Một outcome / một PR, phiên chính tự làm: (1) đọc `adopt-from-outsid
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-- (chưa)
+- PR #261 MERGED (squash) → `main` @ `cb73c1f`; 12/12 check xanh trên head `4b359de` (framework-lint Linux+Windows, docs-consistency,
+  copy-framework-smoke, progress-freshness, protection-guard, metadata, CodeQL ×3, gitleaks, dependency-review). Check `gate` đỏ ở
+  commit đầu `c4d623c` là do concurrency huỷ job khi push commit 2 (aggregate đếm cancelled là thất bại), không phải lỗi mã.
+- Local: 20/20 suite shell, 6/6 test Python, shellcheck/docs-consistency/ci-policy/progress-freshness/CC xanh; hook pre-commit bỏ qua
+  có chủ đích (thiếu `pwsh`), CI là cổng thật.
+- DoD: bản đối chiếu ba cột đủ + đính chính (A)(B)(C) + điều kiện xem lại; lấy 2 + TRAPS 64; test đỏ-trước có output. Giới hạn: câu hỏi
+  cổng hẹp "PR sửa file bằng chứng phải nêu spec" còn mở, chờ chủ repo (đề xuất giữ "chưa cần"). Nghiệm thu: phiên chính theo ủy quyền
+  §3d, 2026-10-10.
