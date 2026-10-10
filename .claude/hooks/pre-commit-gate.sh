@@ -64,8 +64,9 @@ fi
 # Lấy theo vị trí HOOK (không theo $CAY/$ROOT): hook và lib đi cùng một lần copy khung. Thiếu lib (đích copy hook
 # trước khi có file này) → CHẶN kèm lời nhắc: buông kiểm bí mật âm thầm không đảo ngược được, commit bị chặn thì có.
 # shellcheck source=scripts/_commit-guard.sh
-if ! source "$(dirname "$0")/../../scripts/_commit-guard.sh" 2>/dev/null || [ -z "${COMMIT_GUARD_SECRET_RE:-}" ]; then
-  echo "🚫 [pre-commit-gate] thiếu scripts/_commit-guard.sh (mẫu bí mật dùng chung) → không kiểm được bí mật/file lớn. Copy file đó từ khung (copy-framework.sh), hoặc bỏ qua có chủ đích bằng --no-verify." >&2
+if ! source "$(dirname "$0")/../../scripts/_commit-guard.sh" 2>/dev/null || [ -z "${COMMIT_GUARD_SECRET_RE:-}" ] \
+   || ! declare -F commit_guard_added_lines >/dev/null; then   # lib cũ thiếu hàm lọc → fail-closed, không lọt âm thầm
+  echo "🚫 [pre-commit-gate] thiếu hoặc cũ scripts/_commit-guard.sh (mẫu bí mật + bộ lọc dùng chung) → không kiểm được bí mật/file lớn. Copy file đó từ khung (copy-framework.sh), hoặc bỏ qua có chủ đích bằng --no-verify." >&2
   exit 2
 fi
 
@@ -87,14 +88,14 @@ diff_text() {   # luôn return 0: pipefail sẽ biến trạng thái 1 của `[ 
   [ "$self_stage" = 1 ] && git -C "$CAY" diff -U0 -- 2>/dev/null
   return 0
 }
-if diff_text | grep -E '^\+[^+]' | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then secret_hit=1; fi
+if diff_text | commit_guard_added_lines | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then secret_hit=1; fi
 if [ "$secret_hit" = 0 ] && [ "$add_untracked" = 1 ]; then
   while IFS= read -r -d '' f; do
     grep -IEq "$COMMIT_GUARD_SECRET_RE" "$CAY/$f" 2>/dev/null && { secret_hit=1; break; }
   done < <(git -C "$CAY" ls-files -o --exclude-standard -z -- 2>/dev/null)
 fi
 if [ "$secret_hit" = 1 ]; then
-  echo "🚫 Diff (staged hoặc sắp được stage) chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Slack). Gỡ khỏi diff, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
+  echo "🚫 Diff (staged hoặc sắp được stage) chứa chuỗi giống khoá/token thật (AWS/PEM/GitHub/GitLab/Google/OpenAI/Anthropic/Slack/Stripe/JWT/npm/SendGrid/Hugging Face/DigitalOcean/Azure). Gỡ khỏi diff, đưa vào biến môi trường (CLAUDE.md §3.5), xoay vòng khoá nếu đã lộ." >&2
   exit 2
 fi
 big=""

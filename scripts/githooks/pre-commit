@@ -21,12 +21,12 @@ for guard in "$(dirname "$0")/../_commit-guard.sh" "$ROOT/scripts/_commit-guard.
   # shellcheck source=scripts/_commit-guard.sh
   [ -f "$guard" ] && . "$guard" && break
 done
-if [ -z "${COMMIT_GUARD_SECRET_RE:-}" ]; then
-  echo "pre-commit: thiếu scripts/_commit-guard.sh (mẫu bí mật dùng chung) — copy từ khung (copy-framework.sh), hoặc git commit --no-verify có chủ đích." >&2
+if [ -z "${COMMIT_GUARD_SECRET_RE:-}" ] || ! declare -F commit_guard_added_lines >/dev/null; then   # lib cũ thiếu hàm lọc → fail-closed
+  echo "pre-commit: thiếu hoặc cũ scripts/_commit-guard.sh (mẫu bí mật + bộ lọc dùng chung) — copy từ khung (copy-framework.sh), hoặc git commit --no-verify có chủ đích." >&2
   exit 1
 fi
-if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | grep -E '^\+[^+]' | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then
-  echo "pre-commit: diff staged chứa chuỗi giống khoá/token — gỡ khỏi staged, dùng biến môi trường, xoay khoá nếu đã lộ." >&2
+if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | commit_guard_added_lines | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then
+  echo "pre-commit: diff staged chứa chuỗi giống khoá/token (AWS/PEM/GitHub/GitLab/Google/OpenAI/Anthropic/Slack/Stripe/JWT/npm/SendGrid/Hugging Face/DigitalOcean/Azure) — gỡ khỏi staged, dùng biến môi trường, xoay khoá nếu đã lộ." >&2
   exit 1
 fi
 big=""
