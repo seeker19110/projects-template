@@ -120,6 +120,15 @@ got="$(CLAUDE_PROJECT_DIR="$WORK/node1" bash "$tmpdt" --print typecheck 2>/dev/n
 
 
 # Contract tests share the real dispatcher (helpers in _dev-task-test-lib.sh); fixture commands are stubs.
+hooks_warning_tests() {   # doctor nhắc bật core.hooksPath (harness ngoài Claude Code không có cổng commit); không đổi exit code
+  local d
+  d="$(gate_fixture gate-hooks-unset)"; mkdir -p "$d/scripts/githooks"; : > "$d/scripts/githooks/pre-commit"; git init -q "$d"
+  gate_case "$d" 0 'core.hooksPath chưa trỏ scripts/githooks' doctor
+  d="$(gate_fixture gate-hooks-set)"; mkdir -p "$d/scripts/githooks"; : > "$d/scripts/githooks/pre-commit"; git init -q "$d"
+  git -C "$d" config core.hooksPath scripts/githooks
+  gate_case "$d" 0 READY doctor
+  if grep -q 'core.hooksPath chưa trỏ' "$WORK/gate-output"; then bad "hooksPath đã đặt mà doctor vẫn cảnh báo"; else ok "hooksPath đã đặt → không cảnh báo"; fi
+}
 contract_tests() {
   local d
   d="$(fx gate-empty)"; gate_case "$d" 2 BLOCKED
@@ -133,6 +142,7 @@ contract_tests() {
   d="$(gate_fixture gate-missing-module)"; printf "gate_python_modules='framework_fixture_module_does_not_exist'\n" >> "$d/.claude/project-commands.sh"; gate_case "$d" 2 BLOCKED doctor
   d="$(gate_fixture gate-doctor)"; printf "build='touch ran-check'\n" >> "$d/.claude/project-commands.sh"
   gate_case "$d" 0 READY doctor; assert_no_marker "$d"
+  hooks_warning_tests
   gate_case "$d" 0 PASS
   [ -f "$d/ran-check" ] && ok "gate actually executed the check" || bad "gate reported PASS without running the check"
 }

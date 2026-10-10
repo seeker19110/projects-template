@@ -169,6 +169,27 @@ printf '%s' "$dout" | grep -qE "Dấu nợ .$MARK. trong mã: 2" && ok "đếm �
 # Repo sạch ở mục 4 không có dấu nào → không được báo oan
 printf '%s' "$gout" | grep -q "không có dấu $MARK" && ok "repo không có dấu nào: ℹ️, không 🟡" || bad "repo không có dấu mà vẫn báo gì đó lạ"
 
+echo "== 5b. NEGATIVE: CODEOWNERS còn placeholder + core.hooksPath chưa đặt phải 🟡 =="
+own_repo="$TMP/own"; mkdir -p "$own_repo/.github" "$own_repo/scripts/githooks"
+(
+  cd "$own_repo" && "${GIT[@]}" init -q -b main
+  printf '# PROGRESS
+- Ngày cập nhật: %s
+' "$(date +%Y-%m-%d)" > PROGRESS.md
+  printf '*  @OWNER-CHANGE-ME
+' > .github/CODEOWNERS
+  : > scripts/githooks/pre-commit
+  "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
+)
+oout="$(CLAUDE_PROJECT_DIR="$own_repo" bash "$SWEEP" --no-deps 2>&1)"
+printf '%s' "$oout" | grep -q "🟡 | Cổng | .github/CODEOWNERS còn @OWNER-CHANGE-ME" && ok "🟡 CODEOWNERS còn placeholder" || bad "không bắt CODEOWNERS còn @OWNER-CHANGE-ME"
+printf '%s' "$oout" | grep -q "🟡 | Cổng | core.hooksPath chưa trỏ scripts/githooks" && ok "🟡 hooksPath chưa đặt" || bad "không bắt core.hooksPath chưa đặt"
+git -C "$own_repo" config core.hooksPath scripts/githooks
+printf '*  @someone
+' > "$own_repo/.github/CODEOWNERS"
+oout="$(CLAUDE_PROJECT_DIR="$own_repo" bash "$SWEEP" --no-deps 2>&1)"
+printf '%s' "$oout" | grep -q "OWNER-CHANGE-ME\|core.hooksPath chưa" && bad "đã sửa cả hai mà vẫn 🟡" || ok "đã sửa → không 🟡 oan"
+
 echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
 

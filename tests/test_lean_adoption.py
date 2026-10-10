@@ -30,7 +30,7 @@ class LeanAdoption(TestCase):
                 target = Path(scratch) / stack
                 target.mkdir()
                 run('git', 'init', '-q', cwd=target)
-                run('bash', str(ROOT / 'copy-framework.sh'), str(target), cwd=ROOT)
+                run('bash', str(ROOT / 'copy-framework.sh'), str(target), '--no-hooks', cwd=ROOT)  # fixture commit thẳng trên master; hook của khung sẽ chặn (T7)
                 (target / '.gitignore').write_text('out/\n__pycache__/\n', encoding='utf-8')
                 (target / 'out').mkdir()
                 if stack == 'node':
@@ -55,7 +55,7 @@ class LeanAdoption(TestCase):
                 self.assertEqual((data['status'], data['test_cases']), ('PASS', 1))
                 self.assertIn('VERIFIED:', run('bash', 'scripts/dev-task.sh', 'evidence-check', str(evidence), cwd=target))
                 # Upgrade must retain project-specific commands and documentation.
-                run('bash', str(ROOT / 'copy-framework.sh'), str(target), '--upgrade', cwd=ROOT)
+                run('bash', str(ROOT / 'copy-framework.sh'), str(target), '--upgrade', '--no-hooks', cwd=ROOT)
                 self.assertEqual(commands.read_text(encoding='utf-8'), config)
                 self.assertIn('LOCAL-ADOPTION-NOTE', quickstart.read_text(encoding='utf-8'))
                 run('bash', 'scripts/dev-task.sh', 'gate', '--evidence', str(evidence), cwd=target)

@@ -17,7 +17,7 @@ new_target() { # $1: tên fixture
   local dir="$WORK/$1"
   mkdir -p "$dir"
   git -C "$dir" init -q || return 1
-  if ! bash "$ROOT/copy-framework.sh" "$dir" >"$WORK/copy-$1.log" 2>&1; then
+  if ! bash "$ROOT/copy-framework.sh" "$dir" --no-hooks >"$WORK/copy-$1.log" 2>&1; then
     cat "$WORK/copy-$1.log" >&2
     return 1
   fi
