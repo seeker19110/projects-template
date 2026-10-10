@@ -50,4 +50,10 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   và bắt probe tạm `zz-probe-shcc-*.sh` của suite đang chạy ở worktree khác (CC 47 > 45). Sửa trong PR-1: loại
   `./.claude/worktrees/*` khỏi phép đo + ca 4b `test-check-shell-complexity.sh` (đỏ trước: rc=1). Ghi T12: `arch-health-radar.py`
   `EXCLUDE_DIRS` chưa loại `.claude/worktrees` (chỉ lệch số đếm báo cáo, không chặn) → thêm kèm ca test khi làm T12.
-
+- 2026-10-10 (đợt 2, PR-4 = T4→T5, phiên chính tự làm trong worktree `chore/settings-automation` từ `main` @ abc3058; PR-2/PR-3
+  vẫn staged trong worktree worker của phiên khác — không đụng). T4: mục 19 `test-hooks-gate.sh` viết trước, chạy ĐỎ 2 ca
+  (thiếu `enabledMcpjsonServers`, thiếu deny `git push -f*`) → sửa settings (allow 77 · ask 17 · deny 50, hai file giống hệt,
+  mục ask `git push -f *` xoá vì deny `-f*` thắng) → xanh. T5: hai negative test ở `test-check-scripts.sh` chạy ĐỎ trước
+  (suite báo "FAIL — 2 ca hỏng" khi chưa có mục 14) → thêm mục 14 `check-docs-consistency.sh` (hai chiều settings ↔ bảng Hook)
+  → mục 14 xanh, bảng Hook 9/9, shellcheck + CC xanh. Phát sinh: thư mục rác tên là output `git status` xuất hiện trong
+  worktree khi máy quá tải (EAGAIN, 1229 tiến trình) — đã xoá; chưa rõ suite nào tạo, ghi T12 rà `mkdir -p "$(…)"`.

@@ -1,11 +1,10 @@
 {
   "_readme": "Mẫu permission/setting CÁ NHÂN — copy thành .claude/settings.local.json (đã .gitignore, không commit). Dùng để mở thêm quyền riêng cho máy/agent của bạn mà KHÔNG đổi settings.json dùng chung của cả nhóm. settings.local.json đè lên settings.json theo đúng cơ chế Claude Code.",
-
   "permissions": {
     "allow": [
       "Bash(scripts/dev-task.sh *)"
     ]
   },
-
-  "_vi_du_them_quyen_theo_stack": "Nếu dev-task.sh chưa dò được lệnh của stack bạn dùng (vd Java/Gradle, .NET, Ruby), thêm dòng allow riêng ở đây thay vì sửa settings.json chung — vd \"Bash(./gradlew *)\", \"Bash(dotnet *)\", \"Bash(bundle exec rspec*)\"."
+  "_vi_du_them_quyen_theo_stack": "Nếu dev-task.sh chưa dò được lệnh của stack bạn dùng (vd Java/Gradle, .NET, Ruby), thêm dòng allow riêng ở đây thay vì sửa settings.json chung — vd \"Bash(./gradlew *)\", \"Bash(dotnet *)\", \"Bash(bundle exec rspec*)\".",
+  "_vi_du_chay_khong_giam_sat": "Phiên KHÔNG GIÁM SÁT (cron/CI/agent chạy một mình): thêm \"permissions\": {\"defaultMode\": \"dontAsk\"} VÀO FILE NÀY (cục bộ, opt-in) — mọi lệnh ngoài allow bị TỪ CHỐI thay vì hỏi. KHÔNG bake vào settings.json dùng chung: phiên tương tác sẽ bị từ chối mọi thứ ngoài allow. Lưu ý: rule `ask` thắng `allow` khi cùng khớp (vd `gh pr merge --auto` vẫn hỏi nếu bạn thêm `Bash(gh pr merge *)` vào ask — settings chung chỉ ask `--admin`/`--delete-branch`); rule `Read(...)` deny KHÔNG áp cho Grep/Glob — bí mật thật phải nằm ngoài repo (CLAUDE.md §3.5)."
 }
