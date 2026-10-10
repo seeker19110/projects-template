@@ -183,7 +183,7 @@ function Get-ManifestLines {    # "manifest: HASH FILE" cho từng file Lớp 1 
   for ($i = 0; $i -lt $files.Count; $i++) { "manifest: $($script:GitOut[$i].Trim()) $($files[$i])" }
 }
 
-function Set-ExecBit {          # Windows không có chmod: ghi mode 100755 vào index git của đích (F-Q8)
+function Set-ExecBit {          # Windows không có chmod: ghi mode 100755 vào index git của đích (F-D-05)
   if (-not (Test-Path -LiteralPath (Join-Path $Target '.git'))) {
     Write-Host "  ! exec-bit chưa đặt: đích không có .git — sau git init chạy  git update-index --add --chmod=+x <script .sh>"
     return

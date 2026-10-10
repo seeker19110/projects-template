@@ -121,6 +121,8 @@ done
 # VÌ SAO (audit 2026-09-12, F-003): `actions/cache@v4` là action DUY NHẤT còn dùng tag di động
 # giữa 13 action — lệch quy ước, và tag di động nghĩa là mã chạy trong CI có thể đổi dưới chân ta
 # mà không có PR nào. Trước kiểm này không gì bắt được chuyện đó; dependabot chỉ nâng cái đã ghim.
+# Quét cả mẫu CI phát cho đích (docs/framework/templates/*.yml — rà lại audit 2026-10-10, F-A3): Dependabot không nâng
+# chúng, nên ghim lệch/tag di động ở đó chỉ cổng này bắt.
 echo "== Action chưa ghim full commit SHA =="
 while IFS= read -r line; do
   line="${line%$'\r'}"
@@ -132,7 +134,7 @@ while IFS= read -r line; do
     echo "::error file=$file,line=$lineno::Action '$ref' chưa ghim full commit SHA — vi phạm docs/ops/supply-chain.md. Sửa: uses: <action>@<sha40> # <tag>"
     fail=1
   fi
-done < <(grep -rn "uses:" .github/workflows/*.yml | grep -v "#.*uses:")
+done < <(grep -rn "uses:" .github/workflows/*.yml docs/framework/templates/*.yml 2>/dev/null | grep -v "#.*uses:")
 
 # --- 5. `node-version:` trong workflow phải khớp .nvmrc (ADR-0002). ---
 # VÌ SAO (audit 2026-09-12, F-011): phiên bản Node bị hardcode ở 5 chỗ trong workflow + .nvmrc;

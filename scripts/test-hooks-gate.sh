@@ -230,7 +230,7 @@ git -C "$wt_main" add -A; git -C "$wt_main" -c user.email=t@t -c user.name=t com
 git -C "$wt_main" branch -M main
 git -C "$wt_main" worktree add -q "$WORK/wt-tree" -b feat/wt 2>/dev/null
 run_wt() {   # $1 = cwd của lệnh commit (worktree), $2 = lệnh; CLAUDE_PROJECT_DIR luôn là checkout chính
-  local payload; payload="$(printf '{"tool_input":{"command":%s}}' "$(printf '%s' "$2" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")"
+  local payload; payload="$(printf '{"tool_input":{"command":%s}}' "$(hook_json_str "$2")")"
   ( cd "$1" && printf '%s' "$payload" | CLAUDE_PROJECT_DIR="$wt_main" bash "$HOOK" 2>"$WORK/stderr.txt"; echo $? )
 }
 echo "ok" > "$WORK/wt-tree/a.txt"; git -C "$WORK/wt-tree" add a.txt

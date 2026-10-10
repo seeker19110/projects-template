@@ -81,7 +81,7 @@ else
   bad "UE-5: transcript non-ASCII + locale không UTF-8 làm hỏng ước tính (rc=$rc): $(echo "$out" | tail -n 3 | tr '\n' ' ')"
 fi
 
-# UE-6/UE-7 (F-Q6 audit 2026-10-09): máy chỉ có `python` (Windows/một số distro) thì bản cũ dò riêng `python3`
+# UE-6/UE-7 (F-Q9 audit 2026-10-09): máy chỉ có `python` (Windows/một số distro) thì bản cũ dò riêng `python3`
 # → OVERALL=NA im lặng, usage-guard tắt cảnh báo quota mà không ai biết. PATH tối giản bằng wrapper (script có
 # shebang tới bash thật, exec interpreter THẬT theo sys.executable) — không copy/symlink binary (hỏng trên Git Bash).
 BASH_ABS="$(command -v bash)"

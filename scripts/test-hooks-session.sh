@@ -209,7 +209,7 @@ echo "== 10. Thiếu jq/python hoặc engine lỗi → thoát 0 nhưng PHẢI c�
 # telemetry-log.sh lỗi → người dùng mất gợi ý/cảnh báo quota/số đo mà không ai biết. Khuôn chung các hook khác:
 # fail-open nhưng NÓI RA (`[tên-hook] không có jq → … bỏ qua.`).
 # PATH tối giản bằng WRAPPER (script có shebang tới bash thật, `exec` binary thật theo đường dẫn tuyệt đối) thay vì
-# copy/symlink binary (F-Q9): trên Git Bash, bash.exe copy ra thư mục tạm thiếu DLL MSYS (`error while loading
+# copy/symlink binary (F-Q6): trên Git Bash, bash.exe copy ra thư mục tạm thiếu DLL MSYS (`error while loading
 # shared libraries`) và `ln -s` bị `Permission denied`. Không dùng wrapper `exit 127` che jq/python: `command -v`
 # vẫn thấy wrapper nên hook tưởng CÓ công cụ — muốn mô phỏng THIẾU thì lệnh đó phải vắng hẳn khỏi PATH.
 BASH_ABS="$(command -v bash)"
