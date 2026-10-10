@@ -16,7 +16,7 @@
 
 ## 2. Giải xung đột merge/rebase
 
-đọc commit/PR/issue gốc của **cả hai phía** để hiểu đúng ý định trước khi chọn hunk — không chọn theo cảm tính hay "bên nào dài hơn". Giữ ý định của cả hai khi có thể; khi không tương thích, chọn bên khớp mục tiêu của merge và ghi 1 dòng đánh đổi vào commit message. Không tự bịa hành vi mới. Merge commit cũng phải theo Conventional Commits — dùng `git merge -m "chore(merge): đồng bộ main (…)"` (`TRAPS.md` mục 48). Xong mỗi hunk, chạy lại cổng (`/gate`) trước khi hoàn tất — **không bao giờ** `--abort` để né việc giải xung đột.
+đọc commit/PR/issue gốc của **cả hai phía** để hiểu đúng ý định trước khi chọn hunk — không chọn theo cảm tính hay "bên nào dài hơn". Giữ ý định của cả hai khi có thể; khi không tương thích, chọn bên khớp mục tiêu của merge và ghi 1 dòng đánh đổi vào commit message. Không tự bịa hành vi mới. Merge commit cũng phải theo Conventional Commits — dùng `git merge -m "chore(merge): đồng bộ main (…)"` (`TRAPS.md` mục 48). Không dùng `gh pr update-branch` hay nút "Update branch" của GitHub: commit merge phía server có tiêu đề không conventional, `metadata` đỏ (`TRAPS.md` mục 48, tái phát #263). Xong mỗi hunk, chạy lại cổng (`/gate`) trước khi hoàn tất — **không bao giờ** `--abort` để né việc giải xung đột.
 
 ## 3. Cổng máy liên quan
 
