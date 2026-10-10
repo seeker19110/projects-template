@@ -17,7 +17,12 @@ set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lư�
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 TRANSCRIPT="${1:-}"
 [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ] || { echo "THRESHOLD=70"; echo "OVERALL=NA"; exit 0; }
-command -v python3 >/dev/null 2>&1 || { echo "THRESHOLD=70"; echo "OVERALL=NA"; exit 0; }
+# Dò python3 rồi python — cùng khuôn .claude/hooks/telemetry-record.sh; thiếu cả hai thì tự tắt nhưng NÓI RA.
+PYTHON_CMD=""
+if command -v python3 >/dev/null 2>&1; then PYTHON_CMD=python3
+elif command -v python >/dev/null 2>&1; then PYTHON_CMD=python
+else echo "[usage-estimate] không có python → bỏ qua ước tính" >&2; echo "THRESHOLD=70"; echo "OVERALL=NA"; exit 0
+fi
 
 BUDGET_FILE="$ROOT/.claude/usage-budget.sh"
 CACHE_READ_WEIGHT=0.1
@@ -29,7 +34,7 @@ export CACHE_READ_WEIGHT WINDDOWN_THRESHOLD BUDGET_OPUS BUDGET_SONNET BUDGET_HAI
 
 # PYTHONIOENCODING: console Windows mặc định cp1252 → in tiếng Việt sẽ UnicodeEncodeError
 # (TRAPS.md bẫy 24 — khối reconfigure trong file .py không áp cho heredoc inline này).
-PYTHONIOENCODING=utf-8 python3 - "$TRANSCRIPT" <<'PY'
+PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$TRANSCRIPT" <<'PY'
 import json, sys, os
 from datetime import datetime, timezone, timedelta
 path = sys.argv[1]
