@@ -80,3 +80,7 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   commit trên `master` bị chính `pre-commit` của khung chặn) → fixture copy với `--no-hooks` (đúng mục đích của cờ). Quyết định cục
   bộ của worker giữ: đích không `.git` → in hướng dẫn, không lỗi; hooksPath đã đặt giá trị khác → giữ + cảnh báo. PROGRESS checkpoint
   sau #264/#265 gộp vào PR này (§3e). Để lại T12: ca test cho `--no-hooks` và "hooksPath đã đặt giá trị khác".
+- 2026-10-10 checkpoint: PR-6 #266 merged (CI lần 1 đỏ `framework-lint` LD-08 — `tests/test_lean_adoption.py` cũng commit fixture trên
+  `master` → thêm `--no-hooks`, cùng khuôn adoption-smoke; bài học T12: "chạy tay các cổng" phải = đủ danh sách step của job
+  `framework-lint`, không chỉ các suite chạm file đã sửa). Đợt 2 xong (PR-4 #260, PR-2 #264, PR-5 #265, PR-6 #266). Tiếp theo: PR-3
+  (T3, F-Q6, patch còn staged ở worktree worker `.claude/worktrees/agent-a29edc37a061c15be`) rồi đợt 3 (PR-7 T8→T9, PR-8 T10→T11).
