@@ -16,6 +16,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   `gh api/repo/secret/release`); deny mở rộng (xoá/publish/push ép nhánh chính/đọc bí mật); `dontAsk` chỉ opt-in ở `settings.local.json.example`.
   `test-hooks-gate.sh` mục 19 (cmp hai bản); `check-docs-consistency.sh` mục 14 (settings ↔ bảng Hook `models-and-automation.md`, 9/9 hook) (#260).
 
+- Added (2026-10-10, TRAPS 63 — #259): hai phiên AI chung một checkout → `git switch` của phiên này mang staged change của phiên
+  kia, commit rơi vào nhánh lạ (sự cố thật #257/#258); cách rà qua `reflog`, cách cứu, quy ước mỗi phiên một worktree.
 - Fixed (2026-10-09, đối chiếu `EveryInc/compound-engineering-plugin` — #255): `precompact-checkpoint.sh` chụp cây ĐANG làm việc
   (`git rev-parse --show-toplevel`), không phải checkout chính khi phiên chạy trong worktree — TRAPS 45 tái phát, đo thật, test
   `test-hooks-session.sh` mục 8b đỏ-trước; `reviewer.md` + `/review` đối chiếu diff với `TRAPS.md` trước PR (5 mục TRAPS đã "Tái phát").
