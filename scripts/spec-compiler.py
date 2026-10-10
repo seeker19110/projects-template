@@ -9,6 +9,7 @@ import os
 import argparse
 import json
 import re
+import shutil
 
 # Console Windows mặc định dùng cp1252 → in tiếng Việt/emoji ra stdout sẽ chết với
 # UnicodeEncodeError. Ép UTF-8 để engine chạy được trên mọi nền (xem TRAPS.md).
@@ -338,6 +339,9 @@ def main():
 
     compiled_results = []
     os.makedirs(os.path.join(ROOT_DIR, args.out_dir), exist_ok=True)
+    # Python dùng lại .pyc khi file nguồn có CÙNG mtime (giây) và CÙNG kích thước: sửa spec rồi biên dịch lại
+    # trong cùng giây với đường dẫn dài bằng nhau → unittest chạy test CŨ, kết quả sai chiều (TRAPS mục 64).
+    shutil.rmtree(os.path.join(ROOT_DIR, args.out_dir, "__pycache__"), ignore_errors=True)
 
     for spec_path in target_specs:
         parsed = parse_spec_markdown(spec_path)

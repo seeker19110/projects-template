@@ -1277,3 +1277,20 @@ Cứu: `git branch -f <nhánh mình> <sha>` rồi push thường (fast-forward),
 chính chỉ để đứng ở `main`; `coordinator.md` 2a/2b đã bắt worker làm vậy, phiên chính cũng phải thế khi có phiên khác đang chạy.
 Cổng máy: chưa có (`DEBT: hook SessionStart/PreToolUse chưa cảnh báo khi checkout có staged change mà nhánh vừa đổi | trần: chỉ
 quy ước | xem lại khi: khuôn này tái phát lần 2`).
+
+## 64. Biên dịch lại test sinh máy trong cùng giây, cùng kích thước → Python chạy `.pyc` CŨ, kết quả sai chiều
+
+*Ngày:* 2026-10-10 (PR #TBD, đối chiếu SDD ba vai). Viết test cho bước CI "Spec contracts" ở dự án đích: ca 2 (spec Approved trỏ
+file không có thật `khong-co.sh` dưới `scripts/`) đỏ đúng; ca 3 `sed` sang `scripts/dev-task.sh` rồi `spec-compiler.sh --compile-all` + `unittest discover`
+VẪN đỏ với thông báo của ca 2. File `.py` sinh ra đã đúng (`REFERENCED_PATHS = ["scripts/dev-task.sh"]`) nhưng Python nạp
+`tests/contracts/__pycache__/*.pyc` của lần trước: pyc chỉ bị vô hiệu khi **mtime (giây) hoặc kích thước** nguồn đổi — hai đường
+dẫn dài bằng nhau, hai lần biên dịch trong cùng giây → pyc "còn hợp lệ". Tái hiện cô lập: thứ tự có-thật → không-có → có-thật
+in `OK / OK / OK` (ca giữa xanh oan). Cùng họ mục 12/31 (test xanh giả), nguyên nhân là cache bytecode, không phải logic test.
+
+*Cách rà:* test sinh máy nào được biên dịch lại rồi chạy ngay trong cùng tiến trình/giây (fixture đổi spec nhiều lần, CI chạy
+nhanh) → nghi pyc trước khi nghi engine: `ls tests/contracts/__pycache__`, so `REFERENCED_PATHS` trong `.py` với thông báo lỗi.
+Dấu hiệu: thông báo lỗi nhắc đúng giá trị của lần chạy TRƯỚC.
+
+*Cổng chốt chặn:* `spec-compiler.py` xoá `<out-dir>/__pycache__` trước khi sinh (mọi caller: `test-next-gen-engines.sh`,
+bước CI đích, chạy tay); ca "sửa về file có thật → xanh" trong `scripts/test-adoption-smoke.sh::spec_contract_expect` là test
+tái hiện (đỏ trước khi sửa, 2 fixture Node/Python).
