@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Docs (2026-10-11, #277): hồ sơ + PLAN port 7 bản sửa audit 2026-09-15 còn thiếu trên `main` (nhánh local
+  `codex/open-branch-integration` chưa từng có PR): F-202, F-306, F-303/F-305, T-2, F-207, F-104, F-201/F-403.
 - Docs (2026-10-10, #276): đóng `/audit-full` tự động hóa — 12 PR (#256…#275), re-audit 45 ID không còn mở, radar 100/100,
   sweep 🔴 0; hồ sơ `docs/work/2026-10-09-audit-full-automation/done.md`, BLOCKED cần chủ repo ghi ở STATUS.
 - Security (2026-10-10, audit tự động hóa — rà lại, #275): sửa `scripts/githooks/**` phải hỏi; deny bắt `mvn * deploy*`,
