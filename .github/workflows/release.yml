@@ -18,26 +18,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Repo khung (chưa có package.json) → bỏ qua để không lỗi; tự bật khi có dự án thật.
+  # release-type dò theo manifest ở gốc repo (audit F-A6) — trước đây chỉ chạy khi có package.json nên
+  # dự án Python/Go/Rust… không bao giờ có Release. Không khớp manifest nào: có `version.txt` → `simple`
+  # (release-please `simple` ghi phiên bản vào đó); không có → `none` = bỏ qua kèm notice. Repo khung chỉ có
+  # `VERSION` → bỏ qua như trước, không sinh release PR rác.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      exists: ${{ steps.app.outputs.exists }}
+      type: ${{ steps.type.outputs.type }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - id: app
+      # Thân `run:` là bash thuần để scripts/test-workflow-guards.sh (mục 8) chạy được trên fixture.
+      - name: Dò release-type theo manifest
+        id: type
         run: |
-          if [ -f package.json ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Chưa có package.json — bỏ qua Release; sẽ tự chạy khi có dự án thật."
+          if [ -f package.json ]; then t=node
+          elif [ -f pyproject.toml ] || [ -f setup.py ]; then t=python
+          elif [ -f go.mod ]; then t=go
+          elif [ -f Cargo.toml ]; then t=rust
+          elif [ -f pubspec.yaml ]; then t=dart
+          elif [ -f mix.exs ]; then t=elixir
+          elif [ -f composer.json ]; then t=php
+          elif [ -f Gemfile ]; then t=ruby
+          elif [ -f pom.xml ]; then t=maven
+          elif [ -f version.txt ]; then t=simple
+          else t=none; echo "::notice::Không có manifest ngôn ngữ hay version.txt — bỏ qua Release."
           fi
+          echo "release-type: $t"
+          echo "type=$t" >> "$GITHUB_OUTPUT"
 
   release-please:
     needs: check
-    if: needs.check.outputs.exists == 'true'
+    if: needs.check.outputs.type != 'none'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Chỉ job này cần ghi (tạo tag/CHANGELOG/PR release) — job `check` giữ read-only.
@@ -46,5 +59,10 @@ jobs:
       pull-requests: write
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        # GITHUB_TOKEN KHÔNG kích sự kiện `pull_request` cho PR nó tạo → release PR không bao giờ có
+        # check `gate`/`metadata` → kẹt, không merge được (TRAPS 5b, tái phát 2026-10-09). Cần PAT fine-grained
+        # (contents + pull-requests: write) hoặc token GitHub App (actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0)
+        # lưu ở secret `RELEASE_PLEASE_TOKEN`; chưa có secret thì rơi về GITHUB_TOKEN (release PR phải kích CI tay).
         with:
-          release-type: node
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          release-type: ${{ needs.check.outputs.type }}

@@ -102,6 +102,7 @@ scripts/requirements-ci.txt
 .github/workflows/maintenance.yml
 .github/workflows/secret-scan.yml
 .github/workflows/dependency-review.yml
+.github/workflows/dependabot-auto-merge.yml
 .github/workflows/pr-policy.yml
 .github/workflows/release.yml
 .github/workflows/codeql.yml
