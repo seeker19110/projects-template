@@ -419,6 +419,37 @@ rc="$(run_hook "$green" "git commit -m \"don't\"")"
   || bad "pre-commit-gate chặn OAN git commit -m \"don't\" (exit $rc)"
 fi
 
+echo "== 19. settings.json ↔ settings-shared-default.json GIỐNG HỆT; MCP context7 bật (audit 2026-10-09, T4) =="
+# VÌ SAO: hai file từng lệch nhau âm thầm (F-D-06) — copy-framework phát bản shared-default, phiên chính dùng settings.json;
+# lệch = dự án đích nhận hàng rào khác repo khung. Cổng: cmp byte-một-byte, không "gần giống".
+if cmp -s "$ROOT/.claude/settings.json" "$ROOT/.claude/settings-shared-default.json"; then
+  ok "settings.json == settings-shared-default.json"
+else
+  bad "settings.json ≠ settings-shared-default.json (sửa một file thì copy sang file kia)"
+fi
+if command -v jq >/dev/null 2>&1; then
+  if jq -e '.enabledMcpjsonServers | index("context7")' "$ROOT/.claude/settings.json" >/dev/null 2>&1; then
+    ok "enabledMcpjsonServers có context7"
+  else
+    bad "settings.json thiếu enabledMcpjsonServers: [\"context7\"] (F-M02: MCP tra tài liệu không bật ở đích)"
+  fi
+  if jq -e '.permissions.deny | index("Bash(git push -f*)")' "$ROOT/.claude/settings.json" >/dev/null 2>&1; then
+    ok "deny có Bash(git push -f*)"
+  else
+    bad "deny thiếu Bash(git push -f*) (F-S07)"
+  fi
+  # NEGATIVE: hai file lệch tạm trong repo giả → phép cmp phải đỏ (không thì cổng xanh giả)
+  neg="$WORK/settings-neg"; mkdir -p "$neg/.claude"
+  printf '{"a":1}
+' > "$neg/.claude/settings.json"; printf '{"a":2}
+' > "$neg/.claude/settings-shared-default.json"
+  if cmp -s "$neg/.claude/settings.json" "$neg/.claude/settings-shared-default.json"; then
+    bad "negative: hai file lệch mà cmp vẫn xanh"
+  else
+    ok "negative: hai file lệch bị phát hiện"
+  fi
+fi
+
 echo ""
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."

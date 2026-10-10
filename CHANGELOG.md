@@ -11,6 +11,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa PR-4/F-S02..S07, F-M01/M02, F-D-01..06): `.claude/settings.json` ≡ `settings-shared-default.json`
+  — bật MCP `context7`; allow lệnh `gh` đọc + `gh pr merge --auto` + script khung; ask sửa hàng rào (`.claude/**`, workflows, script cổng,
+  `gh api/repo/secret/release`); deny mở rộng (xoá/publish/push ép nhánh chính/đọc bí mật); `dontAsk` chỉ opt-in ở `settings.local.json.example`.
+  `test-hooks-gate.sh` mục 19 (cmp hai bản); `check-docs-consistency.sh` mục 14 (settings ↔ bảng Hook `models-and-automation.md`, 9/9 hook) (#260).
+
 - Fixed (2026-10-10, đối chiếu SDD ba vai — PR #261): CI drop-in cho dự án đích (`ci-target.yml`) thêm bước "Spec contracts": spec
   Approved trỏ touchpoint/bằng chứng không còn tồn tại → đỏ (engine `spec-compiler` phát sang đích từ 2026-09-13 nhưng không job nào
   gọi — TRAPS 11/25); `spec-compiler.py` xoá `__pycache__` trước khi sinh (pyc cũ cùng giây/cùng cỡ làm test chạy bản trước — TRAPS 64,
