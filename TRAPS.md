@@ -1039,6 +1039,12 @@ rồi `git push --force-with-lease=<nhánh>:<sha-cũ>` lên nhánh PR (không ba
 `<type>(<scope>): …`. Phòng trước: merge base bằng `git merge -m "chore(merge): đồng bộ main (…)"`;
 autofix/suggestion thì sửa tiêu đề ngay ở hộp commit. Cổng chốt chặn: job `metadata`.
 
+**Tái phát 2026-10-10 (#263, lần 3 — vector mới):** nhánh PR bị `BEHIND` lần thứ tư vì `main` nhận PR của lane khác; để
+khỏi chờ người dùng commit tay (hook local đỏ F-Q6), phiên chính gọi `gh pr update-branch` — GitHub merge phía server và tự
+đặt tiêu đề "Merge branch 'main' into …", `metadata` đỏ ngay dù cây giống hệt bản merge tay. Cứu như trên: merge lại cục bộ
+`-m "chore(merge): …"`, `push --force-with-lease=<nhánh>:<sha-server>`. *Luật bổ sung:* **không dùng** `gh pr update-branch`
+hay nút "Update branch" trên GitHub cho repo bật cổng `metadata` — mọi lần đồng bộ `main` đều merge cục bộ (`pr-flow.md` §2).
+
 ## 49. Gate báo PASS dù không lưu được evidence đã yêu cầu
 
 *Ngày:* 2026-10-07, rà sau LD-08. Các kiểm tra xanh nhưng thư mục evidence bị xóa
