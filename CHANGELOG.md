@@ -11,7 +11,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
-- Changed (2026-10-10, TRAPS 48 tái phát lần 3 — PR #266): `gh pr update-branch` sinh commit merge không conventional làm đỏ
+- Changed (2026-10-10, TRAPS 48 tái phát lần 3 — PR #267): `gh pr update-branch` sinh commit merge không conventional làm đỏ
   `metadata` (#263); ghi tái phát + luật "không update-branch phía server" vào TRAPS 48 và `pr-flow.md` §2; PROGRESS đối chiếu sau #263.
 - Changed (2026-10-10, audit tự động hóa PR-5/F-A3, F-A4, F-A9, #265): `ci-target.yml` phát cho đích gồm 3 job — `checks` cài
   dependency có điều kiện `hashFiles` cho 17 stack, `protection-guard` (ruleset + `allow_auto_merge`/`delete_branch_on_merge`),
