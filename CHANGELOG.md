@@ -11,6 +11,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa PR-4/F-S02..S07, F-M01/M02, F-D-01..06): `.claude/settings.json` ≡ `settings-shared-default.json`
+  — bật MCP `context7`; allow lệnh `gh` đọc + `gh pr merge --auto` + script khung; ask sửa hàng rào (`.claude/**`, workflows, script cổng,
+  `gh api/repo/secret/release`); deny mở rộng (xoá/publish/push ép nhánh chính/đọc bí mật); `dontAsk` chỉ opt-in ở `settings.local.json.example`.
+  `test-hooks-gate.sh` mục 19 (cmp hai bản); `check-docs-consistency.sh` mục 14 (settings ↔ bảng Hook `models-and-automation.md`, 9/9 hook) (#260).
+
 - Fixed (2026-10-09, đối chiếu `EveryInc/compound-engineering-plugin` — #255): `precompact-checkpoint.sh` chụp cây ĐANG làm việc
   (`git rev-parse --show-toplevel`), không phải checkout chính khi phiên chạy trong worktree — TRAPS 45 tái phát, đo thật, test
   `test-hooks-session.sh` mục 8b đỏ-trước; `reviewer.md` + `/review` đối chiếu diff với `TRAPS.md` trước PR (5 mục TRAPS đã "Tái phát").

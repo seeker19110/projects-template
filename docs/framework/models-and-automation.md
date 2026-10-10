@@ -16,7 +16,7 @@
 # Từ repo khung, copy cấu hình sang dự án của bạn:
 bash copy-framework.sh /đường-dẫn/tới/dự-án
 ```
-Script copy `.claude/settings.json` (model tiêu chuẩn: Sonnet 5) + hooks + agents + `scripts/` (dev-task, usage-estimate — hook cần 2 file này) + 2 file `.example.sh` **thẳng** vào dự án; file cấu hình stack khác vào `_framework-dropins/` để tự merge. Mở phiên Claude Code → khi cần lập kế hoạch việc lớn, chủ động `/model` sang model cao cấp nhất đang sẵn có trước (mục 1).
+Script copy `.claude/settings.json` (model tiêu chuẩn: Sonnet 5) + hooks + agents + `scripts/` theo mục `[scripts]` của `copy-framework.manifest` + 2 file `.example.sh` **thẳng** vào dự án; file cấu hình stack khác vào `_framework-dropins/` để tự merge. Mở phiên Claude Code → khi cần lập kế hoạch việc lớn, chủ động `/model` sang model cao cấp nhất đang sẵn có trước (mục 1).
 
 **Chọn nhanh theo quy mô:**
 
@@ -267,9 +267,12 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
                                   │  (việc rõ phạm vi → subagent standard-worker: cô lập + song song)
    Trong khi chạy, các hook tự động (không cần hỏi):
      • sửa file  → PostToolUse  → auto-format.sh   → dev-task.sh format-file
+                                └ ui-intelligence.sh → gợi ý UI/UX (opt-in, không chặn)
+     • lệnh git  → PreToolUse   → block-dangerous-git.sh (force-push main, reset --hard… = CHẶN)
      • git commit→ PreToolUse   → pre-commit-gate.sh→ dev-task.sh gate (đỏ = CHẶN)
      • hết lượt  → Stop         → usage-guard.sh    → usage-estimate.sh (≥70% → nhắc wind-down)
-                                └ telemetry-record.sh → telemetry-log.sh --record (ghi thời gian/model mỗi lượt)
+                                └ telemetry-record.sh → telemetry-log.sh --record (ghi thời gian/model mỗi lượt; cả SubagentStop)
+     • sắp nén   → PreCompact   → precompact-checkpoint.sh → chụp git + PROGRESS trước khi nén ngữ cảnh
      • mở phiên  → SessionStart → session-resume.sh → nạp PROGRESS.md + git ("tiếp tục")
                                 └ session-guide.sh  → HIỆN gợi ý "làm gì tiếp theo"
                                   │
@@ -287,7 +290,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `permissions.allow` | Edit/Write/Read, git an toàn, dev-task.sh, test/format/build | Auto-mode chạy không hỏi |
 | `permissions.deny` | rm -rf, force-push **vào `main`/`master`**, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
 | `permissions.ask` | force-push nhánh khác (`--force`/`-f`/`--force-with-lease`) | Hỏi từng lần, không chặn cứng |
-| `hooks` | SessionStart, PreToolUse, PostToolUse, Stop | 4 hook tự động (bảng dưới) |
+| `hooks` | SessionStart, PreToolUse, PostToolUse, Stop, SubagentStop, PreCompact | 9 hook (bảng dưới) |
 
 > **Ba lớp cho force-push.** `deny` không chặn mọi force-push (kể cả trên nhánh do chính phiên tạo) —
 > luật thật (`AGENTS.md`) chỉ cấm force-push **vào `main`/`master`**. Chia ba lớp:
@@ -300,7 +303,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 >
 > **Giới hạn nói thật:** mẫu của `deny` so khớp **chuỗi lệnh**, nên `git push --force` trống (đang
 > đứng sẵn trên `main`, không ghi tên nhánh) KHÔNG khớp lớp 1 — nó rơi xuống lớp 2 (hỏi) và lớp 3.
-> Mà lớp 3 **fail-open khi thiếu `jq`** (`TRAPS.md` bẫy 26), nên trên máy không có `jq` thì ca này
+> Mà lớp 3 (và `pre-commit-gate.sh`) **fail-open khi thiếu `jq`** (`TRAPS.md` bẫy 26), nên trên máy không có `jq` thì ca này
 > chỉ còn lớp 2 canh. Đây là lý do nữa để cài `jq` (xem `README.md` → Yêu cầu môi trường).
 
 **Subagent — `.claude/agents/`**
@@ -317,6 +320,9 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `reviewer.md` | Sonnet | Hậu kiểm bằng skill `code-review` sau khi worker xong, trước khi Tầng 1 duyệt. Ngoài bảng route. |
 | `maintainer.md` | Sonnet | **Bảo trì toàn diện** theo chu kỳ (`/maintain`): chạy `scripts/maintenance-sweep.sh`, triage 🔴/🟡, viết `docs/ops/MAINTENANCE-PLAN.md` rồi dừng chờ duyệt. Ngoài bảng route. Ngoài Claude Code: `scripts/maintain-run.sh` (CLI subscription cục bộ — Claude Code/Hermes/Gemini qua Antigravity/Codex/OpenCode, không API key). |
 
+| `tester.md` | Haiku · low | Chạy toàn bộ cổng `dev-task.sh gate` và báo kết quả thô cho Coordinator; không sửa code, không review logic. Ngoài bảng route. |
+| `security-reviewer.md` | Sonnet · high | Rà bảo mật một diff bằng skill `security-review` khi chạm auth/thanh toán/dữ liệu người dùng; chỉ báo cáo, không sửa. Ngoài bảng route. |
+
 > Chi tiết vận hành 3 tầng (luật cứng từng tầng + định dạng PLAN.md): `orchestration-3-tier.md`.
 
 **Hook — `.claude/hooks/`**
@@ -325,10 +331,13 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 |---|---|---|
 | `session-resume.sh` | SessionStart | Nạp PROGRESS.md + git → "tiếp tục" nối lại; xóa marker wind-down |
 | `session-guide.sh` | SessionStart | Hiện gợi ý "làm gì tiếp theo"; hiện model phiên hiện tại + nhắc chính sách hai pha (không so khớp đúng/sai với một alias cố định — ADR-0007) |
+| `block-dangerous-git.sh` | PreToolUse(Bash) | Chặn git nguy hiểm theo ngữ cảnh (force-push/xoá `main`, `reset --hard`, `clean -f`…); đã bỏ dữ liệu trong nháy/heredoc, soi cả `bash -c`/`eval` (TRAPS 62) |
 | `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
+| `ui-intelligence.sh` | PostToolUse(Edit\|Write) | Gợi ý UI/UX khi sửa file giao diện — opt-in, không chặn |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
-| `telemetry-record.sh` | Stop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy. Transcript không có `usage` → token `null` (unknown), không ghi 0. Mỗi bản ghi là một **lần thử**; công việc chỉ tính là **được nghiệm thu** khi có bản ghi `--outcome accepted --evidence <gate-evidence PASS>` (gom bằng `--work-id`). `--summary` báo chi phí gồm cả lần thất bại, usage unknown đếm riêng và tổng thành cận dưới `≥` (LD-07) |
+| `telemetry-record.sh` | Stop + SubagentStop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy. Transcript không có `usage` → token `null` (unknown), không ghi 0. Mỗi bản ghi là một **lần thử**; công việc chỉ tính là **được nghiệm thu** khi có bản ghi `--outcome accepted --evidence <gate-evidence PASS>` (gom bằng `--work-id`). `--summary` báo chi phí gồm cả lần thất bại, usage unknown đếm riêng và tổng thành cận dưới `≥` (LD-07) |
+| `precompact-checkpoint.sh` | PreCompact | Chụp nhánh/diff/PROGRESS vào checkpoint trước khi Claude Code nén ngữ cảnh (resume không mất việc dở) |
 
 **Script — `scripts/`**
 
@@ -336,6 +345,9 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 |---|---|
 | `dev-task.sh` | **Điểm vào ổn định** `format\|lint\|typecheck\|test\|build\|gate\|format-file`; tự dò stack (node/python/go/rust/make) hoặc theo khai báo; **no-op an toàn** |
 | `usage-estimate.sh` | Ước tính % quota 5h = token thật (transcript) ÷ budget khai báo; `% = MAX` theo model |
+| `_stack-detect.sh` | Dò stack/lockfile/venv + đọc lệnh khai báo — `dev-task.sh` và `maintenance-sweep.sh` cùng `source` |
+| `_commit-guard.sh` | MỘT nguồn mẫu bí mật + ngưỡng file lớn cho `pre-commit-gate.sh`, `githooks/pre-commit`, sweep; **thiếu → chặn commit** |
+| `githooks/pre-commit` | Hook git chuẩn (bật `core.hooksPath scripts/githooks`) — cổng cho harness ngoài Claude Code |
 
 ### Hai file cấu hình bạn tự điền (đã `.gitignore`)
 
@@ -391,7 +403,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 - Claude Code **không** cấp % quota 5h cho hook/agent → % là **ước tính tự hiệu chỉnh** (token thật ÷ budget khai báo), chỉ tính **phiên hiện tại**.
 - "Dừng ở ~70%" = **ngừng khởi động chu kỳ mới** rồi wind-down (commit phần xong + ghi PROGRESS), **không** chặn lệnh commit — near-limit càng phải lưu việc.
 - **Quyền:** allow-list an toàn; thao tác nguy hiểm vẫn hỏi. Muốn bỏ mọi xác nhận → tự chạy chế độ bypass (cân nhắc rủi ro), không bake vào template.
-- Auto-format/gate **đa-loại dự án** nhờ mọi lệnh nằm sau `dev-task.sh`; template không hardcode lệnh stack nào. Hook cần `scripts/dev-task.sh` (copy-framework đã copy kèm); thiếu thì no-op (không lỗi).
+- Auto-format/gate **đa-loại dự án** nhờ mọi lệnh nằm sau `dev-task.sh`; template không hardcode lệnh stack nào. Hook cần `scripts/` theo mục `[scripts]` của `copy-framework.manifest`; thiếu `dev-task.sh` → bỏ qua cổng **có nhắc** (không lỗi); thiếu `_commit-guard.sh` → **chặn commit** (không kiểm được bí mật thì không cho qua im lặng).
 - Hook viết bằng **bash** — trên **Windows** cần Git Bash (đi kèm Git for Windows; Claude Code dùng nó chạy hook). Thiếu bash → hook không chạy (automation tắt, không lỗi).
 - **Đừng downgrade ở chỗ rủi ro cao** — chi phí một quyết định kiến trúc/bảo mật sai lớn hơn nhiều tiền tiết kiệm model. CLAUDE.md §2 yêu cầu đổi model theo độ khó thật (ADR-0010 §4) cho đúng chỗ này.
 - **Haiku 4.5 không dùng làm model chính** — thiếu chiều sâu lý luận đa vai trò; chỉ hợp việc phụ, đơn lẻ.
@@ -404,7 +416,7 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 - **Còn `opusplan` không?** Không — CLI không còn hỗ trợ (ADR-0007). Thay bằng hai pha chuyển **tay**: `/model` sang model cao cấp nhất sẵn có lúc lập kế hoạch, `/model claude-sonnet-5` lúc thực thi.
 - **Sao không để Fable 5.1 mặc định cho chắc?** "Dao mổ trâu thịt gà": Fable tính $10/1M mọi token (kể cả việc Haiku $1 làm được) → lãng phí ~60–70%. Nâng Fable **có chọn lọc** đúng ca kiến trúc khó nhất mới đáng.
 - **Dự án nhỏ có cần chuyển pha không?** Không bắt buộc. <5k LOC → Sonnet 5 xuyên suốt đủ tốt và rẻ hơn.
-- **Tương thích mọi loại dự án?** Có. Permissions phủ Node/Python/Go/Rust/Makefile; hooks không phụ thuộc stack (thiếu `dev-task.sh` thì no-op).
+- **Tương thích mọi loại dự án?** Có. Permissions phủ Node/Python/Go/Rust/Makefile; hooks không phụ thuộc stack (thiếu `dev-task.sh` → bỏ qua cổng có nhắc; thiếu `_commit-guard.sh` → chặn commit).
 - **Nhiều dự án nhiều cấu hình?** Để nhiều file cạnh nhau trong `.claude/` (vd tự tạo `settings-sonnet.json` cạnh `settings-shared-default.json`) → `cp … .claude/settings.json` khi đổi.
 - **Vận hành thế nào để rẻ nhất mà chất lượng cao nhất?** Plan một lần bằng model cao cấp nhất sẵn có (tự `/model` chuyển) cho cả khối việc → Sonnet chạy dài → việc cơ học ra subagent → effort theo việc (§4) → ngữ cảnh gọn + phiên mới sau mỗi mảng (§5). Kỷ luật vận hành tiết kiệm hơn mọi tinh chỉnh config.
 
