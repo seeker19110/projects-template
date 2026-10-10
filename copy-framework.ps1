@@ -190,6 +190,7 @@ function Set-ExecBit {          # Windows không có chmod: ghi mode 100755 vào
   }
   # Đúng tập `chmod +x` của copy-framework.sh + mọi .claude/hooks/*.sh.
   $rels = @('scripts/dev-task.sh', 'scripts/githooks/pre-commit', 'scripts/usage-estimate.sh', 'scripts/test-hooks-gate.sh',
+            'scripts/test-hooks-gate-guard.sh',
             'scripts/maintenance-sweep.sh', 'scripts/maintain-run.sh', 'scripts/maintain-cron.sh')
   $hooksDir = Join-Path $Target '.claude/hooks'
   if (Test-Path -LiteralPath $hooksDir -PathType Container) {

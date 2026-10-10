@@ -4,13 +4,13 @@
 # VÌ SAO (O-4b, 2026-10-08 — TRAPS.md mục 19/53 "bản sao lệch nhau"): regex + ngưỡng từng chép nguyên văn ba nơi,
 # không gì kiểm chúng còn khớp — thêm một loại khoá ở một nơi là hai nơi kia buông. Chỉ rút phần GIỐNG HỆT;
 # thông điệp, exit code, cách lấy danh sách file vẫn ở từng nơi gọi.
-# Chốt chặn: scripts/test-hooks-gate.sh mục 17 (không còn bản rời ngoài file này).
+# Chốt chặn: scripts/test-hooks-gate-guard.sh mục 17 (không còn bản rời ngoài file này).
 # CHỈ dùng để `source`; không set shell option ở đây (docs/CONVENTIONS.md §A).
 # shellcheck disable=SC2034  # hằng dùng ở file source nó
 
 # Chuỗi giống khoá/token thật: AWS / PEM private key / GitHub (ghp_, gho_/ghu_/ghs_/ghr_, github_pat_) / GitLab /
 # Google / OpenAI / Anthropic / Slack (token + webhook) / Stripe / JWT / npm / SendGrid / Hugging Face /
-# DigitalOcean / Azure Storage AccountKey. Mỗi tiền tố một ca chặn ở scripts/test-hooks-gate.sh mục 17.
+# DigitalOcean / Azure Storage AccountKey. Mỗi tiền tố một ca chặn ở scripts/test-hooks-gate-guard.sh mục 17.
 # CỐ Ý KHÔNG có mẫu chung kiểu `password=`: khớp hàng loạt fixture/test/tài liệu cấu hình mẫu → dương tính giả
 # chặn commit hợp lệ, người dùng quen tay --no-verify và hàng rào mất tác dụng với cả khoá thật.
 # Tiền tố NGẮN (sk-ant-, sk-proj-/svcacct-/admin-, gh[ousr]_, sk_/rk_live_, npm_, SG., hf_) neo trái

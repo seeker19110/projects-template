@@ -45,6 +45,8 @@ jobs:
       # Cổng chặn phải được CHỨNG MINH là chặn (audit 2026-09-12, F-002) — không chỉ tồn tại.
       - name: Hook cổng thật sự chặn (pre-commit-gate + block-dangerous-git)
         run: bash scripts/test-hooks-gate.sh
+      - name: Hook guard — một nguồn mẫu bí mật, biến thể lọt bộ lọc, settings đồng bộ (mục 17–19)
+        run: bash scripts/test-hooks-gate-guard.sh
 
       # Cùng nguyên tắc F-002, áp cho 3 gate script chính của repo khung (audit 2026-09-12, G-001):
       # check-docs-consistency.sh, check-ci-policy.sh, check-progress-freshness.sh phải được CHỨNG
@@ -215,6 +217,8 @@ jobs:
 
       - name: Hook cổng chặn thật trên Windows (21 ca — cần jq, TRAPS mục 26)
         run: bash scripts/test-hooks-gate.sh
+      - name: Hook guard trên Windows (mục 17–19 — cần jq, TRAPS mục 26)
+        run: bash scripts/test-hooks-gate-guard.sh
 
       - name: Hook session trên Windows (đường dẫn MSYS qua argv, PATH tối giản bằng wrapper — F-Q6/F-Q9)
         run: bash scripts/test-hooks-session.sh

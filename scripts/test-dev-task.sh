@@ -112,7 +112,7 @@ CLAUDE_PROJECT_DIR="$d" bash "$DT" --print nope >/dev/null 2>&1; rc=$?
 [ "$rc" -eq 2 ] && ok "--print task lạ → exit 2" || bad "--print task lạ → exit $rc"
 
 echo "== 6. NEGATIVE: gỡ alias → ca 1 phải đỏ (test đo thật) =="
-tmpdt="$WORK/dev-task-noalias.sh"; cp "$DT" "$tmpdt"
+tmpdt="$WORK/dev-task-noalias.sh"; cp "$DT" "$tmpdt"; cp "$ROOT/scripts/_dev-task-verify.sh" "$WORK/"   # bản sao source đủ helper cùng thư mục
 # _node_aliases nằm ở _stack-detect.sh (dev-task.sh source file cùng thư mục) → gỡ alias ở bản sao đó
 sed 's/typecheck) echo "typecheck type-check tsc check-types" ;;/typecheck) echo "typecheck" ;;/' "$ROOT/scripts/_stack-detect.sh" > "$WORK/_stack-detect.sh"
 got="$(CLAUDE_PROJECT_DIR="$WORK/node1" bash "$tmpdt" --print typecheck 2>/dev/null)"
