@@ -41,7 +41,7 @@ jobs:
           yel="$(grep -m1 -oE '🟡 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || echo 0)"
           echo "red=$red" >> "$GITHUB_OUTPUT"
           echo "yel=$yel" >> "$GITHUB_OUTPUT"
-          cat maintenance-report.md >> "$GITHUB_STEP_SUMMARY"
+          # Step summary được ghi ở bước sau, cùng chỗ cắt + bọc fence với body issue (một nguồn).
 
       - name: Mở / cập nhật / đóng issue tổng hợp
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -55,14 +55,23 @@ jobs:
             const red = Number(process.env.RED || '0');
             const yel = Number(process.env.YEL || '0');
             let report = fs.readFileSync('maintenance-report.md', 'utf8');
-            const MAX = 60000; // issue body giới hạn 65536 ký tự
-            if (report.length > MAX) report = report.slice(0, MAX) + '\n\n_(cắt bớt — xem log workflow)_';
+            const MAX = 60000; // issue body giới hạn 65536 ký tự — cắt TRƯỚC khi bọc để fence đóng còn nguyên
+            const truncated = report.length > MAX;
+            if (truncated) report = report.slice(0, MAX);
+            // Report chứa tên file/nội dung repo (dữ liệu không tin cậy, ADR-0009): bọc code fence
+            // ```text để không render thành markdown/HTML/@mention. Fence dài hơn mọi chuỗi backtick
+            // trong report để nội dung không tự đóng fence sớm.
+            const longestTicks = (report.match(/`+/g) || []).reduce((m, t) => Math.max(m, t.length), 0);
+            const fence = '`'.repeat(Math.max(3, longestTicks + 1));
+            const fenced = `${fence}text\n${report}\n${fence}` + (truncated ? '\n\n_(cắt bớt — xem log workflow)_' : '');
+            await core.summary.addRaw(fenced, true).write();
 
+            // Chỉ issue do chính workflow tạo: người ngoài mở issue chứa MARKER không chiếm được kênh báo cáo.
             const existing = (
               await github.paginate(github.rest.issues.listForRepo, {
                 ...context.repo, state: 'open', per_page: 100,
               })
-            ).find((i) => !i.pull_request && (i.body || '').includes(MARKER));
+            ).find((i) => !i.pull_request && i.user?.login === 'github-actions[bot]' && (i.body || '').includes(MARKER));
 
             if (red === 0 && yel === 0) {
               if (existing) {
@@ -81,7 +90,7 @@ jobs:
             const title = `Bảo trì: 🔴 ${red} · 🟡 ${yel} phát hiện (quét ${new Date().toISOString().slice(0, 10)})`;
             const body = [
               MARKER,
-              report,
+              fenced,
               '',
               '### Bước tiếp theo',
               '',

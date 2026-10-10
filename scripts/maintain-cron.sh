@@ -18,8 +18,14 @@
 #   3) CHỈ `git add` đúng 3 file docs/ops/MAINTENANCE-*.md — không `git add -A`/`git add .`, để
 #      một thay đổi bất thường khác trên VPS không lỡ bị cuốn theo commit tự động.
 #   4) Khoá tiến trình (flock nếu có, else file khoá + PID) — hai lần cron chồng nhau (job trước
-#      chạy lâu hơn interval) không được chạy song song trên cùng một checkout.
-#   5) Không bao giờ echo/log nội dung file bí mật; không truyền gì qua `eval`.
+#      chạy lâu hơn interval) không được chạy song song trên cùng một checkout. Thư mục khoá tạo
+#      dưới `umask 077`; thư mục hoặc file khoá là symlink / không thuộc người chạy / thư mục cho
+#      group-other ghi → từ chối (thoát 10). Tiến trình con không thừa kế fd khoá (`9>&-`).
+#   5) Không bao giờ echo/log nội dung file bí mật; không truyền gì qua `eval`. Token GitHub KHÔNG
+#      bao giờ vào argv của `curl` (đọc được qua `ps`): header ghi vào file tạm (mktemp 0600) trong
+#      thư mục khoá, gọi `curl -H @file`, file bị xoá ở trap EXIT. Token giữ trong biến KHÔNG export;
+#      `maintain-run.sh`/CLI AI chạy với GITHUB_TOKEN/GH_TOKEN đã unset; `bash -x` không in token;
+#      URL remote in ra log đã bỏ userinfo.
 #
 # BÁO CÁO CHO CHỦ DỰ ÁN: sau khi đẩy nhánh, script TỰ MỞ MỘT PULL REQUEST qua GitHub REST API
 # (không cần cài `gh` CLI — chỉ `curl` + `jq`/`python3` để parse JSON) nếu có token trong biến môi
@@ -35,20 +41,59 @@
 # Cờ: --harness/--model/--provider/--mode chuyển thẳng cho maintain-run.sh (xem --help ở đó).
 #     --base <nhánh>     nhánh nền để đồng bộ + rẽ nhánh maint/auto-* (mặc định: tự dò origin/HEAD)
 #     --no-push          chạy trọn vẹn (pull + sweep + agent) nhưng KHÔNG commit/push — để test tay
-#     --lock-dir <dir>   nơi đặt file khoá (mặc định: thư mục tạm hệ thống, NGOÀI working tree)
+#     --lock-dir <dir>   nơi đặt file khoá (mặc định: <git-dir>/maintain-cron — trong .git, NGOÀI working tree)
 #     --no-open-pr       đẩy nhánh nhưng KHÔNG tự mở PR dù có token (bạn tự mở tay)
-#     --gh-token-file <f>  file chứa token GitHub (khuyến nghị trên máy chung, thay biến môi trường)
+#     --gh-token-file <f>  file chứa token GitHub (khuyến nghị trên máy chung, thay biến môi trường);
+#                        quyền khác 600/400 → cảnh báo một dòng (không chặn); không đọc được → thoát 2
 #     --gh-token <tok>   token qua argv — CHỈ để tương thích cũ, lộ qua `ps`; script cảnh báo
 #     --repo <owner/repo> ghi đè owner/repo (mặc định: tự tách từ `git remote get-url origin`;
 #                        bắt buộc khai nếu origin không phải github.com hoặc là SSH alias lạ)
 set -uo pipefail
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
-BASE=""; NO_PUSH=0; LOCK_DIR=""; NO_OPEN_PR=0; GH_TOKEN_FLAG=""; REPO_FLAG=""
+BASE=""; NO_PUSH=0; LOCK_DIR=""; NO_OPEN_PR=0; API_TOKEN=""; REPO_FLAG=""   # API_TOKEN: KHÔNG export
 PASS_ARGS=()
 
 log() { printf '[maintain-cron] %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 die() { log "LỖI: $*"; exit "${2:-1}"; }
+
+# Mọi file tạm/khoá cần dọn đi qua MỘT trap EXIT (trap thứ hai sẽ ghi đè trap thứ nhất).
+# Dạng ${a[@]+...} để mảng rỗng không vấp `set -u` trên bash 3.2 (macOS).
+CLEANUP_FILES=()
+cleanup() { [ "${#CLEANUP_FILES[@]}" -eq 0 ] || rm -f -- "${CLEANUP_FILES[@]+"${CLEANUP_FILES[@]}"}"; }
+trap cleanup EXIT
+
+# Mode bát phân của file/thư mục, rỗng nếu không đọc được. `stat -c` = GNU, `stat -f %Lp` = BSD/macOS.
+file_mode() { stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1" 2>/dev/null || true; }
+
+# Đọc token từ file; quyền lỏng chỉ CẢNH BÁO (Windows/NTFS thường báo 644 cho mọi file — chặn sẽ
+# làm hỏng máy hợp lệ).
+read_token_file() {
+  local f="$1" mode
+  { [ -f "$f" ] && [ -r "$f" ]; } || die "--gh-token-file: không đọc được file token: $f" 2
+  mode="$(file_mode "$f")"
+  case "$mode" in
+    600|400) ;;
+    *) log "CẢNH BÁO: quyền file token $f là ${mode:-<không đọc được>} — nên chmod 600" ;;
+  esac
+  tr -d '[:space:]' < "$f"
+}
+
+# Nạp token vào API_TOKEN với xtrace TẮT (`bash -x` không in giá trị), bật lại nếu đang bật.
+# $1 = env (chỉ khi chưa có token từ cờ) | file <path>. Token chỉ đọc bên trong hàm — không bao giờ
+# là đối số của lệnh nào để xtrace/ps thấy.
+load_token() {
+  { local xt="${-//[^x]/}" rc=0; set +x; } 2>/dev/null
+  case "$1" in
+    env)  [ -n "$API_TOKEN" ] || API_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}" ;;
+    file) API_TOKEN="$(read_token_file "$2")" || rc=2 ;;
+  esac
+  [ -z "$xt" ] || set -x
+  return "$rc"
+}
+
+# Bỏ userinfo (`https://user:token@host/…` → `https://host/…`) trước khi in URL remote ra log.
+redact_url() { printf '%s' "$1" | sed -E 's#//[^/@]*@#//#'; }
 
 # Kiểm trước shift 2: thiếu giá trị không được thành vòng lặp vô hạn.
 require_cli_value() {
@@ -64,14 +109,15 @@ while [ $# -gt 0 ]; do
     --no-push)    NO_PUSH=1; shift ;;
     --lock-dir)   require_cli_value "$@"; LOCK_DIR="${2:-}"; shift 2 ;;
     --no-open-pr) NO_OPEN_PR=1; shift ;;
-    --gh-token)   require_cli_value "$@"; GH_TOKEN_FLAG="${2:-}"; log "CẢNH BÁO: --gh-token đưa token vào argv (lộ qua ps/cron log máy chung) — dùng --gh-token-file hoặc biến môi trường GITHUB_TOKEN"; shift 2 ;;
-    --gh-token-file) require_cli_value "$@"; GH_TOKEN_FLAG="$(tr -d '[:space:]' < "${2:-/dev/null}")"; shift 2 ;;
+    --gh-token)   require_cli_value "$@"; API_TOKEN="${2:-}"; log "CẢNH BÁO: --gh-token đưa token vào argv (lộ qua ps/cron log máy chung) — dùng --gh-token-file hoặc biến môi trường GITHUB_TOKEN"; shift 2 ;;
+    --gh-token-file) require_cli_value "$@"; load_token file "${2:-}" || exit 2; shift 2 ;;
     --repo)       require_cli_value "$@"; REPO_FLAG="${2:-}"; shift 2 ;;
     -h|--help)    awk 'NR>1 && !/^#/{exit} NR>1' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;   # in TRỌN khối comment đầu file (bản cũ cắt ở dòng 36 → thiếu 5 cờ)
     --harness|--model|--provider|--mode) require_cli_value "$@"; PASS_ARGS+=("$1" "${2:-}"); shift 2 ;;
     *) die "tham số lạ: $1 (xem --help)" 2 ;;
   esac
 done
+load_token env
 
 cd "$ROOT" || die "không cd được vào $ROOT" 2
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "không phải git repo: $ROOT" 2
@@ -80,30 +126,50 @@ for need in scripts/maintain-run.sh scripts/maintenance-sweep.sh; do
 done
 
 # ── (0) Khoá tiến trình — không chạy chồng lên chính nó ─────────────────────
-# Mặc định đặt NGOÀI working tree (thư mục tạm hệ thống, khoá theo đường dẫn repo) — cố ý không
-# mặc định vào $ROOT/.claude: một file khoá lọt vào git status sẽ tự làm hỏng bước (1) "working
-# tree phải sạch" ở NGAY LƯỢT CHẠY KẾ TIẾP, dù đã có dòng .gitignore. Không phụ thuộc quy ước
-# .gitignore của mỗi checkout — an toàn cả khi ai đó quên thêm dòng đó vào .gitignore của họ.
+# Mặc định trong git-dir (`$ROOT/.git/maintain-cron`; worktree → git-dir riêng của nó): NGOÀI
+# working tree nên không làm bẩn `git status` ở bước (1), và KHÔNG ở /tmp dùng chung — nơi người
+# dùng khác trên máy có thể cài sẵn symlink tên đoán được để script ghi đè file của người chạy.
 if [ -z "${LOCK_DIR:-}" ]; then
-  repo_hash="$(printf '%s' "$ROOT" | cksum | cut -d' ' -f1)"
-  LOCK_DIR="${TMPDIR:-/tmp}/maintain-cron.$repo_hash"
+  git_dir="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
+  if [ -n "$git_dir" ] && [ -d "$git_dir" ]; then LOCK_DIR="$git_dir/maintain-cron"; else LOCK_DIR="$ROOT/.maintain-cron"; fi
 fi
-mkdir -p "$LOCK_DIR" 2>/dev/null || true
 LOCK_FILE="$LOCK_DIR/.maintain-cron.lock"
+# `exec 9>` / `echo >` ghi XUYÊN qua symlink vào bất kỳ file nào người chạy có quyền ghi → từ chối
+# symlink và đường dẫn không thuộc người chạy.
+secure_lock_path() {
+  [ ! -L "$LOCK_DIR" ] || die "thư mục khoá $LOCK_DIR là symlink — từ chối (chống ghi đè file qua liên kết)" 10
+  # umask 077 = tương đương `mkdir -m 700` nhưng không gọi chmod riêng (Git Bash/NTFS: `mkdir -m`
+  # tạo được thư mục rồi báo lỗi "cannot change permissions" → đỏ oan).
+  [ -d "$LOCK_DIR" ] || ( umask 077 && mkdir -p -- "$LOCK_DIR" ) || die "không tạo được thư mục khoá $LOCK_DIR" 10
+  [ -O "$LOCK_DIR" ] || die "thư mục khoá $LOCK_DIR không thuộc người chạy — từ chối" 10
+  [ ! -L "$LOCK_FILE" ] || die "file khoá $LOCK_FILE là symlink — từ chối (chống ghi đè file qua liên kết)" 10
+  [ ! -e "$LOCK_FILE" ] || [ -O "$LOCK_FILE" ] || die "file khoá $LOCK_FILE không thuộc người chạy — từ chối" 10
+  # Group/other ghi được thư mục khoá → người khác đổi được file khoá/header. Chỉ xét khi đọc được
+  # mode (Windows/NTFS luôn báo 755 → không bao giờ chặn oan ở đó).
+  local mode; mode="$(file_mode "$LOCK_DIR")"
+  case "$mode" in
+    *[!0-7]*|'') ;;
+    *) [ $(( 8#$mode & 8#022 )) -eq 0 ] || die "thư mục khoá $LOCK_DIR cho group/other ghi (mode $mode) — từ chối; chmod 700" 10 ;;
+  esac
+}
+secure_lock_path
 if command -v flock >/dev/null 2>&1; then
   exec 9>"$LOCK_FILE"
   flock -n 9 || die "một lượt maintain-cron khác đang chạy (khoá: $LOCK_FILE)" 4
 else
   # Fallback không có flock (vd macOS mặc định): file khoá + kiểm PID còn sống không.
+  # DEBT: dọn khoá mồ côi = đọc PID → rm → tạo lại, không nguyên tử | trần: hai lượt cùng thấy PID chết có thể cùng dọn, lượt sau xoá khoá vừa tạo của lượt trước rồi chạy song song | xem lại khi: cron chạy dày hơn thời lượng một lượt trên máy không có flock, hoặc có báo cáo hai nhánh maint/* chồng nhau
   if [ -f "$LOCK_FILE" ]; then
     old_pid="$(cat "$LOCK_FILE" 2>/dev/null || true)"
     if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null; then
       die "một lượt maintain-cron khác đang chạy (PID $old_pid, khoá: $LOCK_FILE)" 4
     fi
     log "khoá cũ trỏ tới PID đã chết ($old_pid) — dọn và tiếp tục."
+    rm -f -- "$LOCK_FILE"
   fi
-  echo $$ > "$LOCK_FILE"
-  trap 'rm -f "$LOCK_FILE"' EXIT
+  # noclobber = tạo bằng O_EXCL: thua cuộc đua với lượt khác (hoặc symlink vừa được cài) → dừng.
+  ( set -C; echo $$ > "$LOCK_FILE" ) 2>/dev/null || die "không giành được file khoá $LOCK_FILE (lượt khác vừa tạo?)" 4
+  CLEANUP_FILES+=("$LOCK_FILE")
 fi
 
 # ── (1) Tiền kiểm — working tree PHẢI sạch trước khi đụng vào git ───────────
@@ -147,7 +213,10 @@ log "nhánh làm việc: $WORK_BRANCH"
 AGENT_BASE_SHA="$(git rev-parse HEAD)" || die "không đọc được HEAD trước khi chạy agent" 6
 readonly AGENT_BASE_SHA
 run_rc=0
-bash scripts/maintain-run.sh "${PASS_ARGS[@]}" || run_rc=$?
+# Tiến trình con (sweep + CLI AI đọc nội dung repo không tin cậy) không nhận token qua env và không
+# giữ fd khoá. Unset trong subshell: git fetch/push của chính script vẫn dùng được credential helper
+# dựa trên GITHUB_TOKEN/GH_TOKEN (vd `gh auth git-credential`).
+( unset GITHUB_TOKEN GH_TOKEN; exec bash scripts/maintain-run.sh "${PASS_ARGS[@]}" 9>&- ) || run_rc=$?
 [ "$run_rc" -eq 0 ] || log "maintain-run.sh thoát $run_rc (không phải lỗi chặn — có thể agent chỉ báo 🔴>0, hoặc CLI lỗi; xem log phía trên)"
 
 # Một CLI có thể stage file khác. Chỉ git add báo cáo là CHƯA đủ để giới hạn commit.
@@ -201,11 +270,10 @@ git checkout -q "$BASE"
 
 # ── (4) Tự mở PR — kênh báo cáo chính cho chủ dự án ──────────────────────────
 open_pr() {
-  local TOKEN owner_repo url list_url create_url code body existing_url title pr_body \
+  local owner_repo url list_url create_url code body existing_url title pr_body \
         json_body http_body_file len
   [ "$NO_OPEN_PR" -eq 1 ] && { log "--no-open-pr: bỏ qua tự mở PR (nhánh đã có sẵn trên remote để bạn tự mở tay)."; return 0; }
-  TOKEN="${GH_TOKEN_FLAG:-${GITHUB_TOKEN:-${GH_TOKEN:-}}}"
-  if [ -z "$TOKEN" ]; then
+  if [ "${#API_TOKEN}" -eq 0 ]; then   # so độ dài: xtrace không in giá trị token
     log "không có GITHUB_TOKEN/GH_TOKEN (hoặc --gh-token) — bỏ qua tự mở PR. Đặt biến môi trường để bật kênh báo cáo này, hoặc tự mở PR tay từ $WORK_BRANCH."
     return 0
   fi
@@ -217,10 +285,12 @@ open_pr() {
   if [ -n "$REPO_FLAG" ]; then
     owner_repo="$REPO_FLAG"
   else
-    url="$(git remote get-url origin 2>/dev/null || true)"
+    # URL đã cấu hình (không qua insteadOf như `get-url`), bỏ userinfo NGAY — token trong URL không
+    # được đi tiếp vào owner_repo → URL API → argv curl/log.
+    url="$(redact_url "$(git config --get remote.origin.url 2>/dev/null || true)")"
     case "$url" in
       *github.com*)
-        owner_repo="$(printf '%s' "$url" | sed -E 's#^(https://|http://|git@|ssh://git@)?github\.com[:/]##; s#\.git$##; s#/+$##')"
+        owner_repo="$(printf '%s' "$url" | sed -E 's#^[A-Za-z+]+://##; s#^[^@/]*@##; s#^github\.com[:/]##; s#\.git$##; s#/+$##')"
         ;;
       *)
         log "remote 'origin' ($url) không phải github.com và không có --repo — bỏ qua tự mở PR."
@@ -229,6 +299,8 @@ open_pr() {
     esac
   fi
   [ -n "$owner_repo" ] || { log "không xác định được owner/repo từ origin — dùng --repo <owner/repo>. Bỏ qua tự mở PR."; return 0; }
+  [[ "$owner_repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] \
+    || { log "owner/repo không hợp lệ ('$(redact_url "$owner_repo")') — dùng --repo <owner/repo>. Bỏ qua tự mở PR."; return 0; }
 
   # Parse JSON: ưu tiên jq, dự phòng python3 — không có cả hai thì không tự mở PR được an toàn
   # (không tự escape JSON bằng tay, tránh chèn được nội dung lạ vào request).
@@ -238,7 +310,19 @@ open_pr() {
   else log "thiếu jq và python3 — không tự mở PR được (cần để parse/dựng JSON an toàn). Cài một trong hai, hoặc tự mở PR tay."; return 0
   fi
 
-  local CURL_BIN="${MAINT_BIN_CURL:-curl}"
+  local CURL_BIN="${MAINT_BIN_CURL:-curl}" HDR_FILE
+  # Token KHÔNG vào argv (`ps` của mọi người dùng đọc được): ghi header vào file tạm rồi
+  # `curl -H @file` (curl ≥ 7.55). File nằm trong thư mục khoá (umask 077, đã kiểm ở secure_lock_path)
+  # và mktemp tạo 0600 — không cần chmod riêng. printf là builtin (không sinh tiến trình mang token),
+  # chạy với xtrace tắt. Xoá ở trap.
+  HDR_FILE="$(mktemp "$LOCK_DIR/hdr.XXXXXX")" \
+    || { log "không tạo được file header tạm — bỏ qua tự mở PR."; return 0; }
+  CLEANUP_FILES+=("$HDR_FILE")
+  local hdr_ok=1 xt
+  { xt="${-//[^x]/}"; set +x; } 2>/dev/null
+  printf 'Authorization: Bearer %s\n' "$API_TOKEN" > "$HDR_FILE" || hdr_ok=0
+  [ -z "$xt" ] || set -x
+  [ "$hdr_ok" -eq 1 ] || { log "không ghi được file header tạm — bỏ qua tự mở PR."; return 0; }
   # $1=method(GET|POST) $2=url $3=bodyfile(ĐÃ tạo sẵn bởi caller) $4=data(optional, chỉ POST)
   # -> in http code ra stdout. CỐ Ý nhận bodyfile làm THAM SỐ thay vì ghi vào biến ngoài: mọi lệnh
   # gọi hàm này đều qua `code="$(http_call ...)"` (command substitution = SUBSHELL) — một biến được
@@ -249,7 +333,7 @@ open_pr() {
     local extra=()
     [ "$1" = POST ] && extra=(-X POST -d "$4")
     "$CURL_BIN" -sS -o "$3" -w '%{http_code}' "${extra[@]}" \
-      -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+      -H @"$HDR_FILE" -H "Accept: application/vnd.github+json" \
       -H "X-GitHub-Api-Version: 2022-11-28" -H "User-Agent: maintain-cron" \
       "$2"
   }
