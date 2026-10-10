@@ -196,6 +196,26 @@ check_git_exec_bit() {  # check_git_exec_bit <mô tả> <target> — script phá
   fi
 }
 
+check_hooks_and_owners() {  # check_hooks_and_owners <mô tả> <target> — core.hooksPath bật sẵn + dropin CODEOWNERS không mang owner của khung (F-A7, F-A5)
+  local label="$1" target="$2" hp
+  hp="$(git -C "$target" config core.hooksPath 2>/dev/null)"
+  if [ "$hp" = "scripts/githooks" ]; then
+    echo "  ok [$label]: core.hooksPath = scripts/githooks ở đích"
+  else
+    echo "  FAIL [$label]: core.hooksPath '${hp:-chưa đặt}' (kỳ vọng scripts/githooks) — commit ngoài Claude Code không qua cổng"
+    fail=1
+  fi
+  if [ ! -f "$target/_framework-dropins/.github/CODEOWNERS" ]; then
+    echo "  FAIL [$label]: thiếu _framework-dropins/.github/CODEOWNERS"; fail=1
+  elif grep -q 'seeker19110' "$target/_framework-dropins/.github/CODEOWNERS"; then
+    echo "  FAIL [$label]: dropin CODEOWNERS còn @seeker19110 (owner của khung)"; fail=1
+  elif grep -q '@OWNER-CHANGE-ME' "$target/_framework-dropins/.github/CODEOWNERS"; then
+    echo "  ok [$label]: dropin CODEOWNERS dùng placeholder @OWNER-CHANGE-ME"
+  else
+    echo "  FAIL [$label]: dropin CODEOWNERS không có placeholder @OWNER-CHANGE-ME"; fail=1
+  fi
+}
+
 check_ops_state_kept() {  # check_ops_state_kept <mô tả> <target> — chạy lại copy KHÔNG được xoá nhật ký của đích
   local label="$1" target="$2"
   if grep -q "SENTINEL-NHAT-KY-DICH" "$target/docs/ops/MAINTENANCE-LOG.md" 2>/dev/null; then
@@ -212,6 +232,7 @@ run_logged "bash / đích trống" bash "$REPO_ROOT/copy-framework.sh" "$targetA
 check_structure "bash / đích trống" "$targetA"
 check_manifest "bash / đích trống" "$targetA"
 check_ci_target_stacks "bash / đích trống" "$targetA"
+check_hooks_and_owners "bash / đích trống" "$targetA"
 
 echo "== .gitignore drop-in: chặn biến thể môi trường, giữ tệp mẫu =="
 env_target="$(new_target)"
@@ -315,6 +336,7 @@ if command -v pwsh >/dev/null 2>&1; then
   check_manifest "pwsh / đích trống" "$targetD"
   check_ci_target_stacks "pwsh / đích trống" "$targetD"
   check_git_exec_bit "pwsh / đích trống" "$targetD"
+  check_hooks_and_owners "pwsh / đích trống" "$targetD"
 
   echo ""
   echo "== pwsh / đích đã có CLAUDE.md + .claude/settings.json + .claude/hooks (không được đè) =="

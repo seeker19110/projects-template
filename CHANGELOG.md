@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-10, audit tự động hóa PR-6/F-A7, F-A5, #266): `copy-framework.sh`/`.ps1` đặt `core.hooksPath=scripts/githooks` ở đích
+  có `.git` (cờ `--no-hooks`/`-NoHooks`; không ghi đè giá trị đã có), dropin CODEOWNERS mang `@OWNER-CHANGE-ME` thay vì owner của
+  khung; `dev-task.sh doctor` cảnh báo hooksPath chưa trỏ; `maintenance-sweep.sh` 🟡 hooksPath + CODEOWNERS placeholder.
 - Changed (2026-10-10, audit tự động hóa PR-5/F-A3, F-A4, F-A9, #265): `ci-target.yml` phát cho đích gồm 3 job — `checks` cài
   dependency có điều kiện `hashFiles` cho 17 stack, `protection-guard` (ruleset + `allow_auto_merge`/`delete_branch_on_merge`),
   `gate` tổng hợp `if: always()`; smoke `check_ci_target_stacks` chốt chặn; TRAPS 57 tái phát; Evidence ở `repository-settings.md`.

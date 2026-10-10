@@ -83,8 +83,8 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-30 | Copy khung sang dự án đích (POSIX) | `copy-framework.sh` | Lớp 1 copy thẳng · file gốc `copy_if_absent` · Lớp 2 `stage` → `_framework-dropins/` · `FRAMEWORK-VERSION` | ✅ | `test-copy-framework.sh` |
-| FT-31 | Bản Windows | `copy-framework.ps1` | như trên (cùng `copy-framework.manifest`; chạy lại trên đích chưa sửa không tạo `.framework-new`); exec-bit ghi vào index git của đích (`update-index --add --chmod=+x`, đích không có `.git` → cảnh báo); `FRAMEWORK-VERSION` đủ `version:` + `manifest:` như bản `.sh`. **Chưa có `--upgrade`** (DEBT trong `.ps1` giữ nguyên — dùng `bash copy-framework.sh <đích> --upgrade`) | ✅ | `test-copy-framework.sh` (chạy khi có `pwsh`; CI yêu cầu phải có và lượt nghiệm thu local này đã chạy) |
+| FT-30 | Copy khung sang dự án đích (POSIX) | `copy-framework.sh` | Lớp 1 copy thẳng · file gốc `copy_if_absent` · Lớp 2 `stage` → `_framework-dropins/` (CODEOWNERS đổi owner thành `@OWNER-CHANGE-ME`) · `enable_hooks_path` đặt `core.hooksPath=scripts/githooks` ở đích có `.git` (cờ `--no-hooks` bỏ) · `FRAMEWORK-VERSION` | ✅ | `test-copy-framework.sh` |
+| FT-31 | Bản Windows | `copy-framework.ps1` | như trên (cùng `copy-framework.manifest`; chạy lại trên đích chưa sửa không tạo `.framework-new`); exec-bit ghi vào index git của đích (`update-index --add --chmod=+x`, đích không có `.git` → cảnh báo); `FRAMEWORK-VERSION` đủ `version:` + `manifest:` như bản `.sh`; `Enable-HooksPath` (`-NoHooks`) và CODEOWNERS placeholder như bản `.sh`. **Chưa có `--upgrade`** (DEBT trong `.ps1` giữ nguyên — dùng `bash copy-framework.sh <đích> --upgrade`) | ✅ | `test-copy-framework.sh` (chạy khi có `pwsh`; CI yêu cầu phải có và lượt nghiệm thu local này đã chạy) |
 
 ## F. Tài liệu khung (Lớp 1) — `docs/framework/` và `docs/ops/`
 
