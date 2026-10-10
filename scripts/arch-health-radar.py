@@ -25,6 +25,8 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 EXCLUDE_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", ".ai-telemetry", ".hermes", "dist", "build", "coverage"}
+# Theo ĐƯỜNG DẪN (tên "worktrees" trơn có thể là thư mục thật của dự án): worktree lồng của subagent = bản sao repo.
+EXCLUDE_PATHS = {os.path.join(ROOT_DIR, ".claude", "worktrees")}
 
 CODE_EXT = {".sh", ".py", ".ts", ".js", ".ps1", ".mjs"}
 DOC_EXT = {".md", ".mdc"}
@@ -190,7 +192,8 @@ def _walk_repo_files():
         "code_lines": 0, "code_comment_lines": 0, "doc_lines": 0, "todo_markers": [],
     }
     for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
-        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
+        dirnames[:] = [d for d in dirnames
+                       if d not in EXCLUDE_DIRS and os.path.join(dirpath, d) not in EXCLUDE_PATHS]
         for f in filenames:
             full_path = os.path.join(dirpath, f)
             lines = _read_lines(full_path)

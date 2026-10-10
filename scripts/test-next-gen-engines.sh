@@ -251,8 +251,8 @@ fi
 # Loại trừ ĐÚNG tập thư mục radar loại trừ (EXCLUDE_DIRS trong arch-health-radar.py) — nếu không, bộ đếm
 # đối chứng tự lệch: .ai-telemetry/telemetry.json phình sau nhiều lượt test cục bộ làm find/wc ra 50% trong
 # khi radar (bỏ qua thư mục đó) ra 56% → ca này đỏ oan trên máy dev (gặp thật 2026-09-23).
-doc_lines_real="$(find "$ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/.ai-telemetry/*' -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
-total_real="$(find "$ROOT" -type f -not -path '*/.git/*' -not -path '*/__pycache__/*' -not -path '*/.ai-telemetry/*' -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/coverage/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
+doc_lines_real="$(find "$ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/.ai-telemetry/*' -not -path '*/.claude/worktrees/*' -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
+total_real="$(find "$ROOT" -type f -not -path '*/.git/*' -not -path '*/__pycache__/*' -not -path '*/.ai-telemetry/*' -not -path '*/.claude/worktrees/*' -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/coverage/*' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')"
 radar_doc_pct="$(echo "$out_radar" | sed -n 's/.*\*\*\([0-9.]*\)%\*\* tổng số dòng.*/\1/p' | head -1)"
 if [ -n "$radar_doc_pct" ] && [ "$total_real" -gt 0 ]; then
   expected_pct=$(( 100 * doc_lines_real / total_real ))
@@ -286,6 +286,19 @@ elif [ -n "$cov_before" ] && [ -n "$cov_after" ] \
   ok "AHR-3: thêm script không có test → độ phủ TỤT ($cov_before → $cov_after), radar đo thật"
 else
   bad "AHR-3: độ phủ KHÔNG đổi khi thêm script không có test ($cov_before → $cov_after) — đang in hằng số?"
+fi
+
+# AHR-4: .claude/worktrees/ là worktree lồng của subagent (bản sao cả repo) — radar không được đếm nó, kẻo số file/
+# dòng và "file mã > 400 dòng" lệch theo số worktree đang mở (2026-10-10, ghi ở hồ sơ audit tự động hóa).
+wt_probe="$ROOT/.claude/worktrees/zz-probe-wt-$$"
+trap 'rm -rf "$scratch" "$wt_probe"; rm -f "$probe"' EXIT
+mkdir -p "$wt_probe/scripts" && seq 450 | sed 's/^/# /' > "$wt_probe/scripts/zz-big.sh"
+out_wt="$(bash "$ROOT/scripts/arch-health-radar.sh" --scan 2>&1)"
+rm -rf "$wt_probe"; rmdir "$ROOT/.claude/worktrees" 2>/dev/null || true
+if printf '%s' "$out_wt" | grep -q 'zz-probe-wt-'; then
+  bad "AHR-4: radar đếm cả file trong .claude/worktrees/ (worktree lồng)"
+else
+  ok "AHR-4: radar bỏ qua .claude/worktrees/ (worktree lồng không làm lệch số đo)"
 fi
 
 finish "Tất cả kiểm tra Next-Gen Engines (Spec Compiler & Health Radar) đều XANH."

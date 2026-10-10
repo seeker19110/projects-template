@@ -100,6 +100,7 @@ if [ "$secret_hit" = 1 ]; then
 fi
 big=""
 while IFS= read -r -d '' f; do
+  [ -f "$CAY/$f" ] || continue   # "dir/" = repo git lồng chưa theo dõi: không phải file để đo (TRAPS mục 67)
   sz="$(wc -c <"$CAY/$f" 2>/dev/null || echo 0)"
   [ "$sz" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && big="$big $f($((sz/1024))KB)"
 done < <(candidates | sort -zu)

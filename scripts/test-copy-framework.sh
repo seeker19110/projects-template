@@ -17,11 +17,13 @@ trap cleanup EXIT
 # bị dừng dở — từng ghi đè log của nhau, smoke đọc nhầm kết quả bản kia (TRAPS.md mục 65).
 LOG_DIR="$(mktemp -d)"; tmp_dirs+=("$LOG_DIR")
 
+# Đích tạo trong MỘT thư mục cha dọn ở EXIT: new_target chạy trong $(…) (subshell) nên `tmp_dirs+=` ở đó mất —
+# bản cũ để lại mỗi lượt ~12 bản copy khung trong $TMPDIR (đo 2026-10-10, TRAPS mục 65).
+TARGETS_DIR="$(mktemp -d)"; tmp_dirs+=("$TARGETS_DIR")
 new_target() {
   local t
-  t="$(mktemp -d)"
+  t="$(mktemp -d "$TARGETS_DIR/t.XXXXXX")"
   git init -q "$t"
-  tmp_dirs+=("$t")
   printf '%s' "$t"
 }
 
@@ -119,6 +121,19 @@ check_hooks_and_owners() {  # check_hooks_and_owners <mô tả> <target> — cor
   fi
 }
 
+check_hooks_opt_out() {  # check_hooks_opt_out <mô tả> <cờ tắt hook> <lệnh copy...> — cờ tắt + giá trị có sẵn được tôn trọng (F-A7)
+  local label="$1" flag="$2" t1 t2 hp; shift 2
+  t1="$(new_target)"; run_logged "$label / $flag" "$@" "$t1" "$flag"
+  hp="$(git -C "$t1" config core.hooksPath 2>/dev/null)"
+  [ -z "$hp" ] && echo "  ok [$label]: $flag → không đặt core.hooksPath" \
+    || { echo "  FAIL [$label]: $flag mà core.hooksPath vẫn bị đặt '$hp'"; fail=1; }
+  t2="$(new_target)"; git -C "$t2" config core.hooksPath .husky
+  run_logged "$label / hooksPath có sẵn" "$@" "$t2"
+  hp="$(git -C "$t2" config core.hooksPath 2>/dev/null)"
+  [ "$hp" = ".husky" ] && echo "  ok [$label]: core.hooksPath đã đặt '.husky' → giữ nguyên" \
+    || { echo "  FAIL [$label]: core.hooksPath có sẵn bị ghi đè thành '$hp'"; fail=1; }
+}
+
 check_ops_state_kept() {  # check_ops_state_kept <mô tả> <target> — chạy lại copy KHÔNG được xoá nhật ký của đích
   local label="$1" target="$2"
   if grep -q "SENTINEL-NHAT-KY-DICH" "$target/docs/ops/MAINTENANCE-LOG.md" 2>/dev/null; then
@@ -136,6 +151,7 @@ check_structure "bash / đích trống" "$targetA"
 check_manifest "bash / đích trống" "$targetA"
 check_ci_target_stacks "bash / đích trống" "$targetA"
 check_hooks_and_owners "bash / đích trống" "$targetA"
+check_hooks_opt_out "bash" --no-hooks bash "$REPO_ROOT/copy-framework.sh"
 
 echo "== .gitignore drop-in: chặn biến thể môi trường, giữ tệp mẫu =="
 env_target="$(new_target)"
@@ -240,6 +256,7 @@ if command -v pwsh >/dev/null 2>&1; then
   check_ci_target_stacks "pwsh / đích trống" "$targetD"
   check_git_exec_bit "pwsh / đích trống" "$targetD"
   check_hooks_and_owners "pwsh / đích trống" "$targetD"
+  check_hooks_opt_out "pwsh" -NoHooks pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1"
 
   echo ""
   echo "== pwsh / đích đã có CLAUDE.md + .claude/settings.json + .claude/hooks (không được đè) =="

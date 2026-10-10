@@ -143,6 +143,11 @@ rc="$(run_hook "$c4" 'git commit -m "x"')"
 c5="$(setup_project 0)"; echo hello > "$c5/a.txt"
 rc="$(run_hook "$c5" 'git add a.txt && git commit -m "x"')"
 [ "$rc" = "0" ] && ok "cho qua: git add file sạch && git commit" || bad "chặn OAN add file sạch (exit $rc)"
+# Repo git lồng chưa theo dõi (vd .claude/worktrees/agent-*): `ls-files -o` in "dir/" → vòng đo cỡ file không được
+# đọc thư mục (bản trước in "[: integer expected" rồi bỏ qua phép đo) (2026-10-10, TRAPS mục 67).
+c6="$(setup_project 0)"; mkdir -p "$c6/vendor/lib"; echo x > "$c6/vendor/lib/f.txt"; git -C "$c6/vendor/lib" init -q
+rc="$(cd "$c6" && printf '{"tool_input":{"command":"git add -A && git commit -m x"}}' | CLAUDE_PROJECT_DIR="$c6" bash "$HOOK" >/dev/null 2>"$WORK/c6.err"; echo $?)"
+[ "$rc" = "0" ] && ! grep -q 'integer expected' "$WORK/c6.err" && ok "cho qua: git add -A với repo lồng chưa theo dõi, không lỗi so số" || { bad "repo lồng chưa theo dõi: exit $rc / stderr lỗi"; cat "$WORK/c6.err"; }
 
 echo "== 12. block-dangerous-git: khuôn 5 — push xoá / ép ghi đè nhánh chính không có --force =="
 for pair in \

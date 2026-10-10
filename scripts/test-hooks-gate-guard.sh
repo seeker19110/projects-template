@@ -71,6 +71,13 @@ fi
 g6="$(setup_project 0)"; head -c 1100000 /dev/zero > "$g6/blob.bin"; git -C "$g6" add blob.bin
 rc="$( cd "$g6" && bash "$GH" >/dev/null 2>&1; echo $? )"
 [ "$rc" = "1" ] && ok "githooks: chặn file staged > 1 MB (exit 1)" || bad "githooks: LỌT file lớn staged (exit $rc, kỳ vọng 1)"
+# Repo lồng đã stage thành gitlink: `diff --cached --name-only` in tên THƯ MỤC → vòng đo cỡ file không được đọc nó
+# (bản trước in "[: integer expected" ra stderr) (2026-10-10, TRAPS mục 67).
+g7="$(setup_project 0)"; mkdir -p "$g7/vendor/lib"; echo x > "$g7/vendor/lib/f.txt"; git -C "$g7/vendor/lib" init -q
+git -C "$g7/vendor/lib" add f.txt; git -C "$g7/vendor/lib" -c user.email=t@t -c user.name=t commit -qm init --no-verify
+git -C "$g7" add vendor/lib 2>/dev/null
+rc="$( cd "$g7" && bash "$GH" >/dev/null 2>"$WORK/g7.err"; echo $? )"
+[ "$rc" = "0" ] && ! grep -q 'integer expected' "$WORK/g7.err" && ok "githooks: gitlink repo lồng đã stage → cho qua, không lỗi so số" || { bad "githooks: gitlink repo lồng → exit $rc / stderr lỗi"; cat "$WORK/g7.err"; }
 # Dự án đích copy hook TRƯỚC khi có _commit-guard.sh: thiếu nguồn mẫu → CHẶN kèm lời nhắc (fail-closed), không
 # âm thầm bỏ kiểm bí mật. Bản hook/githook dựng trong cây tạm không có scripts/_commit-guard.sh.
 nolib="$(setup_project 0)"; mkdir -p "$nolib/.claude/hooks" "$nolib/scripts/githooks"

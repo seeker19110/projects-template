@@ -122,11 +122,20 @@ evidence_write_failure_tests() {
     [ -z "$(find "$d" -name 'gate.json.tmp.*' -print)" ] && ok "$scenario: không để lại evidence tạm" || bad "$scenario: còn evidence tạm"
   done
 }
+nested_repo_tests() {  # repo git lồng chưa theo dõi (vd .claude/worktrees/agent-*) → ls-files -o in "dir/" (2026-10-10)
+  local d rc
+  d="$(git_fixture gate-nested-repo)"; mkdir -p "$d/vendor/lib"; printf 'x\n' > "$d/vendor/lib/f.txt"
+  git -C "$d/vendor/lib" init -q && git -C "$d/vendor/lib" add -A && fixture_git "$d/vendor/lib" commit -qm 'test: nested'
+  CLAUDE_PROJECT_DIR="$d" bash "$DT" gate --evidence "$d/out/gate.json" >"$WORK/gate-output" 2>&1; rc=$?
+  [ "$rc" -eq 0 ] && ok "repo lồng chưa theo dõi → gate PASS (bỏ mục thư mục khỏi vân tay)" || { bad "repo lồng chưa theo dõi làm gate exit $rc"; cat "$WORK/gate-output"; }
+  ev_check "$d" "$d/out/gate.json" 0 VERIFIED "evidence khớp khi có repo lồng chưa theo dõi"
+}
 echo "== 7b. Bằng chứng: lệnh giả, zero-test, evidence gắn phiên bản (LD-03) =="
 noop_tests
 count_tests
 evidence_tests
 evidence_binding_tests
+nested_repo_tests
 evidence_write_failure_tests
 
 rv_check() {  # $1=fixture $2=findings $3=exit mong đợi $4=dấu hiệu $5=mô tả
