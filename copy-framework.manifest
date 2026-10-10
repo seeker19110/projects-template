@@ -46,6 +46,8 @@ CODE_OF_CONDUCT.md
 .claude/hooks
 .claude/agents
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota).
+# _dev-task-verify.sh: evidence-check/review-check mà dev-task.sh source (helper trước script dùng nó — TRAPS.md mục 19).
+scripts/_dev-task-verify.sh
 scripts/dev-task.sh
 # _stack-detect.sh: dev-task.sh + maintenance-sweep.sh source; _commit-guard.sh: mẫu bí mật + ngưỡng file lớn
 # cho pre-commit-gate + githook + sweep; githooks/pre-commit: hàng rào harness-agnostic (core.hooksPath).
@@ -90,8 +92,11 @@ scripts/test-maintenance-sweep.sh
 scripts/test-maintain-run.sh
 scripts/maintain-cron.sh
 scripts/test-maintain-cron.sh
-# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
+# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên; helper fixture phát TRƯỚC
+# hai suite source nó (TRAPS.md mục 19). Mục 17–19 tách sang test-hooks-gate-guard.sh (2026-10-10, trần 400 dòng).
+scripts/_hooks-gate-test-lib.sh
 scripts/test-hooks-gate.sh
+scripts/test-hooks-gate-guard.sh
 # ghim radon/coverage cho ci.yml dropin (Dependabot pip theo dõi)
 scripts/requirements-ci.txt
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung)

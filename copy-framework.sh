@@ -248,7 +248,7 @@ echo "[2/4] Cấu hình Claude Code (model tiêu chuẩn Sonnet 5 — tối ưu 
 mkdir -p "$TARGET/.claude"
 place_or_aside "$SRC/.claude/settings-shared-default.json" ".claude/settings.json" "(Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section scripts)
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/test-hooks-gate-guard.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 enable_hooks_path
 

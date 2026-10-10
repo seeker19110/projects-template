@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa — tối ưu trước khi đóng, #273): tách 4 file mã > 400 dòng không đổi hành vi —
+  `_dev-task-verify.sh`, `_docs-consistency-structure.sh`, `_copy-framework-test-lib.sh`, suite mới `test-hooks-gate-guard.sh`
+  (mục 17–19) + `_hooks-gate-test-lib.sh`; số ca giữ nguyên, radar 100/100.
 - Fixed (2026-10-10, audit tự động hóa PR-3/F-Q6, F-Q9, F-Q10, #272): cổng tổng `dev-task.sh gate` chạy xanh trên Windows lần đầu —
   `test-hooks-session.sh` (đường dẫn MSYS, PATH tối giản), `test-py-coverage-exit.sh` (launcher `python3` chạy shebang của đối số,
   cp1252), `test-workflow-guards.sh` (jq CRLF); `auto-format.sh` không nuốt lỗi; `usage-estimate.sh` dò `python`; TRAPS 65, 66.

@@ -161,6 +161,7 @@
       "Write(.github/workflows/**)",
       "Edit(scripts/_commit-guard.sh)",
       "Edit(scripts/dev-task.sh)",
+      "Edit(scripts/_dev-task-verify.sh)",
       "Edit(scripts/_stack-detect.sh)"
     ]
   },

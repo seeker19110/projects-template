@@ -111,6 +111,7 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được CLAUDE.md có dòng > 2000 ký tự (mục 9)" || bad "KHÔNG bắt được dòng dài trong CLAUDE.md (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mục 12–14 nằm ở scripts/_docs-consistency-structure.sh (check-docs-consistency.sh source); ca dưới chạy qua script gốc.
 # Mục 12: mẫu mới trong templates/ mà không tài liệu nào nhắc tên → phải đỏ (F-R02, 2026-10-09).
 # Dựng tên lúc chạy để chính file test này không phải là "tài liệu nhắc tên" hay bị mục 1 bắt.
 zeta="ZETA-MO-COI"

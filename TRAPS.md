@@ -1271,7 +1271,7 @@ khiến bộ lọc bỏ một dòng/đoạn LÀ LỆNH?": nháy lồng khác lo�
 Khuôn so tên nhánh/cờ thì liệt kê đủ cú pháp git cho cùng ý nghĩa (`refs/heads/`, `src:dst`, `+`, cờ gộp) và so trên dạng đã
 chuẩn hoá, không so chuỗi thô. Cờ bỏ cổng (`--no-verify`) chỉ tính khi cùng segment với lệnh nó thuộc về.
 
-*Cổng chốt chặn:* `scripts/test-hooks-gate.sh` mục 18 — 12 ca phải chặn (7 biến thể trên + `<<-EOF` thụt tab, `--delete
+*Cổng chốt chặn:* `scripts/test-hooks-gate-guard.sh` mục 18 (tách khỏi `test-hooks-gate.sh` 2026-10-10) — 12 ca phải chặn (7 biến thể trên + `<<-EOF` thụt tab, `--delete
 refs/heads/main`, `sh -c "…"`, `eval "…"`, `<<EOF` trong chuỗi) + 2 ca pre-commit-gate (`rm --no-verify` ở segment khác, `git
 commit` trong `bash -c`) đều đo ĐỎ trước khi sửa; cùng các ca đối chứng không chặn oan (`-f origin feat/x` chỉ ⚠️, `echo "git
 reset --hard"`, `git commit -m "don't"`, `rm -rf … && git push origin main`, `main:feat/x`) (PR 2026-10-09).

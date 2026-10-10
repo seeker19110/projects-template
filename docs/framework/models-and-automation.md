@@ -346,6 +346,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `dev-task.sh` | **Điểm vào ổn định** `format\|lint\|typecheck\|test\|build\|gate\|format-file`; tự dò stack (node/python/go/rust/make) hoặc theo khai báo; **no-op an toàn** |
 | `usage-estimate.sh` | Ước tính % quota 5h = token thật (transcript) ÷ budget khai báo; `% = MAX` theo model |
 | `_stack-detect.sh` | Dò stack/lockfile/venv + đọc lệnh khai báo — `dev-task.sh` và `maintenance-sweep.sh` cùng `source` |
+| `_dev-task-verify.sh` | `evidence-check` (bằng chứng gate khớp phiên bản hiện tại) + `review-check` (finding có căn cứ) — `dev-task.sh` `source` |
 | `_commit-guard.sh` | MỘT nguồn mẫu bí mật + ngưỡng file lớn cho `pre-commit-gate.sh`, `githooks/pre-commit`, sweep; **thiếu → chặn commit** |
 | `githooks/pre-commit` | Hook git chuẩn (bật `core.hooksPath scripts/githooks`) — cổng cho harness ngoài Claude Code |
 
