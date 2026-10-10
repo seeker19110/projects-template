@@ -1258,3 +1258,22 @@ chuẩn hoá, không so chuỗi thô. Cờ bỏ cổng (`--no-verify`) chỉ tí
 refs/heads/main`, `sh -c "…"`, `eval "…"`, `<<EOF` trong chuỗi) + 2 ca pre-commit-gate (`rm --no-verify` ở segment khác, `git
 commit` trong `bash -c`) đều đo ĐỎ trước khi sửa; cùng các ca đối chứng không chặn oan (`-f origin feat/x` chỉ ⚠️, `echo "git
 reset --hard"`, `git commit -m "don't"`, `rm -rf … && git push origin main`, `main:feat/x`) (PR 2026-10-09).
+
+## 63. Hai phiên AI dùng chung một checkout — `git switch` của phiên này mang staged change của phiên kia, commit rơi vào nhánh lạ
+
+*Ngày:* 2026-10-10 (PR #258 / #257). Phiên A (đối chiếu compound-engineering) tạo nhánh `docs/close-doi-chieu-…` trên checkout
+chính, sửa + `git add` rồi chờ người dùng chạy `git commit --no-verify` (hook gate local đỏ vì F-Q6). Trong lúc chờ, phiên B
+(lane ralph) trên CÙNG checkout chạy `git switch docs/ralph-decision` — git mang theo staged change (không xung đột nên không
+chặn). Lệnh commit của người dùng vì thế tạo `8fa76fe` trên nhánh của B; `git push -u origin docs/close-…` của A đẩy một nhánh
+RỖNG (= `main`); PR #257 của B mang thêm một commit không phải của nó. Không lệnh nào báo lỗi — chỉ `git reflog` kể lại.
+Cùng họ mục 14 (commit rơi nhầm nhánh) nhưng nguyên nhân là *hai tác nhân một working tree*, không phải nhánh trùng tên.
+
+*Cách rà:* trước khi commit (nhất là commit do người/phiên khác bấm), đọc `git branch --show-current` NGAY TRƯỚC lệnh commit,
+không tin trạng thái nhớ từ lượt trước; sau commit đọc `git log -1` trên nhánh dự kiến. Triệu chứng: push báo "new branch" nhưng
+`git diff origin/main` rỗng; `git reflog` có `checkout: moving from <nhánh của mình> to <nhánh lạ>` xen giữa `add` và `commit`.
+Cứu: `git branch -f <nhánh mình> <sha>` rồi push thường (fast-forward), KHÔNG rewrite nhánh của phiên kia; phiên kia rebase.
+
+*Cổng chốt chặn:* quy ước — mỗi phiên AI làm trong worktree riêng (`EnterWorktree` hoặc `git worktree add` ở scratchpad), checkout
+chính chỉ để đứng ở `main`; `coordinator.md` 2a/2b đã bắt worker làm vậy, phiên chính cũng phải thế khi có phiên khác đang chạy.
+Cổng máy: chưa có (`DEBT: hook SessionStart/PreToolUse chưa cảnh báo khi checkout có staged change mà nhánh vừa đổi | trần: chỉ
+quy ước | xem lại khi: khuôn này tái phát lần 2`).
