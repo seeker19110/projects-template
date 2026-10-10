@@ -63,6 +63,7 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/dependabot-auto-merge.yml" ] || { echo "  FAIL [$label]: thiếu Dependabot auto-merge drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/maintenance.yml" ] || { echo "  FAIL [$label]: thiếu Maintenance sweep drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/codeql.yml" ] && [ -f "$target/_framework-dropins/.github/workflows/scorecard.yml" ] || { echo "  FAIL [$label]: thiếu CodeQL/Scorecard drop-in"; ok=0; }
   [ -f "$target/scripts/requirements-ci.txt" ] || { echo "  FAIL [$label]: thiếu scripts/requirements-ci.txt (ci.yml dropin cần)"; ok=0; }

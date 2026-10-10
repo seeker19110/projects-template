@@ -1,0 +1,40 @@
+name: Dependabot auto-merge
+
+# VÌ SAO (audit F-A2, nối tiếp F-001 / TRAPS 5b): PR Dependabot đã được miễn mục template ở `metadata`,
+# nhưng vẫn nằm chờ người bấm merge → bản vá bảo mật/patch đọng lại nhiều ngày. Workflow này bật
+# auto-merge (squash) cho PR Dependabot nâng patch/minor; major vẫn chờ người duyệt (có thể phá API).
+# Điều kiện để chạy đúng:
+#   - repo bật "Allow auto-merge" (Settings → General → Pull Requests) — thiếu thì `gh pr merge --auto` lỗi;
+#   - required checks `gate` + `metadata` VẪN phải xanh — auto-merge chỉ hẹn merge, không bỏ qua cổng;
+#   - ruleset `strict` (nhánh phải cập nhật với `main`) → Dependabot tự rebase PR của nó
+#     (`rebase-strategy: auto`, mặc định của `.github/dependabot.yml`), không cần người can thiệp.
+# Workflow này KHÔNG phải required check (xem docs/ops/repository-settings.md).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  automerge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: md
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+      - name: Bật auto-merge cho patch/minor
+        if: contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.md.outputs.update-type)
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Major chờ người duyệt
+        if: ${{ !contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.md.outputs.update-type) }}
+        run: echo "::notice::major → chờ người duyệt"

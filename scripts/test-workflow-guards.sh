@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # test-workflow-guards.sh — CHỨNG MINH thân step `protection-guard` (ci.yml), `Detect project manifest`
-# (dependency-review.yml) và `Work ID trỏ tới hồ sơ có thật` (pr-policy.yml) chạy đúng với API/manifest giả lập: bắt đúng lỗi, không chặn oan.
+# (dependency-review.yml), `Work ID trỏ tới hồ sơ có thật` (pr-policy.yml), `Dò ngôn ngữ repo cho CodeQL`
+# (codeql.yml) và `Dò release-type theo manifest` (release.yml) chạy đúng với API/manifest giả lập: bắt đúng lỗi, không chặn oan.
 #
 # VÌ SAO TÁCH khỏi `test-check-scripts.sh` (2026-10-09): suite gốc vượt 400 dòng (radar). Hai mục này
 # kiểm step trong workflow (trích bằng `step_body`), không kiểm gate script nên tách riêng theo đối tượng.
@@ -22,11 +23,13 @@ bad() {
 }
 
 # step_body <tên-step> <file-workflow> <file-ra>: trích thân `run:` của một step trong .github/workflows.
+# Dừng ở step kế tiếp HOẶC dòng thụt < 10 (step cuối job: không để nuốt `with:` của job sau).
 step_body() {
   awk -v name="      - name: $1" '
     $0 == name { found=1; next }
     found && /^        run: \|$/ { body=1; next }
     body && /^      - name:/ { exit }
+    body && /[^ ]/ && substr($0, 1, 10) != "          " { exit }
     body && /^          / { sub(/^          /, ""); print }
   ' "$ROOT/.github/workflows/$2" > "$3"
 }
@@ -143,4 +146,65 @@ EOF
 fi
 
 
-finish "protection-guard, dependency-review và Work ID bắt đúng lỗi + không chặn oan."
+## ============================================================
+## 7. codeql: matrix ngôn ngữ dò từ GET /repos/{repo}/languages
+## ============================================================
+echo "== 7. codeql detect languages =="
+step_body "Dò ngôn ngữ repo cho CodeQL" codeql.yml "$WORK/codeql-langs.sh"
+if [ ! -s "$WORK/codeql-langs.sh" ]; then
+  echo 'không tìm thấy thân step Dò ngôn ngữ repo cho CodeQL' > "$WORK/check-output"
+  bad "không thể trích step detect từ codeql.yml"
+else
+  mkdir -p "$WORK/bin-langs"
+  cat > "$WORK/bin-langs/curl" <<'EOF'
+#!/usr/bin/env bash
+[ "$TEST_LANGS" = fail ] && { echo 'curl: (22) 403' >&2; exit 22; }
+printf '%s' "$TEST_LANGS"
+EOF
+  chmod +x "$WORK/bin-langs/curl"
+  # nhãn|phản hồi API giả|mảng langs mong đợi (jq -c)
+  while IFS='|' read -r label api want; do
+    : > "$WORK/github-output"
+    (PATH="$WORK/bin-langs:$PATH" TEST_LANGS="$api" GITHUB_OUTPUT="$WORK/github-output" \
+      GH_TOKEN=test REPO=test/repo bash "$WORK/codeql-langs.sh" > "$WORK/check-output" 2>&1)
+    rc=$?
+    actual=$(sed -n 's/^langs=//p' "$WORK/github-output" | tail -1)
+    [ "$rc" = 0 ] && [ "$actual" = "$want" ] && ok "CodeQL $label → $want" || \
+      bad "CodeQL $label: muốn $want, nhận '$actual' (rc=$rc)"
+  done <<'EOF'
+chỉ Python|{"Python":1200,"Shell":300}|["python","actions"]
+JS+TS+Go (gộp trùng)|{"TypeScript":900,"JavaScript":50,"Go":400}|["javascript-typescript","go","actions"]
+repo rỗng|{}|["actions"]
+EOF
+  : > "$WORK/github-output"
+  (PATH="$WORK/bin-langs:$PATH" TEST_LANGS=fail GITHUB_OUTPUT="$WORK/github-output" \
+    GH_TOKEN=test REPO=test/repo bash "$WORK/codeql-langs.sh" > "$WORK/check-output" 2>&1)
+  rc=$?
+  [ "$rc" -ne 0 ] && ! grep -q '^langs=' "$WORK/github-output" && \
+    ok "API lỗi → step đỏ, không âm thầm quét thiếu ngôn ngữ" || bad "API lỗi nhưng step vẫn xuất langs (rc=$rc)"
+fi
+
+## ============================================================
+## 8. release: release-type dò theo manifest của dự án
+## ============================================================
+echo "== 8. release release-type =="
+step_body "Dò release-type theo manifest" release.yml "$WORK/release-type.sh"
+if [ ! -s "$WORK/release-type.sh" ]; then
+  echo 'không tìm thấy thân step Dò release-type theo manifest' > "$WORK/check-output"
+  bad "không thể trích step release-type từ release.yml"
+else
+  for case in none:none version.txt:simple VERSION:none package.json:node pyproject.toml:python setup.py:python go.mod:go Cargo.toml:rust; do
+    manifest=${case%%:*} want=${case##*:}
+    d="$WORK/release-$manifest"
+    mkdir -p "$d"
+    [ "$manifest" != none ] && : > "$d/$manifest"
+    : > "$WORK/github-output"
+    (cd "$d" && GITHUB_OUTPUT="$WORK/github-output" bash "$WORK/release-type.sh" > "$WORK/check-output" 2>&1)
+    rc=$?
+    actual=$(sed -n 's/^type=//p' "$WORK/github-output" | tail -1)
+    [ "$rc" = 0 ] && [ "$actual" = "$want" ] && ok "release $manifest → type=$want" || \
+      bad "release $manifest: muốn type=$want, nhận '$actual' (rc=$rc)"
+  done
+fi
+
+finish "protection-guard, dependency-review, Work ID, CodeQL langs và release-type bắt đúng lỗi + không chặn oan."

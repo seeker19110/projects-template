@@ -2,7 +2,10 @@ name: CodeQL
 
 # SAST cho mã CHẠY THẬT của khung (audit 2026-09-23, C12): 4 engine Python + workflow Actions. Trước
 # đây SECURITY.md nói "không có mã để quét CodeQL" — sai từ khi scripts/*.py xuất hiện (PR #89/#91).
-# Dự án đích: thêm ngôn ngữ của stack vào `language` (js-ts, go, java-kotlin, csharp, ruby, swift…).
+# Matrix ngôn ngữ dò TỰ ĐỘNG từ GET /repos/{repo}/languages (audit F-A6): dự án đích không phải sửa tay
+# `language` nữa. `actions` luôn có (quét chính workflow). Repo khung: python + actions, thêm
+# javascript-typescript nếu GitHub đếm `scripts/ci-workflow-policy.test.ts` (drop-in vitest) là TypeScript.
+# Lưu ý dự án đích: `swift` cần runner macOS; ngôn ngữ biên dịch dùng build-mode mặc định của CodeQL.
 on:
   push:
     branches: [main]
@@ -19,7 +22,42 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      langs: ${{ steps.langs.outputs.langs }}
+    steps:
+      # Thân `run:` là bash + jq thuần để scripts/test-workflow-guards.sh (mục 7) chạy được với API giả.
+      - name: Dò ngôn ngữ repo cho CodeQL
+        id: langs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          # API lỗi → đỏ, KHÔNG rơi về ["actions"]: quét thiếu ngôn ngữ mà vẫn xanh là cổng giả.
+          if ! body=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/languages"); then
+            echo "::error::Không đọc được ngôn ngữ của $REPO qua API — không dựng được matrix CodeQL."
+            exit 1
+          fi
+          if ! langs=$(jq -ce '
+            {"JavaScript":"javascript-typescript","TypeScript":"javascript-typescript","Python":"python",
+             "Go":"go","Java":"java-kotlin","Kotlin":"java-kotlin","C#":"csharp","C Sharp":"csharp",
+             "C":"c-cpp","C++":"c-cpp","Ruby":"ruby","Rust":"rust","Swift":"swift"} as $map
+            | if type == "object" then . else error("phản hồi không phải object") end
+            | [keys_unsorted[] | $map[.] // empty] + ["actions"]
+            | reduce .[] as $l ([]; if any(.[]; . == $l) then . else . + [$l] end)' <<<"$body"); then
+            echo "::error::Phản hồi /languages không hợp lệ: $body"
+            exit 1
+          fi
+          echo "CodeQL sẽ quét: $langs"
+          echo "langs=$langs" >> "$GITHUB_OUTPUT"
+
   analyze:
+    needs: detect
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -30,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [python, actions]
+        language: ${{ fromJSON(needs.detect.outputs.langs) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2

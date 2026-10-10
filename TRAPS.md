@@ -103,6 +103,12 @@ Nguy hiểm hơn cổng thiếu, vì nó trông như đang làm việc.
 **Cổng chốt chặn:** `pr-policy.yml` miễn trừ `BOT_ACTORS` khỏi yêu cầu mục template (vẫn giữ kiểm
 tiêu đề conventional). Chưa tự động hoá được phần "phát hiện PR đọng" — xem W-105.
 
+**Tái phát 2026-10-09 (audit F-A1) — release-please với GITHUB_TOKEN:** `release.yml` tạo release PR bằng
+`GITHUB_TOKEN`, mà PR do `GITHUB_TOKEN` tạo không kích sự kiện `pull_request` → `gate`/`metadata` không bao giờ
+chạy → release PR không thể merge. Chốt: `token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}`
+(PAT fine-grained hoặc token GitHub App; hàng Evidence trong `docs/ops/repository-settings.md`). Cùng đợt, PR
+Dependabot patch/minor được hẹn auto-merge bằng `dependabot-auto-merge.yml` để không đọng (F-A2).
+
 ## 6b. `git checkout <file>` xoá sạch thay đổi chưa commit — không cần `reset --hard`
 
 **Ngày/PR:** 2026-09-12, trong lúc chạy `/completion` Pha 3.
