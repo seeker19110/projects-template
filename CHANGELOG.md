@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, audit tự động hóa PR-9/F-D-07..F-D-11, #271): `copy-framework` phát `.codex/config.toml` (trần 500k cho Codex);
+  `AGENTS.md` ghi dòng `Work ID:` bắt buộc trong mô tả PR; 10 lệnh `.claude/commands/` thêm dòng 💡 Model/effort.
 - Added (2026-10-10, audit tự động hóa PR-7/F-A1, F-A2, F-A6, #269): drop-in `dependabot-auto-merge.yml` (patch/minor tự hẹn
   auto-merge, major chờ duyệt); `release.yml` dùng secret `RELEASE_PLEASE_TOKEN` và dò `release-type` theo manifest (không manifest,
   không `version.txt` → bỏ qua); `codeql.yml` dò ngôn ngữ repo qua API thay matrix cố định.
