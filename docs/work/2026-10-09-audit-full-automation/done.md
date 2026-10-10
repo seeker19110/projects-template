@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-09-audit-full-automation
 - Yêu cầu / outcome: người dùng: "audit toàn diện, nâng auto ở repo đích lên tối đa, giữ chất lượng tối đa" → chạy `/audit-full` (CLAUDE.md §1b(c)) GIAI ĐOẠN 1 trên chính repo khung theo năng lực khung, trọng tâm bề mặt tự động hóa phát sang đích (settings/hooks/agents/commands/CI drop-ins/copy-framework); xuất báo cáo 12 nhóm có ID cố định; GIAI ĐOẠN 2 từng PR nhỏ qua `/gate` sau khi phiên chính duyệt theo §3d.
-- Trạng thái: Active (GIAI ĐOẠN 1 xong 2026-10-09; GIAI ĐOẠN 2 đang chạy theo PLAN.md)
+- Trạng thái: Done 2026-10-10 (GIAI ĐOẠN 1 xong 2026-10-09; GIAI ĐOẠN 2: 9 PR theo PLAN.md + tối ưu #273 + nợ T12 #274 + rà lại #275)
 - Chủ trì / writer: phiên chính (Fable 5.1); 5 auditor read-only song song (claude-code-guide xác minh tài liệu Claude Code; 4 general-purpose: Nhóm 8+tự động hóa · Nhóm 1/9/12 · Nhóm 2/7/11 · Nhóm 3/4).
 - Mức rủi ro / số PR: L; **9 PR** theo `docs/work/2026-10-09-audit-full-automation/PLAN.md` (check-plan OK, 13 việc), 4 đợt, WIP ≤ 3, từ 2 PR giao subagent (worktree riêng), phiên chính tích hợp.
 - Scope / non-goal: Scope = repo khung + những gì nó phát cho đích. Non-goal = không sửa gì ở GIAI ĐOẠN 1; không bật thứ cần secret/chi phí mới (API key, PAT) mà không có quyết định của chủ repo (§3d: secret/quyền mới → BLOCKED).
@@ -33,11 +33,27 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
 
 ## Bàn giao / bước tiếp theo
 
-- Đợt 1 (PR-1 hooks, PR-2 copy-framework, PR-3 test-hooks-session) đang chạy bằng 3 worker worktree; sau khi worker trả: phiên chính đọc diff, chạy lại cổng, commit, mở PR (Work ID này), auto-merge; rồi đợt 2.
+- Không còn việc trong phạm vi. Việc cần chủ repo: các mục BLOCKED ở "Nghiệm thu cuối" (secret/chi phí).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-- (chưa)
+- 12 PR MERGED (squash) vào `main`: PR-1 #256 `75170f6`, PR-4 #260 `c7ca562`, PR-2 #264 `bd9615b`, PR-5 #265 `40f127d`,
+  PR-6 #266 `52acabc`, PR-7 #269 `1ab0434`, PR-8 #270 `4a7bd1b`, PR-9 #271 `d0479ee`, PR-3 #272 `853ce34`; tối ưu #273
+  `4e7bd93` (tách 4 file mã > 400 dòng); nợ T12 #274 `99f153c`; rà lại #275 `a9f0e05`. Bảng PR ↔ ID: `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`.
+- Cổng tổng `dev-task.sh gate` PASS trên Windows từ #272 (lần đầu) và trên cây của #273, #274, #275 `a9f0e05`; CI Linux + Windows xanh
+  từng PR trước khi merge.
+- Re-audit 45 ID (agent read-only, đọc code/test chứ không đọc CHANGELOG): 37 FIXED, 4 giữ có chủ đích (F-A8, F-Q11, F-Q12, F-S09
+  phần `--`), 4 PARTIAL → F-S02/F-S07 sửa tiếp ở #275 `a9f0e05`; F-D-11 và phát hiện không ID Nhóm 4 chấp nhận có điều kiện (STATUS).
+- Engine sau đóng trên `main` `a9f0e05`: radar 100/100 (0 file mã > 400 dòng); sweep 🔴 0 · 🟡 2 (nhánh local đã merge còn sót — có nhánh của phiên/worker khác, không xoá thay (TRAPS 63); `core.hooksPath` chưa đặt ở checkout khung — cố ý, xem nợ (4) ở done.md).
+- **Nợ có chủ đích, mang theo:** (1) TRAPS 65/66 chưa có cổng máy (`DEBT:` ghi tại chỗ, xem lại khi tái phát khuôn); (2) F-S09
+  `--` cho formatter bỏ (`dev-task.sh` đã đổi đường dẫn `-…` thành `./…`, có test); (3) BLOCKED cần chủ repo: secret
+  `RELEASE_PLEASE_TOKEN`, quyết `anthropics/claude-code-action`, bật "Allow auto-merge" + "Auto-delete head branches" ở từng đích;
+  (4) checkout khung chưa đặt `core.hooksPath` (githook chạy cổng tổng ~30 phút mỗi commit trên Windows — cố ý không bật ở máy
+  này); (5) Dependabot không nâng ghim trong `docs/framework/templates/ci-target.yml` — CP-2 nay bắt ghim lệch, nâng bằng tay.
+- DoD: mọi việc T1–T13 có test đỏ-trước/xanh-sau hoặc ngoại lệ ghi rõ; tài liệu (CODEMAP/FEATURE-MAP/TRAPS 62–67/threat model)
+  cùng PR. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-10.
+
+### Nhật ký tích hợp theo PR
 
 - 2026-10-09 (tích hợp PR-1): #248 merge sau rebase (xung đột PROGRESS.md với #246/#247, giữ cả hai phía). Khi commit PR-1
   ở checkout chính, `pre-commit-gate.sh` → `dev-task.sh gate` BLOCKED "không đọc được working tree": `git ls-files -o` liệt kê
@@ -84,3 +100,22 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   `master` → thêm `--no-hooks`, cùng khuôn adoption-smoke; bài học T12: "chạy tay các cổng" phải = đủ danh sách step của job
   `framework-lint`, không chỉ các suite chạm file đã sửa). Đợt 2 xong (PR-4 #260, PR-2 #264, PR-5 #265, PR-6 #266). Tiếp theo: PR-3
   (T3, F-Q6, patch còn staged ở worktree worker `.claude/worktrees/agent-a29edc37a061c15be`) rồi đợt 3 (PR-7 T8→T9, PR-8 T10→T11).
+- 2026-10-10 (đợt 3, PR-7 #269 = T8+T9): `dependabot-auto-merge.yml` (patch/minor, squash), `release.yml` token
+  `RELEASE_PLEASE_TOKEN || GITHUB_TOKEN` + bước dò loại release, `codeql.yml` ma trận ngôn ngữ động. **Lệch spec có chủ đích:**
+  không có manifest/`version.txt` → loại `none` + notice, job release-please bỏ qua (repo khung không phát hành; spec ghi `simple`
+  sẽ làm khung tự phát hành) — `test-workflow-guards.sh` §8 khoá 8 ca. Giải xung đột với #270/#271 bằng cách giữ cả hai phía.
+- 2026-10-10 (đợt 3, PR-8 #270 = T10+T11 + rà bảo mật vòng 2: 0 Cao, 2 Trung, 7 Thấp — đều xử lý, race khoá ghi `DEBT:`):
+  `maintain-cron.sh` token qua file header, khoá trong `.git` có kiểm symlink/owner/quyền, child không thừa hưởng token;
+  `_commit-guard.sh` +11 mẫu nhà cung cấp, tiền tố ngắn neo trái, bộ lọc dòng thêm dùng chung hai hook (fail-closed khi lib cũ).
+  **Quyết định:** bỏ mục `--` cho formatter (F-S09) — `dev-task.sh` đã đổi đường dẫn `-…` thành `./…`. Cổng metadata đỏ vì scope
+  `(maintain-cron,commit-guard)` có dấu phẩy → dựng lại 3 commit bằng `commit-tree` (memory ghi luật scope).
+- 2026-10-10 (đợt 4, PR-9 #271 = T12+T13): manifest `[root]` thêm `.codex/config.toml`; AGENTS câu Work ID; FEATURE-MAP FT-13;
+  10 lệnh thêm dòng 💡 → 16 khớp tuyệt đối + `auto.md` dạng mở rộng = 17/17 (đếm theo tiêu chí T13 ra 16 — ghi rõ, không sửa
+  `auto.md`); CODEMAP đã đúng sẵn, không đổi.
+- 2026-10-10 (PR-3 #272, F-Q6/Q9/Q10): cổng tổng `dev-task.sh gate` lần đầu PASS trên Windows sau ba lỗi môi trường lộ dần —
+  launcher `python3` chạy shebang của đối số (treo), `read_text` cp1252, `jq.exe` in CRLF → TRAPS 66; log tên cố định + cổng mồ côi
+  ghi đè log của nhau → TRAPS 65.
+- 2026-10-10 (sau 9 PR): #273 tách 4 file mã > 400 dòng (radar 100/100, số ca giữ nguyên; worker thêm `Edit(scripts/_dev-task-verify.sh)`
+  vào `ask` — siết, giữ). #274 trả nợ ghi "để T12" mà đặc tả T12 không chứa (repo lồng, radar worktree, rò thư mục tạm, ca
+  `--no-hooks`) — TRAPS 67. Re-audit 45 ID bằng agent read-only → #275 sửa PARTIAL F-S02/F-S07 + cổng ghim mẫu CI + tài liệu force-push
+  + test chập chờn `python3` (TRAPS 66 tái phát).

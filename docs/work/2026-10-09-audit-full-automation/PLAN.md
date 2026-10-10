@@ -3,7 +3,7 @@
 ## Bối cảnh & mục tiêu
 Báo cáo `docs/reports/2026-10-09-audit-full-automation.md` (7 Cao · 19 Trung · 14 Thấp). Mục tiêu: dự án đích nhận
 hàng rào không lọt, copy idempotent có hook sống, CI không đỏ ngày đầu, PR bot/release tự merge được, allow list đủ cho
-`/auto`, tài liệu khớp code. Hồ sơ `docs/work/2026-10-09-audit-full-automation/working.md`. Base `2e80d2f`.
+`/auto`, tài liệu khớp code. Hồ sơ `docs/work/2026-10-09-audit-full-automation/done.md`. Base `2e80d2f`.
 
 ## Đặc tả dùng chung
 - Schema/DDL: không đổi
