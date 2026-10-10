@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Changed (2026-10-10, TRAPS 48 tái phát lần 3 — PR #267): `gh pr update-branch` sinh commit merge không conventional làm đỏ
+  `metadata` (#263); ghi tái phát + luật "không update-branch phía server" vào TRAPS 48 và `pr-flow.md` §2; PROGRESS đối chiếu sau #263.
 - Fixed (2026-10-10, audit tự động hóa PR-6/F-A7, F-A5, #266): `copy-framework.sh`/`.ps1` đặt `core.hooksPath=scripts/githooks` ở đích
   có `.git` (cờ `--no-hooks`/`-NoHooks`; không ghi đè giá trị đã có), dropin CODEOWNERS mang `@OWNER-CHANGE-ME` thay vì owner của
   khung; `dev-task.sh doctor` cảnh báo hooksPath chưa trỏ; `maintenance-sweep.sh` 🟡 hooksPath + CODEOWNERS placeholder.
