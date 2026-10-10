@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Security (2026-10-10, audit tự động hóa — rà lại, #275): sửa `scripts/githooks/**` phải hỏi; deny bắt `mvn * deploy*`,
+  `./gradlew * publish*`, `deno run *http(s)://*`; CP-2 quét cả mẫu `ci-target.yml`; tài liệu force-push khớp deny `-f`;
+  `run_hook` của suite hook thử `python3` rồi `python` (hết đỏ chập chờn trên Windows, TRAPS 66).
 - Fixed (2026-10-10, audit tự động hóa — nợ T12, #274): repo git lồng chưa theo dõi (`.claude/worktrees/`) không còn làm
   `dev-task.sh gate` BLOCKED; hook commit, githook và sweep bỏ mục thư mục khi đo cỡ file; radar loại `.claude/worktrees/`;
   smoke `test-copy-framework.sh` hết rò 12 thư mục tạm mỗi lượt; ca test `--no-hooks`/`core.hooksPath` có sẵn; TRAPS 67.
