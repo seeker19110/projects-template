@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Docs (2026-10-10, #276): đóng `/audit-full` tự động hóa — 12 PR (#256…#275), re-audit 45 ID không còn mở, radar 100/100,
+  sweep 🔴 0; hồ sơ `docs/work/2026-10-09-audit-full-automation/done.md`, BLOCKED cần chủ repo ghi ở STATUS.
 - Security (2026-10-10, audit tự động hóa — rà lại, #275): sửa `scripts/githooks/**` phải hỏi; deny bắt `mvn * deploy*`,
   `./gradlew * publish*`, `deno run *http(s)://*`; CP-2 quét cả mẫu `ci-target.yml`; tài liệu force-push khớp deny `-f`;
   `run_hook` của suite hook thử `python3` rồi `python` (hết đỏ chập chờn trên Windows, TRAPS 66).
