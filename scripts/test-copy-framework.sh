@@ -73,6 +73,7 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
   [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }
   [ -f "$target/docs/framework/templates/THREAT-MODEL.template.md" ] || { echo "  FAIL [$label]: thiếu threat model template"; ok=0; }
+  [ -f "$target/.codex/config.toml" ] || { echo "  FAIL [$label]: thiếu .codex/config.toml (trần ngữ cảnh 500k cho Codex — models-and-automation.md §5.2.1)"; ok=0; }
   [ -f "$target/_framework-dropins/.github/ISSUE_TEMPLATE/goal.yml" ] || { echo "  FAIL [$label]: thiếu Goal Issue Form"; ok=0; }
   [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
   [ -f "$target/docs/framework/templates/TRAPS.template.md" ] || { echo "  FAIL [$label]: thiếu TRAPS template"; ok=0; }

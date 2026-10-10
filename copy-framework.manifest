@@ -39,6 +39,8 @@ CODE_OF_CONDUCT.md
 .mcp.json.example
 # mẫu permission cá nhân, không dùng chung nhóm
 .claude/settings.local.json.example
+# .codex/config.toml: Codex CLI — trần ngữ cảnh 500k token cho mọi phiên (models-and-automation.md §5.2.1).
+.codex/config.toml
 
 [scripts]
 .claude/hooks
@@ -74,7 +76,8 @@ scripts/test-telemetry-and-dispatch.sh
 # Tạo hồ sơ docs/work/<id>/ — đích cũng chịu cổng Work ID của pr-policy.yml (spec 2026-10-09-new-work-script).
 scripts/new-work.sh
 scripts/test-new-work.sh
-# tests/: test_telemetry_integrity cần cho self-test telemetry đã phát; test_runtime_safety cần cho CI drop-in (import _runtime_fixture dùng chung với test_git_safety).
+# tests/ + requirements-ci.txt: cần cho self-test `test-telemetry-and-dispatch.sh` và khi đích merge drop-in CI đầy đủ
+# (test_runtime_safety import _runtime_fixture dùng chung với test_git_safety); `ci-target.yml` KHÔNG chạy chúng.
 tests/test_telemetry_integrity.py
 tests/test_runtime_safety.py
 tests/_runtime_fixture.py

@@ -2,6 +2,8 @@
 description: Cổng commit/merge + Báo cáo xác thực — chạy build/type-check/lint/format/test rồi xuất báo cáo; chặn nếu có mục ❌
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Chạy **cổng chất lượng trước khi commit/merge** rồi xuất **Báo cáo xác thực**, đúng `CLAUDE.md` §5–§7. Mục tiêu: không bao giờ commit/merge khi còn mục ❌.
 
 > `[ĐIỀN: ...]` trong CLAUDE.md §5 là cố ý — **lệnh tùy dự án**. KHÔNG giả định `npm run build`… Phải **tự dò script thật** trước (chống ảo giác, CLAUDE.md §4).

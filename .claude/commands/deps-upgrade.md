@@ -2,6 +2,8 @@
 description: Nâng cấp một/nhóm dependency theo yêu cầu cụ thể (khác /maintain định kỳ) — đọc changelog, kiểm breaking change, chạy test, một PR riêng
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Kích hoạt quy trình **nâng cấp dependency theo yêu cầu cụ thể** (khác `/maintain` — quét định kỳ toàn repo theo chu kỳ; lệnh này chạy khi người dùng chỉ đích danh một/nhóm thư viện cần nâng, hoặc có CVE cần vá gấp).
 
 > **TRIGGER:** người dùng nói "nâng cấp thư viện X", "cập nhật dependency Y lên bản mới", "có CVE ở gói Z, vá đi", hoặc dependency-review CI báo lỗ hổng cụ thể cần xử lý ngay (không đợi chu kỳ `/maintain`).

@@ -2,6 +2,8 @@
 description: Vòng chẩn đoán có kỷ luật cho bug khó/không tái hiện được hoặc suy giảm hiệu năng — dựng feedback loop đỏ-được trước, rồi mới tái hiện, ra giả thuyết, đo đạc, sửa kèm test hồi quy
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Chẩn đoán một bug **khó** — không tái hiện được ngay, chập chờn, hoặc hồi quy hiệu năng — theo trình tự cố định. Chỉ bỏ qua một pha khi có lý do rõ ràng.
 
 > Dùng khi: người dùng nói "debug"/"tìm lỗi này giúp", báo lỗi/crash/chậm mà chưa rõ nguyên nhân; hoặc gõ `/debug`. Bug **đơn giản, tái hiện ngay lập tức** thì cứ sửa thẳng — khỏi cần chạy hết 6 pha.

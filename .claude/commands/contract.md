@@ -2,6 +2,8 @@
 description: Thiết kế schema DB/API contract TRƯỚC khi viết code, cho tính năng cần DB schema mới hoặc endpoint mới — nối vào feature gate (docs/specs), chốt schema/API trước khi implement
 ---
 
+> 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
+
 Kích hoạt bước **thiết kế contract (schema DB và/hoặc API) trước khi code**, cho tính năng cần schema mới hoặc endpoint mới. Đây là bước **bổ sung nằm bên trong feature gate** (CLAUDE.md §2 "Feature gate") — không thay thế spec, mà là phần schema/API phải chốt **trước khi** spec được "Approved for implementation".
 
 > **TRIGGER:** người dùng mô tả một tính năng cần bảng/cột DB mới, thay đổi schema hiện có, hoặc một API endpoint mới/đổi chữ ký — **trước khi** bắt đầu sửa source code.
