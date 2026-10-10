@@ -116,3 +116,10 @@ ngữ cảnh nào tái hiện được sau ba lần đối chiếu, (2) phải v
 threat model trước implementation), (3) `dontAsk`/skip-permissions đã bị từ chối cho settings dùng chung ngày 2026-10-09.
 Nếu chủ repo quyết **có**, việc đó là mức L: spec + goal + threat model, tái dùng hàng rào của `maintain-cron.sh`
 (khoá, working tree sạch, chỉ nhánh riêng, không merge), tín hiệu dừng đọc từ goal file/PR chứ không từ chuỗi model in.
+
+**Kết luận 2026-10-10:** chủ repo trả lời "chọn phương án tốt nhất" (ủy quyền §3d). Phiên chính chọn **chưa làm** runner
+không giám sát — đúng bậc 1 của thang ưu tiên §3d (bảo mật: không mở đường ghi source không có người duyệt khi chưa có
+threat model) và đúng cổng §2 của phương pháp (không có sự cố). Điều kiện xem lại giữ nguyên: (a) một phiên/subagent đo
+được > 450k token hoặc tái hiện được mất ngữ cảnh, hoặc (b) chủ repo cần sửa source không giám sát — khi đó mở hồ sơ mức L
+(spec + goal + threat model) chứ không chép `ralph.sh`. Phương án bị loại: (b) chép `ralph.sh` nguyên trạng (mâu thuẫn 4 luật);
+(c) runner "có giám sát một nửa" (vẫn là đường ghi source không người duyệt → cần threat model như (b), không rẻ hơn).
