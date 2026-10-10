@@ -39,4 +39,4 @@ Một outcome / một PR, phiên chính tự làm: (1) clone nguồn vào scratc
   PF-1..4 OK, format/lint OK; test 854 dòng: đúng 12 ❌ = F-Q6 `test-hooks-session.sh` (đỏ giả Windows, đã ghi), suite khác xanh.
 - Tiêu đề PR/commit ban đầu 88 ký tự bị `metadata` chặn (TRAPS 58) → gộp 3 commit thành 1 tiêu đề 70 ký tự, force-with-lease nhánh riêng.
 - DoD: bản đối chiếu đủ ba cột + đính chính + điều kiện xem lại; lấy 0; không sửa luật/script. Giới hạn: câu hỏi runner không
-  giám sát kiểu `ralph.sh` còn mở, chờ chủ repo. Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-10.
+  giám sát kiểu `ralph.sh` — chủ repo ủy quyền 2026-10-10, phiên chính chọn **chưa làm** (kết luận cuối báo cáo). Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-10.
