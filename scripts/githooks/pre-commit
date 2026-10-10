@@ -31,6 +31,7 @@ if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | commit_guard_added_lines | 
 fi
 big=""
 while IFS= read -r -d '' f; do
+  [ -f "$ROOT/$f" ] || continue   # gitlink repo lồng = thư mục, không phải file để đo (TRAPS mục 67)
   sz="$(wc -c <"$ROOT/$f" 2>/dev/null || echo 0)"; [ "$sz" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && big="$big $f"
 done < <(git -C "$ROOT" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null)
 [ -z "$big" ] || { echo "pre-commit: file staged > 1 MB:$big — Git LFS hoặc loại khỏi repo." >&2; exit 1; }

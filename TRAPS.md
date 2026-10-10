@@ -1330,6 +1330,10 @@ trong `scripts/test-*.sh` tìm tên file tạm cố định — mọi file tạm
 (12 dòng đầu không bao giờ chứa ca đỏ). Chưa có cổng tự động cấm tên `/tmp` cố định trong suite — thêm vào
 `check-docs-consistency.sh`/`maintenance-sweep.sh` nếu tái phát. Dừng cổng nền thì giết cả cây tiến trình, rồi xoá probe sót.
 
+*Tái phát (2026-10-10, cùng hồ sơ):* `test-copy-framework.sh` `new_target` gọi trong `$(…)` nên `tmp_dirs+=` mất ở subshell —
+mỗi lượt để lại 12 bản copy khung trong `$TMPDIR` (đo bằng `TMPDIR` riêng: 12 → 0 sau sửa). Sửa: mọi đích tạo trong một thư mục
+cha `TARGETS_DIR` do shell chính `trap` dọn. Cách rà thêm: biến mảng/biến đếm được gán trong hàm gọi qua `$(…)` là mất.
+
 ## 66. `python3 - <file.sh>` trên Windows: bí danh Python install manager chạy SHEBANG của đối số → suite tự gọi lại chính nó, treo
 
 *Ngày:* 2026-10-10 (PR-3 hồ sơ `docs/work/2026-10-09-audit-full-automation/`). Sau khi `test-hooks-session.sh` hết đỏ trên
@@ -1350,3 +1354,24 @@ gỡ một suite đỏ ở đầu chuỗi fail-fast, chạy lại TOÀN BỘ chu
 `test-workflow-guards.sh` bọc `jq` thật bỏ CR khi chạy bước CI trên máy dev; `dev-task.sh gate` chạy hết chuỗi trên Windows; job
 `framework-lint-windows` chạy `test-hooks-session.sh` (PR-3). Chưa có cổng máy cấm `python3 - <file có shebang>` (`DEBT: chỉ rà bằng
 grep | trần: quy ước | xem lại khi: khuôn này tái phát ở suite khác`).
+
+## 67. Repo git lồng chưa theo dõi hiện thành mục THƯ MỤC trong danh sách file → cổng BLOCKED, vòng đo cỡ file lỗi so số
+
+*Ngày:* 2026-10-09 gặp, 2026-10-10 sửa (hồ sơ `docs/work/2026-10-09-audit-full-automation/`). Worker subagent tạo
+`.claude/worktrees/agent-*/` (repo lồng) trong checkout chính. `git ls-files -o` liệt kê repo lồng thành `dir/` (một mục, có `/` cuối)
+chứ không liệt kê file bên trong; khi đã `git add` nó thành gitlink, `diff --cached --name-only`/`ls-files` in tên thư mục không
+`/`. Ba nơi coi mọi mục là file: `dev-task.sh` `untracked_listing` đưa `dir/` vào `hash-object --stdin-paths` → "Unable to hash
+(NULL)" → gate BLOCKED "không đọc được working tree"; `pre-commit-gate.sh`, `scripts/githooks/pre-commit` và `maintenance-sweep.sh`
+chạy `wc -c <thư-mục` → `[: integer expected` ra stderr và phép đo cỡ file bị bỏ qua cho mục đó. `arch-health-radar.py` cũng đếm cả
+bản sao repo trong `.claude/worktrees/` (số file/dòng lệch theo số worktree đang mở). Phụ: viết fixture tên `con`/`nul`/`aux`/`prn`
+trên Windows đụng tên thiết bị dành riêng — git báo `Invalid argument`, file "không mở được"; đặt tên fixture khác.
+
+*Cách rà:* mọi vòng đọc danh sách từ `git ls-files`/`git diff --name-only` mà thao tác như với file (`wc`, `grep FILE`,
+`hash-object --stdin-paths`, `cat`) phải bỏ mục không phải file (`[ -f … ] || continue`, hoặc lọc `/$` cho `ls-files -o`).
+`grep -rn 'ls-files\|--name-only' scripts .claude/hooks` rồi đọc vòng dùng kết quả. Công cụ duyệt cây thư mục phải loại
+`.claude/worktrees/` theo đường dẫn (tên trơn `worktrees` có thể là thư mục thật của dự án đích).
+
+*Cổng chốt chặn:* `test-dev-task-evidence.sh` (repo lồng chưa theo dõi → gate PASS + evidence VERIFIED), `test-hooks-gate.sh`
+(`git add -A` với repo lồng → cho qua, không lỗi so số), `test-hooks-gate-guard.sh` (githook với gitlink đã stage),
+`test-maintenance-sweep.sh` (gitlink trong repo tạm), `test-next-gen-engines.sh` AHR-4 (radar bỏ `.claude/worktrees/`); mỗi ca
+đo ĐỎ trước khi sửa (PR 2026-10-10).

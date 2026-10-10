@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-10, audit tự động hóa — nợ T12, #274): repo git lồng chưa theo dõi (`.claude/worktrees/`) không còn làm
+  `dev-task.sh gate` BLOCKED; hook commit, githook và sweep bỏ mục thư mục khi đo cỡ file; radar loại `.claude/worktrees/`;
+  smoke `test-copy-framework.sh` hết rò 12 thư mục tạm mỗi lượt; ca test `--no-hooks`/`core.hooksPath` có sẵn; TRAPS 67.
 - Changed (2026-10-10, audit tự động hóa — tối ưu trước khi đóng, #273): tách 4 file mã > 400 dòng không đổi hành vi —
   `_dev-task-verify.sh`, `_docs-consistency-structure.sh`, `_copy-framework-test-lib.sh`, suite mới `test-hooks-gate-guard.sh`
   (mục 17–19) + `_hooks-gate-test-lib.sh`; số ca giữ nguyên, radar 100/100.

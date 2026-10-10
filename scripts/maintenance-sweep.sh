@@ -296,6 +296,7 @@ sweep_hygiene() {
   # KHÔNG nội suy tên file vào chuỗi lệnh shell (bản cũ `xargs -I{} sh -c 'f="{}"'` = command
   # injection qua tên file do PR/fork đưa vào — nguy hiểm khi maintain-cron chạy không giám sát).
   big="$(tracked | while IFS= read -r -d '' f; do
+    [ -f "$f" ] || continue   # gitlink/submodule = thư mục (TRAPS mục 67)
     s=$(wc -c <"$f" 2>/dev/null || echo 0); [ "$s" -gt "$COMMIT_GUARD_MAX_FILE_BYTES" ] && echo "$f ($((s/1024)) KB)"; done || true)"
   line "- File > 1 MB được theo dõi: ${big:-không}"
   [ -n "$big" ] && yel "Vệ sinh" "file lớn trong git: $(printf '%s' "$big" | tr '\n' ' ')" "cân nhắc Git LFS hoặc loại khỏi repo"

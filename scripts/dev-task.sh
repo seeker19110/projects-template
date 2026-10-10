@@ -69,7 +69,9 @@ tracked_diff_id() {
 }
 untracked_listing() {  # "<hash> <path>" mỗi dòng, theo thứ tự của git ls-files
   local files hashes f h
+  # Repo git lồng chưa theo dõi hiện thành "dir/" — không băm được, không thuộc phiên bản đang kiểm → bỏ (TRAPS mục 67).
   files="$(git -C "$ROOT" -c core.quotepath=off ls-files -o --exclude-standard -- .)" || return 2
+  files="$(printf '%s\n' "$files" | grep -v '/$')"
   [ -n "$files" ] || return 0
   hashes="$(printf '%s\n' "$files" | git -C "$ROOT" hash-object --no-filters --stdin-paths)" || return 2
   while IFS= read -r f <&3 && IFS= read -r h <&4; do printf '%s %s\n' "$h" "$f"; done 3<<<"$files" 4<<<"$hashes"

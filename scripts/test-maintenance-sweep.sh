@@ -41,7 +41,9 @@ fake_pem="-----BEGIN ""RSA PRIVATE KEY-----"
   mkdir -p docs/framework && printf 'commit-nguon: abc1234\nngay-copy: 2020-01-01\n' > docs/framework/FRAMEWORK-VERSION
   # Khai báo lệnh dependency: outdated xanh có dấu vết, audit ĐỎ giả lập
   printf 'deps_outdated="echo OUTDATED-DECL-MARK"\ndeps_audit="echo VULN-FOUND; exit 3"\n' > .claude/project-commands.sh
-  "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
+  # Repo lồng → gitlink trong ls-files: phép đo cỡ file không được đọc thư mục (TRAPS mục 67, 2026-10-10)
+  mkdir -p vendor/lib && echo x > vendor/lib/f.txt && git -C vendor/lib init -q && git -C vendor/lib add f.txt && "${GIT[@]}" -C vendor/lib commit -qm init
+  "${GIT[@]}" add -A 2>/dev/null && "${GIT[@]}" commit -qm init
 )
 bout="$(CLAUDE_PROJECT_DIR="$bad_repo" bash "$SWEEP" --strict --out "$TMP/bad-report.md" 2>&1)"; brc=$?
 [ "$brc" -eq 1 ] && ok "--strict thoát 1 khi có 🔴" || bad "--strict thoát $brc (mong 1). Output: $bout"
@@ -68,6 +70,7 @@ chk "🟡 khung đã copy quá cũ"             "🟡 | Tài liệu | bản khun
 chk "lệnh deps KHAI BÁO được ưu tiên"     "OUTDATED-DECL-MARK"
 chk "🔴 audit khai báo đỏ → 🔴"           "🔴 | Dependency | audit báo lỗ hổng (exit 3)"
 chk "cổng khung vắng → n-a, không crash"  "docs-consistency: n-a"
+if printf '%s' "$bout" | grep -q 'integer expected'; then bad "gitlink repo lồng làm phép đo cỡ file lỗi so số"; else ok "gitlink repo lồng: phép đo cỡ file không lỗi so số"; fi
 
 echo "== 3b. NEGATIVE: tên file độc KHÔNG được thực thi (command injection qua git ls-files) =="
 # Bản cũ: `xargs -I{} sh -c 'f="{}"'` nội suy tên file vào shell → file tên '$(touch X)' chạy lệnh
