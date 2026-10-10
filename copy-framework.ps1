@@ -2,7 +2,7 @@
 #
 # copy-framework.ps1 — Mang bộ khung sang một DỰ ÁN KHÁC (kể cả dự án đã có sẵn).
 #   → Bản PowerShell của copy-framework.sh, dùng cho Windows PowerShell / PowerShell 7+.
-#     Hành vi giống hệt bản .sh (3 lớp: copy thẳng / copy nếu chưa có / đưa vào _framework-dropins).
+#     Hành vi giống bản .sh (trừ --upgrade, xem DEBT bên dưới).
 #
 # LƯU Ý MÃ HÓA: file này PHẢI được lưu dưới dạng UTF-8 CÓ BOM. Windows PowerShell 5.1 mặc định
 #   đọc script theo ANSI; thiếu BOM sẽ làm hỏng ký tự tiếng Việt và gây lỗi parse
@@ -16,16 +16,9 @@
 #        powershell -ExecutionPolicy Bypass -File .\copy-framework.ps1 C:\đường-dẫn\tới\dự-án-đích
 #   3) Mở phiên Claude Code TRONG dự án đích → AI tự đọc CLAUDE.md và tự dò stack.
 #
-# An toàn cho dự án đã có sẵn (brownfield):
-#   - Tài liệu khung (docs/framework, mẫu ADR)  → copy thẳng (chỉ là tài liệu tham khảo mới).
-#   - File gốc (CLAUDE.md, PROJECT.md...)        → chỉ copy nếu CHƯA có; nếu đã có thì để bản
-#                                                  khung cạnh bên dưới đuôi .framework-new để bạn tự so.
-#   - Cấu hình Claude Code (.claude/settings.json, .claude/hooks, .claude/agents,
-#     scripts/dev-task.sh, scripts/usage-estimate.sh, 2 file .claude/*.example.sh)
-#                                                  → chỉ copy nếu CHƯA có; nếu đã có thì để bản
-#                                                  khung cạnh bên (đuôi .framework-new) để bạn tự so.
-#   - File CI/quy ước GitHub (workflows, PR template, dependabot...) → KHÔNG đè; đưa vào
-#     _framework-dropins/ để bạn tự so/merge với cấu hình CI đã có (nếu có).
+# An toàn cho dự án đã có sẵn (brownfield): danh sách file và cách copy từng nhóm (copy thẳng / chỉ copy
+#   nếu CHƯA có, đã có mà khác thì để cạnh <file>.framework-new, giống hệt thì bỏ qua / đưa vào
+#   _framework-dropins/) nằm ở copy-framework.manifest — một nguồn cho cả .sh và .ps1.
 #
 [CmdletBinding()]
 param(
@@ -40,6 +33,8 @@ $ErrorActionPreference = 'Stop'
 # Ép console xuất UTF-8 để chữ tiếng Việt trong thông báo hiển thị đúng trên Windows PowerShell 5.1
 # (mặc định in theo code page hệ thống). Bọc try/catch để không bao giờ làm script dừng.
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
+# Chuỗi pipe vào lệnh ngoài (git hash-object --stdin-paths) cũng phải là UTF-8 (5.1 mặc định ASCII).
+$OutputEncoding = New-Object System.Text.UTF8Encoding $false
 
 $Src = $PSScriptRoot
 $Sep = [System.IO.Path]::DirectorySeparatorChar
@@ -92,19 +87,116 @@ function Copy-Into {            # copy thẳng (tạo thư mục cha)
   Write-Host "  + $Rel"
 }
 
-function Copy-IfAbsent {        # chỉ copy nếu đích chưa có; nếu có thì để bản .framework-new
-  param([string] $Rel)
-  $relN = Resolve-Rel $Rel
-  $srcFull = Join-Path $Src $relN
-  if (-not (Test-Path -LiteralPath $srcFull)) { return }
-  $destFull = Join-Path $Target $relN
-  if (Test-Path -LiteralPath $destFull) {
-    Copy-Tree -SrcFull $srcFull -DestFull ($destFull + '.framework-new')
-    Write-Host "  ~ $Rel đã tồn tại → bản khung để ở $Rel.framework-new (tự so/merge)"
+function Test-SameFile {         # cùng byte (như cmp -s)
+  param([string] $A, [string] $B)
+  if ((Get-Item -LiteralPath $A -Force).Length -ne (Get-Item -LiteralPath $B -Force).Length) { return $false }
+  return (Get-FileHash -LiteralPath $A).Hash -eq (Get-FileHash -LiteralPath $B).Hash
+}
+
+function Get-RelFileList {       # mọi file trong thư mục (kể cả ẩn), đường dẫn tương đối, sắp xếp ordinal
+  param([string] $Dir)
+  $base = (Get-Item -LiteralPath $Dir -Force).FullName.TrimEnd('\', '/')
+  [string[]] $list = @(Get-ChildItem -LiteralPath $Dir -Recurse -File -Force | ForEach-Object { $_.FullName.Substring($base.Length + 1) })
+  [Array]::Sort($list, [StringComparer]::Ordinal)
+  return ,$list
+}
+
+function Test-SameContent {     # file → như cmp -s; thư mục → như diff -rq (đích thừa/thiếu file = khác)
+  param([string] $SrcFull, [string] $DestFull)
+  if (-not (Test-Path -LiteralPath $SrcFull -PathType Container)) {
+    return (Test-Path -LiteralPath $DestFull -PathType Leaf) -and (Test-SameFile $SrcFull $DestFull)
+  }
+  if (-not (Test-Path -LiteralPath $DestFull -PathType Container)) { return $false }
+  $a = Get-RelFileList $SrcFull
+  $b = Get-RelFileList $DestFull
+  if (($a -join "`n") -cne ($b -join "`n")) { return $false }
+  foreach ($r in $a) { if (-not (Test-SameFile (Join-Path $SrcFull $r) (Join-Path $DestFull $r))) { return $false } }
+  return $true
+}
+
+function Copy-OrAside {         # chưa có → copy; giống hệt → bỏ qua (= REL); khác → để bản .framework-new
+  param([string] $SrcFull, [string] $Rel, [string] $Note = '')
+  $destFull = Join-Path $Target (Resolve-Rel $Rel)
+  if (-not (Test-Path -LiteralPath $destFull)) {
+    Copy-Tree -SrcFull $SrcFull -DestFull $destFull
+    Write-Host ("  + $Rel" + $(if ($Note) { " $Note" } else { '' }))
+  }
+  elseif (Test-SameContent $SrcFull $destFull) {
+    Write-Host "  = $Rel"   # chạy lại trên đích chưa sửa: không rải bản trùng (F-Q7)
   }
   else {
-    Copy-Tree -SrcFull $srcFull -DestFull $destFull
-    Write-Host "  + $Rel"
+    Copy-Tree -SrcFull $SrcFull -DestFull ($destFull + '.framework-new')
+    Write-Host "  ~ $Rel đã tồn tại → bản khung để ở $Rel.framework-new (tự so/merge)"
+  }
+}
+
+function Copy-IfAbsent {        # chỉ copy nếu đích chưa có; có mà khác thì để bản .framework-new
+  param([string] $Rel)
+  $srcFull = Join-Path $Src (Resolve-Rel $Rel)
+  if (-not (Test-Path -LiteralPath $srcFull)) { return }
+  Copy-OrAside -SrcFull $srcFull -Rel $Rel
+}
+
+function Test-HasGit { return [bool](Get-Command git -ErrorAction SilentlyContinue) }
+
+function Invoke-Git {           # chạy git, trả $true nếu exit 0; không bao giờ ném lỗi (stderr bị nuốt)
+  param([string[]] $GitArgs, $StdIn = $null)
+  # Windows PowerShell 5.1 + 'Stop' biến MỌI dòng stderr của lệnh ngoài (vd cảnh báo "LF will be replaced
+  # by CRLF") thành lỗi dừng dù exit 0 → hạ xuống 'Continue' trong phạm vi hàm, chỉ tin $LASTEXITCODE.
+  $ErrorActionPreference = 'Continue'
+  try {
+    if ($null -ne $StdIn) { $script:GitOut = @($StdIn | & git @GitArgs 2>$null) }
+    else { $script:GitOut = @(& git @GitArgs 2>$null) }
+    return ($LASTEXITCODE -eq 0)
+  } catch { return $false }
+}
+
+function Get-Layer1Files {      # đúng tập Lớp 1 như layer1_files của copy-framework.sh, đường dẫn tương đối '/' , sắp xếp ordinal
+  $out = New-Object System.Collections.Generic.List[string]
+  foreach ($d in @('docs/framework', '.claude/commands')) {
+    foreach ($r in (Get-RelFileList (Join-Path $Src $d))) { $out.Add($d + '/' + $r.Replace('\', '/')) }
+  }
+  Get-ChildItem -LiteralPath (Join-Path $Src 'docs/ops') -Filter '*.md' -File -Force | ForEach-Object {
+    if ($_.Name -notmatch '-(PLAN|LOG|STATUS)\.md$') { $out.Add('docs/ops/' + $_.Name) }
+  }
+  [string[]] $arr = $out.ToArray()
+  [Array]::Sort($arr, [StringComparer]::Ordinal)
+  return ,$arr
+}
+
+function Get-ManifestLines {    # "manifest: HASH FILE" cho từng file Lớp 1 (HASH = git hash-object, như .sh)
+  if (-not (Test-HasGit)) {
+    Write-Host "  ! không có git → FRAMEWORK-VERSION thiếu dòng manifest (bash copy-framework.sh --upgrade sẽ coi mọi file là đã sửa)"
+    return @()
+  }
+  $files = Get-Layer1Files
+  $abs = ($files | ForEach-Object { Join-Path $Src (Resolve-Rel $_) }) -join "`n"
+  if (-not (Invoke-Git -GitArgs @('hash-object', '--stdin-paths') -StdIn $abs) -or $script:GitOut.Count -ne $files.Count) {
+    Write-Host "  ! git hash-object lỗi → FRAMEWORK-VERSION thiếu dòng manifest"
+    return @()
+  }
+  for ($i = 0; $i -lt $files.Count; $i++) { "manifest: $($script:GitOut[$i].Trim()) $($files[$i])" }
+}
+
+function Set-ExecBit {          # Windows không có chmod: ghi mode 100755 vào index git của đích (F-Q8)
+  if (-not (Test-Path -LiteralPath (Join-Path $Target '.git'))) {
+    Write-Host "  ! exec-bit chưa đặt: đích không có .git — sau git init chạy  git update-index --add --chmod=+x <script .sh>"
+    return
+  }
+  # Đúng tập `chmod +x` của copy-framework.sh + mọi .claude/hooks/*.sh.
+  $rels = @('scripts/dev-task.sh', 'scripts/githooks/pre-commit', 'scripts/usage-estimate.sh', 'scripts/test-hooks-gate.sh',
+            'scripts/maintenance-sweep.sh', 'scripts/maintain-run.sh', 'scripts/maintain-cron.sh')
+  $hooksDir = Join-Path $Target '.claude/hooks'
+  if (Test-Path -LiteralPath $hooksDir -PathType Container) {
+    $rels += @(Get-ChildItem -LiteralPath $hooksDir -Filter '*.sh' -File | ForEach-Object { '.claude/hooks/' + $_.Name })
+  }
+  [string[]] $existing = @($rels | Where-Object { Test-Path -LiteralPath (Join-Path $Target (Resolve-Rel $_)) -PathType Leaf })
+  if ($existing.Count -eq 0) { return }
+  if ((Test-HasGit) -and (Invoke-Git -GitArgs (@('-C', $Target, 'update-index', '--add', '--chmod=+x', '--') + $existing))) {
+    Write-Host "  + exec-bit (git index 100755): $($existing.Count) script"
+  }
+  else {
+    Write-Host "  ! exec-bit chưa đặt: git update-index lỗi/không có git — tự chạy  git update-index --add --chmod=+x <script .sh>"
   }
 }
 
@@ -144,20 +236,27 @@ Copy-Into ".claude/commands"                   # slash commands của khung (kh�
 foreach ($e in Get-ManifestSection docs) { Copy-IfAbsent $e[0] }
 
 # ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
-# Để dự án đích biết mình đang dùng khung bản nào; muốn cập nhật thì so CHANGELOG.md
-# của repo khung từ commit này trở đi, rồi chạy lại copy-framework.ps1.
+# Cùng khuôn với copy-framework.sh: version + commit + ngày + manifest hash từng file Lớp 1, để
+# `bash copy-framework.sh <đích> --upgrade` sau này biết file nào đích đã sửa tay (F-D-05).
 $FrameworkCommit = 'khong-ro'
-try {
-  $c = (git -C $Src rev-parse --short HEAD 2>$null)
-  if ($LASTEXITCODE -eq 0 -and $c) { $FrameworkCommit = $c.Trim() }
-} catch { }
-@(
+if ((Test-HasGit) -and (Invoke-Git -GitArgs @('-C', $Src, 'rev-parse', '--short', 'HEAD')) -and $script:GitOut.Count -gt 0) {
+  $FrameworkCommit = $script:GitOut[0].Trim()
+}
+$FrameworkVer = '0.0.0'
+$versionFile = Join-Path $Src 'VERSION'
+if (Test-Path -LiteralPath $versionFile -PathType Leaf) { $FrameworkVer = (Get-Content -LiteralPath $versionFile -Raw) -replace '\s', '' }
+[string[]] $manifestLines = @(Get-ManifestLines)
+$stampLines = @(
   "# FRAMEWORK-VERSION — dấu bản khung đã copy (sinh tự động bởi copy-framework.ps1 — đừng sửa tay)"
+  "version: $FrameworkVer"
   "commit-nguon: $FrameworkCommit"
   "ngay-copy: $(Get-Date -Format 'yyyy-MM-dd')"
-  "# Cách cập nhật: trong repo khung, xem CHANGELOG.md (hoặc git log $FrameworkCommit..HEAD) rồi chạy lại copy-framework.ps1"
-) | Set-Content -LiteralPath (Join-Path $Target 'docs/framework/FRAMEWORK-VERSION') -Encoding UTF8
-Write-Host "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FrameworkCommit)"
+  "# Nâng bản: clone repo khung mới nhất rồi chạy  bash copy-framework.sh <đích> --upgrade  (giữ chỉnh sửa cục bộ; xem CHANGELOG.md từ ${FrameworkCommit}..HEAD)"
+  "# manifest: <git hash-object> <file> — file đích có hash KHÁC dòng này = đã sửa tay (--upgrade sẽ merge/để cạnh, không ghi đè)"
+) + $manifestLines
+# LF + UTF-8 không BOM: bản .sh đọc stamp bằng grep/awk — CRLF làm `commit-nguon`/hash dính '\r'.
+[System.IO.File]::WriteAllText((Join-Path $Target 'docs/framework/FRAMEWORK-VERSION'), (($stampLines -join "`n") + "`n"), (New-Object System.Text.UTF8Encoding $false))
+Write-Host "  + docs/framework/FRAMEWORK-VERSION (bản khung: v$FrameworkVer @ $FrameworkCommit, manifest $($manifestLines.Count) file)"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 foreach ($e in Get-ManifestSection root) { Copy-IfAbsent $e[0] }
@@ -178,17 +277,10 @@ Write-Host "[2/4] Cấu hình Claude Code (model tiêu chuẩn Sonnet 5 — tố
 $claudeDir = Join-Path $Target '.claude'
 New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
 
-$settingsDest = Join-Path $claudeDir 'settings.json'
-if (Test-Path -LiteralPath $settingsDest) {
-  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -DestFull ($settingsDest + '.framework-new')
-  Write-Host "  ~ .claude/settings.json đã tồn tại → bản khung để ở settings.json.framework-new (tự so/merge)"
-}
-else {
-  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -DestFull $settingsDest
-  Write-Host "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
-}
+Copy-OrAside -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -Rel '.claude/settings.json' -Note '(Sonnet 5; fallback Sonnet 5 → Haiku 4.5)'
 
 foreach ($e in Get-ManifestSection scripts) { Copy-IfAbsent $e[0] }
+Set-ExecBit
 
 Write-Host ""
 Write-Host "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"

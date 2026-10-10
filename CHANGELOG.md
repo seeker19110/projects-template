@@ -11,6 +11,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fixed (2026-10-10, audit tự động hóa PR-2/F-Q7, F-Q8, F-D-04/05): `copy-framework.sh`/`.ps1` idempotent — đích giống hệt nguồn thì
+  in `= REL`, không rải `.framework-new` khi chạy lại; `.ps1` ghi exec-bit vào index git của đích và stamp `FRAMEWORK-VERSION` đủ
+  version/manifest như `.sh`; smoke `test-copy-framework.sh` copy hai lần + chạy 7 self-test ở đích; `test-hooks-gate.sh` mục 19 bỏ qua
+  phép so hai bản settings khi đích chỉ có `settings.json` (#264).
+
 - Changed (2026-10-10, audit tự động hóa PR-4/F-S02..S07, F-M01/M02, F-D-01..06): `.claude/settings.json` ≡ `settings-shared-default.json`
   — bật MCP `context7`; allow lệnh `gh` đọc + `gh pr merge --auto` + script khung; ask sửa hàng rào (`.claude/**`, workflows, script cổng,
   `gh api/repo/secret/release`); deny mở rộng (xoá/publish/push ép nhánh chính/đọc bí mật); `dontAsk` chỉ opt-in ở `settings.local.json.example`.
