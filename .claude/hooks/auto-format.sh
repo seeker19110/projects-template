@@ -26,5 +26,6 @@ if [ ! -x "$ROOT/scripts/dev-task.sh" ]; then
   exit 0
 fi
 
-"$ROOT/scripts/dev-task.sh" format-file "$path" >/dev/null 2>&1 || true
+# Best-effort nhưng không nuốt lỗi (F-Q10): stdout bỏ, stderr của formatter được bắt để in kèm tiền tố.
+err="$("$ROOT/scripts/dev-task.sh" format-file "$path" 2>&1 >/dev/null)" || echo "[auto-format] format-file lỗi: ${err:-exit $?}" >&2
 exit 0

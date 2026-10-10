@@ -47,7 +47,11 @@ bout="$(CLAUDE_PROJECT_DIR="$bad_repo" bash "$SWEEP" --strict --out "$TMP/bad-re
 [ "$brc" -eq 1 ] && ok "--strict thoát 1 khi có 🔴" || bad "--strict thoát $brc (mong 1). Output: $bout"
 [ -s "$TMP/bad-report.md" ] && ok "--out ghi được báo cáo" || bad "--out không ghi file"
 rep="$(cat "$TMP/bad-report.md" 2>/dev/null)"
-chk() { if printf '%s' "$rep" | grep -q -- "$2"; then ok "$1"; else bad "$1 — không thấy '$2'"; fi; }
+chk() {   # khi trượt: in 30 dòng đầu báo cáo một lần, để ca đỏ tự giải thích được (2026-10-10: đỏ chỉ trong cổng, chạy riêng xanh)
+  if printf '%s' "$rep" | grep -q -- "$2"; then ok "$1"; return; fi
+  bad "$1 — không thấy '$2'"
+  if [ "${rep_dumped:-0}" = 0 ]; then rep_dumped=1; printf '%s\n' "$rep" | head -30 | sed 's/^/      | /'; fi
+}
 if printf '%s' "$rep" | grep -Fq -- "$fake_aws" || printf '%s' "$rep" | grep -Fq -- "$fake_pem"; then
   bad "báo cáo lộ giá trị chuỗi bí mật"
 else

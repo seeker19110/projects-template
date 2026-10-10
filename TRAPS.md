@@ -1311,3 +1311,42 @@ Dấu hiệu: thông báo lỗi nhắc đúng giá trị của lần chạy TRƯ
 *Cổng chốt chặn:* `spec-compiler.py` xoá `<out-dir>/__pycache__` trước khi sinh (mọi caller: `test-next-gen-engines.sh`,
 bước CI đích, chạy tay); ca "sửa về file có thật → xanh" trong `scripts/test-adoption-smoke.sh::spec_contract_expect` là test
 tái hiện (đỏ trước khi sửa, 2 fixture Node/Python).
+
+## 65. Tên file tạm CỐ ĐỊNH + tiến trình mồ côi: cổng đỏ "chỉ khi chạy qua hook", chạy riêng thì xanh
+
+*Ngày:* 2026-10-10 (PR-3 hồ sơ `docs/work/2026-10-09-audit-full-automation/`). Ba lần commit liên tiếp cổng
+`pre-commit-gate` đỏ đúng một chỗ — smoke của `test-copy-framework.sh` báo `test-maintenance-sweep.sh` 12 ca ❌ trong dự án
+đích — nhưng chạy riêng suite đó, replay đúng trình tự smoke, chạy cổng trực tiếp, chạy dưới stdin/TMP/PATH/locale của hook:
+tất cả xanh. Nguyên nhân thật: `TaskStop`/timeout chỉ giết shell cha, các cổng `dev-task.sh gate` chạy nền trước đó vẫn sống
+(3 tiến trình `gate` mồ côi, PID trùng số trên các probe `zz-probe-*.sh` sót lại) và chạy **cùng suite** ở worktree khác;
+suite dùng tên log cố định `/tmp/copy-framework-smoke.log`/`-test.log` nên hai bản ghi đè log của nhau → smoke đọc nhầm kết quả
+bản kia. "Đỏ khi qua hook" chỉ là trùng hợp thời điểm (cổng hook chạy lâu nhất nên dễ chồng).
+
+*Cách rà:* cổng đỏ mà không tái hiện được bằng cách chạy riêng → trước khi đổ cho môi trường, `ps -ef | grep 'gate\|test-'`
+đếm tiến trình cùng tên; probe `zz-probe-*` sót lại trong `scripts/` là dấu một lượt test bị giết dở. Rà `grep -n '/tmp/[a-z-]*\.'`
+trong `scripts/test-*.sh` tìm tên file tạm cố định — mọi file tạm phải qua `mktemp` và nằm trong thư mục được `trap` dọn.
+
+*Cổng chốt chặn:* `test-copy-framework.sh` dùng `LOG_DIR="$(mktemp -d)"` cho mọi log, in dòng ❌/đuôi log khi smoke đỏ
+(12 dòng đầu không bao giờ chứa ca đỏ). Chưa có cổng tự động cấm tên `/tmp` cố định trong suite — thêm vào
+`check-docs-consistency.sh`/`maintenance-sweep.sh` nếu tái phát. Dừng cổng nền thì giết cả cây tiến trình, rồi xoá probe sót.
+
+## 66. `python3 - <file.sh>` trên Windows: bí danh Python install manager chạy SHEBANG của đối số → suite tự gọi lại chính nó, treo
+
+*Ngày:* 2026-10-10 (PR-3 hồ sơ `docs/work/2026-10-09-audit-full-automation/`). Sau khi `test-hooks-session.sh` hết đỏ trên
+Windows, cổng `dev-task.sh gate` chạy tới `test-py-coverage-exit.sh` lần đầu trên máy này và treo vô hạn hai lần liên tiếp (log chỉ
+có `[WARNING] A shebang 'bash' was found…` + `child_copy: cygheap read copy failed`). Nguyên nhân: `python3` trong PATH là bí danh
+WindowsApps của Python install manager; nó coi đối số đầu tiên sau `-` là script và chạy theo shebang — đối số là probe bash →
+launcher chạy bash thay vì Python, probe là bản sao `test-py-coverage.sh` → gọi lại chuỗi đó. Tái hiện tối giản: `python3 - x.sh`
+(x.sh có `#!/usr/bin/env bash`) chạy bash; cùng lệnh với file không shebang hoặc với `python` thật thì chạy Python. Lộ thêm cùng lượt:
+`Path.read_text()` không chỉ encoding đọc theo cp1252 → `UnicodeDecodeError` trên nội dung tiếng Việt (Linux mặc định UTF-8 nên CI
+không thấy). Lượt sau đó đỏ tiếp ở `test-workflow-guards.sh` mục 4: `jq.exe` trên Windows in CRLF nên
+`for c in $(jq -r …)` nhận `gate` kèm CR và báo oan "Status check 'gate' chưa được bắt buộc". Khuôn chung với mục 65: suite chưa từng chạy hết trên Windows vì một suite đứng trước đã đỏ (fail-fast che phía sau).
+
+*Cách rà:* `grep -rnE 'python3? - "\$' scripts .claude` — đối số nào có thể là file mang shebang (`.sh`, script thực thi) thì
+truyền qua biến môi trường. Mọi `read_text`/`write_text`/`open` trong code Python nhúng ở suite phải có `encoding="utf-8"`. Sau khi
+gỡ một suite đỏ ở đầu chuỗi fail-fast, chạy lại TOÀN BỘ chuỗi trên đúng máy đó trước khi tuyên bố cổng xanh.
+
+*Cổng chốt chặn:* `scripts/test-py-coverage-exit.sh` truyền đường dẫn probe qua `PROBE_PATH` và đọc/ghi UTF-8 tường minh;
+`test-workflow-guards.sh` bọc `jq` thật bỏ CR khi chạy bước CI trên máy dev; `dev-task.sh gate` chạy hết chuỗi trên Windows; job
+`framework-lint-windows` chạy `test-hooks-session.sh` (PR-3). Chưa có cổng máy cấm `python3 - <file có shebang>` (`DEBT: chỉ rà bằng
+grep | trần: quy ước | xem lại khi: khuôn này tái phát ở suite khác`).

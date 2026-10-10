@@ -216,6 +216,9 @@ jobs:
       - name: Hook cổng chặn thật trên Windows (21 ca — cần jq, TRAPS mục 26)
         run: bash scripts/test-hooks-gate.sh
 
+      - name: Hook session trên Windows (đường dẫn MSYS qua argv, PATH tối giản bằng wrapper — F-Q6/F-Q9)
+        run: bash scripts/test-hooks-session.sh
+
       - name: Strict gate và fixture Node thực trên Windows
         run: bash scripts/test-dev-task.sh
       - name: Evidence và review-check trên Windows (jq CRLF, TRAPS mục 26)

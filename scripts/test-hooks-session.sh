@@ -32,7 +32,18 @@ cat > "$TR" <<'EOF'
 {"type":"assistant","timestamp":"2026-09-23T10:12:00.000Z","message":{"model":"claude-sonnet-5","usage":{"input_tokens":3000,"output_tokens":800}}}
 EOF
 run_hook() { printf '{"transcript_path":"%s"}' "$TR" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"; }
-last_entry() { python3 -c "import json,sys; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); e=l[$1]; print(e['model'], e['input_tokens'], e['output_tokens'], e['duration_sec'], len(l))"; }
+# tele_py <file.json> <mã Python dùng biến l>: ĐƯỜNG DẪN đi qua argv chứ không nhúng vào chuỗi -c — trên Git Bash
+# MSYS chỉ tự đổi `/tmp/…` → `C:/…` cho đối số, Python native không mở được đường dẫn MSYS nhúng trong mã (F-Q6).
+tele_py() {
+  python3 - "$@" <<'PY'
+import json, sys
+l = json.load(open(sys.argv[1], encoding='utf-8'))
+exec(sys.argv[2])
+PY
+}
+TELE="$PROJ/.ai-telemetry/telemetry.json"
+tele_count() { tele_py "${1:-$TELE}" 'print(len(l))'; }
+last_entry() { tele_py "$TELE" "e=l[$1]; print(e['model'], e['input_tokens'], e['output_tokens'], e['duration_sec'], len(l))"; }
 
 echo "== 1. telemetry-record: token = tổng usage THẬT, model = message cuối, thời lượng = delta =="
 run_hook; rc=$?
@@ -47,7 +58,7 @@ fi
 
 echo "== 2. Lượt kế KHÔNG có dòng mới → không ghi thêm (không cộng dồn cả phiên) =="
 run_hook
-n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+n="$(tele_count)"
 [ "$n" = "1" ] && ok "vẫn 1 entry" || bad "hook ghi trùng khi không có dòng mới: $n entry"
 
 echo "== 3. Có dòng mới → chỉ tính phần MỚI (delta), không tính lại từ đầu =="
@@ -59,7 +70,7 @@ e="$(last_entry -1)"
 
 echo "== 4. Transcript không tồn tại / payload rỗng → thoát 0, không ghi =="
 printf '{}' | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"; rc=$?
-n="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+n="$(tele_count)"
 [ "$rc" -eq 0 ] && [ "$n" = "2" ] && ok "payload rỗng: thoát 0, không ghi" || bad "payload rỗng: rc=$rc, entry=$n"
 
 echo "== 4b. Lượt mới không có message.usage → token null (unknown), không ghi 0 (LD-07) =="
@@ -74,7 +85,7 @@ rm -f "$PROJ/.ai-telemetry/last-stop-ts" "$PROJ/.ai-telemetry/telemetry.json"
 printf '{"transcript_path":"%s"}' "$WORK/none.jsonl" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"
 # transcript không tồn tại → hook không ghi; gọi engine trực tiếp không token → phải lộ 777
 CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/scripts/telemetry-log.sh" --record --agent neg --task neg >/dev/null 2>&1
-e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); print(l[-1]['input_tokens'])")"
+e="$(tele_py "$TELE" "print(l[-1]['input_tokens'])")"
 [ "$e" = "777" ] && ok "negative test bắt được engine bịa token (777)" || bad "negative test không bắt được (đọc: $e)"
 
 echo "== 6. session-resume: chỉ nạp 4 mục, bỏ khối 'trước đó', trần byte, nói rõ khi cắt =="
@@ -131,12 +142,12 @@ echo "== 7. SubagentStop: --agent = agent_type, mốc riêng theo transcript (kh
 TR2="$WORK/sub-transcript.jsonl"
 printf '{"type":"assistant","timestamp":"2026-09-23T11:00:00.000Z","message":{"model":"claude-haiku-4-5","usage":{"input_tokens":10,"output_tokens":5}}}\n' > "$TR2"
 printf '{"transcript_path":"%s","agent_type":"mechanical-worker","hook_event_name":"SubagentStop"}' "$TR2" | CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh"
-e="$(python3 -c "import json; l=json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8')); e=l[-1]; print(e['agent'], e['input_tokens'], e['output_tokens'])")"
+e="$(tele_py "$TELE" "e=l[-1]; print(e['agent'], e['input_tokens'], e['output_tokens'])")"
 [ "$e" = "mechanical-worker 10 5" ] && ok "SubagentStop ghi agent=mechanical-worker với token riêng" || bad "SubagentStop sai: '$e'"
 # Phiên chính vẫn không có dòng mới → không ghi (mốc của nó không bị mốc subagent ghi đè)
-n0="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+n0="$(tele_count)"
 run_hook
-n1="$(python3 -c "import json; print(len(json.load(open('$PROJ/.ai-telemetry/telemetry.json', encoding='utf-8'))))")"
+n1="$(tele_count)"
 [ "$n0" = "$n1" ] && ok "mốc phiên chính độc lập với mốc subagent" || bad "mốc bị lẫn: phiên chính ghi thêm entry ($n0 → $n1)"
 
 echo "== 8. PreCompact: chụp checkpoint có nhánh + mục Đang làm, ghi compact.log =="
@@ -197,29 +208,42 @@ echo "== 10. Thiếu jq/python hoặc engine lỗi → thoát 0 nhưng PHẢI c�
 # VÌ SAO (O-2 P-A2, 2026-10-08): session-guide/usage-guard/telemetry-record thoát 0 IM LẶNG khi thiếu công cụ hoặc
 # telemetry-log.sh lỗi → người dùng mất gợi ý/cảnh báo quota/số đo mà không ai biết. Khuôn chung các hook khác:
 # fail-open nhưng NÓI RA (`[tên-hook] không có jq → … bỏ qua.`).
-mkbin() {   # mkbin <thư mục> <lệnh…> — PATH tối giản chỉ có đúng các lệnh liệt kê (symlink, dự phòng cp)
-  local d="$1" b src; shift; mkdir -p "$d"
-  for b in "$@"; do
-    src="$(command -v "$b" 2>/dev/null)" && [ -n "$src" ] && { ln -sf "$src" "$d/$b" 2>/dev/null || cp "$src" "$d/$b"; }
-  done
+# PATH tối giản bằng WRAPPER (script có shebang tới bash thật, `exec` binary thật theo đường dẫn tuyệt đối) thay vì
+# copy/symlink binary (F-Q9): trên Git Bash, bash.exe copy ra thư mục tạm thiếu DLL MSYS (`error while loading
+# shared libraries`) và `ln -s` bị `Permission denied`. Không dùng wrapper `exit 127` che jq/python: `command -v`
+# vẫn thấy wrapper nên hook tưởng CÓ công cụ — muốn mô phỏng THIẾU thì lệnh đó phải vắng hẳn khỏi PATH.
+BASH_ABS="$(command -v bash)"
+mkwrap() {  # mkwrap <thư mục> <tên> <lệnh thật>
+  local src; src="$(command -v "$3" 2>/dev/null)" || return 0
+  mkdir -p "$1"; printf '#!%s\nexec %q "$@"\n' "$BASH_ABS" "$src" > "$1/$2"; chmod +x "$1/$2"
 }
+mkbin() {   # mkbin <thư mục> <lệnh…> — PATH chỉ có đúng các lệnh liệt kê
+  local d="$1" b; shift; mkdir -p "$d"
+  for b in "$@"; do mkwrap "$d" "$b" "$b"; done
+}
+# env -i xoá cả SYSTEMROOT → Python native trên Windows không khởi tạo được; giữ lại nếu có (Linux: rỗng, vô hại).
+minenv() { local p="$1"; shift; env -i PATH="$p" SYSTEMROOT="${SYSTEMROOT:-}" "$@"; }
 NOJQ="$WORK/bin-nojq"; mkbin "$NOJQ" bash cat dirname
 for h in session-guide usage-guard telemetry-record; do
-  printf '{}' | env -i PATH="$NOJQ" CLAUDE_PROJECT_DIR="$PROJ" bash "$ROOT/.claude/hooks/$h.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+  printf '{}' | minenv "$NOJQ" CLAUDE_PROJECT_DIR="$PROJ" "$BASH_ABS" "$ROOT/.claude/hooks/$h.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
   if [ "$rc" -eq 0 ] && grep -q "^\[$h\] không có jq" "$WORK/err.txt"; then ok "$h: thiếu jq → exit 0 + cảnh báo"
   else bad "$h: thiếu jq → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")' (kỳ vọng exit 0 + '[$h] không có jq')"; fi
 done
 NOPY="$WORK/bin-nopy"; mkbin "$NOPY" bash cat dirname jq
-printf '{"transcript_path":"%s"}' "$TR" | env -i PATH="$NOPY" CLAUDE_PROJECT_DIR="$PROJ" bash "$PROJ/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+printf '{"transcript_path":"%s"}' "$TR" | minenv "$NOPY" CLAUDE_PROJECT_DIR="$PROJ" "$BASH_ABS" "$PROJ/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
 [ "$rc" -eq 0 ] && grep -q '^\[telemetry-record\] không có python' "$WORK/err.txt" && ok "telemetry-record: thiếu python → exit 0 + cảnh báo" \
   || bad "telemetry-record: thiếu python → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")'"
 # Chỉ có `python` (không có python3 — Windows/một số distro): phải ghi được như _python-exec.sh.
 ONLYPY="$WORK/bin-onlypy"; mkbin "$ONLYPY" bash cat dirname jq git mkdir cksum cut
-ln -sf "$(command -v python3)" "$ONLYPY/python"
+# Trỏ tới interpreter THẬT (sys.executable), không tới `python3` trên PATH: trên Windows đó có thể là alias của
+# Python install manager — dưới env -i nó thiếu biến môi trường và không chạy engine.
+PY_REAL="$(python3 -c 'import sys; print(sys.executable)')"
+command -v cygpath >/dev/null 2>&1 && PY_REAL="$(cygpath -u "$PY_REAL")"
+mkwrap "$ONLYPY" python "$PY_REAL"
 P4="$WORK/proj-onlypy"; mkdir -p "$P4/.claude/hooks"; cp -R "$PROJ/scripts" "$P4/"; cp "$PROJ/.claude/hooks/telemetry-record.sh" "$P4/.claude/hooks/"
 rm -f "$P4"/scripts/*.tmp 2>/dev/null
-printf '{"transcript_path":"%s"}' "$TR" | env -i PATH="$ONLYPY" CLAUDE_PROJECT_DIR="$P4" bash "$P4/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
-n="$(python3 -c "import json; print(len(json.load(open('$P4/.ai-telemetry/telemetry.json', encoding='utf-8'))))" 2>/dev/null)"
+printf '{"transcript_path":"%s"}' "$TR" | minenv "$ONLYPY" CLAUDE_PROJECT_DIR="$P4" "$BASH_ABS" "$P4/.claude/hooks/telemetry-record.sh" >/dev/null 2>"$WORK/err.txt"; rc=$?
+n="$(tele_count "$P4/.ai-telemetry/telemetry.json" 2>/dev/null)"
 [ "$rc" -eq 0 ] && [ "$n" = "1" ] && ok "telemetry-record: chỉ có 'python' vẫn ghi được 1 entry" \
   || bad "telemetry-record: chỉ có 'python' → rc=$rc, entry='$n', stderr='$(head -c 200 "$WORK/err.txt")'"
 # telemetry-log.sh lỗi → lỗi phải hiện ra stderr có tiền tố, hook vẫn exit 0 (hook Stop không được làm chết phiên).
@@ -284,7 +308,10 @@ AF2="$WORK/af-nostub"; mkdir -p "$AF2"
 printf '{"tool_input":{"file_path":"x.ts"}}' | CLAUDE_PROJECT_DIR="$AF2" bash "$HOOK" >/dev/null 2>"$WORK/err.txt"; rc=$?
 [ "$rc" -eq 0 ] && grep -qF '[auto-format] không thấy scripts/dev-task.sh' "$WORK/err.txt" && ok "auto-format: thiếu dev-task.sh → exit 0 + cảnh báo stderr" \
   || bad "auto-format: thiếu dev-task.sh → rc=$rc, stderr='$(head -c 200 "$WORK/err.txt")'"
-printf '{"tool_input":{"file_path":"x.ts"}}' | AF_RC=7 AF_LOG="$WORK/af.log" CLAUDE_PROJECT_DIR="$AF" bash "$HOOK" >/dev/null 2>&1; rc=$?
+printf '{"tool_input":{"file_path":"x.ts"}}' | AF_RC=7 AF_LOG="$WORK/af.log" CLAUDE_PROJECT_DIR="$AF" bash "$HOOK" >/dev/null 2>"$WORK/err.txt"; rc=$?
 [ "$rc" -eq 0 ] && ok "auto-format: dev-task exit 7 → hook vẫn exit 0 (best-effort)" || bad "auto-format: dev-task lỗi làm hook exit $rc"
+# Best-effort nhưng KHÔNG nuốt lỗi im lặng (F-Q10): người dùng phải thấy formatter hỏng.
+grep -qF '[auto-format] format-file lỗi' "$WORK/err.txt" && ok "auto-format: dev-task exit 7 → stderr có '[auto-format] format-file lỗi'" \
+  || bad "auto-format: dev-task lỗi bị nuốt im lặng, stderr='$(head -c 200 "$WORK/err.txt")'"
 
 finish "hook session (telemetry-record, session-resume, session-guide, auto-format) ghi số thật, nạp gọn, không ghi trùng, no-op đúng chỗ."

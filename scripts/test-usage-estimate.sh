@@ -81,4 +81,31 @@ else
   bad "UE-5: transcript non-ASCII + locale không UTF-8 làm hỏng ước tính (rc=$rc): $(echo "$out" | tail -n 3 | tr '\n' ' ')"
 fi
 
+# UE-6/UE-7 (F-Q6 audit 2026-10-09): máy chỉ có `python` (Windows/một số distro) thì bản cũ dò riêng `python3`
+# → OVERALL=NA im lặng, usage-guard tắt cảnh báo quota mà không ai biết. PATH tối giản bằng wrapper (script có
+# shebang tới bash thật, exec interpreter THẬT theo sys.executable) — không copy/symlink binary (hỏng trên Git Bash).
+BASH_ABS="$(command -v bash)"
+PY_REAL="$(python3 -c 'import sys; print(sys.executable)')"
+command -v cygpath >/dev/null 2>&1 && PY_REAL="$(cygpath -u "$PY_REAL")"
+ONLYPY="$WORK/bin-onlypy"; NOPY="$WORK/bin-nopy"; mkdir -p "$ONLYPY" "$NOPY"
+printf '#!%s\nexec %q "$@"\n' "$BASH_ABS" "$PY_REAL" > "$ONLYPY/python"; chmod +x "$ONLYPY/python"
+# env -i xoá SYSTEMROOT → Python native trên Windows không khởi tạo được; giữ lại nếu có (Linux: rỗng, vô hại).
+minenv() { local p="$1"; shift; env -i PATH="$p" SYSTEMROOT="${SYSTEMROOT:-}" CLAUDE_PROJECT_DIR="$WORK" "$@"; }
+
+out="$(minenv "$ONLYPY" "$BASH_ABS" "$SCRIPT" "$WORK/t.jsonl" 2>"$WORK/err.txt")"; rc=$?
+overall6="$(echo "$out" | sed -n 's/^OVERALL=\([0-9]*\)$/\1/p')"
+if [ "$rc" -eq 0 ] && [ -n "$overall6" ] && [ "$overall6" = "$overall2" ]; then
+  ok "UE-6: PATH chỉ có 'python' → vẫn ước tính được (OVERALL=$overall6)"
+else
+  bad "UE-6: PATH chỉ có 'python' → rc=$rc, out='$(echo "$out" | tr '\n' ' ')', stderr='$(head -c 200 "$WORK/err.txt")'"
+fi
+
+out="$(minenv "$NOPY" "$BASH_ABS" "$SCRIPT" "$WORK/t.jsonl" 2>"$WORK/err.txt")"; rc=$?
+if [ "$rc" -eq 0 ] && echo "$out" | grep -q '^OVERALL=NA$' \
+   && grep -qF '[usage-estimate] không có python → bỏ qua ước tính' "$WORK/err.txt"; then
+  ok "UE-7: không có python3/python → OVERALL=NA + nói ra ở stderr (không im lặng)"
+else
+  bad "UE-7: thiếu python → rc=$rc, out='$(echo "$out" | tr '\n' ' ')', stderr='$(head -c 200 "$WORK/err.txt")'"
+fi
+
 finish "usage-estimate.sh đạt toàn bộ ca kiểm (kể cả đối chứng định lượng)."

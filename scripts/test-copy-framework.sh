@@ -13,6 +13,9 @@ fail=0
 tmp_dirs=()
 cleanup() { [ "${#tmp_dirs[@]}" -eq 0 ] || rm -rf "${tmp_dirs[@]}"; }
 trap cleanup EXIT
+# Log RIÊNG từng lượt chạy (không dùng tên cố định trong /tmp): hai bản suite chạy chồng — vd cổng mồ côi từ lượt
+# bị dừng dở — từng ghi đè log của nhau, smoke đọc nhầm kết quả bản kia (TRAPS.md mục 65).
+LOG_DIR="$(mktemp -d)"; tmp_dirs+=("$LOG_DIR")
 
 new_target() {
   local t
@@ -24,11 +27,11 @@ new_target() {
 
 run_logged() {          # run_logged <mô tả> <lệnh...>
   local desc="$1"; shift
-  if "$@" >/tmp/copy-framework-test.log 2>&1; then
+  if "$@" >"$LOG_DIR/test.log" 2>&1; then
     return 0
   fi
   echo "  FAIL [$desc]: script thoát lỗi — log:"
-  sed 's/^/    /' /tmp/copy-framework-test.log
+  sed 's/^/    /' "$LOG_DIR/test.log"
   fail=1
   return 1
 }
@@ -380,7 +383,7 @@ fi
 echo "== Smoke: self-test đi kèm phải XANH ngay trong dự án đích =="
 smoke_target="$(new_target)"
 # Copy HAI lần: lần chạy lại từng rải *.framework-new làm test-hooks-gate.sh mục 17 đỏ ở đích (F-Q7).
-if ! { bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" && bash "$REPO_ROOT/copy-framework.sh" "$smoke_target"; } >/tmp/copy-framework-smoke.log 2>&1; then
+if ! { bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" && bash "$REPO_ROOT/copy-framework.sh" "$smoke_target"; } >"$LOG_DIR/smoke.log" 2>&1; then
   echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
   fail=1
 else
@@ -390,11 +393,12 @@ else
       fail=1
       continue
     fi
-    if ( cd "$smoke_target" && bash "scripts/$t" >/tmp/copy-framework-smoke.log 2>&1 ); then
+    if ( cd "$smoke_target" && bash "scripts/$t" >"$LOG_DIR/smoke.log" 2>&1 ); then
       echo "  ✅ $t XANH trong dự án đích"
     else
-      echo "  FAIL: $t ĐỎ trong dự án đích — script được phát nhưng không chạy nổi ở đó:"
-      sed -n '1,12p' /tmp/copy-framework-smoke.log | sed 's/^/      /'
+      echo "  FAIL: $t ĐỎ trong dự án đích — script được phát nhưng không chạy nổi ở đó (log đủ in ngay dưới, thư mục log bị dọn khi suite thoát):"
+      # 12 dòng đầu không bao giờ chứa ca đỏ (2026-10-10: ba lần đỏ chỉ thấy header) → in dòng ❌/FAIL/lỗi + đuôi log.
+      { grep -n '❌\|FAIL\|rror\|cannot\|No such' "$LOG_DIR/smoke.log" | head -20; echo "… (đuôi log)"; tail -15 "$LOG_DIR/smoke.log"; } | sed 's/^/      /'
       fail=1
     fi
   done

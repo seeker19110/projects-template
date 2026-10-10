@@ -51,11 +51,20 @@ else
 cat "$TEST_LIVE_RULES"
 EOF
   chmod +x "$WORK/bin/curl"
+  # Bước CI chạy trên ubuntu; trên Windows `jq.exe` in CRLF → `for c in $(jq -r …)` nhận "gate<CR>" và báo oan
+  # "Status check 'gate' chưa được bắt buộc". Bọc jq THẬT (REAL_JQ), bỏ CR, giữ mã thoát của jq -e — chỉ trong
+  # harness, không đổi bước CI (TRAPS.md mục 66: suite chưa từng chạy hết trên Windows vì suite trước đã đỏ).
+  cat > "$WORK/bin/jq" <<'JQ'
+#!/usr/bin/env bash
+set -o pipefail
+"$REAL_JQ" "$@" | tr -d '\r'
+JQ
+  chmod +x "$WORK/bin/jq"
   for live_strict in true false; do
     jq --argjson strict "$live_strict" \
       '[.rules[] | {type, parameters: ((.parameters // {}) | if has("strict_required_status_checks_policy") then .strict_required_status_checks_policy = $strict else . end)}]' \
       "$ROOT/.github/rulesets/main.json" > "$WORK/live-rules-$live_strict.json"
-    (cd "$ROOT" && PATH="$WORK/bin:$PATH" TEST_LIVE_RULES="$WORK/live-rules-$live_strict.json" \
+    (cd "$ROOT" && REAL_JQ="$(command -v jq)" PATH="$WORK/bin:$PATH" TEST_LIVE_RULES="$WORK/live-rules-$live_strict.json" \
       RUNNER_TEMP="$WORK" GH_TOKEN=test REPO=test/repo BRANCH=main bash "$WORK/protection-guard.sh" \
       > "$WORK/check-output" 2>&1)
     rc=$?
