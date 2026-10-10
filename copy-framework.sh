@@ -17,22 +17,27 @@
 #   đã sửa + không có base → giữ nguyên đích, để bản mới ở <file>.framework-new. KHÔNG BAO GIỜ mất
 #   nội dung của đích (spec docs/specs/2026-09-23-nang-ban-khung-cho-du-an-dich.md).
 #
+# Đích có .git và chưa đặt core.hooksPath → đặt scripts/githooks (cổng commit cho harness ngoài Claude Code);
+#   đã đặt giá trị khác thì giữ nguyên + cảnh báo; cờ --no-hooks bỏ bước này. Bản stage của CODEOWNERS
+#   đổi @seeker19110 → @OWNER-CHANGE-ME (không gán review cho chủ repo khung).
+#
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$SCRIPT_DIR"
 
-TARGET=""; UPGRADE=0
+TARGET=""; UPGRADE=0; NO_HOOKS=0
 for arg in "$@"; do
   case "$arg" in
     --upgrade) UPGRADE=1 ;;
-    -*) echo "Lỗi: cờ không hợp lệ '$arg' (chỉ có --upgrade)."; exit 1 ;;
+    --no-hooks) NO_HOOKS=1 ;;
+    -*) echo "Lỗi: cờ không hợp lệ '$arg' (chỉ có --upgrade, --no-hooks)."; exit 1 ;;
     *) TARGET="$arg" ;;
   esac
 done
 if [ -z "$TARGET" ]; then
   echo "Lỗi: thiếu đường dẫn dự án đích."
-  echo "Dùng:  bash copy-framework.sh /đường-dẫn/tới/dự-án-đích [--upgrade]"
+  echo "Dùng:  bash copy-framework.sh /đường-dẫn/tới/dự-án-đích [--upgrade] [--no-hooks]"
   exit 1
 fi
 if [ ! -d "$TARGET" ]; then
@@ -152,9 +157,30 @@ stage() {               # đưa vào _framework-dropins/ (không đụng file đ
     cp -R "$SRC/$source_rel/." "$TARGET/_framework-dropins/$rel/"
   else
     mkdir -p "$TARGET/_framework-dropins/$(dirname "$rel")"
-    cp "$SRC/$source_rel" "$TARGET/_framework-dropins/$rel"
+    if [ "$rel" = ".github/CODEOWNERS" ]; then   # owner của khung không được rò sang đích (F-A5)
+      sed 's/@seeker19110/@OWNER-CHANGE-ME/g' "$SRC/$source_rel" > "$TARGET/_framework-dropins/$rel"
+    else
+      cp "$SRC/$source_rel" "$TARGET/_framework-dropins/$rel"
+    fi
   fi
   echo "  → _framework-dropins/$rel"
+}
+enable_hooks_path() {   # đặt core.hooksPath=scripts/githooks ở đích nếu chưa đặt (F-A7); không bao giờ ghi đè giá trị đã có
+  local cur
+  [ "$NO_HOOKS" -eq 0 ] || { echo "  ~ --no-hooks: không đặt core.hooksPath"; return 0; }
+  if [ ! -e "$TARGET/.git" ]; then
+    echo "  ! đích chưa có .git → chưa đặt core.hooksPath; sau git init chạy: git config core.hooksPath scripts/githooks"
+    return 0
+  fi
+  cur="$(git -C "$TARGET" config core.hooksPath 2>/dev/null || true)"
+  if [ -z "$cur" ]; then
+    if git -C "$TARGET" config core.hooksPath scripts/githooks; then echo "  + core.hooksPath=scripts/githooks"
+    else echo "  ! không đặt được core.hooksPath — tự chạy: git config core.hooksPath scripts/githooks"; fi
+  elif [ "$cur" = "scripts/githooks" ]; then
+    echo "  = core.hooksPath=scripts/githooks"
+  else
+    echo "  ~ core.hooksPath đã đặt '$cur' → giữ nguyên (muốn cổng commit của khung: git config core.hooksPath scripts/githooks)"
+  fi
 }
 
 echo ""
@@ -224,6 +250,7 @@ place_or_aside "$SRC/.claude/settings-shared-default.json" ".claude/settings.jso
 while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section scripts)
 chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
+enable_hooks_path
 
 echo ""
 echo "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
@@ -251,6 +278,10 @@ cat <<'NEXT'
   3) Soát thư mục _framework-dropins/ : so/merge các file CI (.github/workflows/*,
      PR template, dependabot, CODEOWNERS, .gitignore, .gitattributes) với cấu hình
      CI đã có (nếu có) rồi merge cho khớp dự án. Xong thì có thể xóa _framework-dropins/.
+     → CODEOWNERS trong đó mang placeholder @OWNER-CHANGE-ME: thay bằng chủ repo/team thật
+       trước khi dùng (maintenance-sweep sẽ nhắc 🟡 nếu còn sót).
+     → core.hooksPath đã đặt scripts/githooks (nếu đích có .git và chưa đặt) để mọi harness đi qua
+       cổng commit; không muốn thì chạy lại với --no-hooks hoặc git config --unset core.hooksPath.
 
   4) Commit, rồi áp khung tăng dần theo existing-project-adoption.md
      (Prettier → ESLint → TS strict → hook → CI → lấp lỗ hổng test/a11y/hiệu năng).

@@ -279,6 +279,11 @@ gate_args() {  # $1=mode, phần còn lại = tuỳ chọn; đặt GATE_EVIDENCE
     esac
   done
 }
+hooks_path_warning() {   # harness ngoài Claude Code chỉ có cổng commit khi core.hooksPath trỏ scripts/githooks (F-A7); chỉ nhắc, không đổi exit
+  [ -f "$ROOT/scripts/githooks/pre-commit" ] && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+  [ "$(git -C "$ROOT" config core.hooksPath 2>/dev/null)" = scripts/githooks ] ||
+    log 'cảnh báo: core.hooksPath chưa trỏ scripts/githooks — harness ngoài Claude Code không có cổng commit (git config core.hooksPath scripts/githooks)'
+}
 verify_contract() {
   local mode="$1" rc
   GATE_STARTED="$(now_utc)"; GATE_REASON=''; GATE_TEST_CASES=''; GATE_UNTRACKED_TOUCHED=''; GATE_EVIDENCE_PATH=''
@@ -288,6 +293,7 @@ verify_contract() {
   evidence_prepare "$GATE_EVIDENCE_ARG" || return 2
   gate_preflight || { evidence_finish BLOCKED; return 2; }
   if [ "$mode" = doctor ]; then
+    hooks_path_warning
     log "READY: ${#GATE_NAMES[@]} kiểm tra đã cấu hình; chưa chạy, không phải PASS."
     return 0
   fi

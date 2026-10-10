@@ -20,9 +20,14 @@
 #   nếu CHƯA có, đã có mà khác thì để cạnh <file>.framework-new, giống hệt thì bỏ qua / đưa vào
 #   _framework-dropins/) nằm ở copy-framework.manifest — một nguồn cho cả .sh và .ps1.
 #
+# Đích có .git và chưa đặt core.hooksPath → đặt scripts/githooks (cổng commit cho harness ngoài Claude Code);
+#   đã đặt giá trị khác thì giữ nguyên + cảnh báo; -NoHooks bỏ bước này. Bản stage của CODEOWNERS
+#   đổi @seeker19110 → @OWNER-CHANGE-ME (khớp copy-framework.sh).
+#
 [CmdletBinding()]
 param(
   [switch] $Upgrade,
+  [switch] $NoHooks,
   [Parameter(Position = 0)]
   [string] $Target
 )
@@ -215,8 +220,27 @@ function Add-Dropin {           # đưa vào _framework-dropins/ (không đụng
   $relN = Resolve-Rel $Rel
   $srcFull = Join-Path $Src (Resolve-Rel $SourceRel)
   if (-not (Test-Path -LiteralPath $srcFull)) { return }
-  Copy-Tree -SrcFull $srcFull -DestFull (Join-Path (Join-Path $Target '_framework-dropins') $relN)
+  $destFull = Join-Path (Join-Path $Target '_framework-dropins') $relN
+  Copy-Tree -SrcFull $srcFull -DestFull $destFull
+  if ($Rel -eq '.github/CODEOWNERS') {   # owner của khung không được rò sang đích (F-A5); LF + UTF-8 không BOM như bản .sh
+    $txt = [System.IO.File]::ReadAllText($destFull) -replace '@seeker19110', '@OWNER-CHANGE-ME'
+    [System.IO.File]::WriteAllText($destFull, $txt, (New-Object System.Text.UTF8Encoding $false))
+  }
   Write-Host "  → _framework-dropins/$Rel"
+}
+
+function Enable-HooksPath {     # đặt core.hooksPath=scripts/githooks ở đích nếu chưa đặt (F-A7); không bao giờ ghi đè giá trị đã có
+  if ($NoHooks) { Write-Host "  ~ -NoHooks: không đặt core.hooksPath"; return }
+  if (-not (Test-Path -LiteralPath (Join-Path $Target '.git'))) {
+    Write-Host "  ! đích chưa có .git → chưa đặt core.hooksPath; sau git init chạy: git config core.hooksPath scripts/githooks"
+    return
+  }
+  $cur = ''
+  if ((Test-HasGit) -and (Invoke-Git -GitArgs @('-C', $Target, 'config', 'core.hooksPath')) -and $script:GitOut.Count -gt 0) { $cur = ([string]$script:GitOut[0]).Trim() }
+  if ($cur -eq 'scripts/githooks') { Write-Host "  = core.hooksPath=scripts/githooks" }
+  elseif ($cur) { Write-Host "  ~ core.hooksPath đã đặt '$cur' → giữ nguyên (muốn cổng commit của khung: git config core.hooksPath scripts/githooks)" }
+  elseif ((Test-HasGit) -and (Invoke-Git -GitArgs @('-C', $Target, 'config', 'core.hooksPath', 'scripts/githooks'))) { Write-Host "  + core.hooksPath=scripts/githooks" }
+  else { Write-Host "  ! không đặt được core.hooksPath — tự chạy: git config core.hooksPath scripts/githooks" }
 }
 
 Write-Host ""
@@ -281,6 +305,7 @@ Copy-OrAside -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -R
 
 foreach ($e in Get-ManifestSection scripts) { Copy-IfAbsent $e[0] }
 Set-ExecBit
+Enable-HooksPath
 
 Write-Host ""
 Write-Host "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
@@ -308,6 +333,10 @@ Write-Host @'
   3) Soát thư mục _framework-dropins/ : so/merge các file CI (.github/workflows/*,
      PR template, dependabot, CODEOWNERS, .gitignore, .gitattributes) với cấu hình
      CI đã có (nếu có) rồi merge cho khớp dự án. Xong thì có thể xóa _framework-dropins/.
+     → CODEOWNERS trong đó mang placeholder @OWNER-CHANGE-ME: thay bằng chủ repo/team thật
+       trước khi dùng (maintenance-sweep sẽ nhắc 🟡 nếu còn sót).
+     → core.hooksPath đã đặt scripts/githooks (nếu đích có .git và chưa đặt) để mọi harness đi qua
+       cổng commit; không muốn thì chạy lại với -NoHooks hoặc git config --unset core.hooksPath.
 
   4) Commit, rồi áp khung tăng dần theo existing-project-adoption.md
      (Prettier → ESLint → TS strict → hook → CI → lấp lỗ hổng test/a11y/hiệu năng).

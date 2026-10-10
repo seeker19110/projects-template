@@ -338,6 +338,12 @@ sweep_gates() {
     line "- arch-health-radar: ${score:-không đọc được}/100"
     [ -n "$score" ] && [ "$score" -lt 80 ] && yel "Cổng" "radar sức khoẻ $score/100" "chạy \`scripts/arch-health-radar.sh --scan\` xem mục kéo điểm"
   fi
+  if [ -f scripts/githooks/pre-commit ] && [ "$(git config core.hooksPath 2>/dev/null)" != scripts/githooks ]; then
+    yel "Cổng" "core.hooksPath chưa trỏ scripts/githooks" "chạy \`git config core.hooksPath scripts/githooks\` — harness ngoài Claude Code không có cổng commit"
+  fi
+  if [ -f .github/CODEOWNERS ] && grep -q '@OWNER-CHANGE-ME' .github/CODEOWNERS; then
+    yel "Cổng" ".github/CODEOWNERS còn @OWNER-CHANGE-ME" "thay bằng chủ repo/team thật (review tự gán đang trỏ vào placeholder)"
+  fi
   if [ "$RUN_GATE" -eq 1 ]; then
     run_gate_script scripts/dev-task.sh "dev-task gate (build/type/lint/test)" gate
   else

@@ -72,3 +72,15 @@ GIAI ĐOẠN 1 (chỉ đọc + đo): phiên chính đọc bề mặt tự độn
   so HAI CHIỀU tập job thật ↔ khối, không phải "required checks"; ruleset vẫn chỉ khoá `gate`+`metadata`, đã ghi rõ ở đoạn dẫn.
   (2) `allow_auto_merge`/`delete_branch_on_merge` trả `null` với `GITHUB_TOKEN` thiếu quyền → `::warning` + exit 0, không đỏ oan.
   (3) Đếm lại: 17 stack (npm + pip + 15 khác), spec viết "15" là số stack *khác* — TRAPS 57 ghi đúng 15 khác.
+- 2026-10-10 (đợt 2, PR-6 = T7, route: standard → worker trong worktree riêng, phiên chính rebase lên `main` sau #265 và chạy lại
+  mọi cổng): đỏ-trước 3 suite (test-copy-framework: hooksPath "chưa đặt" + dropin CODEOWNERS còn `@seeker19110`, bash+pwsh;
+  test-maintenance-sweep 2 ca 🟡; test-dev-task ca doctor cảnh báo) → sửa `copy-framework.sh` và `copy-framework.ps1` (`--no-hooks`/`-NoHooks`,
+  `enable_hooks_path`/`Enable-HooksPath`, CODEOWNERS stage → `@OWNER-CHANGE-ME`), `dev-task.sh` `hooks_path_warning`,
+  `maintenance-sweep.sh` 2 🟡 mảng Cổng → xanh. Phát sinh: bật hooksPath ở đích làm `test-adoption-smoke.sh` đỏ 6 ca (fixture
+  commit trên `master` bị chính `pre-commit` của khung chặn) → fixture copy với `--no-hooks` (đúng mục đích của cờ). Quyết định cục
+  bộ của worker giữ: đích không `.git` → in hướng dẫn, không lỗi; hooksPath đã đặt giá trị khác → giữ + cảnh báo. PROGRESS checkpoint
+  sau #264/#265 gộp vào PR này (§3e). Để lại T12: ca test cho `--no-hooks` và "hooksPath đã đặt giá trị khác".
+- 2026-10-10 checkpoint: PR-6 #266 merged (CI lần 1 đỏ `framework-lint` LD-08 — `tests/test_lean_adoption.py` cũng commit fixture trên
+  `master` → thêm `--no-hooks`, cùng khuôn adoption-smoke; bài học T12: "chạy tay các cổng" phải = đủ danh sách step của job
+  `framework-lint`, không chỉ các suite chạm file đã sửa). Đợt 2 xong (PR-4 #260, PR-2 #264, PR-5 #265, PR-6 #266). Tiếp theo: PR-3
+  (T3, F-Q6, patch còn staged ở worktree worker `.claude/worktrees/agent-a29edc37a061c15be`) rồi đợt 3 (PR-7 T8→T9, PR-8 T10→T11).
