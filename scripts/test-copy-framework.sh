@@ -92,7 +92,7 @@ check_structure() {     # check_structure <mô tả> <target>
   else
     echo "  FAIL [$label]: thiếu/hỏng docs/framework/FRAMEWORK-VERSION (dấu bản khung)"; ok=0
   fi
-  if [ "$label" = "bash / đích trống" ]; then   # phiên bản + manifest (spec 2026-09-23 nâng bản khung, AC-1) — bản .ps1 chỉ ghi commit
+  if [ "$label" = "bash / đích trống" ] || [ "$label" = "pwsh / đích trống" ]; then   # phiên bản + manifest (spec 2026-09-23 AC-1) — .sh và .ps1 cùng khuôn stamp (F-D-05)
     grep -q "^version: $(cat "$REPO_ROOT/VERSION")$" "$target/docs/framework/FRAMEWORK-VERSION" 2>/dev/null \
       || { echo "  FAIL [$label]: FRAMEWORK-VERSION thiếu 'version:' khớp file VERSION"; ok=0; }
     [ "$(grep -c '^manifest: ' "$target/docs/framework/FRAMEWORK-VERSION" 2>/dev/null)" -gt 0 ] \
@@ -157,6 +157,28 @@ check_claude_config_not_overwritten() {   # check_claude_config_not_overwritten 
     || { echo "  FAIL [$label]: thiếu hooks.framework-new"; fail=1; }
 }
 
+check_no_framework_new() {  # check_no_framework_new <mô tả> <target> — chạy lại trên đích CHƯA sửa không được rải bản trùng (F-Q7)
+  local label="$1" target="$2" n
+  n="$(find "$target" -name '*.framework-new' | wc -l | tr -d ' ')"
+  if [ "$n" -eq 0 ]; then
+    echo "  ok [$label]: 0 file .framework-new (đích giống hệt nguồn → không tạo bản trùng)"
+  else
+    echo "  FAIL [$label]: $n file .framework-new dù đích chưa sửa gì — vd: $(find "$target" -name '*.framework-new' | head -3 | sed "s|$target/||" | tr '\n' ' ')"
+    fail=1
+  fi
+}
+
+check_git_exec_bit() {  # check_git_exec_bit <mô tả> <target> — script phát sang phải mang mode 100755 trong index git (F-Q8)
+  local label="$1" target="$2" mode
+  mode="$(git -C "$target" ls-files -s .claude/hooks/auto-format.sh | awk '{print $1}')"
+  if [ "$mode" = "100755" ]; then
+    echo "  ok [$label]: .claude/hooks/auto-format.sh mode 100755 trong index git"
+  else
+    echo "  FAIL [$label]: .claude/hooks/auto-format.sh mode '${mode:-không có trong index}' (kỳ vọng 100755) — clone trên Linux/macOS sẽ không chạy được hook"
+    fail=1
+  fi
+}
+
 check_ops_state_kept() {  # check_ops_state_kept <mô tả> <target> — chạy lại copy KHÔNG được xoá nhật ký của đích
   local label="$1" target="$2"
   if grep -q "SENTINEL-NHAT-KY-DICH" "$target/docs/ops/MAINTENANCE-LOG.md" 2>/dev/null; then
@@ -215,6 +237,7 @@ echo "SENTINEL-NHAT-KY-DICH" > "$targetA/docs/ops/MAINTENANCE-LOG.md"
 run_logged "bash / chạy lại lần 2" bash "$REPO_ROOT/copy-framework.sh" "$targetA" \
   && echo "  ok [bash / chạy lại lần 2]: không lỗi"
 check_ops_state_kept "bash / chạy lại lần 2" "$targetA"
+check_no_framework_new "bash / chạy lại lần 2" "$targetA"
 
 echo ""
 echo "== bash / --upgrade: giữ chỉnh sửa của đích, cập nhật file chưa sửa (AC-2, AC-3) =="
@@ -272,6 +295,7 @@ if command -v pwsh >/dev/null 2>&1; then
   run_logged "pwsh / đích trống" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
   check_structure "pwsh / đích trống" "$targetD"
   check_manifest "pwsh / đích trống" "$targetD"
+  check_git_exec_bit "pwsh / đích trống" "$targetD"
 
   echo ""
   echo "== pwsh / đích đã có CLAUDE.md + .claude/settings.json + .claude/hooks (không được đè) =="
@@ -290,6 +314,7 @@ if command -v pwsh >/dev/null 2>&1; then
   echo "SENTINEL-NHAT-KY-DICH" > "$targetD/docs/ops/MAINTENANCE-LOG.md"
   run_logged "pwsh / chạy lại lần 2" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
   check_ops_state_kept "pwsh / chạy lại lần 2" "$targetD"
+  check_no_framework_new "pwsh / chạy lại lần 2" "$targetD"
 else
   echo ""
   echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."
@@ -311,11 +336,12 @@ fi
 # Bài học tổng quát: "đã copy đủ file" ≠ "dùng được". Chỉ chạy thật mới chứng minh.
 echo "== Smoke: self-test đi kèm phải XANH ngay trong dự án đích =="
 smoke_target="$(new_target)"
-if ! bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" >/tmp/copy-framework-smoke.log 2>&1; then
+# Copy HAI lần: lần chạy lại từng rải *.framework-new làm test-hooks-gate.sh mục 17 đỏ ở đích (F-Q7).
+if ! { bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" && bash "$REPO_ROOT/copy-framework.sh" "$smoke_target"; } >/tmp/copy-framework-smoke.log 2>&1; then
   echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
   fail=1
 else
-  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh test-maintain-cron.sh; do
+  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh test-maintain-cron.sh test-hooks-gate.sh test-usage-estimate.sh; do
     if [ ! -f "$smoke_target/scripts/$t" ]; then
       echo "  FAIL: thiếu $t ở dự án đích — không smoke được"
       fail=1

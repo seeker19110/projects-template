@@ -7,16 +7,9 @@
 #   2) Chạy:   bash copy-framework.sh /đường-dẫn/tới/dự-án-đích
 #   3) Mở phiên Claude Code TRONG dự án đích → AI tự đọc CLAUDE.md và tự dò stack.
 #
-# An toàn cho dự án đã có sẵn (brownfield):
-#   - Tài liệu khung (docs/framework, mẫu ADR)  → copy thẳng (chỉ là tài liệu tham khảo mới).
-#   - File gốc (CLAUDE.md, PROJECT.md...)        → chỉ copy nếu CHƯA có; nếu đã có thì để bản
-#                                                  khung cạnh bên dưới đuôi .framework-new để bạn tự so.
-#   - Cấu hình Claude Code (.claude/settings.json, .claude/hooks, .claude/agents,
-#     scripts/dev-task.sh, scripts/usage-estimate.sh, 2 file .claude/*.example.sh)
-#                                                  → chỉ copy nếu CHƯA có; nếu đã có thì để bản
-#                                                  khung cạnh bên (đuôi .framework-new) để bạn tự so.
-#   - File CI/quy ước GitHub (workflows, PR template, dependabot...) → KHÔNG đè; đưa vào
-#     _framework-dropins/ để bạn tự so/merge với cấu hình CI đã có (nếu có).
+# An toàn cho dự án đã có sẵn (brownfield): danh sách file và cách copy từng nhóm (copy thẳng / chỉ copy
+#   nếu CHƯA có, đã có mà khác thì để cạnh <file>.framework-new, giống hệt thì bỏ qua / đưa vào
+#   _framework-dropins/) nằm ở copy-framework.manifest — một nguồn cho cả .sh và .ps1.
 #
 # NÂNG BẢN khung ở dự án đích đã có khung:   bash copy-framework.sh /đích --upgrade
 #   Với từng file Lớp 1: chưa sửa ở đích (hash khớp manifest trong FRAMEWORK-VERSION) → cập nhật;
@@ -129,17 +122,24 @@ copy_into() {           # copy thẳng (thư mục → copy NỘI DUNG vào đí
   fi
   echo "  + $rel"
 }
-copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì để bản .framework-new
-  local rel="$1"
-  [ -e "$SRC/$rel" ] || return 0
-  mkdir -p "$TARGET/$(dirname "$rel")"
-  if [ -e "$TARGET/$rel" ]; then
-    cp -R "$SRC/$rel" "$TARGET/$rel.framework-new"
-    echo "  ~ $rel đã tồn tại → bản khung để ở $rel.framework-new (tự so/merge)"
+same_content() {        # $1=nguồn $2=đích: file → cmp -s; thư mục → diff -rq (đích thừa/thiếu file = khác)
+  if [ -d "$1" ]; then [ -d "$2" ] && diff -rq "$1" "$2" >/dev/null 2>&1; else [ -f "$2" ] && cmp -s "$1" "$2"; fi
+}
+place_or_aside() {      # $1=đường dẫn nguồn $2=rel đích [$3=ghi chú]: chưa có → copy; giống hệt → bỏ qua; khác → .framework-new
+  local src="$1" rel="$2" dst="$TARGET/$2"
+  mkdir -p "$(dirname "$dst")"
+  if [ ! -e "$dst" ]; then
+    cp -R "$src" "$dst"; echo "  + $rel${3:+ $3}"
+  elif same_content "$src" "$dst"; then
+    echo "  = $rel"   # chạy lại trên đích chưa sửa: không rải bản trùng (F-Q7)
   else
-    cp -R "$SRC/$rel" "$TARGET/$rel"
-    echo "  + $rel"
+    cp -R "$src" "$dst.framework-new"
+    echo "  ~ $rel đã tồn tại → bản khung để ở $rel.framework-new (tự so/merge)"
   fi
+}
+copy_if_absent() {      # chỉ copy nếu đích chưa có; có mà khác thì để bản .framework-new
+  [ -e "$SRC/$1" ] || return 0
+  place_or_aside "$SRC/$1" "$1"
 }
 manifest_section() {   # in các dòng của mục [$1] trong copy-framework.manifest (một nguồn cho .sh và .ps1; bỏ # và dòng trống)
   awk -v s="[$1]" '/^\[/{on=($0==s); next} on && NF && $1 !~ /^#/' "$SRC/copy-framework.manifest"
@@ -220,13 +220,7 @@ fi
 echo ""
 echo "[2/4] Cấu hình Claude Code (model tiêu chuẩn Sonnet 5 — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
 mkdir -p "$TARGET/.claude"
-if [ -e "$TARGET/.claude/settings.json" ]; then
-  cp "$SRC/.claude/settings-shared-default.json" "$TARGET/.claude/settings.json.framework-new"
-  echo "  ~ .claude/settings.json đã tồn tại → bản khung để ở settings.json.framework-new (tự so/merge)"
-else
-  cp "$SRC/.claude/settings-shared-default.json" "$TARGET/.claude/settings.json"
-  echo "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
-fi
+place_or_aside "$SRC/.claude/settings-shared-default.json" ".claude/settings.json" "(Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section scripts)
 chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/githooks/pre-commit" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true

@@ -84,7 +84,7 @@
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-30 | Copy khung sang dự án đích (POSIX) | `copy-framework.sh` | Lớp 1 copy thẳng · file gốc `copy_if_absent` · Lớp 2 `stage` → `_framework-dropins/` · `FRAMEWORK-VERSION` | ✅ | `test-copy-framework.sh` |
-| FT-31 | Bản Windows | `copy-framework.ps1` | như trên | ✅ | `test-copy-framework.sh` (chạy khi có `pwsh`; CI yêu cầu phải có và lượt nghiệm thu local này đã chạy) |
+| FT-31 | Bản Windows | `copy-framework.ps1` | như trên (cùng `copy-framework.manifest`; chạy lại trên đích chưa sửa không tạo `.framework-new`); exec-bit ghi vào index git của đích (`update-index --add --chmod=+x`, đích không có `.git` → cảnh báo); `FRAMEWORK-VERSION` đủ `version:` + `manifest:` như bản `.sh`. **Chưa có `--upgrade`** (DEBT trong `.ps1` giữ nguyên — dùng `bash copy-framework.sh <đích> --upgrade`) | ✅ | `test-copy-framework.sh` (chạy khi có `pwsh`; CI yêu cầu phải có và lượt nghiệm thu local này đã chạy) |
 
 ## F. Tài liệu khung (Lớp 1) — `docs/framework/` và `docs/ops/`
 

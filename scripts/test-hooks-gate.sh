@@ -336,7 +336,8 @@ echo "== 17. Mẫu bí mật + ngưỡng file lớn: MỘT nguồn (scripts/_com
 # nguyên văn 3 nơi, không gì kiểm chúng còn khớp. Mẫu dựng lúc chạy để chính file test không chứa bản rời.
 pat_re='AKIA[0-9A-Z]{''16}'; pat_mb="$((1024*1024))"
 for pat in "$pat_re" "$pat_mb"; do
-  stray="$(grep -rlF -- "$pat" "$ROOT/scripts" "$ROOT/.claude/hooks" 2>/dev/null | grep -v '/scripts/_commit-guard\.sh$' || true)"
+  # *.framework-new (file hoặc thư mục) = bản khung copy-framework để cạnh ở dự án đích, không phải mã đang chạy (F-Q7).
+  stray="$(grep -rlF --exclude='*.framework-new' --exclude-dir='*.framework-new' -- "$pat" "$ROOT/scripts" "$ROOT/.claude/hooks" 2>/dev/null | grep -v '/scripts/_commit-guard\.sh$' || true)"
   [ -z "$stray" ] && ok "không còn bản rời '$pat' ngoài scripts/_commit-guard.sh" \
                   || bad "còn bản rời '$pat' ngoài scripts/_commit-guard.sh: $(printf '%s' "${stray//$ROOT\//}" | tr '\n' ' ')"
 done
@@ -422,7 +423,10 @@ fi
 echo "== 19. settings.json ↔ settings-shared-default.json GIỐNG HỆT; MCP context7 bật (audit 2026-10-09, T4) =="
 # VÌ SAO: hai file từng lệch nhau âm thầm (F-D-06) — copy-framework phát bản shared-default, phiên chính dùng settings.json;
 # lệch = dự án đích nhận hàng rào khác repo khung. Cổng: cmp byte-một-byte, không "gần giống".
-if cmp -s "$ROOT/.claude/settings.json" "$ROOT/.claude/settings-shared-default.json"; then
+# Dự án đích chỉ nhận settings.json (copy-framework phát bản shared-default DƯỚI TÊN settings.json) → không có gì để so.
+if [ ! -f "$ROOT/.claude/settings-shared-default.json" ]; then
+  ok "chỉ có settings.json (dự án đích) → bỏ qua phép so hai bản"
+elif cmp -s "$ROOT/.claude/settings.json" "$ROOT/.claude/settings-shared-default.json"; then
   ok "settings.json == settings-shared-default.json"
 else
   bad "settings.json ≠ settings-shared-default.json (sửa một file thì copy sang file kia)"
