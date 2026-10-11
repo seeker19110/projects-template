@@ -16,16 +16,16 @@ Theo PLAN.md: đợt 1 song song T1/T2/T3 (worker worktree riêng), đợt 2 T4/
 ## Quyết định và bằng chứng
 
 - Quyết định F-104: thiết kế gốc cần dòng "Nhánh đang làm" mà PROGRESS.md đã bỏ từ #177 → port nguyên văn sẽ không bao giờ đỏ. Chọn: trễ first-parent ≥ `PF_MAX_BEHIND` (mặc định 5 = WIP 3 + 1 squash + 1 dư) → đỏ · loại: ngưỡng 2 (mọi PR song song đỏ oan) · bậc 1 §3d (đúng, không chặn oan).
+- Lệch kế hoạch T3 (2026-10-11): ba ca mới đẩy `scripts/test-check-scripts.sh` sát trần 400 dòng của radar → tách suite PF sang `scripts/test-check-progress-freshness.sh`, helper chung `scripts/_check-scripts-test-lib.sh`, bước CI riêng. Hệ quả: T6 đổi điểm chạm sang suite mới; T7 chỉ còn phụ thuộc T3, chạy song song được với T6 · bậc 2 §3d (file nhỏ, ít xung đột).
 - Quyết định F-306: theo ngữ nghĩa `Copy-Tree` của `.ps1` (`src/.` + `mkdir -p`) thay vì xoá rồi copy lại · bậc 2 (ít thay đổi, hai bản khớp nhau).
 
 ## Lần thử / blocker
 
-<Failure, số lần cùng failure, giả thuyết đã bác bỏ, blocker và cách kiểm tiếp.>
+- Cổng chạy song song chết rc=127 / fork `Resource temporarily unavailable`: bộ nhớ commit của Windows chỉ còn ~2 GB (trần = RAM, page file gần như tắt). Không phải lỗi mã: chạy lại từng suite một thì xanh. Cách làm: mọi suite/cổng nặng chạy tuần tự.
 
 ## Bàn giao / bước tiếp theo
 
-<Một hành động cụ thể, file/lệnh cần đọc/chạy; thay đổi chưa commit và nơi giữ;
-điều kiện có thể tiếp tục. Cập nhật trước nén/chuyển phiên/giao việc.>
+- PR-0 #277 MERGED. T1/T2/T3 code xong trong worktree riêng (scratchpad phiên); đang chạy cổng tổng tuần tự rồi mở PR theo thứ tự T3 → T1 → T2. Tiếp: T4/T5 + T6/T7 sau khi T3 merge.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
