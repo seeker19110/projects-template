@@ -127,4 +127,40 @@ else
   bad "SHA mất backtick: script chết im lặng hoặc bỏ các mục sau (rc=$rc)"
 fi
 
+# PF-1 ngưỡng trễ (F-104): trễ >= PF_MAX_BEHIND (mặc định 7) trên first-parent main → ::error + rc 1.
+# setup_repo đặt SHA = commit init rồi thêm 1 commit chuẩn hoá PROGRESS.md → baseline trễ 1; thêm N commit = trễ N+1.
+add_commits() {   # $1 = repo, $2 = số commit
+  local i; for i in $(seq 1 "$2"); do git -C "$1" -c user.email=t@t.local -c user.name=test commit -q --allow-empty -m "c$i"; done
+}
+
+d="$(setup_repo)" || exit 1
+add_commits "$d" 5
+rc="$(run_check "$d" check-progress-freshness.sh)"
+if [ "$rc" = "0" ] && grep -q '::warning' "$WORK/check-output"; then ok "trễ 6 < ngưỡng 7 → rc 0 + ::warning (PF-1)"; else bad "trễ 6 lẽ ra chỉ cảnh báo (rc=$rc)"; fi
+
+d="$(setup_repo)" || exit 1
+add_commits "$d" 6
+rc="$(run_check "$d" check-progress-freshness.sh)"
+if [ "$rc" = "1" ] && grep -q '::error.*trễ 7' "$WORK/check-output"; then ok "trễ 7 >= ngưỡng 7 → ::error + rc 1 (PF-1)"; else bad "trễ 7 lẽ ra phải đỏ (rc=$rc)"; fi
+
+# Nhánh phụ 6 commit gộp bằng merge commit: first-parent chỉ tính 1 (merge) → không đỏ oan.
+d="$(setup_repo)" || exit 1
+base_branch="$(git -C "$d" rev-parse --abbrev-ref HEAD)"
+git -C "$d" checkout -qb side
+add_commits "$d" 6
+git -C "$d" checkout -q "$base_branch"
+git -C "$d" -c user.email=t@t.local -c user.name=test merge -q --no-ff -m "Merge side" side
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "0" ] && ok "nhánh phụ 6 commit, first-parent trễ 1 → rc 0 (PF-1)" || bad "đếm cả commit nhánh phụ, đỏ oan (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+add_commits "$d" 1
+rc="$( export PF_MAX_BEHIND=2; run_check "$d" check-progress-freshness.sh )"
+[ "$rc" = "1" ] && ok "PF_MAX_BEHIND=2, trễ 2 → rc 1 (PF-1 ghi đè ngưỡng)" || bad "PF_MAX_BEHIND=2 không có hiệu lực (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+rc="$( export PF_MAX_BEHIND=abc; run_check "$d" check-progress-freshness.sh )"
+if [ "$rc" = "1" ] && grep -q '::error.*PF_MAX_BEHIND' "$WORK/check-output"; then ok "PF_MAX_BEHIND=abc → ::error + rc 1 (sai khuôn)"; else bad "PF_MAX_BEHIND sai khuôn không bị chặn (rc=$rc)"; fi
+
+
 finish "check-progress-freshness.sh bắt đúng lỗi (PF-1..PF-4, F-305) + không chặn oan."
