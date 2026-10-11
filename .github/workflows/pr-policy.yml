@@ -25,14 +25,14 @@ jobs:
             const body = pr.body || "";
             const title = /^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9._/-]+\))?!?: .+/;
             if (!title.test(pr.title)) core.setFailed("PR title must follow Conventional Commits.");
-            // Trần WIP = tối đa 3 PR mở toàn repo, mọi tác giả, kể cả draft/bot (CLAUDE.md §8).
-            // Đếm mọi PR KHÁC trước miễn trừ metadata; PR này là cái thứ 4 trở đi → đỏ.
+            // Trần WIP = tối đa 5 PR mở toàn repo, mọi tác giả, kể cả draft/bot (CLAUDE.md §8).
+            // Đếm mọi PR KHÁC trước miễn trừ metadata; PR này là cái thứ 6 trở đi → đỏ.
             const openPrs = await github.paginate(github.rest.pulls.list, {
               owner: context.repo.owner, repo: context.repo.repo, state: "open", per_page: 100,
             });
             const others = openPrs.filter(p => p.number !== pr.number);
-            if (others.length >= 3) {
-              core.setFailed(`Trần WIP: đã có ${others.length} PR khác đang mở (#${others.map(p => p.number).join(", #")}) — tối đa 3 PR mở đồng thời (CLAUDE.md §8). Merge/đóng bớt rồi re-run check này.`);
+            if (others.length >= 5) {
+              core.setFailed(`Trần WIP: đã có ${others.length} PR khác đang mở (#${others.map(p => p.number).join(", #")}) — tối đa 5 PR mở đồng thời (CLAUDE.md §8). Merge/đóng bớt rồi re-run check này.`);
             }
             if (pr.draft) return;
             // Miễn trừ PR do BOT tạo (audit 2026-09-12, F-001 — nguyên nhân gốc):

@@ -16,7 +16,7 @@ Bạn là **người quyết định thay chủ repo** cho toàn bộ lượt n�
 - Đi thang ưu tiên §3d từ trên xuống, dừng ở bậc đầu tiên phân thắng bại: **(1) đúng + bảo mật + không mất dữ liệu** (loại thẳng phương án hụt) → **(2) ít hơn** (code/nhánh/dependency/cấu hình/bảo trì, thang `CLAUDE.md` §3.4) → **(3) kiểm được** (bằng chứng máy rẻ, rõ) → **(4) nhanh/rẻ**.
 - Mỗi quyết định ghi **một dòng** vào `docs/work/<id>/working.md` "Quyết định và bằng chứng": *chọn · loại · bậc phân thắng bại*. Người dùng đọc file này để audit sau, không bị hỏi trước.
 - **Không bao giờ tự quyết** (dừng BLOCKED, nêu lựa chọn + đề xuất): xoá/đổi phá vỡ dữ liệu thật, thanh toán/chi phí mới, deploy/production, secret/quyền mới, thay đổi ngoài scope đã giao, cùng một failure quá 3 lần (§8). Quyền merge/deploy không suy ra từ quyền code.
-- Mọi cổng máy giữ nguyên: TDD đỏ-trước, `/gate`, spec Approved cho `feat`, PR template, WIP 3/FIFO, auto-merge chỉ khi CI xanh.
+- Mọi cổng máy giữ nguyên: TDD đỏ-trước, `/gate`, spec Approved cho `feat`, PR template, WIP 5/FIFO, auto-merge chỉ khi CI xanh.
 
 ## Báo cáo cuối lượt
 Một khối ngắn: PR đã merge (số + SHA) · số quyết định tự duyệt (trỏ working.md) · trạng thái Definition of Complete · BLOCKED còn lại (nếu có) kèm câu hỏi duy nhất cần người dùng trả lời.

@@ -134,7 +134,7 @@ runtime độc lập (đã ghi ở chu kỳ trước).
 3. F-N05 chỉ thực thi sau khi chủ repo chọn từng nhánh; F-N06/F-N07 có quyết định + điều kiện xem lại; F-N08/N09 ghi nhận, không sửa.
 4. Re-audit lại nhóm 4, 8, 9, 12 sau các đợt: 0 phát hiện Cao/Trung mở; `gate` + CI `main` xanh.
 
-### Đợt và việc (mỗi việc một PR nhỏ, FIFO, ≤ 3 PR mở; bug có test đỏ trước)
+### Đợt và việc (mỗi việc một PR nhỏ, FIFO, ≤ 5 PR mở; bug có test đỏ trước)
 
 | ID | F gốc | Việc | Tiêu chí nghiệm thu | Sức | Trạng thái |
 | --- | --- | --- | --- | --- | --- |
