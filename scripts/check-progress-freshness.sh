@@ -11,7 +11,7 @@
 # remote không) — không kiểm được nội dung tường thuật có đúng không. Đó là giới hạn cố ý.
 #
 # BẢNG KIỂM:
-#   PF-1  "Default-branch SHA đã đối chiếu" phải là tổ tiên (ancestor) của HEAD hiện tại
+#   PF-1  "Default-branch SHA đã đối chiếu" phải là tổ tiên (ancestor) của HEAD hiện tại, và trễ < PF_MAX_BEHIND (7)
 #   PF-2  Nếu PROGRESS.md nêu tên "Nhánh đang làm" thì nhánh đó phải còn tồn tại trên remote
 #         (nhánh đã merge/xoá mà PROGRESS.md vẫn nói "đang làm" = lỗi thời)
 #   PF-3  Số PR trong dòng "Giai đoạn" phải >= số PR của commit mà "SHA đã đối chiếu" trỏ tới
@@ -54,11 +54,22 @@ else
     echo "::error file=$PROGRESS_FILE::SHA '$recorded_sha' KHÔNG phải tổ tiên của HEAD hiện tại — PROGRESS.md đối chiếu nhầm nhánh/lịch sử, hoặc lịch sử đã bị viết lại. Cập nhật lại dòng 'Default-branch SHA đã đối chiếu' cho khớp main thật."
     fail=1
   else
-    behind="$(git rev-list --count "${recorded_sha}..HEAD" 2>/dev/null || echo "?")"
-    if [ "$behind" != "0" ] && [ "$behind" != "?" ]; then
-      echo "::warning file=$PROGRESS_FILE::HEAD hiện đã đi trước SHA đã đối chiếu ('$recorded_sha') $behind commit — bình thường nếu đang làm dở; cập nhật lại dòng này khi đóng phiên/mốc."
-    else
+    # Đếm trễ theo --first-parent: ở PR, HEAD là merge ref nên chỉ tính commit trên nhánh chính, không tính
+    # commit riêng của PR/nhánh phụ đã gộp.
+    behind="$(git rev-list --count --first-parent "${recorded_sha}..HEAD" 2>/dev/null || echo "?")"
+    # NGƯỠNG (PF_MAX_BEHIND, mặc định 7): trần WIP 5 PR đồng thời + 1 commit squash + 1 nhịp dư. Trễ >= ngưỡng
+    # nghĩa là PROGRESS.md bị bỏ quá một vòng WIP đầy đủ (F-104) — chỉ cảnh báo thì không ai sửa.
+    max_behind="${PF_MAX_BEHIND:-7}"
+    if ! [[ "$max_behind" =~ ^[1-9][0-9]*$ ]]; then
+      echo "::error file=$PROGRESS_FILE::PF_MAX_BEHIND='$max_behind' sai khuôn — cần số nguyên dương (mặc định 7)."
+      fail=1
+    elif [ "$behind" = "?" ] || [ "$behind" = "0" ]; then
       echo "OK: SHA đã đối chiếu khớp HEAD hiện tại."
+    elif [ "$behind" -ge "$max_behind" ]; then
+      echo "::error file=$PROGRESS_FILE::PROGRESS.md trễ $behind commit so với HEAD (ngưỡng $max_behind, PF_MAX_BEHIND) — cập nhật dòng 'Default-branch SHA đã đối chiếu' về SHA main hiện tại (CLAUDE.md §8 bước 5)."
+      fail=1
+    else
+      echo "::warning file=$PROGRESS_FILE::HEAD hiện đã đi trước SHA đã đối chiếu ('$recorded_sha') $behind commit (ngưỡng đỏ $max_behind) — bình thường nếu đang làm dở; cập nhật lại dòng này khi đóng phiên/mốc."
     fi
   fi
 fi
