@@ -321,19 +321,45 @@ sweep_ci() {
 }
 
 # ── 6. Cổng của khung + gate dự án ────────────────────────────────────────────
+# Ca "cổng KHÔNG CHẠY ĐƯỢC vì thiếu công cụ" KHÁC "cổng đỏ vì vi phạm thật": vi phạm thật → 🔴 phải
+# sửa code; thiếu công cụ → 🟡 "chưa kiểm chứng được" (báo 🔴 thì người vận hành đi sửa code đang đúng,
+# im lặng thì là fail-open không nói ra). Regex HẸP, riêng từng cổng, neo vào thông điệp THẬT của script —
+# KHÔNG dùng mẫu chung như 'Thiếu': check-progress-freshness.sh in "Thiếu dòng 'Default-branch SHA…'" cho
+# vi phạm thật. Sai checksum shellmetrics CỐ Ý không khớp: đó là chuỗi cung ứng, giữ 🔴.
+gate_missing_tool() { # $1=nhãn, $2=output → in tên công cụ cần cài nếu output là ca thiếu công cụ; else return 1
+  local re tool
+  case "$1" in
+    shell-complexity)  re='^::error::Không tìm thấy vendor/shellmetrics/shellmetrics \(bản vendor có ghim\)'
+                       tool='vendor/shellmetrics (bản vendor có ghim)' ;;
+    python-complexity) re='^::error::Thiếu radon — cài bằng: '
+                       tool='radon (python3 -m pip install radon)' ;;
+    *) return 1 ;;
+  esac
+  printf '%s\n' "$2" | grep -qE "$re" || return 1
+  printf '%s' "$tool"
+}
 run_gate_script() { # $1=script, $2=nhãn, $3..=tham số
   local s="$1" label="$2"; shift 2
   [ -f "$s" ] || { line "- $label: n-a (không có \`$s\`)"; return; }
-  local out rc; out="$(bash "$s" "$@" 2>&1)"; rc=$?
-  if [ "$rc" -eq 0 ]; then line "- $label: ✅"; else
-    line "- $label: ❌ (exit $rc)"; block <<<"$(printf '%s\n' "$out" | grep -E 'error|FAIL|❌' | head -n 8)"
-    red "Cổng" "$label đỏ" "chạy \`bash $s\` và sửa theo output"
+  local out rc tool; out="$(bash "$s" "$@" 2>&1)"; rc=$?
+  if [ "$rc" -eq 0 ]; then line "- $label: ✅"; return; fi
+  if tool="$(gate_missing_tool "$label" "$out")"; then
+    line "- $label: ⚠️ KHÔNG chạy được (thiếu công cụ: $tool) — chưa kiểm chứng được, không phải đã đạt"
+    yel "Cổng" "$label chưa kiểm chứng được — thiếu công cụ: $tool" "cài công cụ rồi chạy lại \`bash $s\`"
+    return
   fi
+  line "- $label: ❌ (exit $rc)"; block <<<"$(printf '%s\n' "$out" | grep -E 'error|FAIL|❌' | head -n 8)"
+  red "Cổng" "$label đỏ" "chạy \`bash $s\` và sửa theo output"
 }
 sweep_gates() {
   sec "6. Cổng khung & gate dự án"
   run_gate_script scripts/check-docs-consistency.sh "docs-consistency"
   run_gate_script scripts/check-ci-policy.sh "ci-policy"
+  # Mục mang tên "Cổng khung" nên chạy ĐỦ cổng check-* của khung (T-2: trước chỉ 2/5, báo ✅ khi
+  # PROGRESS.md trễ — kết luận mạnh hơn bằng chứng, CLAUDE.md §4).
+  run_gate_script scripts/check-progress-freshness.sh "progress-freshness"
+  run_gate_script scripts/check-shell-complexity.sh "shell-complexity"
+  run_gate_script scripts/check-python-complexity.sh "python-complexity"
   if [ -f scripts/arch-health-radar.sh ]; then
     local score; score="$(bash scripts/arch-health-radar.sh --json 2>/dev/null | (has jq && jq -r '.health_score // empty' || grep -oE '"health_score":[[:space:]]*[0-9]+' | head -1 | grep -oE '[0-9]+') || true)"
     line "- arch-health-radar: ${score:-không đọc được}/100"

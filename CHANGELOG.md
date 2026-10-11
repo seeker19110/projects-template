@@ -19,6 +19,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   1 squash + 1 dư) commit first-parent, thay vì chỉ cảnh báo ở mọi mức trễ (F-104).
 - Fix (2026-10-11, #284): `copy-framework.sh` đặt thư mục khác nội dung cạnh đích bằng copy NỘI DUNG (như `Copy-Tree` của bản
   `.ps1`), không còn lồng `X.framework-new/X` từ lượt chạy thứ ba; TRAPS 68 (F-306).
+- Fix (2026-10-11, #285): `maintenance-sweep.sh` mục "Cổng khung" chạy đủ 5 cổng `check-*`; cổng đỏ vì thiếu công cụ (radon,
+  shellmetrics) là 🟡 "chưa kiểm chứng được", vi phạm thật vẫn 🔴 (T-2).
 - Docs (2026-10-11, #280): đối chiếu `cobusgreyling/loop-engineering` theo ba cột — 56 hạng mục, lấy 0; sửa dòng T6
   lỗi thời trong `threat-model-maintain-cron.md` (TRAPS 37).
 - Chore (2026-10-11, #279): trần WIP toàn repo 3 → 5 PR mở đồng thời (cổng `pr-policy.yml` + test, CLAUDE.md §8, AGENTS.md,
