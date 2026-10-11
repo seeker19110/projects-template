@@ -36,9 +36,19 @@ jobs:
         run: |
           set +e
           bash scripts/maintenance-sweep.sh --no-deps --out maintenance-report.md
-          echo "rc=$?" >> "$GITHUB_OUTPUT"
-          red="$(grep -m1 -oE '🔴 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || echo 0)"
-          yel="$(grep -m1 -oE '🟡 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || echo 0)"
+          rc=$?
+          set -e
+          # Sweep chết ≠ sweep sạch: thoát ngay, không bước nào sau đụng tới issue (F-202).
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::maintenance-sweep.sh thoát mã $rc — không cập nhật/đóng issue"
+            exit 1
+          fi
+          red="$(grep -m1 -oE '🔴 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || true)"
+          yel="$(grep -m1 -oE '🟡 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || true)"
+          if [ -z "$red" ] || [ -z "$yel" ]; then
+            echo "::error::báo cáo không hoàn chỉnh: thiếu dòng tổng '🔴 N · 🟡 N' — không cập nhật/đóng issue"
+            exit 1
+          fi
           echo "red=$red" >> "$GITHUB_OUTPUT"
           echo "yel=$yel" >> "$GITHUB_OUTPUT"
           # Step summary được ghi ở bước sau, cùng chỗ cắt + bọc fence với body issue (một nguồn).

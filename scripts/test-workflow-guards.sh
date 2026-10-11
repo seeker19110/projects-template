@@ -216,4 +216,45 @@ else
   done
 fi
 
-finish "protection-guard, dependency-review, Work ID, CodeQL langs và release-type bắt đúng lỗi + không chặn oan."
+## ============================================================
+## 9. maintenance: sweep chết không được trông như sweep sạch (F-202)
+## ============================================================
+echo "== 9. maintenance sweep rc + dòng tổng =="
+step_body "Quét bảo trì (chỉ đọc + đo)" maintenance.yml "$WORK/sweep-step.sh"
+if [ ! -s "$WORK/sweep-step.sh" ]; then
+  echo 'không tìm thấy thân step Quét bảo trì' > "$WORK/check-output"
+  bad "không thể trích step sweep từ maintenance.yml"
+else
+  # nhãn|rc của sweep giả|nội dung dòng tổng ghi vào báo cáo (rỗng = thiếu)|rc step mong đợi (0/nz)|red|yel
+  while IFS='|' read -r label frc total want red yel; do
+    d="$WORK/sweep-$label"
+    mkdir -p "$d/scripts"
+    cat > "$d/scripts/maintenance-sweep.sh" <<'EOF'
+#!/usr/bin/env bash
+# sweep giả: ghi báo cáo vào --out rồi thoát FAKE_RC
+out=""
+while [ $# -gt 0 ]; do [ "$1" = --out ] && out="$2"; shift; done
+printf '# Báo cáo\n%s\n' "$FAKE_TOTAL" > "$out"
+exit "${FAKE_RC:-0}"
+EOF
+    : > "$WORK/github-output"
+    (cd "$d" && FAKE_RC="$frc" FAKE_TOTAL="$total" GITHUB_OUTPUT="$WORK/github-output" \
+      bash -e "$WORK/sweep-step.sh" > "$WORK/check-output" 2>&1)
+    rc=$?
+    if [ "$want" = 0 ]; then
+      if [ "$rc" = 0 ] && grep -qx "red=$red" "$WORK/github-output" && grep -qx "yel=$yel" "$WORK/github-output"; then
+        ok "sweep $label → rc=0, red=$red yel=$yel"
+      else
+        bad "sweep $label: muốn rc=0 red=$red yel=$yel (rc=$rc)"
+      fi
+    else
+      [ "$rc" -ne 0 ] && ok "sweep $label → step đỏ (rc=$rc)" || bad "sweep $label: step phải đỏ nhưng rc=0"
+    fi
+  done <<'EOF'
+sweep-exit-3|3|> 🔴 0 · 🟡 0.|nz||
+thiếu-dòng-tổng|0||nz||
+sạch-đủ-tổng|0|> 🔴 2 · 🟡 1.|0|2|1
+EOF
+fi
+
+finish "protection-guard, dependency-review, Work ID, CodeQL langs, release-type và sweep bảo trì bắt đúng lỗi + không chặn oan."
