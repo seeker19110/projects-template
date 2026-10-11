@@ -18,14 +18,16 @@ setup_repo() (   # subshell fail-fast: fixture hỏng phải dừng cả suite
   git -C "$dir" init -q
   git -C "$dir" config core.safecrlf false
   git -C "$dir" -c user.email=t@t.local -c user.name=test add -A
-  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -m init
+  # stdout của hàm CHỈ là đường dẫn: git commit in "nothing to commit" ra stdout ngay cả với -q (vd tar chết vì
+  # fork fail → thư mục rỗng) → chuỗi đó thành tên thư mục rác ở nơi gọi. Đẩy sang stderr để vẫn thấy lỗi.
+  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -m init >&2
   local head_sha; head_sha="$(git -C "$dir" rev-parse HEAD)"
   sed -i.bak "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$head_sha\`/" "$dir/PROGRESS.md"
   # Các trường fixture được dựng rõ ràng, không phụ thuộc văn xuôi tùy chọn của repo thật.
   sed -i.bak2 '/^- Nhánh đang làm:/d; /^- Giai đoạn:/d' "$dir/PROGRESS.md"
   printf '\n- Nhánh đang làm: `main`\n- Giai đoạn: GĐ 8.\n' >> "$dir/PROGRESS.md"
   rm -f "$dir/PROGRESS.md.bak" "$dir/PROGRESS.md.bak2"
-  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn hoá PROGRESS.md cho baseline test"
+  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn hoá PROGRESS.md cho baseline test" >&2
   printf '%s\n' "$dir"
 )
 

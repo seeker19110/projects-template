@@ -22,6 +22,8 @@ EXCLUDE_SOURCE=(
   "PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md"
   "CHANGELOG.md" "TRAPS.md" "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "docs/adr/0004-remove-default-web-scaffold.md"
+  # Báo cáo đối chiếu repo NGOÀI (adopt-from-outside.md): trích đường dẫn của repo đó, không phải của khung.
+  "docs/reports/2026-10-06-doi-chieu-x-agents-v2.md"
 )
 
 # Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một
@@ -44,6 +46,9 @@ ALLOW_MISSING_PATH=(
   "app/sitemap.ts" "app/sw.ts" "components/theme-toggle.tsx" "e2e/smoke.spec.ts" \
   "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
   ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
+  "app/globals.css" "styles/theme.css"   # design tokens của dự án đích (CLAUDE.md §3.10, ADR-0004)
+  # Contract test sinh bởi spec-compiler.py vào tests/contracts/ (đã .gitignore), không commit.
+  "tests/contracts/test_contract_2026_10_07_lean_delivery.py"
   # Sinh tại runtime bởi /maintain (maintenance-sweep.sh + agent maintainer), không đóng gói sẵn.
   "docs/ops/MAINTENANCE-REPORT.md"
   # Ví dụ minh hoạ quy ước đặt tên changelog (quality-supplements-group1.md mục 9) — file thật
@@ -62,7 +67,7 @@ grep_files() {
 
 echo "== 1. Đường dẫn file tham chiếu trong backtick =="
 mapfile -t refs < <(
-  git grep --untracked -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs)`' \
+  git grep --untracked -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs|py|css)`' \
     -- '*.md' '*.sh' '*.ps1' 2>/dev/null \
   | tr -d '`' | sort -u
 )

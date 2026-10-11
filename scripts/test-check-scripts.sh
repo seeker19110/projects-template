@@ -171,6 +171,57 @@ printf '| FT-01 | Trùng ID giả lập | x | | ✅ | test |\n' >> "$d/docs/FEAT
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && grep -q 'FT-01' "$WORK/check-output" && ok "bắt được ID trùng trong FEATURE-MAP.md (mục 11b)" || bad "KHÔNG bắt được ID FT trùng (rc=$rc)"
 
+d="$(setup_repo)" || exit 1
+# F-201: cổng quét cả đuôi .py/.css — trước đó tham chiếu tới engine Python/stylesheet có thể mục âm thầm.
+# Ghép chuỗi lúc chạy để chính mục 1 không bắt file test này.
+fake_py="scripts/engine-khong-ton-tai"; fake_py="${fake_py}.py"
+printf '\nEngine: `%s`\n' "$fake_py" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được tham chiếu .py gãy (mục 1, đuôi mới)" || bad "KHÔNG bắt được .py gãy (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+fake_css="styles/khong-ton-tai"; fake_css="${fake_css}.css"
+printf '\nTokens: `%s`\n' "$fake_css" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được tham chiếu .css gãy (mục 1, đuôi mới)" || bad "KHÔNG bắt được .css gãy (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+# Đối chứng: tham chiếu tới file .py/.css CÓ THẬT thì xanh (không chặn oan).
+real_py="scripts/spec-compiler"; real_py="${real_py}.py"
+real_css="styles/co-that"; real_css="${real_css}.css"
+mkdir -p "$d/styles"; printf 'body{}\n' > "$d/$real_css"
+printf '\nEngine: `%s`, tokens: `%s`\n' "$real_py" "$real_css" >> "$d/README.md"
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan tham chiếu .py/.css có thật (mục 1)" || bad "chặn OAN .py/.css có thật (rc=$rc)"
+
+# F-403: 4 nhánh docs-consistency trước đây không có ca đỏ nào. Mỗi ca cài đúng một lỗi, đòi rc khác 0 VÀ đúng mục.
+d="$(setup_repo)" || exit 1
+# Mục 2 — tên file cũ còn sót. Dựng tên cũ lúc chạy để chính mục 2 không bắt file test này.
+old_name="KHUNG-1"; old_name="${old_name}.md"
+printf '\nTài liệu cũ: %s\n' "$old_name" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && grep -q 'Tên cũ' "$WORK/check-output" && ok "bắt được tên file CŨ còn sót (mục 2)" || bad "KHÔNG bắt được tên cũ còn sót (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+# Mục 3 chiều A — có file lệnh nhưng CLAUDE.md chưa khai.
+printf -- '---\ndescription: lệnh giả cho test\n---\nNội dung.\n' > "$d/.claude/commands/lenh-chua-khai.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && grep -q 'chưa được CLAUDE.md khai' "$WORK/check-output" && ok "bắt được lệnh có file nhưng CLAUDE.md chưa khai (mục 3 chiều A)" || bad "KHÔNG bắt được lệnh chưa khai (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+# Mục 3 chiều B — CLAUDE.md nhắc /tên nhưng không có file lệnh.
+ghost="lenh-khong-ton-tai"
+printf '\nGõ `/%s` để thử.\n' "$ghost" >> "$d/CLAUDE.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && grep -q 'nhưng không có .claude/commands' "$WORK/check-output" && ok "bắt được CLAUDE.md nhắc lệnh không có file (mục 3 chiều B)" || bad "KHÔNG bắt được lệnh ma (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+# Mục 4b — agent có file nhưng không được nhắc trong bảng route.
+printf -- '---\nname: agent-mo-coi\ndescription: >-\n  Agent giả cho test.\n---\nNội dung.\n' > "$d/.claude/agents/agent-mo-coi.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" != "0" ] && grep -q "agent-mo-coi.*KHÔNG được nhắc" "$WORK/check-output" && ok "bắt được subagent không có trong bảng route (mục 4b)" || bad "KHÔNG bắt được agent mồ côi (rc=$rc)"
+
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================
@@ -271,6 +322,17 @@ if [ "$rc" = "1" ] && grep -q '::error.*needs' "$WORK/check-output"; then
   ok "thiếu dòng needs: của job gate → ::error nhắc needs (F-305)"
 else
   bad "thiếu needs: của gate không có ::error chẩn đoán (rc=$rc)"
+fi
+
+# F-403: check-ci-policy mục 7 — bảng CP-* lệch shell ↔ vitest. Xoá CP-6 khỏi bản vitest → phải đỏ đúng mục 7.
+d="$(setup_repo)" || exit 1
+vitest="$d/scripts/ci-workflow-policy.test.ts"
+if [ -f "$vitest" ]; then
+  sed -i.bak '/CP-6/d' "$vitest" && rm -f "$vitest.bak"
+  rc="$(run_check "$d" check-ci-policy.sh)"
+  [ "$rc" != "0" ] && grep -q "CP-6.*KHÔNG được khai ở bản dropins" "$WORK/check-output" && ok "bắt được bảng CP-* lệch shell ↔ vitest (mục 7)" || bad "KHÔNG bắt được CP-* lệch (rc=$rc)"
+else
+  bad "không tìm thấy $vitest — ca mục 7 không chạy được"
 fi
 
 finish "check-docs-consistency.sh + check-ci-policy.sh bắt đúng lỗi + không chặn oan."
