@@ -90,6 +90,19 @@ check_no_framework_new() {  # check_no_framework_new <mô tả> <target> — ch�
   fi
 }
 
+check_no_nesting() {  # check_no_nesting <mô tả> <target> — đích có thư mục đã sửa, chạy 3 lần: không được lồng X.framework-new/X (TRAPS 68)
+  local label="$1" target="$2" f n d
+  mkdir -p "$target/.claude/hooks"
+  f="$(find "$REPO_ROOT/.claude/hooks" -maxdepth 1 -type f | head -1)"
+  echo "SENTINEL-DA-SUA" > "$target/.claude/hooks/$(basename "$f")"
+  run_logged "$label / lượt 1" "${@:3}" "$target"; run_logged "$label / lượt 2" "${@:3}" "$target"; run_logged "$label / lượt 3" "${@:3}" "$target"
+  n=0
+  while IFS= read -r d; do
+    [ -d "$d/$(basename "${d%.framework-new}")" ] && { echo "  FAIL [$label]: thư mục lồng ${d#"$target"/}/$(basename "${d%.framework-new}")"; n=$((n+1)); }
+  done < <(find "$target" -type d -name '*.framework-new')
+  if [ "$n" -eq 0 ]; then echo "  ok [$label]: 3 lượt, không thư mục lồng"; else fail=1; fi
+}
+
 check_git_exec_bit() {  # check_git_exec_bit <mô tả> <target> — script phát sang phải mang mode 100755 trong index git (F-Q8)
   local label="$1" target="$2" mode
   mode="$(git -C "$target" ls-files -s .claude/hooks/auto-format.sh | awk '{print $1}')"
@@ -196,6 +209,7 @@ run_logged "bash / chạy lại lần 2" bash "$REPO_ROOT/copy-framework.sh" "$t
   && echo "  ok [bash / chạy lại lần 2]: không lỗi"
 check_ops_state_kept "bash / chạy lại lần 2" "$targetA"
 check_no_framework_new "bash / chạy lại lần 2" "$targetA"
+check_no_nesting "bash / lượt ba đích đã sửa thư mục" "$(new_target)" bash "$REPO_ROOT/copy-framework.sh"
 
 echo ""
 echo "== bash / --upgrade: giữ chỉnh sửa của đích, cập nhật file chưa sửa (AC-2, AC-3) =="
@@ -276,6 +290,7 @@ if command -v pwsh >/dev/null 2>&1; then
   run_logged "pwsh / chạy lại lần 2" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetD"
   check_ops_state_kept "pwsh / chạy lại lần 2" "$targetD"
   check_no_framework_new "pwsh / chạy lại lần 2" "$targetD"
+  check_no_nesting "pwsh / lượt ba đích đã sửa thư mục" "$(new_target)" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1"
 else
   echo ""
   echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."
