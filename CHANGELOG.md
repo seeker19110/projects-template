@@ -13,6 +13,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 - Fix (2026-10-11, #281): job `maintenance.yml` dừng `::error` khi `maintenance-sweep.sh` chết hoặc báo cáo thiếu dòng tổng,
   không còn đọc thành 0 phát hiện rồi đóng nhầm issue bảo trì (F-202).
+- Fix (2026-10-11, #282): `subagent-dispatch.py --tier` báo đúng nguyên nhân khi `model-capability-tiers.json` thiếu/hỏng/sai
+  cấu trúc (thay vì "tier không có" hay traceback); `choices` sinh từ JSON; ứng viên thiếu khoá in `?` (F-207).
 - Docs (2026-10-11, #280): đối chiếu `cobusgreyling/loop-engineering` theo ba cột — 56 hạng mục, lấy 0; sửa dòng T6
   lỗi thời trong `threat-model-maintain-cron.md` (TRAPS 37).
 - Chore (2026-10-11, #279): trần WIP toàn repo 3 → 5 PR mở đồng thời (cổng `pr-policy.yml` + test, CLAUDE.md §8, AGENTS.md,

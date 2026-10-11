@@ -75,6 +75,7 @@ cleanup_probes() { rm -f "$ROOT/$PROBE_SCRIPT" "$ROOT/$PROBE_LONG" "$ROOT/$PROBE
 cleanup_all() {
   cleanup_probes
   if [ -f "$WORK/rates.bak" ]; then cp "$WORK/rates.bak" scripts/model-rates.json; fi
+  if [ -f "$WORK/tiers.bak" ]; then cp "$WORK/tiers.bak" scripts/model-capability-tiers.json; fi
   rm -r "$WORK"
 }
 trap cleanup_all EXIT
@@ -95,6 +96,19 @@ run scripts/subagent-dispatch.py --list --json
 run scripts/subagent-dispatch.py --tier standard
 run scripts/subagent-dispatch.py --tier standard --json
 run_expected_failure scripts/subagent-dispatch.py --tier khong-ton-tai
+# --tier với bảng cấp hỏng: mỗi ca một nguyên nhân, đều phải thoát khác 0 (bản gốc phục hồi ngay sau).
+cp scripts/model-capability-tiers.json "$WORK/tiers.bak"
+rm scripts/model-capability-tiers.json
+run scripts/subagent-dispatch.py --list
+run_expected_failure scripts/subagent-dispatch.py --tier standard
+for bad_tiers in '{ hong json' '[]' '{"tiers": []}' '{"tiers": {"standard": "x"}}' '{"tiers": {"standard": {"candidates": "x"}}}'; do
+  printf '%s' "$bad_tiers" > scripts/model-capability-tiers.json
+  run_expected_failure scripts/subagent-dispatch.py --tier standard
+done
+# Ứng viên thiếu khoá → cảnh báo + in '?', vẫn thoát 0.
+printf '{"tiers": {"standard": {"desc": "d", "candidates": [{"provider": "p"}]}}}' > scripts/model-capability-tiers.json
+run scripts/subagent-dispatch.py --tier standard
+cp "$WORK/tiers.bak" scripts/model-capability-tiers.json
 for h in claude hermes codex generic; do
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h"
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h" --json

@@ -106,6 +106,66 @@ if command -v cygpath >/dev/null 2>&1; then TLROOT="$(cygpath -m "$TLROOT")"; fi
 cp -r "$ROOT/scripts" "$TLROOT/scripts"
 TL="$TLROOT"
 
+echo "== 1c. --tier báo lỗi ĐÚNG nguyên nhân, choices sinh từ dữ liệu (F-207) =="
+DPROOT="$TLROOT/dispatch"
+mkdir -p "$DPROOT"
+cp -r "$ROOT/scripts" "$DPROOT/scripts"
+DPJSON="$DPROOT/scripts/model-capability-tiers.json"
+DPGOOD="$TLROOT/tiers-good.json"
+cp "$DPJSON" "$DPGOOD"
+dispatch_tier() { bash "$DPROOT/scripts/subagent-dispatch.sh" --tier "$1" 2>&1; }
+# $1 = nhãn, $2 = cụm phải có trong thông điệp (nguyên nhân thật)
+expect_tier_error() {
+  local out rc
+  out="$(dispatch_tier standard)"; rc=$?
+  if [ "$rc" -ne 0 ] && echo "$out" | grep -q "$2" && ! echo "$out" | grep -q "không có trong" && ! echo "$out" | grep -q "Traceback"; then
+    ok "--tier với $1 → thoát khác 0, nêu đúng nguyên nhân"
+  else
+    bad "--tier với $1 sai nguyên nhân/không thoát khác 0 (rc=$rc): $out"
+  fi
+}
+rm -f "$DPJSON"
+expect_tier_error "bảng cấp thiếu file" "không đọc được"
+printf '{ hong json' > "$DPJSON"
+expect_tier_error "bảng cấp hỏng JSON" "không đọc được"
+printf '{"tiers": []}' > "$DPJSON"
+expect_tier_error "bảng cấp sai cấu trúc (tiers không phải object)" "'tiers'"
+printf '{"tiers": {"standard": "x"}}' > "$DPJSON"
+expect_tier_error "bảng cấp sai cấu trúc (cấp không phải object)" "'standard'"
+
+# Thiếu file lúc DỰNG parser không phải lỗi: --list vẫn chạy được.
+rm -f "$DPJSON"
+if bash "$DPROOT/scripts/subagent-dispatch.sh" --list >/dev/null 2>&1; then
+  ok "--list vẫn chạy khi bảng cấp thiếu (lỗi chỉ báo khi dùng --tier)"
+else
+  bad "--list chết khi bảng cấp thiếu file (lỗi bị báo lúc dựng parser)"
+fi
+
+# choices sinh từ JSON: thêm cấp mới vào dữ liệu là đủ, không sửa code.
+python -X utf8 -I -c "
+import json,sys
+d=json.load(open(sys.argv[1],encoding='utf-8'))
+d['tiers']['zz-moi']={'desc':'cap thu','candidates':[]}
+json.dump(d,open(sys.argv[2],'w',encoding='utf-8'))" "$DPGOOD" "$DPJSON"
+if dispatch_tier zz-moi | grep -q "zz-moi"; then
+  ok "--tier nhận cấp mới thêm vào JSON (choices sinh từ dữ liệu)"
+else
+  bad "--tier không nhận cấp mới thêm vào JSON (choices còn hard-code)"
+fi
+
+# Ứng viên thiếu khoá: cảnh báo nêu đúng trường + in '?', không traceback.
+python -X utf8 -I -c "
+import json,sys
+d=json.load(open(sys.argv[1],encoding='utf-8'))
+del d['tiers']['standard']['candidates'][0]['model_hint']
+json.dump(d,open(sys.argv[2],'w',encoding='utf-8'))" "$DPGOOD" "$DPJSON"
+out_key="$(dispatch_tier standard)"; rc_key=$?
+if [ "$rc_key" -eq 0 ] && echo "$out_key" | grep -q "model_hint" && echo "$out_key" | grep -q ":: ?" && ! echo "$out_key" | grep -q "Traceback"; then
+  ok "ứng viên thiếu 'model_hint' → cảnh báo nêu đúng trường, in '?', không traceback"
+else
+  bad "ứng viên thiếu 'model_hint' xử lý sai (rc=$rc_key): $out_key"
+fi
+
 echo "== 2. Telemetry & Observability Engine =="
 
 out_rec="$(bash "$TL/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"

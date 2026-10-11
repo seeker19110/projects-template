@@ -46,11 +46,38 @@ PREPARE_ONLY_NOTICE = (
 DEFAULT_MAX_CONTEXT_BYTES = 262144
 
 
+class TierMapError(Exception):
+    """Bảng cấp năng lực không dùng được; thông điệp nêu đúng nguyên nhân."""
+
+
 def load_capability_tiers():
-    if not os.path.exists(CAPABILITY_MAP_FILE):
-        return {}
-    with open(CAPABILITY_MAP_FILE, "r", encoding="utf-8", errors="ignore") as f:
-        return json.load(f).get("tiers", {})
+    """Đọc scripts/model-capability-tiers.json. Thiếu file / JSON hỏng / sai cấu trúc → TierMapError
+    (mỗi ca một thông điệp), KHÔNG trả {} — nếu không cả ba ca đều thành "tier 'X' không có trong …"
+    và đổ lỗi sai cho tham số người dùng vừa gõ (khuôn: load_rates() ở telemetry-log.py)."""
+    try:
+        with open(CAPABILITY_MAP_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError) as exc:  # ValueError gồm JSONDecodeError và UnicodeDecodeError
+        raise TierMapError(f"không đọc được bảng cấp năng lực {CAPABILITY_MAP_FILE}: {exc}") from exc
+    tiers = data.get("tiers") if isinstance(data, dict) else None
+    if not isinstance(tiers, dict):
+        raise TierMapError(f"{CAPABILITY_MAP_FILE} thiếu khoá 'tiers' hoặc 'tiers' không phải object.")
+    for name, info in tiers.items():
+        if not isinstance(info, dict):
+            raise TierMapError(f"{CAPABILITY_MAP_FILE}: cấp '{name}' phải là object.")
+        cands = info.get("candidates", [])
+        if not isinstance(cands, list) or not all(isinstance(c, dict) for c in cands):
+            raise TierMapError(f"{CAPABILITY_MAP_FILE}: 'candidates' của cấp '{name}' phải là mảng object.")
+    return tiers
+
+
+def _tier_choices():
+    """Tên cấp cho argparse, sinh từ JSON. Bảng hỏng lúc DỰNG parser không phải lỗi (--list,
+    --agent… không cần nó): trả None, lỗi thật báo khi --tier được dùng (_print_tier_candidates)."""
+    try:
+        return list(load_capability_tiers())
+    except TierMapError:
+        return None
 
 
 def parse_agent_md(file_path):
@@ -187,16 +214,20 @@ def _build_parser():
     parser.add_argument(
         "--tier",
         type=str,
-        choices=["planning", "complex", "spec", "standard", "mechanical"],
+        choices=_tier_choices(),
         help="In ứng viên đa nhà cung cấp cho một cấp năng lực (scripts/model-capability-tiers.json), không dispatch agent nào",
     )
     return parser
 
 
 def _print_tier_candidates(tier, as_json):
-    tiers = load_capability_tiers()
+    try:
+        tiers = load_capability_tiers()
+    except TierMapError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
     info = tiers.get(tier)
-    if not info:
+    if info is None:
         print(
             f"Error: tier '{tier}' không có trong {CAPABILITY_MAP_FILE}",
             file=sys.stderr,
@@ -206,10 +237,17 @@ def _print_tier_candidates(tier, as_json):
         print(json.dumps({"tier": tier, **info}, indent=2, ensure_ascii=False))
         return
     print(f"Cấp năng lực '{tier}': {info.get('desc', '')}")
-    for c in info.get("candidates", []):
+    for i, c in enumerate(info.get("candidates", [])):
+        missing = [k for k in ("provider", "harness", "model_hint") if k not in c]
+        if missing:
+            print(
+                f"CẢNH BÁO: ứng viên #{i + 1} của cấp '{tier}' thiếu trường {', '.join(missing)} "
+                f"trong {CAPABILITY_MAP_FILE} — in '?'.",
+                file=sys.stderr,
+            )
         flag = " (CẦN xác minh trước khi dùng)" if c.get("verify_before_use") else ""
         print(
-            f"  - [{c['provider']}] harness={c['harness']} :: {c['model_hint']}{flag}"
+            f"  - [{c.get('provider', '?')}] harness={c.get('harness', '?')} :: {c.get('model_hint', '?')}{flag}"
         )
 
 
