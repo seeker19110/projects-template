@@ -12,6 +12,8 @@
 # trước commit kiểm đúng bản đang sửa. File untracked không được sao chép vào fixture.
 # Mỗi ca dùng repo scratch/lịch sử riêng; không sửa repo thật.
 #
+# check-progress-freshness.sh: suite riêng `scripts/test-check-progress-freshness.sh` (tách 2026-10-11, trần 400 dòng).
+#
 # Chạy: bash scripts/test-check-scripts.sh
 set -uo pipefail   # cố ý KHÔNG -e: một ca lỗi không được làm chết cả lượt chạy (docs/CONVENTIONS.md §A)
 
@@ -22,43 +24,8 @@ trap 'rm -rf "$WORK"' EXIT
 
 source "$ROOT/scripts/_test-lib.sh"
 
-# --- Dựng bản sao cây file đã track của repo thật vào một git repo mới, sạch. ---
-# Lịch sử mới hoàn toàn khác repo thật (SHA khác) — nên sau khi commit, tự sửa lại dòng
-# "Default-branch SHA đã đối chiếu" trong PROGRESS.md trỏ đúng vào chính commit đó (tự tham chiếu,
-# luôn là tổ tiên của chính nó), để baseline của check-progress-freshness.sh xanh như thật.
-setup_repo() (   # subshell fail-fast: fixture hỏng phải dừng cả suite
-  set -e
-  local dir="$WORK/repo-$RANDOM-$RANDOM"
-  mkdir -p "$dir"
-  if command -v cygpath >/dev/null 2>&1; then dir="$(cygpath -m "$dir")"; fi
-  (cd "$ROOT" && git ls-files -z | while IFS= read -r -d '' path; do
-    if [ -e "$path" ] || [ -L "$path" ]; then printf '%s\0' "$path"; fi
-  done | tar --null -T - -cf -) | (cd "$dir" && tar -xf -)
-  git -C "$dir" init -q
-  git -C "$dir" config core.safecrlf false
-  git -C "$dir" -c user.email=t@t.local -c user.name=test add -A
-  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -m init
-  local head_sha; head_sha="$(git -C "$dir" rev-parse HEAD)"
-  sed -i.bak "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$head_sha\`/" "$dir/PROGRESS.md"
-  # Các trường fixture được dựng rõ ràng, không phụ thuộc văn xuôi tùy chọn của repo thật.
-  sed -i.bak2 '/^- Nhánh đang làm:/d; /^- Giai đoạn:/d' "$dir/PROGRESS.md"
-  printf '\n- Nhánh đang làm: `main`\n- Giai đoạn: GĐ 8.\n' >> "$dir/PROGRESS.md"
-  rm -f "$dir/PROGRESS.md.bak" "$dir/PROGRESS.md.bak2"
-  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn hoá PROGRESS.md cho baseline test"
-  printf '%s\n' "$dir"
-)
-
-run_check() {   # $1 = thư mục repo, $2 = tên script (đường dẫn tương đối từ scripts/)
-  ( cd "$1" && bash "scripts/$2" >"$WORK/check-output" 2>&1 )
-  echo $?
-}
-
-# Giữ stdout/stderr ca vừa chạy để lỗi CI có đủ bằng chứng chẩn đoán.
-bad() {
-  echo "  ❌ $1"
-  fails=$((fails+1))
-  cat "$WORK/check-output" >&2
-}
+# shellcheck source=scripts/_check-scripts-test-lib.sh
+source "$ROOT/scripts/_check-scripts-test-lib.sh"
 
 ## ============================================================
 ## 1. check-docs-consistency.sh
@@ -286,101 +253,24 @@ exit 0
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được test-*.sh không được ci.yml gọi (CP-6)" || bad "KHÔNG bắt được test mồ côi (rc=$rc)"
 
-## ============================================================
-## 3. check-progress-freshness.sh
-## ============================================================
-echo "== 3. check-progress-freshness.sh =="
-
+# F-303 (TRAPS 69): gọi từ scripts/ — script từng đọc chính nó qua `$0` sau `cd` về gốc repo nên grep
+# không thấy file, 0 mục CP-* được đối chiếu mà vẫn in OK (rc 0). Kỳ vọng: rc 0 VÀ không có "No such file".
 d="$(setup_repo)" || exit 1
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "0" ] && ok "baseline (bản sao sạch) → xanh" || bad "baseline lẽ ra phải xanh (rc=$rc)"
+( cd "$d/scripts" && bash check-ci-policy.sh >"$WORK/check-output" 2>&1 ); rc=$?
+if [ "$rc" = "0" ] && ! grep -q 'No such file' "$WORK/check-output"; then
+  ok "gọi từ thư mục scripts/ vẫn đọc được bảng CP-* của chính nó (F-303)"
+else
+  bad "gọi từ scripts/ hỏng (rc=$rc) hoặc grep không thấy file — gate xanh giả"
+fi
 
-# PF-1: SHA đã đối chiếu KHÔNG phải tổ tiên của HEAD (tồn tại thật, nhưng ở nhánh khác đã rẽ nhánh).
+# F-305 (TRAPS 69): xoá dòng `needs:` của job `gate` → phải ::error tường minh nhắc needs, không chết im lặng.
 d="$(setup_repo)" || exit 1
-git -C "$d" checkout -qb other-branch
-echo "chỉ để tạo commit khác nhánh" >> "$d/README.md"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "commit trên nhánh khác"
-other_sha="$(git -C "$d" rev-parse HEAD)"
-git -C "$d" checkout -q -
-sed -i.bak "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$other_sha\`/" "$d/PROGRESS.md" && rm -f "$d/PROGRESS.md.bak"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md trỏ SHA nhánh khác"
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "1" ] && ok "bắt được SHA không phải tổ tiên của HEAD (PF-1)" || bad "KHÔNG bắt được SHA sai nhánh (rc=$rc)"
+awk '/^  gate:/{g=1} g&&/^    needs:/{g=0; next} {print}' "$d/.github/workflows/ci.yml" > "$d/ci.tmp" && mv "$d/ci.tmp" "$d/.github/workflows/ci.yml"
+rc="$(run_check "$d" check-ci-policy.sh)"
+if [ "$rc" = "1" ] && grep -q '::error.*needs' "$WORK/check-output"; then
+  ok "thiếu dòng needs: của job gate → ::error nhắc needs (F-305)"
+else
+  bad "thiếu needs: của gate không có ::error chẩn đoán (rc=$rc)"
+fi
 
-# PF-4: tích lịch sử trong PROGRESS.md (≥ 2 khối "Giai đoạn trước đó") phải đỏ.
-d="$(setup_repo)" || exit 1
-printf -- '- Giai đoạn trước đó: khối cũ A\n- Giai đoạn trước đó: khối cũ B\n' >> "$d/PROGRESS.md"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md tích lịch sử"
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "1" ] && ok "bắt được PROGRESS.md tích ≥ 2 khối 'Giai đoạn trước đó' (PF-4)" || bad "KHÔNG bắt được PROGRESS.md tích lịch sử (rc=$rc)"
-
-# PF-2: "Nhánh đang làm" nêu tên một nhánh KHÔNG còn tồn tại trên remote (đã merge/xoá).
-d="$(setup_repo)" || exit 1
-git init -q --bare "$WORK/origin.git"
-git -C "$d" remote add origin "$WORK/origin.git"
-git -C "$d" push -q origin HEAD:main 2>/dev/null
-sed -i.bak 's/^- Nhánh đang làm:.*/- Nhánh đang làm: `nhanh-da-bi-xoa-mat-roi`/' "$d/PROGRESS.md" && rm -f "$d/PROGRESS.md.bak"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md trỏ nhánh đã xoá"
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "1" ] && ok "bắt được nhánh 'đang làm' không còn tồn tại trên remote (PF-2)" || bad "KHÔNG bắt được nhánh đã xoá (rc=$rc)"
-
-# Đối chứng: nhánh còn tồn tại trên remote → PHẢI xanh (không chặn oan).
-d="$(setup_repo)" || exit 1
-git init -q --bare "$WORK/origin2.git"
-git -C "$d" remote add origin "$WORK/origin2.git"
-git -C "$d" checkout -qb feature-that-exists
-git -C "$d" push -q origin HEAD:feature-that-exists 2>/dev/null
-git -C "$d" push -q origin HEAD:main 2>/dev/null
-sed -i.bak 's/^- Nhánh đang làm:.*/- Nhánh đang làm: `feature-that-exists`/' "$d/PROGRESS.md" && rm -f "$d/PROGRESS.md.bak"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PROGRESS.md trỏ nhánh còn tồn tại"
-git -C "$d" push -q origin HEAD:feature-that-exists 2>/dev/null
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "0" ] && ok "KHÔNG chặn oan nhánh còn tồn tại trên remote (đối chứng PF-2)" || bad "chặn OAN nhánh còn tồn tại (rc=$rc) — false positive"
-
-## ============================================================
-echo ""
-
-d="$(setup_repo)" || exit 1
-# PF-3 (audit 2026-09-13): dòng "Giai đoạn" nêu số PR NHỎ HƠN PR của SHA đã đối chiếu -> ĐỎ.
-# Đây đúng khuôn lỗi PR #96 (sửa SHA nhưng quên dòng "Giai đoạn"), mà PF-1/PF-2 đều xanh.
-# setup_repo đặt SHA = commit của chính sandbox (không có "(#NN)") nên phải dựng mốc giả lập:
-# tạo một commit có tiêu đề dạng squash-merge rồi trỏ SHA đã đối chiếu vào đó.
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -q --allow-empty -m "feat: mốc giả lập (#500)"
-fake_sha="$(git -C "$d" rev-parse --short HEAD)"
-sed -i "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$fake_sha\` (mốc giả lập, PR #500)/" "$d/PROGRESS.md"
-sed -i "s/^- Giai đoạn:.*/- Giai đoạn: GĐ 8. PR #69→#499 đã merge./" "$d/PROGRESS.md"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn bị ca PF-3"
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "1" ] && ok "bắt được dòng 'Giai đoạn' lệch sau SHA đã đối chiếu (PF-3)" || bad "KHÔNG bắt được 'Giai đoạn' lỗi thời (rc=$rc)"
-
-d="$(setup_repo)" || exit 1
-# Đối chứng: "Giai đoạn" KHỚP (>=) thì PF-3 phải XANH — chứng minh không đỏ oan.
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -q --allow-empty -m "feat: mốc giả lập (#500)"
-fake_sha="$(git -C "$d" rev-parse --short HEAD)"
-sed -i "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$fake_sha\` (mốc giả lập, PR #500)/" "$d/PROGRESS.md"
-sed -i "s/^- Giai đoạn:.*/- Giai đoạn: GĐ 8. PR #69→#501 đã merge./" "$d/PROGRESS.md"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn bị ca đối chứng PF-3"
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "0" ] && ok "PF-3 XANH khi 'Giai đoạn' >= PR của SHA (không đỏ oan)" || bad "PF-3 đỏ oan dù 'Giai đoạn' đã khớp (rc=$rc)"
-
-# Nối dây: job `progress-freshness` phải chạy CẢ ở PR (không có `if:` chỉ-main). Khi nó chỉ chạy
-# trên main, PROGRESS.md lỗi thời vẫn để PR xanh rồi làm đỏ main SAU khi merge (TRAPS 8, tái phát #245).
-pf_if="$(awk '/^  progress-freshness:/{f=1;next} f&&/^  [A-Za-z]/{f=0} f&&/^    if:/' "$ROOT/.github/workflows/ci.yml")"
-[ -z "$pf_if" ] && ok "job progress-freshness chạy cả ở PR (không có 'if:' chỉ-main)" || bad "job progress-freshness vẫn bị 'if:' loại khỏi PR: $pf_if"
-
-# Đối chứng ngữ cảnh PR: CI checkout merge ref (main + nhánh PR, HEAD tách rời) và "Nhánh đang làm"
-# là chính nhánh PR còn mở → PHẢI xanh, chạy ở PR không được báo oan.
-d="$(setup_repo)" || exit 1
-git init -q --bare "$WORK/origin-pr.git"
-git -C "$d" remote add origin "$WORK/origin-pr.git"
-git -C "$d" push -q origin HEAD:main 2>/dev/null
-git -C "$d" checkout -qb feat-dang-mo
-sed -i 's/^- Nhánh đang làm:.*/- Nhánh đang làm: `feat-dang-mo`/' "$d/PROGRESS.md"
-git -C "$d" -c user.email=t@t.local -c user.name=test commit -qam "PR: PROGRESS.md trỏ nhánh đang mở"
-git -C "$d" push -q origin HEAD:feat-dang-mo 2>/dev/null
-git -C "$d" checkout -q --detach main
-git -C "$d" -c user.email=t@t.local -c user.name=test merge -q --no-ff -m "Merge feat-dang-mo into main" feat-dang-mo
-rc="$(run_check "$d" check-progress-freshness.sh)"
-[ "$rc" = "0" ] && ok "XANH trên merge ref của PR đang mở (không báo oan khi chạy ở PR)" || bad "đỏ OAN trên merge ref của PR (rc=$rc)"
-
-finish "3 gate script bắt đúng lỗi + không chặn oan."
+finish "check-docs-consistency.sh + check-ci-policy.sh bắt đúng lỗi + không chặn oan."

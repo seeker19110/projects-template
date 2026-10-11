@@ -33,6 +33,10 @@
 # Chạy: bash scripts/check-ci-policy.sh
 set -euo pipefail
 
+# Đường dẫn TUYỆT ĐỐI của chính script, phân giải TRƯỚC `cd` (mục 7 đọc bảng CP-* từ chính file này; dùng
+# `$0` tương đối sau `cd` thì gọi từ scripts/ không thấy file mà vẫn in OK — TRAPS 69, F-303).
+SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
 cd "$(git rev-parse --show-toplevel)"
 
 SETTINGS_FILE="docs/ops/repository-settings.md"
@@ -161,10 +165,20 @@ fi
 # VÌ SAO: `gate` chỉ mạnh bằng danh sách needs: của nó. Thêm job cổng mới mà quên đưa vào needs
 # thì job đó chạy nhưng đỏ KHÔNG chặn merge (branch protection chỉ khoá `gate`) — cổng hình thức.
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
-echo "== Job của ci.yml có trong needs: của gate =="
-if grep -q "^  gate:" .github/workflows/ci.yml; then
-  needs_line="$(grep -A3 "^  gate:" .github/workflows/ci.yml | grep -m1 "needs:")"
-  # Tach thanh DANH SACH job roi so BANG DUNG tung ten. Ban cu grep ca dong voi ...:
+# Tách hàm: giữ CC thân script dưới trần (xem check_cp6_orphan_tests).
+check_gate_needs() {
+  local needs_line needs_ids job jid
+  if ! grep -q "^  gate:" .github/workflows/ci.yml; then
+    echo "::error file=.github/workflows/ci.yml::Thiếu job tổng hợp 'gate' — ADR-0003 yêu cầu có (required check duy nhất)."
+    fail=1; return
+  fi
+  # `|| true`: grep không khớp trả 1, `set -e`+pipefail sẽ giết script im lặng (TRAPS 69, F-305).
+  needs_line="$(grep -A3 "^  gate:" .github/workflows/ci.yml | grep -m1 "needs:" || true)"
+  if [ -z "$needs_line" ]; then
+    echo "::error file=.github/workflows/ci.yml::Job 'gate' không có dòng 'needs:' (trong 3 dòng đầu) — gate không gom job nào thì đỏ không chặn merge (ADR-0003, CP-4)."
+    fail=1; return
+  fi
+  # Tach thanh DANH SACH job roi so BANG DUNG tung ten. Ban cu grep ca dong voi ...:
   # "-" khong phai ky tu tu, nen `framework-lint` KHOP ben trong `framework-lint-windows`
   # => mot job bi go khoi needs: van duoc coi la co, chi vi job KHAC co ten bat dau giong.
   # Da do that o negative test CP-4 khi them job cong Windows (PR them framework-lint-windows).
@@ -179,10 +193,9 @@ if grep -q "^  gate:" .github/workflows/ci.yml; then
       fail=1
     fi
   done
-else
-  echo "::error file=.github/workflows/ci.yml::Thiếu job tổng hợp 'gate' — ADR-0003 yêu cầu có (required check duy nhất)."
-  fail=1
-fi
+}
+echo "== Job của ci.yml có trong needs: của gate =="
+check_gate_needs
 
 
 # --- 6b. CP-5: sổ job ĐƯỢC PHÉP skip phải khớp bằng đúng tập job có `if:`. ---
@@ -211,7 +224,7 @@ while IFS= read -r line; do
   fi
 done < <(tr -d '\r' < .github/workflows/ci.yml)
 
-declared="$(grep -m1 'SKIP_ALLOWED:' .github/workflows/ci.yml | sed -E 's/.*SKIP_ALLOWED:[[:space:]]*"?([^"]*)"?.*/\1/')"
+declared="$(grep -m1 'SKIP_ALLOWED:' .github/workflows/ci.yml | sed -E 's/.*SKIP_ALLOWED:[[:space:]]*"?([^"]*)"?.*/\1/' || true)"
 norm() { printf '%s\n' $1 | LC_ALL=C sort | tr '\n' ' '; }
 if ! grep -q 'SKIP_ALLOWED:' .github/workflows/ci.yml; then
   echo "::error file=.github/workflows/ci.yml::Thiếu sổ SKIP_ALLOWED trong job 'gate' — không có sổ thì mọi 'skipped' lại được tính là đạt (CP-5)."
@@ -250,14 +263,17 @@ check_cp6_orphan_tests
 # KHAI TƯỜNG MINH — implement, hoặc ghi "không áp dụng cho dự án đích: <lý do>".
 echo "== Bảng kiểm CP-* được khai ở cả hai bản (shell ↔ vitest) =="
 DROPIN_TEST="scripts/ci-workflow-policy.test.ts"
-if [ -f "$DROPIN_TEST" ]; then
+cp_ids="$(grep -oE '^#   CP-[0-9]+' "$SELF" | sed 's/^#   //' || true)"
+if [ -z "$cp_ids" ]; then
+  echo "::error::Không đọc được mục CP-* nào từ bảng kiểm trong $SELF — 0 mục được đối chiếu thì 'đạt' là xanh giả (TRAPS 69, F-303)."
+  fail=1
+elif [ -f "$DROPIN_TEST" ]; then
   while IFS= read -r cp; do
-    [ -n "$cp" ] || continue
     if ! grep -q "$cp" "$DROPIN_TEST"; then
       echo "::error file=$DROPIN_TEST::Kiểm '$cp' có trong scripts/check-ci-policy.sh nhưng KHÔNG được khai ở bản dropins — implement nó, hoặc ghi rõ '$cp: không áp dụng cho dự án đích: <lý do>' (W-302)."
       fail=1
     fi
-  done < <(grep -oE '^#   CP-[0-9]+' "$0" | sed 's/^#   //')
+  done <<< "$cp_ids"
 else
   echo "::error::Thiếu $DROPIN_TEST — dự án đích sẽ không có cổng kiểm CI nào."
   fail=1

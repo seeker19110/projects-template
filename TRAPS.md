@@ -1380,3 +1380,18 @@ trên Windows đụng tên thiết bị dành riêng — git báo `Invalid argum
 (`git add -A` với repo lồng → cho qua, không lỗi so số), `test-hooks-gate-guard.sh` (githook với gitlink đã stage),
 `test-maintenance-sweep.sh` (gitlink trong repo tạm), `test-next-gen-engines.sh` AHR-4 (radar bỏ `.claude/worktrees/`); mỗi ca
 đo ĐỎ trước khi sửa (PR 2026-10-10).
+
+## 69. Script tự đọc `$0` sau `cd`, hoặc gán `$(… grep …)` dưới `set -e` — cổng chết/xanh im lặng
+
+*Ngày:* 2026-10-11 (gốc `83c04e4`; F-303, F-305). `check-ci-policy.sh` mục 7 đọc bảng CP-* từ chính nó qua `$0` SAU khi `cd` về gốc
+repo: gọi `cd scripts && bash check-ci-policy.sh` thì `$0` là tên tương đối, `grep` báo `No such file` vào process substitution (không
+làm script chết), 0 mục CP-* được đối chiếu và script vẫn in `OK — CP-1..CP-6 đạt`, rc 0. Họ thứ hai: phép gán `x="$(… | grep …)"` dưới
+`set -euo pipefail` khi grep không khớp (trả 1) giết script ngay dòng đó — rc 1 mà KHÔNG có `::error`, các mục sau không chạy
+(`recorded_sha` của PF-1, tên nhánh của PF-2, dòng `needs:` của job `gate`, sổ `SKIP_ALLOWED`): người đọc CI thấy đỏ nhưng không biết vì sao.
+
+*Cách rà:* (1) script `cd` rồi mới đọc chính nó → phân giải `SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/…"` TRƯỚC `cd`; đọc
+được 0 mục từ nguồn tự đọc phải là `::error`, không phải "OK". (2) `grep -nE '=\$\(.*grep' scripts/check-*.sh` rồi xác nhận mỗi dòng có
+`|| true` VÀ một nhánh `::error` tường minh cho giá trị rỗng ngay sau. "Đạt" chỉ được in khi số mục đã kiểm > 0.
+
+*Cổng chốt chặn:* `test-check-scripts.sh` — chạy `check-ci-policy.sh` từ `scripts/` (rc 0, không `No such file`); xoá dòng `needs:` của
+`gate` (rc 1 + `::error` nhắc needs); SHA mất backtick trong PROGRESS.md (rc ≠ 0 + `::error` + PF-2/3/4 vẫn chạy); mỗi ca đo ĐỎ trước khi sửa (2026-10-11).

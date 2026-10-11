@@ -14,8 +14,8 @@ Nhánh local `codex/open-branch-integration` (29 commit, 2026-09-15, chưa từn
 - **PR-3** (cổng không khẳng định điều chưa kiểm): gồm việc T3 — độc lập, chạy song song với PR-1, PR-2
 - **PR-4** (sweep chạy đủ cổng khung): gồm việc T4 — độc lập, đợt 2 (trần WIP 3)
 - **PR-5** (subagent-dispatch báo lỗi đúng chỗ): gồm việc T5 — độc lập, đợt 2
-- **PR-6** (PF-1 đỏ khi PROGRESS bỏ quá một vòng WIP): gồm việc T6 — phụ thuộc PR-3 (cùng `scripts/check-progress-freshness.sh`, `scripts/test-check-scripts.sh`), chạy tuần tự sau PR-3
-- **PR-7** (cổng tài liệu quét .py/.css + test âm 5 nhánh cổng): gồm việc T7 — phụ thuộc PR-3 và PR-6 (cùng `scripts/test-check-scripts.sh`; ca CP-* cần F-303 đã sửa), chạy tuần tự sau PR-6
+- **PR-6** (PF-1 đỏ khi PROGRESS bỏ quá một vòng WIP): gồm việc T6 — phụ thuộc PR-3 (cùng `scripts/check-progress-freshness.sh`, `scripts/test-check-progress-freshness.sh` sau khi PR-3 tách suite), chạy tuần tự sau PR-3
+- **PR-7** (cổng tài liệu quét .py/.css + test âm 5 nhánh cổng): gồm việc T7 — phụ thuộc PR-3 (cùng `scripts/test-check-scripts.sh`; ca CP-* cần F-303 đã sửa), chạy sau PR-3, song song được với PR-6 vì PR-3 đã tách suite PF ra file riêng
 
 ## Danh sách việc
 ### T1 — maintenance.yml: sweep chết không trông như sweep sạch, không đóng nhầm issue (F-202, gốc b80a111)   `route: standard`
@@ -49,15 +49,15 @@ Nhánh local `codex/open-branch-integration` (29 commit, 2026-09-15, chưa từn
 - Tiêu chí chấp nhận: ca mới ở `scripts/test-telemetry-and-dispatch.sh` ĐỎ trước sửa (nộp output), xanh sau; `bash scripts/test-py-coverage.sh` xanh, sàn giữ nguyên; `bash scripts/check-python-complexity.sh` xanh.
 
 ### T6 — check-progress-freshness PF-1: đỏ khi PROGRESS bỏ quá một vòng WIP (F-104, gốc 56bad90 + 7c11a19)   `route: standard`
-- Điểm chạm: `scripts/check-progress-freshness.sh`, `scripts/test-check-scripts.sh`, `docs/framework/pr-flow.md`
+- Điểm chạm: `scripts/check-progress-freshness.sh`, `scripts/test-check-progress-freshness.sh`, `docs/framework/pr-flow.md`
 - Đặc tả: PF-1 hiện chỉ `::warning` ở mọi mức trễ. Thiết kế gốc dựa vào dòng "Nhánh đang làm" mà PROGRESS.md đã bỏ từ #177 → không port nguyên văn. Quyết định (Tầng 1, §3d): đếm trễ bằng `git rev-list --count --first-parent "$recorded_sha..HEAD"` (merge ref của PR chỉ tính commit trên nhánh chính, không tính commit riêng của PR); `PF_MAX_BEHIND` mặc định **5** (= trần WIP 3 + 1 commit squash + 1 nhịp dư), ghi đè bằng biến môi trường cùng tên (số nguyên dương; sai khuôn → `::error`); trễ ≥ ngưỡng → `::error` nêu số trễ, ngưỡng và cách sửa (cập nhật dòng SHA, CLAUDE.md §8 bước 5) + `fail=1`; 1 ≤ trễ < ngưỡng → `::warning` như cũ. Ghi lý do ngưỡng ngay tại chỗ. Test (repo git tạm): trễ 4 → rc 0 + warning; trễ 5 → rc 1; nhánh phụ 6 commit merge bằng merge commit, first-parent trễ 1 → rc 0; `PF_MAX_BEHIND=2` trễ 2 → rc 1; `PF_MAX_BEHIND=abc` → rc 1. `docs/framework/pr-flow.md`: một câu ở chỗ nói bước cập nhật PROGRESS sau merge, nêu ngưỡng và lý do.
 - Phụ thuộc: T3
-- Tiêu chí chấp nhận: ca trễ 5 / ghi đè / sai khuôn ĐỎ trước sửa (nộp output), xanh sau; `bash scripts/test-check-scripts.sh` xanh; `bash scripts/check-progress-freshness.sh` xanh trên repo; `bash scripts/check-docs-consistency.sh` xanh.
+- Tiêu chí chấp nhận: ca trễ 5 / ghi đè / sai khuôn ĐỎ trước sửa (nộp output), xanh sau; `bash scripts/test-check-progress-freshness.sh` xanh; `bash scripts/check-progress-freshness.sh` xanh trên repo; `bash scripts/check-docs-consistency.sh` xanh.
 
 ### T7 — cổng tài liệu quét đường dẫn .py/.css + test âm cho 5 nhánh cổng chưa có ca đỏ (F-201, F-403, gốc f7235bd + 3464df6 + 6c49055)   `route: standard`
 - Điểm chạm: `scripts/check-docs-consistency.sh`, `scripts/test-check-scripts.sh`
 - Đặc tả: (F-201) regex đường dẫn của mục link gãy hiện là `(md|sh|ps1|json|ts|tsx|yml|cjs|mjs)` → thêm `py` và `css`. Nếu đuôi mới làm cổng bắt tham chiếu gãy CÓ THẬT trong tài liệu repo thì DỪNG, trả về danh sách `file:dòng` — Tầng 1 quyết sửa tài liệu hay loại trừ (không tự sửa file ngoài Điểm chạm). (F-403) thêm ca âm (repo sao chép, cài đúng một lỗi, đòi rc khác 0) cho: docs-consistency mục 2 (tên file cũ còn sót — dựng tên cũ lúc chạy để chính file test không bị mục 2 bắt), mục 3 chiều A (có file lệnh mà CLAUDE.md chưa khai), mục 3 chiều B (CLAUDE.md nhắc `/tên` không có file), mục 4b (agent có file nhưng không có trong bảng route), và `scripts/check-ci-policy.sh` mục 7 (bảng CP-* lệch shell ↔ vitest). Ca `.py`/`.css`: tham chiếu tới file không tồn tại → đỏ; tới file có thật → xanh.
-- Phụ thuộc: T3, T6
+- Phụ thuộc: T3
 - Tiêu chí chấp nhận: ca `.py`/`.css` ĐỎ trước sửa (nộp output); 5 ca F-403 đỏ đúng chỗ sau khi T3 đã merge; `bash scripts/test-check-scripts.sh` xanh; `bash scripts/check-docs-consistency.sh` xanh trên repo.
 
 ## Luật chung cho mọi việc (dán nguyên vào brief từng worker)
