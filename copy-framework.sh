@@ -138,7 +138,11 @@ place_or_aside() {      # $1=đường dẫn nguồn $2=rel đích [$3=ghi chú]
   elif same_content "$src" "$dst"; then
     echo "  = $rel"   # chạy lại trên đích chưa sửa: không rải bản trùng (F-Q7)
   else
-    cp -R "$src" "$dst.framework-new"
+    if [ -d "$src" ]; then   # thư mục: cp -R src dst.new đổi nghĩa khi dst.new ĐÃ có (lồng vào trong) → copy NỘI DUNG (TRAPS 68)
+      mkdir -p "$dst.framework-new"; cp -R "$src/." "$dst.framework-new/"
+    else
+      cp "$src" "$dst.framework-new"
+    fi
     echo "  ~ $rel đã tồn tại → bản khung để ở $rel.framework-new (tự so/merge)"
   fi
 }

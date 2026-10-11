@@ -1381,6 +1381,20 @@ trên Windows đụng tên thiết bị dành riêng — git báo `Invalid argum
 `test-maintenance-sweep.sh` (gitlink trong repo tạm), `test-next-gen-engines.sh` AHR-4 (radar bỏ `.claude/worktrees/`); mỗi ca
 đo ĐỎ trước khi sửa (PR 2026-10-10).
 
+## 68. `cp -R` đổi nghĩa khi đích đã tồn tại — test hai lượt không đủ, phải có lượt ba
+
+*Ngày:* 2026-10-11 (gốc `ce4bd67`, F-306). `copy-framework.sh` `place_or_aside` đặt thư mục khác nội dung cạnh đích bằng
+`cp -R "$src" "$dst.framework-new"`. Lượt 1 `.framework-new` chưa có → tạo đúng; lượt 2 trở đi nó ĐÃ có → `cp -R` copy `src` VÀO TRONG,
+ra `.claude/hooks.framework-new/hooks`. Test hai lượt (đích trống + chạy lại trên đích chưa sửa) không bao giờ chạm nhánh này vì đích
+chưa sửa thì `same_content` bỏ qua, không đặt cạnh.
+
+*Cách rà:* mọi `cp -R`/`cp -r` có đích có thể đã tồn tại ở lượt chạy sau phải copy NỘI DUNG (`mkdir -p dst; cp -R src/. dst/`),
+như `Copy-Tree` của `copy-framework.ps1`. `grep -n 'cp -[rR]' copy-framework.sh scripts/*.sh`. Script idempotent cần test ≥ 3 lượt
+trên đích đã sửa.
+
+*Cổng chốt chặn:* `scripts/test-copy-framework.sh` `check_no_nesting` (đích sửa một file trong `.claude/hooks`, chạy 3 lần, đòi không có
+`X.framework-new/X`; chạy cho bash và pwsh); ĐỎ trước khi sửa (thư mục lồng `.claude/hooks.framework-new/hooks`).
+
 ## 69. Script tự đọc `$0` sau `cd`, hoặc gán `$(… grep …)` dưới `set -e` — cổng chết/xanh im lặng
 
 *Ngày:* 2026-10-11 (gốc `83c04e4`; F-303, F-305). `check-ci-policy.sh` mục 7 đọc bảng CP-* từ chính nó qua `$0` SAU khi `cd` về gốc
