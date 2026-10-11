@@ -61,10 +61,10 @@ new AsyncFunction("context", "core", "github", input.script)(context, core, gith
         regular = {"number": 1, "draft": False, "user": {"login": "human"},
                    "title": "fix: fixture", "body": body}
         cases = [
-            ("three regular", {}, 2, False, []),
-            ("four regular", {}, 3, False, ["Trần WIP"]),
-            ("three including other drafts", {}, 2, True, []),
-            ("four including other drafts", {}, 3, True, ["Trần WIP"]),
+            ("five regular", {}, 4, False, []),
+            ("six regular", {}, 5, False, ["Trần WIP"]),
+            ("five including other drafts", {}, 4, True, []),
+            ("six including other drafts", {}, 5, True, ["Trần WIP"]),
             ("ordinary missing body", {"body": ""}, 2, False, ["Missing PR sections"]),
             ("ordinary unapproved feature", {"title": "feat: fixture"}, 2, False,
              ["Feature PR must link", "Feature spec must be Approved"]),
@@ -75,8 +75,8 @@ new AsyncFunction("context", "core", "github", input.script)(context, core, gith
         for actor, fields in exemptions:
             fields = {**fields, "title": "feat: fixture", "body": ""}
             cases.extend((
-                (f"{actor} under cap retains exemptions", fields, 2, True, []),
-                (f"{actor} over cap", fields, 3, True, ["Trần WIP"]),
+                (f"{actor} under cap retains exemptions", fields, 4, True, []),
+                (f"{actor} over cap", fields, 5, True, ["Trần WIP"]),
                 (f"{actor} invalid title", {**fields, "title": "invalid"}, 2, True,
                  ["PR title must follow Conventional Commits"]),
             ))

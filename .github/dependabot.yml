@@ -1,8 +1,8 @@
 version: 2
 
 # MỘT PR bot nâng phiên bản cho mọi hệ sinh thái (F-41a, FT-41 2026-10-09): cổng WIP ở pr-policy.yml đếm
-# cả PR bot với trần 3. Trước đây 5+5+3 PR bot lấp trần ngay lần chạy đầu ở dự án đích → mọi PR của người
-# đỏ required check `metadata`. Gộp một nhóm → tối đa 1 PR bot, chừa ≥ 2 chỗ cho người
+# cả PR bot (trần 3 lúc đó, nay 5). Trước đây 5+5+3 PR bot lấp trần ngay lần chạy đầu ở dự án đích → mọi PR của người
+# đỏ required check `metadata`. Gộp một nhóm → tối đa 1 PR bot, chừa ≥ 4 chỗ cho người
 # (test: tests/test_runtime_safety.py). PR cập nhật BẢO MẬT không chịu giới hạn này (GitHub tách riêng).
 # Bản major bị bỏ qua: đi qua /deps-upgrade (đọc changelog, sửa điểm chạm) — PR bot major thường đỏ CI
 # và giữ chỗ WIP mãi.

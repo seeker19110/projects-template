@@ -19,7 +19,7 @@ xoá/force-push `main`, **required status checks = `gate` + `metadata`** (chỉ 
 (không phải hạ chuẩn — GitHub không cho tự duyệt PR của chính mình; đặt 1 sẽ khoá vĩnh viễn mọi PR
 khi repo chỉ có một người, xem case PR #40 của Claude-Agents nếu tò mò tại sao). Đặt lại thành ≥ 1
 khi repo có thêm collaborator khác. **`strict_required_status_checks_policy: true`** (từ 2026-09-23, audit T1):
-nhánh phải cập nhật với `main` trước khi merge — đúng CLAUDE.md §6; với trần WIP 3 + auto-merge, PR sau merge
+nhánh phải cập nhật với `main` trước khi merge — đúng CLAUDE.md §6; với trần WIP 5 + auto-merge, PR sau merge
 của PR trước phải cập nhật nhánh theo lịch sử commit hợp lệ rồi CI chạy lại (tránh merge commit có tiêu đề không đạt cổng metadata). **Đổi file này
 thì chủ repo phải import lại ruleset**. `protection-guard` đối chiếu `strict` giữa ruleset đang áp và file;
 CI sẽ đỏ nếu cấu hình live vẫn là `false`.

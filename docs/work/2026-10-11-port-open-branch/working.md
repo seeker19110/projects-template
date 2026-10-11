@@ -15,7 +15,8 @@ Theo PLAN.md: đợt 1 song song T1/T2/T3 (worker worktree riêng), đợt 2 T4/
 
 ## Quyết định và bằng chứng
 
-- Quyết định F-104: thiết kế gốc cần dòng "Nhánh đang làm" mà PROGRESS.md đã bỏ từ #177 → port nguyên văn sẽ không bao giờ đỏ. Chọn: trễ first-parent ≥ `PF_MAX_BEHIND` (mặc định 5 = WIP 3 + 1 squash + 1 dư) → đỏ · loại: ngưỡng 2 (mọi PR song song đỏ oan) · bậc 1 §3d (đúng, không chặn oan).
+- Quyết định F-104: thiết kế gốc cần dòng "Nhánh đang làm" mà PROGRESS.md đã bỏ từ #177 → port nguyên văn sẽ không bao giờ đỏ. Chọn: trễ first-parent ≥ `PF_MAX_BEHIND` (mặc định 5 = WIP 3 + 1 squash + 1 dư; nay 7 theo WIP 5, xem dưới) → đỏ · loại: ngưỡng 2 (mọi PR song song đỏ oan) · bậc 1 §3d (đúng, không chặn oan).
+- Mở rộng phạm vi do người dùng yêu cầu 2026-10-11 ("sửa lại trần mở 5pr", "5pr toàn cục"): trần WIP 3 → **5 PR mở đồng thời toàn repo** (cổng `pr-policy.yml` + test `tests/test_runtime_safety.py`, CLAUDE.md §8, AGENTS.md, pr-flow.md, `/auto-complete`, repository-settings, COMPLETION-PLAN, chú thích dependabot). Hệ quả: ngưỡng PF-1 của T6 đổi 5 → 7 (giữ công thức WIP + 1 squash + 1 dư). Lịch sử (TRAPS, spec, goal, report, ADR-0011) giữ nguyên số cũ.
 - Lệch kế hoạch T3 (2026-10-11): ba ca mới đẩy `scripts/test-check-scripts.sh` sát trần 400 dòng của radar → tách suite PF sang `scripts/test-check-progress-freshness.sh`, helper chung `scripts/_check-scripts-test-lib.sh`, bước CI riêng. Hệ quả: T6 đổi điểm chạm sang suite mới; T7 chỉ còn phụ thuộc T3, chạy song song được với T6 · bậc 2 §3d (file nhỏ, ít xung đột).
 - Quyết định F-306: theo ngữ nghĩa `Copy-Tree` của `.ps1` (`src/.` + `mkdir -p`) thay vì xoá rồi copy lại · bậc 2 (ít thay đổi, hai bản khớp nhau).
 
