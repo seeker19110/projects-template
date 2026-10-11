@@ -70,6 +70,10 @@ chk "🟡 khung đã copy quá cũ"             "🟡 | Tài liệu | bản khun
 chk "lệnh deps KHAI BÁO được ưu tiên"     "OUTDATED-DECL-MARK"
 chk "🔴 audit khai báo đỏ → 🔴"           "🔴 | Dependency | audit báo lỗ hổng (exit 3)"
 chk "cổng khung vắng → n-a, không crash"  "docs-consistency: n-a"
+# Mục tự đặt tên "Cổng khung" nên phải liệt kê ĐỦ 5 cổng check-*, không phải 2 (T-2, gốc bcde247).
+for g in "ci-policy" "progress-freshness" "shell-complexity" "python-complexity"; do
+  chk "cổng '$g' có mặt trong mục 6"      "- $g: "
+done
 if printf '%s' "$bout" | grep -q 'integer expected'; then bad "gitlink repo lồng làm phép đo cỡ file lỗi so số"; else ok "gitlink repo lồng: phép đo cỡ file không lỗi so số"; fi
 
 echo "== 3b. NEGATIVE: tên file độc KHÔNG được thực thi (command injection qua git ls-files) =="
@@ -199,6 +203,37 @@ printf '%s' "$oout" | grep -q "OWNER-CHANGE-ME\|core.hooksPath chưa" && bad "đ
 
 echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
+
+echo "== 7. Cổng thiếu CÔNG CỤ → 🟡 'chưa kiểm chứng được' kèm tên công cụ; vi phạm thật vẫn 🔴 =="
+# Thông điệp cổng giả chép NGUYÊN VĂN từ script thật — regex nhận dạng phải hẹp, riêng từng cổng.
+tool_repo="$TMP/tool"; mkdir -p "$tool_repo/scripts"
+fake_gate() { # $1=tên script, $2=dòng ::error:: in ra stderr → exit 1
+  printf '#!/usr/bin/env bash
+echo "%s" >&2
+exit 1
+' "$2" > "$tool_repo/scripts/$1"
+}
+fake_gate check-python-complexity.sh "::error::Thiếu radon — cài bằng: python3 -m pip install radon"
+fake_gate check-shell-complexity.sh "::error::Không tìm thấy vendor/shellmetrics/shellmetrics (bản vendor có ghim)."
+# ĐỐI CHỨNG: vi phạm THẬT có chữ "Thiếu" (đúng thông điệp check-progress-freshness.sh) → phải 🔴.
+fake_gate check-progress-freshness.sh "::error file=PROGRESS.md::Thiếu dòng 'Default-branch SHA đã đối chiếu:' ở mục 'Giai đoạn hiện tại' — không có gì để đối chiếu độ mới."
+( cd "$tool_repo" && "${GIT[@]}" init -q -b main && "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init ) >/dev/null 2>&1
+CLAUDE_PROJECT_DIR="$tool_repo" bash "$SWEEP" --no-deps --out "$TMP/tool1.md" >/dev/null 2>&1
+rep="$(cat "$TMP/tool1.md" 2>/dev/null)"; rep_dumped=0
+chk "radon vắng → nói ra trong mục 6"          "python-complexity: ⚠️ KHÔNG chạy được"
+chk "radon vắng → 🟡 kèm tên công cụ"          "🟡 | Cổng | python-complexity chưa kiểm chứng được — thiếu công cụ: radon"
+chk "shellmetrics vắng → 🟡 kèm tên công cụ"   "🟡 | Cổng | shell-complexity chưa kiểm chứng được — thiếu công cụ: vendor/shellmetrics"
+chk "đối chứng 'Thiếu dòng…' vẫn 🔴"            "🔴 | Cổng | progress-freshness đỏ"
+for g in python-complexity shell-complexity; do
+  if printf '%s' "$rep" | grep -q "🔴 | Cổng | $g"; then bad "$g thiếu công cụ bị báo 🔴 (sẽ đi sửa code đang đúng)"; else ok "$g thiếu công cụ không bị 🔴"; fi
+done
+# ĐỐI CHỨNG 2: checksum shellmetrics sai = chuỗi cung ứng; python cổng rỗng = cổng hỏng → đều 🔴.
+fake_gate check-shell-complexity.sh "::error file=vendor/shellmetrics/SHA256SUMS::Checksum của vendor/shellmetrics/shellmetrics KHÔNG khớp SHA256SUMS — không đo bằng một công cụ không rõ nội dung."
+fake_gate check-python-complexity.sh "::error::Không tìm thấy file .py nào trong scripts/ — cổng này lẽ ra phải có gì đó để đo."
+CLAUDE_PROJECT_DIR="$tool_repo" bash "$SWEEP" --no-deps --out "$TMP/tool2.md" >/dev/null 2>&1
+rep="$(cat "$TMP/tool2.md" 2>/dev/null)"; rep_dumped=0
+chk "đối chứng checksum shellmetrics sai vẫn 🔴" "🔴 | Cổng | shell-complexity đỏ"
+chk "đối chứng python không có file .py vẫn 🔴"  "🔴 | Cổng | python-complexity đỏ"
 
 echo
 finish "maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."
