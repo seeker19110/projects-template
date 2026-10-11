@@ -11,6 +11,8 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Docs (2026-10-11, #280): đối chiếu `cobusgreyling/loop-engineering` theo ba cột — 56 hạng mục, lấy 0; sửa dòng T6
+  lỗi thời trong `threat-model-maintain-cron.md` (TRAPS 37).
 - Fix (2026-10-11, #278): `check-ci-policy.sh` gọi từ `scripts/` không còn đối chiếu 0 mục CP-* mà in OK (F-303);
   `check-ci-policy.sh`/`check-progress-freshness.sh` không chết im lặng khi grep không khớp (F-305); suite PF tách ra
   `test-check-progress-freshness.sh`; TRAPS 69.
