@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fix (2026-10-11, #278): `check-ci-policy.sh` gọi từ `scripts/` không còn đối chiếu 0 mục CP-* mà in OK (F-303);
+  `check-ci-policy.sh`/`check-progress-freshness.sh` không chết im lặng khi grep không khớp (F-305); suite PF tách ra
+  `test-check-progress-freshness.sh`; TRAPS 69.
 - Docs (2026-10-11, #277): hồ sơ + PLAN port 7 bản sửa audit 2026-09-15 còn thiếu trên `main` (nhánh local
   `codex/open-branch-integration` chưa từng có PR): F-202, F-306, F-303/F-305, T-2, F-207, F-104, F-201/F-403.
 - Docs (2026-10-10, #276): đóng `/audit-full` tự động hóa — 12 PR (#256…#275), re-audit 45 ID không còn mở, radar 100/100,
