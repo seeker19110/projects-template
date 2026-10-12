@@ -238,4 +238,21 @@ brief="$(run_ls "$p" --root "$p" --brief)"; nl="$(printf '%s\n' "$brief" | wc -l
 [ -n "$brief" ] && [ "$nl" -le 20 ] && printf '%s' "$brief" | head -1 | grep -q '^verdict: ' && printf '%s' "$brief" | grep -q '^next: ' \
   && ok "--brief ≤ 20 dòng" || bad "--brief ≤ 20 dòng ($nl dòng): $brief"
 
+echo "== Review 2026-10-12 (F1/F2/F4): đầu vào lạ không làm chết engine =="
+# F1 (TRAPS 24): repo ở đường dẫn Unicode + locale C → subprocess text=True giải mã theo locale → UnicodeDecodeError khi không --root.
+p="$(new_proj)"; u="$WORK/dự-án-$RANDOM"; mv "$p" "$u"
+out="$( cd "$u" && LC_ALL=C LANG=C PYTHONUTF8=0 PYTHONCOERCECLOCALE=0 python3 "$ROOT/scripts/loop-state.py" --brief 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q '^verdict: ' \
+  && ok "đường dẫn Unicode + locale C không --root → vẫn chạy" || bad "đường dẫn Unicode + locale C (rc=$rc): $(printf '%s' "$out" | tail -1)"
+# F2: gh trả statusCheckRollup không phải danh sách dict → ci unknown, không traceback.
+p="$(new_proj)"
+out="$(FAKE_GH_JSON='[{"number":7,"statusCheckRollup":["x",5]},{"number":8,"statusCheckRollup":{"a":1}},"rác"]' run_ls "$p" --root "$p" --json 2>&1)"; rc=$?
+[ "$rc" -eq 0 ] && [ "$(js "$out" "[q['ci'] for q in d['pr']['open']]")" = "['unknown', 'unknown']" ] \
+  && ok "gh JSON phần tử sai kiểu → ci unknown, không chết" || bad "gh JSON phần tử sai kiểu (rc=$rc): $(printf '%s' "$out" | tail -1)"
+# F4: --enter trên hồ sơ done.md không ghi marker (verdict stop dặn xoá marker — không tạo cái phải xoá).
+p="$(new_proj)"; mv "$p/docs/work/$ID/working.md" "$p/docs/work/$ID/done.md"
+out="$(run_ls "$p" --root "$p" --work-id "$ID" --enter --brief 2>&1)"; rc=$?
+[ "$rc" -eq 0 ] && [ ! -e "$p/.claude/.auto-complete-loop" ] && printf '%s' "$out" | grep -q '^verdict: stop' \
+  && ok "--enter trên done.md → stop, không ghi marker" || bad "--enter trên done.md (rc=$rc, marker=$([ -e "$p/.claude/.auto-complete-loop" ] && echo có || echo không)): $(printf '%s' "$out" | head -1)"
+
 finish "engine loop-state đúng verdict/parser/marker/vân tay trên repo giả."

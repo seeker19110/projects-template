@@ -27,7 +27,8 @@ Bạn là **người quyết định thay chủ repo** cho toàn bộ lượt n�
 ## Chuỗi chạy (không bỏ bước, không hỏi giữa chừng ngoài §9)
 0. **Bật vòng giữ lượt** (hook Stop `auto-complete-guard.sh`): sau khi đọc/tạo hồ sơ `docs/work/<id>/working.md` (§3e), bật marker
    bằng `bash scripts/loop-state.sh --enter` (ghi file `.claude/.auto-complete-loop`, gitignored, sống trong một phiên; `--enter` không reset `n`).
-   **Mỗi vòng bắt đầu bằng `bash scripts/loop-state.sh --enter --brief` và làm đúng `next`.** Từ đó mỗi khi lượt
+   **Mỗi vòng bắt đầu bằng `bash scripts/loop-state.sh --enter --brief` và làm đúng `next`.** `--enter` không có `--work-id` gắn
+   vào hồ sơ Active/Planned **duy nhất** — bắt đầu việc MỚI thì tạo hồ sơ trước (`bash scripts/new-work.sh <slug>`) rồi chạy lại. Từ đó mỗi khi lượt
    định kết thúc mà hồ sơ còn `- Trạng thái: Active`, hook **không cho kết lượt** và nhắc mục "Bàn giao / bước tiếp theo" — nên
    **luôn giữ mục đó là bước cụ thể kế tiếp**. Hook tự cho dừng khi: `- Trạng thái: Blocked — …`/`Waiting — …` (§9/§8), hồ sơ đã
    rename `done.md`, usage-guard đã nhắc wind-down, đủ `AUTO_COMPLETE_MAX_CONTINUES` (mặc định 20) lượt, lời cuối lặp y hệt,

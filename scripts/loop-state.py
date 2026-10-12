@@ -28,7 +28,7 @@ import _loop_state_parse as P
 MARKER = ".claude/.auto-complete-loop"
 STREAK = ".claude/.gate-red-streak"
 GOAL_REF = re.compile(r"docs/goals/[\w.\-]+\.md")
-SAFE_ID = re.compile(r"^[\w][\w.\-]*$")
+SAFE_ID = re.compile(r"[\w][\w.\-]*")
 KEEP_MARKER = ("n", "last", "nudged", "fp", "fpn")
 GH_TIMEOUT = 15
 GIT_TIMEOUT = 15
@@ -62,7 +62,8 @@ def git(root, *args):
         r = subprocess.run(
             ["git", "-C", str(root), *args],
             capture_output=True,
-            text=True,
+            encoding="utf-8",  # không theo locale: đường dẫn Unicode + locale C/cp1252 (TRAPS 24)
+            errors="replace",
             timeout=GIT_TIMEOUT,
             check=False,
         )
@@ -80,10 +81,12 @@ def resolve_root(arg):
         if not root.is_dir():
             raise EngineError(f"--root {arg} không phải thư mục")
         return root
-    top = git(Path.cwd(), "rev-parse", "--show-toplevel")
-    if not top:
+    # --show-cdup (chỉ "../" ASCII) thay --show-toplevel: tên thư mục Unicode đi qua
+    # os.getcwd() giữ nguyên byte (surrogateescape) dù locale C/cp1252 (TRAPS 24).
+    cdup = git(Path.cwd(), "rev-parse", "--show-cdup")
+    if cdup is None:
         raise EngineError("không ở trong cây git — truyền --root DIR")
-    return Path(top)
+    return (Path.cwd() / cdup).resolve()
 
 
 def candidates(root):
@@ -111,7 +114,7 @@ def resolve_id(root, wanted):
 
 
 def work_file(root, wid):
-    if not SAFE_ID.match(wid) or ".." in wid:
+    if not SAFE_ID.fullmatch(wid) or ".." in wid:
         raise LookupFail(f"Work ID không hợp lệ: {wid!r}")
     for name in ("working.md", "done.md"):
         f = root / "docs" / "work" / wid / name
@@ -181,7 +184,8 @@ def _gh_list(root, branch):
             cmd,
             cwd=str(root),
             capture_output=True,
-            text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GH_TIMEOUT,
             check=False,
         )
@@ -209,7 +213,9 @@ def pr_info(root, branch):
     prs = [
         {
             "number": p.get("number"),
-            "ci": P.ci_state(p.get("statusCheckRollup")),
+            "ci": P.ci_state(
+                p.get("statusCheckRollup")
+            ),  # dữ liệu ngoài: parser tự lọc kiểu
             "mergeable": p.get("mergeable"),
             "auto_merge": bool(p.get("autoMergeRequest")),
         }
@@ -360,7 +366,7 @@ def run(a):
     wfile = work_file(root, wid)
     if a.fingerprint:
         return fingerprint(root, wfile)
-    if a.enter:
+    if a.enter and wfile.name != "done.md":  # done.md → stop: không tạo marker phải xoá
         write_marker(root, wid)
     state = build_state(root, wid, wfile)
     return (

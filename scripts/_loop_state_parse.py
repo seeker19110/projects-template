@@ -30,13 +30,19 @@ def status(text):
     return "unknown"
 
 
+def _body_after(text, heading):
+    """Thân sau dòng tiêu đề `heading` (re.Match) tới dòng `## ` kế; rỗng nếu không khớp."""
+    if not heading:
+        return ""
+    rest = text[heading.end() :]
+    nxt = re.search(r"^##\s", rest, re.MULTILINE)
+    return rest[: nxt.start()] if nxt else rest
+
+
 def section(text, prefix):
     """Thân mục `## <prefix>...` tới `## ` kế (chuỗi rỗng nếu không có)."""
-    m = re.search(r"^##\s+" + re.escape(prefix) + r".*$", text, re.MULTILINE)
-    if not m:
-        return ""
-    nxt = re.search(r"^##\s", text[m.end() :], re.MULTILINE)
-    return text[m.end() : m.end() + nxt.start()] if nxt else text[m.end() :]
+    pat = r"^##\s+" + re.escape(prefix) + r".*$"
+    return _body_after(text, re.search(pat, text, re.MULTILINE))
 
 
 def meaningful_lines(body):
@@ -188,11 +194,9 @@ def completion_info(text):
             if key in ("doing", "open"):
                 out["next_ids"].append((key != "doing", cells[0]))
     out["next_ids"] = [i for _, i in sorted(out["next_ids"], key=lambda t: t[0])]
-    m = re.search(r"^#+\s.*Definition of Complete.*$", text, re.MULTILINE)
-    doc = ""
-    if m:
-        nxt = re.search(r"^##\s", text[m.end() :], re.MULTILINE)
-        doc = text[m.end() : m.end() + nxt.start()] if nxt else text[m.end() :]
+    doc = _body_after(
+        text, re.search(r"^#+\s.*Definition of Complete.*$", text, re.MULTILINE)
+    )
     out["doc_unchecked"], out["doc_total"] = checkboxes(doc)
     return out
 
@@ -206,9 +210,12 @@ def handoff_verdict(unchecked, total):
 
 def ci_state(checks):
     """FR-6: failure (FAILURE/ERROR) > pending (IN_PROGRESS/QUEUED/PENDING) > success (toàn SUCCESS/SKIPPED/NEUTRAL); rỗng → unknown."""
+    items = (
+        [c for c in checks if isinstance(c, dict)] if isinstance(checks, list) else []
+    )
     states = {
         str(c.get("conclusion") or c.get("state") or c.get("status") or "").upper()
-        for c in checks or []
+        for c in items
     } - {""}
     if not states:
         return "unknown"

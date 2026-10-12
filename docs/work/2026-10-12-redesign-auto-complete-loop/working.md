@@ -42,6 +42,11 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 - Dogfood trên chính repo: verdict `continue — 26 file dở`; lộ ra `gh pr list --json` (GraphQL) bị 403 trong phiên cloud →
   `pr.available=false` đúng spec (suy giảm có nói ra); ghi DEBT tại `_gh_list` kèm điều kiện xem lại (REST fallback).
 - `--trace` spec: AC-1..9, 13 MAPPED; AC-10..12, 14 PENDING (PR-B).
+- Review độc lập (`reviewer`, lần 1 chết vì giới hạn phiên, lần 2 xong): 2 lỗi tái hiện — F1 `subprocess text=True` theo locale
+  (TRAPS 24: đường dẫn Unicode + locale C → chết khi không `--root`), F2 gh JSON phần tử sai kiểu → AttributeError; F4 `--enter`
+  ghi marker cả khi `done.md`; F6/F7 dọn. Sửa cả 5 với 3 ca đỏ-trước (FAIL 3 → OK, 32 ca). **Không sửa** F3 (vân tay đổi khi gh
+  chập chờn → hook thấy "tiến triển" thêm một lượt, hướng fail-open, đã nằm trong DEBT `_gh_list`) và F5 (`layer_hint` ưu tiên
+  ①② trước ③④ trên cùng dòng — heuristic cho streak=2, giá trị thấp; xem lại khi ca thật định tuyến sai).
 
 ## Lần thử / blocker
 

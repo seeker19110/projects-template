@@ -124,8 +124,8 @@ FEATURE-MAP, README khung, CLAUDE.md §1 + AGENTS.md, `copy-framework.manifest`,
 | AC-3 | `scripts/test-loop-state.sh::streak 3 → request-input`, `scripts/test-loop-state.sh::streak 2 tầng ① → refine-spec`, `scripts/test-loop-state.sh::streak 2 tầng ③ → refine-code` |
 | AC-4 | `scripts/test-loop-state.sh::goal ready/blocked theo Dependency`, `scripts/test-loop-state.sh::goal DONE thiếu Evidence` |
 | AC-5 | `scripts/test-loop-state.sh::completion đếm ô + DoC`, `scripts/test-loop-state.sh::handoff GO/NO-GO/unknown` |
-| AC-6 | `scripts/test-loop-state.sh::không gh → pr.available=false`, `scripts/test-loop-state.sh::gh giả CI FAILURE → sửa CI`, `scripts/test-loop-state.sh::gh giả SUCCESS → waiting` |
-| AC-7 | `scripts/test-loop-state.sh::--enter ghi marker giữ n`, `scripts/test-loop-state.sh::--fingerprint đổi/giữ`, `scripts/test-loop-state.sh::--json parse` |
+| AC-6 | `scripts/test-loop-state.sh::không gh → pr.available=false`, `scripts/test-loop-state.sh::gh giả CI FAILURE → sửa CI`, `scripts/test-loop-state.sh::gh giả SUCCESS → waiting`, `scripts/test-loop-state.sh::gh JSON phần tử sai kiểu → ci unknown, không chết` |
+| AC-7 | `scripts/test-loop-state.sh::--enter ghi marker giữ n`, `scripts/test-loop-state.sh::--fingerprint đổi/giữ`, `scripts/test-loop-state.sh::--json parse`, `scripts/test-loop-state.sh::--enter trên done.md → stop, không ghi marker`, `scripts/test-loop-state.sh::đường dẫn Unicode + locale C không --root → vẫn chạy` |
 | AC-8 | `scripts/test-py-coverage.sh`, `scripts/arch-health-radar.sh`, `scripts/check-python-complexity.sh` |
 | AC-9 | `tests/test_adaptive_process.py::test_auto_complete_chains_existing_playbooks_under_3d`, `tests/test_adaptive_process.py::test_auto_complete_loads_loop_state` |
 | AC-10 | pending — PR-B (U3): scripts/test-hooks-loop.sh ca "vân tay không đổi 2 lượt → cho dừng", "vân tay đổi → block" |
