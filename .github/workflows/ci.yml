@@ -82,6 +82,9 @@ jobs:
       # Hook giữ vòng /auto-complete (Stop): phải CHẶN kết lượt khi hồ sơ còn Active và CHO dừng đúng điều kiện (2026-10-12).
       - name: Hook giữ vòng /auto-complete chặn/cho dừng đúng điều kiện
         run: bash scripts/test-hooks-loop.sh
+      # Engine trạng thái vòng lặp (ADR-0012): verdict/next tính từ artifact thật trên repo giả — đỏ-trước, 29 ca.
+      - name: Engine loop-state đúng verdict/parser/marker/vân tay
+        run: bash scripts/test-loop-state.sh
 
       # dev-task.sh phải PHÂN GIẢI ĐÚNG LỆNH từng stack (audit 2026-09-23 T4: type-check bị bỏ qua âm thầm ở
       # dự án Node điển hình, 8 stack §0b no-op) — fixture + binary giả, không cần cài stack thật.

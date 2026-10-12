@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# test-py-coverage.sh — ĐỘ PHỦ DÒNG (line coverage) thật cho 4 engine Python.
+# test-py-coverage.sh — ĐỘ PHỦ DÒNG (line coverage) thật cho 5 engine Python.
 #
 # KHÁC với "độ phủ cổng" mà arch-health-radar đo (script nào có test chạy trong CI):
 # cái đó trả lời "có ai canh không", cái này trả lời "test chạm được bao nhiêu dòng".
@@ -47,7 +47,7 @@ run_expected_failure() {
 
 "$PYTHON_CMD" -m coverage erase >/dev/null 2>&1
 
-echo "== Chạy 4 engine qua các luồng chính + đường lỗi =="
+echo "== Chạy 5 engine qua các luồng chính + đường lỗi =="
 
 # --- spec-compiler: compile-all, một spec lẻ, JSON, spec không tồn tại, thiếu tham số ---
 run scripts/spec-compiler.py --compile-all
@@ -152,6 +152,69 @@ cat > "$WORK/plan-bad.md" <<'PLAN'
 PLAN
 run_expected_failure scripts/subagent-dispatch.py --check-plan "$WORK/plan-bad.md"
 run_expected_failure scripts/subagent-dispatch.py --check-plan "$WORK/khong-co-plan.md"
+
+# --- loop-state (loop-state.py + parser thuần _loop_state_parse.py): mọi nhánh verdict FR-3 trên repo giả dựng tại chỗ (ADR-0012), gh giả qua PATH, ca exit 2/1, không gh ---
+LS="$WORK/ls"; LSID="2026-10-12-probe"
+ls_work() {   # $1 trạng thái, $2 dòng "Lần thử / blocker", $3 Bàn giao
+  mkdir -p "$LS/docs/work/$LSID"
+  printf -- '# x\n\n- Work ID: %s\n- Trạng thái: %s\n- Mức rủi ro / số PR: S\n- Spec / goal / issue: docs/goals/g.md\n- Nhánh / base SHA / thời điểm reconcile: `main` @ `abc1234`\n\n## Lần thử / blocker\n\n%s\n\n## Bàn giao / bước tiếp theo\n\n%s\n' \
+    "$LSID" "$1" "$2" "$3" > "$LS/docs/work/$LSID/working.md"
+}
+ls_goal() { printf '| Thuộc tính | Giá trị |\n| --- | --- |\n| State | ACTIVE |\n\n| ID | Dependency | State | Evidence |\n| --- | --- | --- | --- |\n%b' "$1" > "$LS/docs/goals/g.md"; }
+ls_plan() { printf '## Definition of Complete\n- [%s] a\n\n## Đợt 1\n| ID | Việc | Trạng thái |\n|---|---|---|\n| W-1 | a | %s |\n| W-2 | b | ✅ |\n| W-3 | c | ➖ |\n' "$1" "$2" > "$LS/docs/ops/COMPLETION-PLAN.md"; }
+ls_git() { git -C "$LS" add -A && git -C "$LS" commit -q --allow-empty -m probe; }
+lsr() { run scripts/loop-state.py --root "$LS" --work-id "$LSID" --json; }
+mkdir -p "$LS/docs/goals" "$LS/docs/ops" "$LS/.claude" "$WORK/lsbin" "$WORK/lsnogh"
+git -C "$LS" init -q -b main; git -C "$LS" config user.name p; git -C "$LS" config user.email p@example.invalid
+printf '.claude/.gate-red-streak\n.claude/.auto-complete-loop\n' > "$LS/.gitignore"
+ls_work "Active" "- chưa có failure" "Làm S2."
+ls_goal '| S1 | — | DONE | PR #1 |\n| S2 | S1 | BUILD | |\n| S3 | S2 | BACKLOG | |\n'
+ls_plan " " "🔄"; printf -- '- [ ] smoke\n' > "$LS/docs/ops/release-readiness.md"; ls_git
+cat > "$WORK/lsbin/gh" <<'GH'
+#!/usr/bin/env bash
+case "${LS_GH:-}" in fail) echo "gh: auth" >&2; exit 1 ;; bad) echo "{" ;; obj) echo "{}" ;; *) printf '%s\n' "${LS_GH_JSON:-[]}" ;; esac
+GH
+chmod +x "$WORK/lsbin/gh"
+for t in python3 git; do ln -s "$(command -v "$t")" "$WORK/lsnogh/$t"; done
+LS_PATH="$PATH"; export PATH="$WORK/lsbin:$LS_PATH"
+run scripts/loop-state.py --root "$LS" --enter
+run scripts/loop-state.py --root "$LS" --enter --brief
+run scripts/loop-state.py --root "$LS" --brief
+run scripts/loop-state.py --root "$LS" --fingerprint
+run scripts/loop-state.py --work-id 2026-10-12-redesign-auto-complete-loop --json
+rm "$LS/.claude/.auto-complete-loop"
+run_expected_failure scripts/loop-state.py --root "$LS" --work-id ../x --json
+run_expected_failure scripts/loop-state.py --root "$LS" --work-id 2099-01-01-khong-co
+run_expected_failure scripts/loop-state.py --root "$WORK/khong-co-thu-muc"
+for st in "Blocked — chờ" "Waiting — CI"; do ls_work "$st" "-" "-"; lsr; done
+ls_work "Active" "- lỗi ở tầng ① vì spec" "Làm S2."
+for streak in "n=3" "n=2"; do printf '%s\nsig=FAIL: x\n' "$streak" > "$LS/.claude/.gate-red-streak"; lsr; done
+for line in "- lỗi ở tầng ③" "- lại đỏ ở test" "- spec sai" "- không rõ"; do ls_work "Active" "$line" "Làm S2."; lsr; done
+rm "$LS/.claude/.gate-red-streak"; ls_work "Active" "-" "Làm S2."; lsr
+for j in '[{"number":3,"mergeable":"MERGEABLE","autoMergeRequest":null,"statusCheckRollup":[{"conclusion":"FAILURE"}]}]' \
+         '[{"number":4,"statusCheckRollup":[{"status":"IN_PROGRESS","conclusion":""}]}]' \
+         '[{"number":5,"statusCheckRollup":[{"state":"SUCCESS"}]},{"number":6,"statusCheckRollup":[]},{"number":7,"statusCheckRollup":[{"conclusion":"STALE"}]}]'; do
+  export LS_GH_JSON="$j"; ls_git; lsr
+done
+unset LS_GH_JSON
+for mode in fail bad obj; do export LS_GH="$mode"; lsr; done
+unset LS_GH
+export PATH="$WORK/lsnogh"; lsr; export PATH="$WORK/lsbin:$LS_PATH"
+ls_goal '| S1 | — | DONE | |\n'; ls_git; lsr
+ls_goal '| S1 | none | BLOCKED | |\n'; ls_git; lsr
+ls_goal '| S1 | baseline | DONE | PR #1 |\n'; ls_git; lsr
+ls_plan "x" "✅"; ls_git; lsr
+printf -- '- [x] smoke\n' > "$LS/docs/ops/release-readiness.md"; ls_plan " " "✅"; ls_git; lsr
+ls_plan "x" "✅"; ls_git; lsr
+mv "$LS/docs/work/$LSID/working.md" "$LS/docs/work/$LSID/done.md"; lsr
+run_expected_failure scripts/loop-state.py --root "$LS" --json
+mv "$LS/docs/work/$LSID/done.md" "$LS/docs/work/$LSID/working.md"
+rm -r "$LS/docs/goals" "$LS/docs/ops"; ls_git; lsr
+ls_work "Active" "-" "<placeholder>"; ls_git; lsr
+git clone -q --bare "$LS" "$LS.git"; git -C "$LS" remote add origin "$LS.git"; git clone -q "$LS.git" "$LS.o"
+git -C "$LS.o" -c user.name=p -c user.email=p@example.invalid commit --allow-empty -q -m tren-main
+git -C "$LS.o" push -q origin main; git -C "$LS" fetch -q origin; git -C "$LS" remote set-head origin main; lsr
+export PATH="$LS_PATH"
 
 # --- telemetry-log: record (nhiều model), summary, widget, và ĐƯỜNG LỖI bảng giá ---
 for m in claude-opus-5 claude-sonnet-5 claude-haiku-4-5 gpt-4o model-la-hoac-gi-do; do

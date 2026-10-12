@@ -137,6 +137,25 @@ class DecisionOrder(TestCase):
         for never in ("deploy/production", "thanh toán", "dữ liệu thật", "quá 3 lần"):
             self.assertIn(never, cmd, f"auto-complete.md phải giữ mốc không tự quyết: {never}")
 
+    def test_auto_complete_loads_loop_state(self):
+        cmd = read(".claude/commands/auto-complete.md")
+        self.assertIn("allowed-tools: Bash(bash scripts/loop-state.sh:*)", cmd)
+        self.assertIn("!`bash scripts/loop-state.sh --enter --brief", cmd)
+        for verdict in ("continue", "refine-spec", "refine-code", "waiting", "request-input", "stop"):
+            self.assertIn(f"`{verdict}`", cmd, f"auto-complete.md thiếu verdict `{verdict}`")
+        self.assertNotIn("printf '%s\\n' \"<work-id>\" > .claude/.auto-complete-loop", cmd)
+
+    def test_wip_cap_is_five_everywhere(self):
+        # 2026-10-12 (kiểm kê vòng lặp v2): standard-delivery.md ghi "ba PR mở" trong khi cổng pr-policy.yml chặn ở 5 — số ở văn xuôi phải đọc từ cổng.
+        policy = read(".github/workflows/pr-policy.yml")
+        caps = [m.group(1) for line in policy.splitlines() if "Trần WIP" in line for m in [re.search(r"tối đa (\d+) PR mở", line)] if m]
+        self.assertTrue(caps, "pr-policy.yml thiếu dòng Trần WIP 'tối đa N PR mở'")
+        self.assertEqual(set(caps), {"5"})
+        delivery = read(DELIVERY)
+        self.assertNotIn("ba PR mở", delivery)
+        self.assertIn("Trần 5 PR mở", delivery)
+        self.assertIn("WIP = 5 PR mở", read("CLAUDE.md"))
+
     def test_merged_commands_stay_merged(self):
         # 2026-10-12: hai lệnh kế hoạch-tự-chạy và hoàn-thiện gộp vào /auto-complete; không được tách lại.
         for gone in ("auto", "completion"):

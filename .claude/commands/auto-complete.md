@@ -1,6 +1,11 @@
 ---
 description: Lệnh tự động DUY NHẤT (gộp lệnh lập-kế-hoạch-tự-chạy và lệnh hoàn-thiện cũ, 2026-10-12) — làm tới xong, tự quyết thay người dùng: research → kế hoạch toàn bộ → thực thi theo số PR → hoàn thiện (audit → hội tụ → Definition of Complete) → bàn giao, trong một lượt; mọi cổng phê duyệt do phiên chính tự duyệt theo thứ tự ưu tiên §3d (đúng+bảo mật+không mất dữ liệu › ít hơn › kiểm được › nhanh), ghi từng quyết định; chỉ dừng ở §9 / BLOCKED. Dùng khi mô tả dự án MỚI, bắt đầu trên dự án CÓ SẴN, hoặc muốn hoàn thiện dự án.
+allowed-tools: Bash(bash scripts/loop-state.sh:*)
 ---
+
+## Trạng thái vòng lặp (máy đo — `scripts/loop-state.sh`, ADR-0012)
+Khối dưới do engine tính từ artifact thật (git, PR/CI, hồ sơ §3e, goal, `COMPLETION-PLAN.md`, `release-readiness.md`, streak đỏ, marker) — KHÔNG tự suy "đang ở đâu"; đọc `verdict` + `next` rồi làm đúng bước đó. Harness không hỗ trợ cú pháp `!` → tự chạy `bash scripts/loop-state.sh --enter --brief` trước khi làm.
+!`bash scripts/loop-state.sh --enter --brief 2>&1`
 
 > 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4. Repo mặc định **Sonnet 5**
 > (`.claude/settings.json`); `/model opusplan` đã ngừng (ADR-0007). **Đổi model khi độ khó thật đòi hỏi** (vd quyết định
@@ -20,14 +25,24 @@ Bạn là **người quyết định thay chủ repo** cho toàn bộ lượt n�
   không lập lại kế hoạch (kế hoạch đã duyệt vẫn hiệu lực); không hỏi `AskUserQuestion`.
 
 ## Chuỗi chạy (không bỏ bước, không hỏi giữa chừng ngoài §9)
-0. **Bật vòng giữ lượt** (hook Stop `auto-complete-guard.sh`): sau khi đọc/tạo hồ sơ `docs/work/<id>/working.md` (§3e), ghi Work ID
-   vào marker: `printf '%s\n' "<work-id>" > .claude/.auto-complete-loop` (gitignored, sống trong một phiên). Từ đó mỗi khi lượt
+0. **Bật vòng giữ lượt** (hook Stop `auto-complete-guard.sh`): sau khi đọc/tạo hồ sơ `docs/work/<id>/working.md` (§3e), bật marker
+   bằng `bash scripts/loop-state.sh --enter` (ghi file `.claude/.auto-complete-loop`, gitignored, sống trong một phiên; `--enter` không reset `n`).
+   **Mỗi vòng bắt đầu bằng `bash scripts/loop-state.sh --enter --brief` và làm đúng `next`.** Từ đó mỗi khi lượt
    định kết thúc mà hồ sơ còn `- Trạng thái: Active`, hook **không cho kết lượt** và nhắc mục "Bàn giao / bước tiếp theo" — nên
    **luôn giữ mục đó là bước cụ thể kế tiếp**. Hook tự cho dừng khi: `- Trạng thái: Blocked — …`/`Waiting — …` (§9/§8), hồ sơ đã
    rename `done.md`, usage-guard đã nhắc wind-down, đủ `AUTO_COMPLETE_MAX_CONTINUES` (mặc định 20) lượt, lời cuối lặp y hệt,
-   hoặc cổng commit đỏ ≥ 3 lần cùng failure (`.claude/.gate-red-streak` → ghi Blocked theo §8). Tín hiệu dừng là **file trạng
+   2 lượt liên tiếp vân tay artifact không đổi (HEAD + working.md + PR mở + file dở), hoặc cổng commit đỏ ≥ 3 lần cùng failure (`.claude/.gate-red-streak` → ghi Blocked theo §8). Tín hiệu dừng là **file trạng
    thái**, không phải câu "đã xong" (CLAUDE.md §4). Kết thúc lượt (DoC có bằng chứng hoặc BLOCKED) → `rm -f .claude/.auto-complete-loop`.
    Tuỳ chọn thêm lớp: `/goal` của Claude Code với điều kiện đo được + "or stop after 20 turns".
+
+| Verdict | Hành động |
+| --- | --- |
+| `continue` | Làm đúng `next` (một outcome = một PR): sửa CI PR · commit qua cổng · reconcile base · chọn slice ready · W-xxx kế · ghi Bàn giao |
+| `refine-spec` | Quay về tầng ①/② (sửa spec/design) trước khi chạm code (§3b, streak lần 2) |
+| `refine-code` | Sửa code có test đỏ-trước (streak lần 2, tầng ③/④) |
+| `waiting` | Ghi `- Trạng thái: Waiting — chờ CI/merge PR #n` vào hồ sơ, kết lượt (hook cho dừng) |
+| `request-input` | Ghi `- Trạng thái: Blocked — <lý do §8/§9>` + lựa chọn + đề xuất, kết lượt |
+| `stop` | Hồ sơ đã `done.md`: `rm -f .claude/.auto-complete-loop`, báo cáo cuối |
 
 ### Giai đoạn A — Kế hoạch toàn bộ → thực thi
 1. **Research thật** (không bịa):

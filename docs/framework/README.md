@@ -17,6 +17,7 @@
 | `ui-ux-intelligence-provider.md` | UI-INTELLIGENCE | Contract provider-neutral cho design intelligence bên ngoài: precedence, query nhỏ nhất, verify/fallback, adapter `ui-ux-pro-max`/Impeccable; provider chỉ là recommendation | Khi `/ui-ux` cần nguồn gợi ý bên ngoài hoặc dự án đã có provider UI/UX |
 | `existing-project-adoption.md` | AP-DUNG | Áp khung lên dự án CÓ SẴN: tự dò stack, hàng rào tăng dần, không big-bang (Bước 0→4) | Brownfield (`/consult`) |
 | `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/auto-complete` Giai đoạn B) |
+| `auto-complete-workflow.md` | WORKFLOW-AUTO | Workflow tham chiếu một trang của `/auto-complete`: sơ đồ pha A/B/C, iteration contract, verdict có kiểu từ `scripts/loop-state.sh`, kiểu dừng/nối lại, phân công người–máy–model (ADR-0012) | Bật `/auto-complete`; hook giữ vòng cho dừng mà không rõ vì sao; sửa lệnh/hook/engine vòng lặp |
 | `quality-supplements.md` | BO-SUNG | **Trang mục lục** trỏ tới 4 phần dưới đây | Tra checklist chi tiết |
 | `quality-supplements-group1.md` | BO-SUNG · Nhóm 1 | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ `CONTEXT.md` | Tra Nhóm 1 mục N |
 | `quality-supplements-group2.md` | BO-SUNG · Nhóm 2 | mobile-first, hiệu năng/Lighthouse, E2E + a11y + coverage, UI/UX, chống lỗi logic, observability, tối ưu mã nguồn | Tra Nhóm 2 mục N |
