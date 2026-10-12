@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-loop-research-auto-complete
 - Yêu cầu / outcome: chủ repo 2026-10-12: "nghiên cứu sâu vòng lặp trong coding phát triển phần mềm để nâng cấp cho dự án tiến đến việc tự động hoàn thành khi có mục tiêu, yêu cầu và người dùng bật /auto-complete — bằng tất cả khả năng, tìm kiếm, học hỏi". Outcome: báo cáo đối chiếu ba cột theo `adopt-from-outside.md` (luật §2 mới 2026-10-12: tốt hơn bản hiện có là lấy) giữa vòng lặp hiện có (`standard-delivery.md` §4/§8, `/auto-complete`, hook, cổng) và nguồn ngoài (Anthropic, runner mã mở, sản phẩm thương mại, nghiên cứu) → thực hiện những hạng mục qua cổng §2.
-- Trạng thái: Active (3 mục đã code + test, chờ PR/CI)
+- Trạng thái: Done 2026-10-12 (PR #287 squash merge `be58a19`)
 - Chủ trì / writer: phiên chính (Fable 5.1); 4 agent read-only nghiên cứu web song song (Anthropic / mã mở / thương mại / học thuật).
 - Mức rủi ro / số PR: M; **1 PR** gộp 3 đơn vị (mỗi đơn vị một commit riêng: `4740901` C, `e03887a` B, A + closeout) — harness phiên này chỉ cho push một nhánh (`claude/trusting-cori-2i53gj`), nên không tách PR; phiên chính tự làm (§3c: một PR).
 - Scope / non-goal: Scope = cơ chế vòng lặp (lặp tới goal, verify, phát hiện kẹt/giậm chân, ngân sách, dừng, trạng thái qua phiên, cổng người). Non-goal = runner sửa source không giám sát (quyết 2026-10-10 "chưa", cần threat model riêng — chỉ nêu lại nếu nguồn ngoài cho bằng chứng mới); đổi luật merge/ủy quyền (C1/C2 báo cáo loop-engineering).
@@ -31,10 +31,11 @@ Lượt đầu bị chủ repo ngắt để đổi luật §2 trước (hồ sơ
 
 ## Bàn giao / bước tiếp theo
 
-Commit A + closeout (báo cáo, CHANGELOG, PROGRESS, hồ sơ) → push `claude/trusting-cori-2i53gj` → chủ repo mở PR (phiên này không tự mở) → CI xanh → squash merge → rename `done.md` kèm merge SHA ở PR kế. Việc kế thừa: TRAPS chưa cần mục mới (không sự cố mới); điều kiện xem lại của N4/N5/N6 và X-list ghi trong báo cáo.
+Đã xong: PR #287 (6 commit, cả hồ sơ `2026-10-12-adopt-better-than-current`) merge `be58a19`; spec gọn `docs/specs/2026-10-12-loop-guard-auto-complete.md` thêm trước PR vì cổng `metadata` đòi (lệch trình tự ghi ở spec + PR). Việc kế thừa: TRAPS chưa cần mục mới (không sự cố mới); điều kiện xem lại của N4/N5/N6 và X-list ghi trong báo cáo; lượt `/auto-complete` thật kế tiếp là ca nghiệm thu hook giữ vòng.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: 3 cổng máy (hook Stop `auto-complete-guard.sh`, chuỗi đỏ cùng chữ ký ở `pre-commit-gate.sh`, docs-consistency mục 15) có test đỏ-trước, suite nối CI; báo cáo ba cột `docs/reports/2026-10-12-doi-chieu-vong-lap-coding.md` (41 → lấy 3; garden-skills lấy 0); spec AC-1..AC-7 TRACE COMPLETE.
+- PR MERGED: #287 → `be58a19` trên `main`; CI 16/16 xanh ở head `cfcf1c8` (lần `metadata` đỏ đầu do tiêu đề PR 74 ký tự, sửa tiêu đề là xanh — không sửa code).
+- Giới hạn/rủi ro còn lại: hook fail-open khi thiếu `jq` (có cảnh báo); mục 15 chỉ soi bảng có ô `State` ≥ 3 cột; runner không giám sát vẫn "chưa" (quyết 2026-10-10).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12.

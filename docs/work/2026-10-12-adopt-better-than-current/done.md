@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-adopt-better-than-current
 - Yêu cầu / outcome: chủ repo 2026-10-12: "cập nhật adopt*.md: không nhất thiết phải có lỗi mới tích hợp, chỉ cần tốt hơn bản hiện có là sẽ cập nhật" → đổi cổng cột CHƯA CÓ/NÔNG HƠN của `adopt-from-outside.md` §2 từ "phải ứng với sự cố thật" sang "tốt hơn bản hiện có, chứng minh được"; soát mọi chỗ chép luật này cho khớp.
-- Trạng thái: Active (sửa xong, chờ PR)
+- Trạng thái: Done 2026-10-12 (đi cùng PR #287, squash merge `be58a19`)
 - Chủ trì / writer: phiên chính (Fable 5.1)
 - Mức rủi ro / số PR: S; 1 PR chỉ tài liệu (ngoại lệ 3 §3.6 — không có nhánh logic/cổng máy đổi)
 - Scope / non-goal: Scope = `adopt-from-outside.md` §0/§1/§2/§5 + 4 chỗ chép luật (`CLAUDE.md` §1, `AGENTS.md`, `docs/framework/README.md`, `standard-delivery.md` §11). Non-goal = mở lại các báo cáo đối chiếu cũ (ralph, loop-engineering, compound-engineering, SDD) theo luật mới — đó là việc riêng khi chủ repo yêu cầu; không thêm cổng máy cho phương pháp (CODEMAP: review bằng mắt).
@@ -27,10 +27,11 @@ Không.
 
 ## Bàn giao / bước tiếp theo
 
-Commit + push nhánh; mở PR (chủ repo yêu cầu) → auto-merge khi CI xanh → đổi file này thành `done.md` kèm merge SHA và cập nhật `PROGRESS.md` ở PR kế. Việc gốc trước khi bị ngắt (nghiên cứu sâu vòng lặp coding để nâng `/auto-complete`) chưa bắt đầu — làm theo luật §2 mới.
+Đã xong: commit 770af27 đi cùng PR #287 (hồ sơ chính `2026-10-12-loop-research-auto-complete`) merge `be58a19`. Việc gốc (nghiên cứu vòng lặp) đã làm theo luật §2 mới ngay trong cùng PR — báo cáo đối chiếu đầu tiên áp luật mới: lấy 3/41.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: `adopt-from-outside.md` §2 đổi sang "tốt hơn bản hiện có" (4 dạng, tính ròng, sự cố thật = bằng chứng mạnh nhất không bắt buộc); 4 chỗ chép luật khớp; `grep "sự cố thật"` chỉ còn ở lịch sử.
+- PR MERGED: #287 → `be58a19` trên `main`; CI xanh.
+- Giới hạn: không mở lại 4 báo cáo đối chiếu cũ theo luật mới (non-goal; làm khi chủ repo yêu cầu).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12.
