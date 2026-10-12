@@ -1429,3 +1429,17 @@ file đích trước khi commit. Tổng quát: tín hiệu dừng/hoàn thành p
 `- Trạng thái: Done`, không còn placeholder WORK.template, có PR/SHA ở "Nghiệm thu cuối"; negative test ở `scripts/test-check-scripts.sh`,
 đo ĐỎ trước khi thêm cổng (2026-10-12). Giới hạn đã biết: `permissions.ask` cho file cấu hình cổng chỉ che Edit/Write, không che
 lệnh Bash ghi file (`sed -i`, `>`); chưa có hook PreToolUse soi Bash cho việc này — xem lại khi có ca nới cấu hình qua Bash.
+
+## 71. `producer | hook` dưới `pipefail` — hook thoát sớm không đọc stdin → producer ăn SIGPIPE, rc=141 chập chờn
+
+*Ngày:* 2026-10-12 (PR tách `test-check-scripts.sh`). Cổng commit đỏ oan ở `test-hooks-loop.sh` ca 1 ("không marker vẫn can thiệp
+(rc=141, out=)"): `run_guard` chạy `jq -cn … | bash auto-complete-guard.sh`; không có marker thì hook `exit 0` NGAY, chưa đọc stdin →
+nếu `jq` ghi sau lúc đó thì pipe đã đóng → SIGPIPE, `pipefail` đẩy 141 thành mã của cả pipeline. Tái hiện 13/400 lượt; chạy lẻ
+thường xanh nên dễ bị gọi "flake". Hook đúng (Claude Code không đòi hook đọc hết stdin) — lỗi ở cách test đưa payload.
+
+*Cách rà:* `grep -nE '\| *(CLAUDE_PROJECT_DIR=[^ ]+ )?bash "\$HOOK' scripts/test-*.sh` — mỗi chỗ mà hook có nhánh thoát trước khi đọc
+stdin thì đưa payload bằng here-string (`bash "$HOOK" <<<"$payload"`), không bằng pipe. Ba chỗ `printf | hook` còn lại
+(`test-hooks-gate.sh`, `test-hooks-session.sh`) chưa tái hiện được đỏ — xem lại khi một trong số đó đỏ rc=141.
+
+*Cổng chốt chặn:* `scripts/test-hooks-loop.sh` `run_guard` dùng here-string; đo 0/60 lượt đỏ cả suite sau sửa (trước: 13/400 lượt
+pipeline đỏ 141).

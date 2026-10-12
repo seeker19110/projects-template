@@ -78,7 +78,7 @@
 | FT-67 | Kiểm PROGRESS.md không lỗi thời so với git thật (PF-1..4) | `scripts/check-progress-freshness.sh` | `PROGRESS.md`, git remote | ✅ | job CI `progress-freshness` (PR + main); `test-check-progress-freshness.sh` có negative test |
 | FT-68 | Trần độ phức tạp vòng cho mã Python và shell | `scripts/check-python-complexity.sh`, `scripts/check-shell-complexity.sh` | mọi engine/script trong `scripts/` | ✅ | `test-check-python-complexity.sh`, `test-check-shell-complexity.sh` (có ca đỏ) |
 | FT-69 | Độ phủ dòng Python thật (sàn 95%) và probe mã thoát | `scripts/test-py-coverage.sh` | engine Python, `tests/*.py` | ✅ (đo 96% ngày 2026-10-06) | `test-py-coverage-exit.sh` |
-| FT-70 | Khoá hành vi 3 engine và kiểm chính các cổng tài liệu/CI | `scripts/test-engine-characterization.sh` (thân ở `tests/engine_characterization/`), `scripts/test-check-scripts.sh`, `scripts/test-check-progress-freshness.sh` (fixture `scripts/_check-scripts-test-lib.sh`) | `check-*.sh`, radar, compiler, dispatcher | ✅ | tự chạy trong job CI `framework-lint` |
+| FT-70 | Khoá hành vi 3 engine và kiểm chính các cổng tài liệu/CI | `scripts/test-engine-characterization.sh` (thân ở `tests/engine_characterization/`), `scripts/test-check-scripts.sh`, `scripts/test-check-ci-policy.sh`, `scripts/test-check-progress-freshness.sh` (fixture `scripts/_check-scripts-test-lib.sh`) | `check-*.sh`, radar, compiler, dispatcher | ✅ | tự chạy trong job CI `framework-lint` |
 
 ## E. Bộ copy khung (2 biến thể)
 

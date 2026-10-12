@@ -51,10 +51,12 @@ jobs:
       # Cùng nguyên tắc F-002, áp cho 3 gate script chính của repo khung (audit 2026-09-12, G-001):
       # check-docs-consistency.sh, check-ci-policy.sh, check-progress-freshness.sh phải được CHỨNG
       # MINH bắt đúng lỗi bằng negative-test, không chỉ "chạy không crash".
-      - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
+      - name: check-docs-consistency.sh thật sự bắt được lỗi (negative test)
         run: bash scripts/test-check-scripts.sh
       - name: check-progress-freshness.sh bắt được lỗi PF-1..PF-4 (suite tách 2026-10-11)
         run: bash scripts/test-check-progress-freshness.sh
+      - name: check-ci-policy.sh bắt được lỗi CP-1..CP-6 (suite tách 2026-10-12)
+        run: bash scripts/test-check-ci-policy.sh
 
       # Thân step protection-guard (ci.yml) và Detect project manifest (dependency-review.yml) cũng
       # phải được chứng minh chạy đúng với API/manifest giả lập, không chỉ "có mặt" trong workflow.

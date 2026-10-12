@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _check-scripts-test-lib.sh — fixture dùng chung cho test-check-scripts.sh và test-check-progress-freshness.sh.
+# _check-scripts-test-lib.sh — fixture dùng chung cho test-check-scripts.sh, test-check-ci-policy.sh và test-check-progress-freshness.sh.
 # Tách 2026-10-11 khi suite gốc vượt 400 dòng (radar). CHỈ dùng để `source`; cần ROOT, WORK của script gọi
 # và ok/fails của scripts/_test-lib.sh. Không set shell option ở đây (docs/CONVENTIONS.md §A).
 
