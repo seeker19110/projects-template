@@ -178,6 +178,17 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Vòng lặp `/auto-complete` v2 — trạng thái máy tính (2026-10-12, ADR-0012)
+
+- Engine `scripts/loop-state.sh`: đọc git/PR-CI/hồ sơ §3e/goal (slice ready = mọi phụ thuộc DONE)/`COMPLETION-PLAN.md`/
+  `release-readiness.md`/streak → `verdict` có kiểu (`continue·refine-spec·refine-code·waiting·request-input·stop`) + `next`;
+  `--enter` ghi marker, `--fingerprint` cho hook; test đỏ-trước `scripts/test-loop-state.sh`.
+- `/auto-complete` nạp trạng thái bằng cú pháp `!` trước khi model đọc prompt; bỏ bước model tự `printf` marker.
+- Hook `auto-complete-guard.sh` đo tiến triển bằng vân tay artifact (HEAD + hồ sơ + PR mở + file dở), 2 lượt không đổi → cho dừng;
+  `Planned` nhắc đúng; `n` reset sau dừng hợp lệ; telemetry ghi `work_id`.
+- Tài liệu: `docs/framework/auto-complete-workflow.md` (workflow tham chiếu một trang), báo cáo đối chiếu kiến trúc
+  `docs/reports/2026-10-12-thiet-ke-lai-vong-lap.md` (lấy 6, sửa 5 lỗi kiểm kê); regex goal mục 15 nhận `DONE`; WIP "ba" → 5.
+
 ### Điều phối và hồ sơ nối phiên (2026-10-07)
 
 - Phiên chính phân tích số PR: một PR có thể tự làm; từ hai PR giao subagent đủ năng lực,

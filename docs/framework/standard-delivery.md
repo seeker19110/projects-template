@@ -106,7 +106,7 @@ Giữ quyết định khó/contract và nghiệm thu ở phiên chính; không p
 - Phiên chính đọc diff, tích hợp và chạy đủ cổng; lời subagent không thay bằng chứng.
   Ba tầng `orchestration-3-tier.md` là tùy chọn; phiên chính → worker là mặc định gọn.
   Runner không có subagent phù hợp phải ghi rõ giới hạn/blocked của phần phân công,
-  không âm thầm giả đã giao việc. Trần ba PR mở/FIFO là cổng riêng, không phải số slot agent.
+  không âm thầm giả đã giao việc. Trần 5 PR mở/FIFO là cổng riêng, không phải số slot agent.
 
 **Quyền tách bạch — quyền code ≠ quyền merge ≠ quyền deploy.** Được duyệt spec chỉ mở quyền code. Merge chỉ
 khi người dùng/quy tắc repo cho phép và cổng của đúng head xanh; deploy/production luôn cần quyền riêng,

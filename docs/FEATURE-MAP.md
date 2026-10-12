@@ -15,13 +15,14 @@
 | FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto-complete` Giai đoạn A | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
-| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (kế hoạch → thực thi → hoàn thiện → bàn giao một lượt; lệnh tự động duy nhất) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định); greenfield `/bootstrap` → "Sẵn sàng phát triển", ADR, bàn giao `release-readiness.md` GO/NO-GO | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3; vòng giữ lượt: FT-74; nới cấu hình cổng qua `permissions.ask` (`test-hooks-gate-guard.sh` mục 19) |
+| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (kế hoạch → thực thi → hoàn thiện → bàn giao một lượt; lệnh tự động duy nhất) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định); greenfield `/bootstrap` → "Sẵn sàng phát triển", ADR, bàn giao `release-readiness.md` GO/NO-GO | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3; vòng giữ lượt: FT-74; engine FT-75 (`scripts/loop-state.sh`); nới cấu hình cổng qua `permissions.ask` (`test-hooks-gate-guard.sh` mục 19) |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
 | FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |
 | FT-07 | Audit tối ưu mã nguồn | `/audit-optimize` | `docs/ops/code-optimization-audit-prompt.md` | ✅ | như trên |
 | FT-08 | Audit toàn diện 12 nhóm | `/audit-full` | `comprehensive-audit-prompt.md`, `COMPREHENSIVE-AUDIT-STATUS.md` | ✅ | như trên |
 | FT-09 | Hoàn thiện dự án (5 pha) | `/auto-complete` Giai đoạn B | `project-completion.md`, `COMPLETION-PLAN.md`, 4 file trạng thái | ✅ | như trên |
+| FT-76 | Workflow tham chiếu `/auto-complete` v2: trạng thái ở artifact, máy tính bước kế tiếp + verdict có kiểu, kiểu dừng/nối lại, phân công người–máy–model | `auto-complete-workflow.md` | `scripts/loop-state.sh`, `docs/work/<id>/working.md`, `docs/goals/`, `docs/ops/COMPLETION-PLAN.md`, `docs/ops/release-readiness.md` | ✅ | link-check; engine FT-75; hook FT-74 |
 | FT-10 | Xử lý sự cố production | `/incident` | `docs/ops/incident-response.md` | ✅ | như trên |
 | FT-11 | Phỏng vấn dồn dập làm rõ yêu cầu | `/grill` | `CONTEXT.md` (dự án đích) | ✅ | như trên |
 | FT-12 | Chẩn đoán bug khó | `/debug` | `TRAPS.md` | ✅ | như trên |
@@ -61,7 +62,7 @@
 | FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |
 | FT-60 | Ghi telemetry khi dừng phiên/subagent | `telemetry-record.sh` | transcript và `.ai-telemetry/` | ✅ | `scripts/test-hooks-session.sh` |
 | FT-61 | Trí tuệ UI opt-in | `ui-intelligence.sh` | cấu hình provider của dự án đích | ✅ | `scripts/test-hooks-session.sh` kiểm tắt/bật/lỗi provider |
-| FT-74 | Giữ vòng `/auto-complete`: không kết lượt khi hồ sơ còn Active; dừng theo file trạng thái (Blocked/Waiting/done.md), trần lượt, wind-down, chuỗi đỏ ≥ 3, lời cuối lặp | `auto-complete-guard.sh` (Stop); marker `.claude/.auto-complete-loop` do `/auto-complete` ghi, `session-resume.sh` xoá ở phiên mới | `docs/work/<id>/working.md`, `.claude/.gate-red-streak`, `.claude/.winddown-nudged` | ✅ | `scripts/test-hooks-loop.sh` (11 mục: block/allow từng điều kiện, compact giữ marker, negative) |
+| FT-74 | Giữ vòng `/auto-complete`: không kết lượt khi hồ sơ còn Active; dừng theo file trạng thái (Blocked/Waiting/done.md), trần lượt, wind-down, chuỗi đỏ ≥ 3, lời cuối lặp | `auto-complete-guard.sh` (Stop); marker `.claude/.auto-complete-loop` do `/auto-complete` ghi, `session-resume.sh` xoá ở phiên mới | `docs/work/<id>/working.md`, `.claude/.gate-red-streak`, `.claude/.winddown-nudged` | ✅ | `scripts/test-hooks-loop.sh` (11 mục: block/allow từng điều kiện, compact giữ marker, negative); engine FT-75 (`scripts/loop-state.sh`) |
 
 ## D. Cổng tự kiểm và engine của CHÍNH repo khung — `scripts/`
 
@@ -79,6 +80,7 @@
 | FT-68 | Trần độ phức tạp vòng cho mã Python và shell | `scripts/check-python-complexity.sh`, `scripts/check-shell-complexity.sh` | mọi engine/script trong `scripts/` | ✅ | `test-check-python-complexity.sh`, `test-check-shell-complexity.sh` (có ca đỏ) |
 | FT-69 | Độ phủ dòng Python thật (sàn 95%) và probe mã thoát | `scripts/test-py-coverage.sh` | engine Python, `tests/*.py` | ✅ (đo 96% ngày 2026-10-06) | `test-py-coverage-exit.sh` |
 | FT-70 | Khoá hành vi 3 engine và kiểm chính các cổng tài liệu/CI | `scripts/test-engine-characterization.sh` (thân ở `tests/engine_characterization/`), `scripts/test-check-scripts.sh`, `scripts/test-check-ci-policy.sh`, `scripts/test-check-progress-freshness.sh` (fixture `scripts/_check-scripts-test-lib.sh`) | `check-*.sh`, radar, compiler, dispatcher | ✅ | tự chạy trong job CI `framework-lint` |
+| FT-75 | Trạng thái vòng lặp `/auto-complete` tính từ artifact (ADR-0012): verdict có kiểu `continue·refine-spec·refine-code·waiting·request-input·stop` + bước kế tiếp; `--enter` ghi marker, `--fingerprint` vân tay artifact, `--brief` ≤ 20 dòng, `--json` key cố định | `scripts/loop-state.sh` → `loop-state.py` (parser thuần `_loop_state_parse.py`) | `docs/work/<id>/working.md`, `docs/goals/*.md`, `docs/ops/COMPLETION-PLAN.md`, `docs/ops/release-readiness.md`, git, `gh pr list` (chỉ đọc, timeout 15 s), `.claude/.gate-red-streak`, marker `.claude/.auto-complete-loop` (chỉ ghi khi `--enter`) | ✅ | `scripts/test-loop-state.sh` (32 ca, repo giả + `gh` giả) + `scripts/test-py-coverage.sh` |
 
 ## E. Bộ copy khung (2 biến thể)
 

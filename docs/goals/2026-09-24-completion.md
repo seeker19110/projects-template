@@ -21,7 +21,7 @@ Mỗi outcome một PR, FIFO, tối đa 3 PR mở. Xác nhận đóng chu kỳ c
 | W-04 | CLI, lease, local work, upgrade safety #179 | DONE, merged | #179 → `8cba0e0`; 10 runtime tests (45 CLI subcases), lease/local-work/merge safety; CI Linux/Windows, copy smoke, gate, metadata/security checks SUCCESS |
 | W-05 | Gate thực, trạng thái/quy ước, re-audit | DONE khi reconciliation này merge | #180 → `071faea`; strict gate/doctor, negative cases, real Node fixture, Linux/Windows CI SUCCESS. F-11/re-audit được bàn giao trong tài liệu này |
 | W-06 | Bản đồ tính năng, coverage claims và F-11 | Bàn giao trong PR này | `FEATURE-MAP.md` đã được đối chiếu với file thật; coverage matrix phân biệt resolver fixtures, Node/Python runtime smoke và hosted CI chưa có. Cổng PR tài liệu xác minh bản bàn giao |
-| W-07 | Re-audit 12 nhóm và nghiệm thu goal | WAITING | Re-audit ngày 2026-10-05 và bảng F-K01..10 đã ghi; F-K01..07/F-K09/F-K10 đóng trên main; F-K08/F-11 theo PR tài liệu này. Không tuyên bố Project Complete |
+| W-07 | Re-audit 12 nhóm và nghiệm thu goal | DONE | Người dùng xác nhận đóng goal 2026-10-06 (chu kỳ kế tiếp ở `docs/ops/COMPLETION-PLAN.md`); re-audit ngày 2026-10-05 và bảng F-K01..10 đã ghi; F-K01..07/F-K09/F-K10 đóng trên main; F-K08/F-11 theo PR tài liệu này. Không tuyên bố Project Complete |
 
 ## Đối chiếu phát hiện với bằng chứng trên main
 

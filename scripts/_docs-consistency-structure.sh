@@ -89,11 +89,12 @@ fi
 
 # VÌ SAO (2026-10-12, đối chiếu vòng lặp coding — N3): failure mode #1 của vòng lặp dài là "tuyên bố xong sớm"; goal file có cột
 # State/Evidence nhưng trước đây không script nào đọc (đính chính B báo cáo ralph). Slice DONE phải có ô bằng chứng; file đã
-# COMPLETE không được còn slice mở. Cột bằng chứng = `Evidence`/`Nghiệm thu`/`Bằng chứng`, không có thì lấy cột cuối.
+# COMPLETE không được còn slice mở; `State | DONE` ở bảng thuộc tính cũng là tuyên bố xong (2026-10-12, kiểm kê vòng lặp v2).
+# Cột bằng chứng = `Evidence`/`Nghiệm thu`/`Bằng chứng`, không có thì lấy cột cuối.
 echo "== 15. docs/goals: slice DONE có bằng chứng; goal COMPLETE không còn slice mở =="
 check_goal_file() {   # $1 = docs/goals/<id>.md; in lỗi, trả 1 khi sai
   local f="$1" complete=0
-  grep -Eq '^\|[[:space:]]*State[[:space:]]*\|[[:space:]]*COMPLETE|^State:[[:space:]]*COMPLETE' "$f" && complete=1
+  grep -Eq '^\|[[:space:]]*State[[:space:]]*\|[[:space:]]*(COMPLETE|DONE)|^State:[[:space:]]*(COMPLETE|DONE)' "$f" && complete=1
   awk -v file="$f" -v complete="$complete" '
     function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
     /^\|/ {

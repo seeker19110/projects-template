@@ -259,6 +259,11 @@ git -C "$d" add -A
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "KHÔNG chặn oan goal COMPLETE đủ bằng chứng (DONE/DROPPED, cột Nghiệm thu) (mục 15)" || bad "chặn OAN goal đủ bằng chứng (rc=$rc)"
 
+d="$(setup_repo)" || exit 1
+printf '# Goal: x\n\n| Thuộc tính | Giá trị |\n| --- | --- |\n| State | DONE |\n\n| ID | Outcome | State | Evidence |\n| --- | --- | --- | --- |\n| S1 | a | DONE | PR #1 |\n| S2 | b | BUILD | |\n' > "$d/docs/goals/2026-10-12-giả.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'S2' "$WORK/check-output" && ok "goal State DONE được mục 15 kiểm" || bad "goal State DONE KHÔNG được mục 15 kiểm (rc=$rc)"
+
 # Mục 13b (2026-10-12, đối chiếu stored K1): done.md là tín hiệu DỪNG của auto-complete-guard → nội dung phải có nghiệm thu thật.
 # Sự cố thật: b7bd718 đưa done.md còn "Trạng thái: Active" + placeholder lên nhánh (git mv sau khi sửa giữ blob cũ, TRAPS 70).
 mk_done() {  # $1 = repo giả, $2 = dòng trạng thái, $3 = nội dung "Nghiệm thu cuối"
