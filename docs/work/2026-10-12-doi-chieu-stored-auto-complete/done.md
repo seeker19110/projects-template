@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-doi-chieu-stored-auto-complete
 - Yêu cầu / outcome: chủ repo 2026-10-12: "nghiên cứu https://github.com/seeker19110/stored lấy những điểm tốt tích hợp sâu vào dự án để hiện thực hoá: chỉ cần /auto-complete là tự động nghiên cứu, lập kế hoạch, chọn kiến trúc… → code → loop → fix → bàn giao sản phẩm"; sau đó hỏi thêm "thiếu gì không? bổ sung cho tôi". Outcome: bản đối chiếu ba cột + các hạng mục tốt hơn bản hiện có thành cổng máy.
-- Trạng thái: Active (4 đơn vị + 3 bổ sung đã code + test xanh; chờ commit/push)
+- Trạng thái: Done 2026-10-12 (PR #289 squash merge `59bd1d1`)
 - Chủ trì / writer: phiên chính (không giao subagent: một PR, §3c)
 - Mức rủi ro / số PR: M; 1 PR (bốn đơn vị nhỏ độc lập, cùng chủ đề; harness chỉ cho một nhánh)
 - Scope / non-goal: Scope = K1–K4 (spec §5). Non-goal = các mục "chưa cần" ở báo cáo §3; sửa kho `stored` (chỉ báo sai lệch).
@@ -28,10 +28,13 @@ Không blocker. Đính chính A–D ghi trong báo cáo §6.
 
 ## Bàn giao / bước tiếp theo
 
-Commit qua cổng (nhánh đã đặt lại lên `23f5100`) → push `claude/trusting-cori-2i53gj` → chủ repo yêu cầu thì mở PR + auto-merge → merge → rename `done.md` kèm SHA.
+Không còn việc. PR #289 đã merge; hồ sơ đóng cùng PR #290 (theo §3e: checkpoint sau merge tích hợp vào PR kế tiếp).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: K1–K4 có test đỏ-trước (`test-check-scripts.sh` mục 13b/16, `test-hooks-gate-guard.sh` mục 19, `test_adaptive_process`);
+  báo cáo ba cột `docs/reports/2026-10-12-doi-chieu-stored.md`; spec `docs/specs/2026-10-12-auto-complete-tron-vong.md` TRACE COMPLETE.
+- PR MERGED: #289 → `59bd1d1` trên `main` (merge 2026-10-12T06:13Z); CI 15/15 xanh ở head `6997858`, `automerge` skipped.
+- Giới hạn/rủi ro còn lại: `permissions.ask` chỉ che Edit/Write, không che Bash ghi file (TRAPS 70, có điều kiện xem lại);
+  9 hạng mục "chưa cần" ở báo cáo §3. Sau đó `/auto` + `/completion` gộp vào `/auto-complete` (PR #290) — K4 sống trong lệnh gộp.
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12, theo yêu cầu chủ repo "đóng luôn hồ sơ stored-auto-complete".

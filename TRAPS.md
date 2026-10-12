@@ -1213,6 +1213,10 @@ tiêu đề commit trên `main` đều phải qua cùng một bộ kiểm — c�
 
 *Cổng chốt chặn:* `pr-policy.yml` job `metadata` fail khi bất kỳ commit subject nào > 72 ký tự (PR closeout 2026-10-09).
 
+*Tái phát:* 2026-10-12 (#290) — commit thứ hai (đóng hồ sơ) có subject 73 ký tự; `metadata` bắt được trước merge, sửa bằng amend
+tiêu đề trên nhánh của chính phiên. Cổng commit cục bộ không đo độ dài subject — đếm bằng
+`python3 -c 'import sys; print(len(sys.argv[1]))' "<subject>"` trước khi commit (`wc -m` ở locale C đếm byte, tiếng Việt ra số sai).
+
 ## 59. Brief cho worker tự nhận "0 quyết định để ngỏ" nhưng mâu thuẫn với chính khuôn nó đưa — worker dừng đúng, Tầng 1 mất một vòng
 
 *Ngày:* 2026-10-09 (nghiệm thu agent đợt 3, `docs/reports/2026-10-09-agent-acceptance.md`): PLAN.md giao `mechanical-worker` nối
