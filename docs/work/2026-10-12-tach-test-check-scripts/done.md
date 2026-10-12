@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-tach-test-check-scripts
 - Yêu cầu / outcome: chủ repo 2026-10-12 "tách test-check-scripts.sh luôn" → suite dưới trần 400 dòng (radar), giữ nguyên số ca.
-- Trạng thái: Active
+- Trạng thái: Done 2026-10-12 (PR #293 squash merge `3954c65`)
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: S, 1 PR (refactor test, không đổi hành vi cổng)
 - Scope / non-goal: tách ca `check-ci-policy.sh` sang suite riêng; không sửa ca nào; không tách `maintenance-sweep.sh` (403 dòng)
@@ -31,10 +31,14 @@ Một PR, phiên chính tự làm. Đo baseline → tách theo script mỗi ca g
 
 ## Bàn giao / bước tiếp theo
 
-Commit qua cổng, push, mở PR, CI xanh → squash merge; rồi đóng hồ sơ ở PR kế tiếp (§3e).
+Xong. Còn lại ngoài scope: `scripts/maintenance-sweep.sh` 403 dòng (radar); ba chỗ `printf | hook` cùng khuôn TRAPS 71 chưa tái hiện đỏ.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: suite dưới trần 400 dòng (`test-check-scripts.sh` 315, `test-check-ci-policy.sh` 123); số ca giữ nguyên 54 ✅ = 41 + 13;
+  CODEMAP, FEATURE-MAP FT-70, step CI Linux đã khai; `test_ci_suite_parity` OK.
+- PR MERGED: #293 → `3954c65` trên `main` (auto-merge squash, 2026-10-12T16:29Z); CI 15/15 xanh ở head `b73fbf0` (`automerge`
+  skipped), gồm `framework-lint-windows`.
+- Kèm theo: `test(hooks)` sửa race SIGPIPE ở `test-hooks-loop.sh` (13/400 → 0/400), TRAPS 71.
+- Giới hạn/rủi ro còn lại: xem "Bàn giao".
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12.
