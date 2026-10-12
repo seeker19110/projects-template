@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-gop-auto-completion
 - Yêu cầu / outcome: chủ repo 2026-10-12 "bỏ /auto /complete, tích hợp hết vào /auto-complete" → một lệnh tự động duy nhất, tự chứa; 0 con trỏ cũ ngoài lịch sử.
-- Trạng thái: Active
+- Trạng thái: Done 2026-10-12 (PR #290 squash merge `8648898`)
 - Chủ trì / writer: phiên chính
 - Mức rủi ro / số PR: M, 1 PR (đổi bề mặt lệnh — breaking cho người dùng; chỉ lệnh/tài liệu/marker hook + một mục cổng)
 - Scope / non-goal: theo spec mục 5; không sửa ADR cũ, không tách `test-check-scripts.sh` (> 400 dòng có từ trước)
@@ -35,10 +35,16 @@ sửa con trỏ → test hợp đồng + ca âm → cổng tổng → PR.
 
 ## Bàn giao / bước tiếp theo
 
-Chạy cổng tổng (`bash scripts/dev-task.sh gate`), commit, push `claude/sharp-goldberg-4owppu`, mở PR (Work ID trên).
+Không còn việc. PR #290 đã merge; hồ sơ đóng ở PR riêng theo kế hoạch.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: AC-1..3 có bằng chứng — `test_merged_commands_stay_merged`, `test_auto_complete_chains_existing_playbooks_under_3d`,
+  docs-consistency mục 3 + 5c (đỏ 50 lỗi trước khi sửa → xanh), ca âm 5c trong `test-check-scripts.sh`, `test-hooks-session.sh`.
+- PR MERGED: #290 → `8648898` trên `main` (squash, 2026-10-12); CI 16/16 xanh ở head `fe6cf2e` (`automerge` skipped).
+  Hai lần CI đỏ trước đó: `metadata` (subject 73 ký tự, TRAPS 58 tái phát, sửa tiêu đề) và `gate` trên head cũ do
+  `framework-lint-windows` bị huỷ khi push mới — không phải lỗi mã. Auto-merge bật nhưng không tự kích sau force-push; phiên chính
+  squash merge trực tiếp theo `CLAUDE.md` §8 khi PR đã `clean`.
+- Giới hạn/rủi ro còn lại: dự án đích đã copy khung trước đó còn giữ `auto.md`/`completion.md` cũ (copy-framework không xoá);
+  không còn lệnh "hoàn thiện nhưng dừng chờ duyệt tay"; `scripts/test-check-scripts.sh` > 400 dòng (có từ trước) chờ tách.
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12.
