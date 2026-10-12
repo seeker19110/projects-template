@@ -69,13 +69,12 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 
 ## Bàn giao / bước tiếp theo
 
-- PR-A #295 (`334878e`, U1+U2) mở 2026-10-12 20:04Z, auto-merge SQUASH, check-in 5 phút (`trig_01MvpsGuZizsRGRMkuqN4oPs`).
-- Khi #295 merge: ghi SHA vào PROGRESS/goal (U1, U2 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
-- T4 (PR-B, U3) đang giao `standard-worker` trong worktree riêng (base `334878e`): hook guard vân tay + session-resume + telemetry
-  work-id + manifest; về thì áp patch lên nhánh mới, điền spec AC-10..12/14 (`scripts/test-hooks-loop.sh::<ca>`), reviewer, /gate,
-  commit `feat(loop)`, PR-B.
-- Sau PR-B: PR-C đóng hồ sơ (`done.md` 13b, goal COMPLETE, PROGRESS, CHANGELOG) → rồi việc #4: hoàn thiện repo khung Giai đoạn B
-  (Pha 0–4) tham khảo stored 23 §8 (`scripts/model-rates.json` lệch), sửa DoC `COMPLETION-PLAN.md` thành checklist máy đọc.
+- PR-B #296 (`ca2dab2`, U3) mở 2026-10-12, auto-merge SQUASH, check-in 5 phút. PR-A #295 → `e524b49` đã merge.
+- Khi #296 merge: ghi SHA vào PROGRESS/goal (U3 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
+- PR-C (U4) đóng hồ sơ: `working.md` → `done.md` theo 13b (PR/SHA, DoD, giới hạn: gh GraphQL 403 cloud, loop-state.py 400 dòng,
+  F3/F5 không sửa), goal State COMPLETE + Final audit, PROGRESS (COMPLETE + hồ sơ đóng), CHANGELOG [Unreleased] bổ sung PR-B.
+- Sau PR-C: việc #4 hoàn thiện repo khung Giai đoạn B (Pha 0–4) — đầu vào đã ghi: stored 23 §8 `scripts/model-rates.json` lệch;
+  DoC `COMPLETION-PLAN.md` chưa phải checklist máy đọc; cổng lint quét `.claude/worktrees/`; cổng tổng chập chờn khi chia checkout.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
