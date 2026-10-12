@@ -15,7 +15,7 @@
 | FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
-| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định) | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3 |
+| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định) | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3; vòng giữ lượt: FT-74 |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
 | FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |
@@ -46,7 +46,7 @@
 | FT-57 | Review vùng nhạy cảm | `security-reviewer` | diff và threat model liên quan | ✅ | frontmatter/route được kiểm; review thủ công |
 | FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy nhánh + tự mở PR (GitHub REST API) để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md`, PR trên GitHub | ✅ | `test-maintain-cron.sh` (bare-repo remote thật + curl giả) — job `framework-lint` + smoke dự án đích |
 
-## C. Hook tự động (9) — `.claude/hooks/`
+## C. Hook tự động (10) — `.claude/hooks/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -61,6 +61,7 @@
 | FT-59 | Ghi checkpoint trước nén ngữ cảnh | `precompact-checkpoint.sh` | `PROGRESS.md` và trạng thái phiên | ✅ | `scripts/test-hooks-session.sh` |
 | FT-60 | Ghi telemetry khi dừng phiên/subagent | `telemetry-record.sh` | transcript và `.ai-telemetry/` | ✅ | `scripts/test-hooks-session.sh` |
 | FT-61 | Trí tuệ UI opt-in | `ui-intelligence.sh` | cấu hình provider của dự án đích | ✅ | `scripts/test-hooks-session.sh` kiểm tắt/bật/lỗi provider |
+| FT-74 | Giữ vòng `/auto-complete`: không kết lượt khi hồ sơ còn Active; dừng theo file trạng thái (Blocked/Waiting/done.md), trần lượt, wind-down, chuỗi đỏ ≥ 3, lời cuối lặp | `auto-complete-guard.sh` (Stop); marker `.claude/.auto-complete-loop` do `/auto-complete` ghi, `session-resume.sh` xoá ở phiên mới | `docs/work/<id>/working.md`, `.claude/.gate-red-streak`, `.claude/.winddown-nudged` | ✅ | `scripts/test-hooks-loop.sh` (11 mục: block/allow từng điều kiện, compact giữ marker, negative) |
 
 ## D. Cổng tự kiểm và engine của CHÍNH repo khung — `scripts/`
 

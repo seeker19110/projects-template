@@ -11,6 +11,15 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Feat (2026-10-12): đối chiếu vòng lặp coding tự động (Anthropic harness/`/goal`/plugin ralph, OpenHands/SWE-agent/Aider/
+  Gas Town/autoresearch/superpowers, Codex Goals/Copilot/Jules/Devin/Cursor, 23 bài nghiên cứu) → 41 cơ chế, lấy 3 cổng máy
+  (báo cáo `docs/reports/2026-10-12-doi-chieu-vong-lap-coding.md`, phụ lục `ConardLi/garden-skills` lấy 0): (A) hook Stop
+  `auto-complete-guard.sh` giữ vòng `/auto-complete` — hồ sơ còn Active thì không kết lượt, dừng theo file trạng thái
+  Blocked/Waiting/done.md, wind-down, trần `AUTO_COMPLETE_MAX_CONTINUES` 20, lời cuối lặp, chuỗi đỏ ≥ 3 (marker
+  `.claude/.auto-complete-loop`; `session-resume.sh` xoá ở phiên mới, giữ khi compact/resume; `scripts/test-hooks-loop.sh`);
+  (B) `pre-commit-gate.sh` đếm chuỗi đỏ CÙNG chữ ký ở `.claude/.gate-red-streak` — lần 2 nhắc ghi lỗi ở tầng, ≥ 3 nhắc §8 BLOCKED
+  (`test-hooks-gate-guard.sh` mục 20); (C) `check-docs-consistency.sh` mục 15 — slice goal DONE phải có bằng chứng, goal COMPLETE
+  không còn slice mở (`test-check-scripts.sh`). Work ID `2026-10-12-loop-research-auto-complete`.
 - Docs (2026-10-12): `adopt-from-outside.md` §2 đổi cổng cột "chưa có"/"nông hơn" từ "phải ứng với sự cố thật" sang
   "tốt hơn bản hiện có, chứng minh được" (4 dạng, tính ròng; sự cố thật là bằng chứng mạnh nhất, không bắt buộc); CLAUDE.md §1,
   AGENTS.md, README khung, standard-delivery §11 cập nhật khớp (Work ID `2026-10-12-adopt-better-than-current`).

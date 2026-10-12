@@ -16,6 +16,17 @@ MAX="${SESSION_RESUME_MAX_BYTES:-8000}"
 
 # Phiên mới → xóa marker đã-nhắc-wind-down để usage-guard nhắc lại được ở phiên này.
 rm -f "$ROOT/.claude/.winddown-nudged" 2>/dev/null || true
+# Marker vòng /auto-complete (auto-complete-guard.sh) chỉ sống trong MỘT phiên: phiên mới (startup/clear) xoá và nói ra, để
+# một phiên hỏi việc khác không bị hook giữ lượt; nén ngữ cảnh (compact) hay nối phiên (resume) GIỮ — vòng đang chạy.
+# `source` đọc từ payload stdin; thiếu jq/payload → coi như startup (chiều an toàn: không giữ vòng mồ côi).
+if [ -f "$ROOT/.claude/.auto-complete-loop" ]; then
+  src="$( { cat; } 2>/dev/null | { command -v jq >/dev/null 2>&1 && jq -r '.source // "startup"' 2>/dev/null || echo startup; } )"
+  case "$src" in
+    compact|resume) ;;
+    *) rm -f "$ROOT/.claude/.auto-complete-loop" 2>/dev/null || true
+       echo "[session-resume] lượt /auto-complete trước chưa kết (marker đã xoá) — gõ /auto-complete để nối lại vòng." >&2 ;;
+  esac
+fi
 
 command -v jq >/dev/null 2>&1 || { echo "[session-resume] không có jq → không nạp được PROGRESS.md vào ngữ cảnh." >&2; exit 0; }
 

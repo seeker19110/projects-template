@@ -8,6 +8,14 @@ Bạn là **người quyết định thay chủ repo** cho toàn bộ lượt n�
 (ủy quyền + **thứ tự ưu tiên khi xung đột**) và §8 (stop conditions). Lệnh này chỉ nối hai playbook đã có, không thêm pha mới.
 
 ## Chuỗi chạy (không bỏ bước, không hỏi giữa chừng ngoài §9)
+0. **Bật vòng giữ lượt** (hook Stop `auto-complete-guard.sh`): sau khi đọc/tạo hồ sơ `docs/work/<id>/working.md` (§3e), ghi Work ID
+   vào marker: `printf '%s\n' "<work-id>" > .claude/.auto-complete-loop` (gitignored, sống trong một phiên). Từ đó mỗi khi lượt
+   định kết thúc mà hồ sơ còn `- Trạng thái: Active`, hook **không cho kết lượt** và nhắc mục "Bàn giao / bước tiếp theo" — nên
+   **luôn giữ mục đó là bước cụ thể kế tiếp**. Hook tự cho dừng khi: `- Trạng thái: Blocked — …`/`Waiting — …` (§9/§8), hồ sơ đã
+   rename `done.md`, usage-guard đã nhắc wind-down, đủ `AUTO_COMPLETE_MAX_CONTINUES` (mặc định 20) lượt, lời cuối lặp y hệt,
+   hoặc cổng commit đỏ ≥ 3 lần cùng failure (`.claude/.gate-red-streak` → ghi Blocked theo §8). Tín hiệu dừng là **file trạng
+   thái**, không phải câu "đã xong" (CLAUDE.md §4). Kết thúc lượt (DoC có bằng chứng hoặc BLOCKED) → `rm -f .claude/.auto-complete-loop`.
+   Tuỳ chọn thêm lớp: `/goal` của Claude Code với điều kiện đo được + "or stop after 20 turns".
 1. **`/auto`** nguyên văn (`.claude/commands/auto.md`): research → kế hoạch toàn bộ → chốt → thực thi theo số PR (§3c; từ 2 PR giao subagent, brief qua `subagent-dispatch.sh --check-plan`). Cổng "chốt kế hoạch" của /auto: **tự duyệt**, ghi "Approved for implementation — phiên chính duyệt theo ủy quyền §3d" + ngày.
 2. Mọi PR của bước 1 **đã merge thật** (CI xanh, SHA trên `main`) → **`/completion`** nguyên văn (`docs/framework/project-completion.md` Pha 0–4). Cổng "DỪNG trình kế hoạch + DoC" ở Pha 2: **tự duyệt** cùng cách; Bước 0 của /completion không hỏi `AskUserQuestion` — kế hoạch đang mở thì nối tiếp đúng chỗ dở.
 3. Kết thúc khi **Definition of Complete** có bằng chứng (Pha 4), hoặc dừng `BLOCKED`/`WAITING` đúng §8.
