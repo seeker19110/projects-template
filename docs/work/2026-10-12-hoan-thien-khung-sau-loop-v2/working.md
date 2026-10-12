@@ -7,7 +7,7 @@
 - Mức rủi ro / số PR: M (nhiều PR nhỏ, không đổi hành vi người dùng); 4 PR tuần tự (harness chỉ push một nhánh): PR-1 sổ sách, PR-2 DEBT + tách sweep + lint worktree, PR-3 bảng giá, PR-4 re-audit + đóng.
 - Scope / non-goal: trong — F-001..F-007 ở `docs/ops/COMPLETION-PLAN.md` chu kỳ 2026-10-12; ngoài — repo xgold/case-study-ft41 (stored 23 §8 chỉ đối chiếu khung với nguồn sống), FT-13/FT-41, quy trình release của khung (F-008).
 - Spec / goal / issue: không spec (mức M chore/fix/refactor, không tính năng mới — §3c); kế hoạch + DoC: `docs/ops/COMPLETION-PLAN.md` mục "Chu kỳ 2026-10-12".
-- Nhánh / base SHA / thời điểm reconcile: `claude/sharp-goldberg-4owppu` @ `eb6430a` · 2026-10-12T22:59:22Z
+- Nhánh / base SHA / thời điểm reconcile: `claude/sharp-goldberg-4owppu` @ `d898fef` · 2026-10-13T01:45Z (lần đầu `eb6430a` 2026-10-12T22:59:22Z)
 
 ## Kế hoạch và phân công
 
@@ -29,15 +29,27 @@ khi worker còn test trong checkout — TRAPS 63).
   về một dòng thay vì nới regex sweep · bậc 2 (ít hơn).
 - stored 23 §8 "bảng giá lệch với xgold": không đọc được xgold (ngoài phạm vi phiên) → đối chiếu khung với nguồn sống; ghi giới hạn.
 - PR-1 (W-401/402/407): đóng 3 hồ sơ stale có PR/SHA thật từ `gh api …/pulls?state=closed` (REST, GraphQL 403 trong cloud).
+- PR-2 làm trong worktree scratchpad `wt-pr2` từ `e8951a0` (TRAPS 63: checkout chính để yên). W-406 bị harness TỪ CHỐI sửa
+  `.claude/project-commands.sh` (cấu hình cổng ở `permissions.ask`, #289) → không lách bằng script khác; ghi BLOCKED + patch ở kế hoạch,
+  câu hỏi cho chủ repo ở báo cáo cuối · bậc 1 (quyền/cấu hình cổng thuộc "không bao giờ tự quyết").
+- W-404 tách nguyên văn khối mảng 2 (dòng 119–209) sang `scripts/_sweep-deps.sh`; lần gate 1 đỏ shellcheck SC2034 (lint chạy từng
+  file, không theo `source`) → directive tại 2 phép gán; lần 2 đỏ 31 ca `test-maintain-cron.sh` (fixture chép danh sách helper tường minh,
+  thiếu helper mới → `No such file`) → thêm vào 2 danh sách `cp`; lần 3 gate PASS.
+- PR-1 #298 merge → `9f6b6f9` (2026-10-12T23:30Z). Main có thêm #299 `e55ed48` + #300 `d898fef` (phiên chủ repo: báo cáo
+  `docs/reports/2026-10-13-goi-y-nang-cap.md`) → nhận làm W-410/F-012, phân loại ở PR-4 theo `adopt-from-outside.md` §2.
+- F-011 (gốc thật của 13b chập chờn): `printf | grep -q` dưới pipefail → SIGPIPE 141, đo 3/8640 lượt đỏ; here-string 0/8640.
+  Bác bỏ giả thuyết "chung checkout" của TRAPS 63 tái phát. Sửa ở PR riêng W-409 KHÔNG auto-merge (file cổng/hook ở `permissions.ask`)
+  · bậc 1 (đúng + bảo mật: hook chặn git nguy hiểm fail-open khi bỏ lỡ khớp).
 
 ## Lần thử / blocker
 
-<Failure, số lần cùng failure, giả thuyết đã bác bỏ, blocker và cách kiểm tiếp.>
+- 13b đỏ ở pre-commit 2 lần (PR-3, file `done.md` không đổi) → gốc F-011, không phải lỗi PR-3; chuỗi đỏ dừng ở 2/3.
+- W-406 BLOCKED cần chủ repo (patch ở COMPLETION-PLAN).
 
 ## Bàn giao / bước tiếp theo
 
-PR-1 (sổ sách) commit qua cổng → mở PR, auto-merge, check-in 5 phút. Kế: PR-2 = W-403 (DEBT `_gh_list` một dòng) + W-404 (tách
-`sweep_deps` sang helper mới scripts/_sweep-deps.sh) + W-406 (lint bỏ `./.claude/worktrees/*`, probe đỏ-trước).
+PR-2 (W-403/W-404 + đánh dấu PR-1 ✅) từ `d898fef` → PR, auto-merge. Kế: PR-3 W-405 (bảng giá, đã code + đỏ-trước trong
+worktree `wt-pr3`) → PR W-409 (here-string, chờ chủ repo) → PR-4 W-408/W-410 re-audit + đóng.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 

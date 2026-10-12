@@ -53,6 +53,8 @@ scripts/dev-task.sh
 # cho pre-commit-gate + githook + sweep; githooks/pre-commit: hàng rào harness-agnostic (core.hooksPath).
 scripts/_stack-detect.sh
 scripts/_commit-guard.sh
+# _sweep-deps.sh: mảng 2 (dependency) của maintenance-sweep.sh, source — tách 2026-10-12 vì trần 400 dòng
+scripts/_sweep-deps.sh
 scripts/githooks/pre-commit
 scripts/usage-estimate.sh
 scripts/test-usage-estimate.sh
