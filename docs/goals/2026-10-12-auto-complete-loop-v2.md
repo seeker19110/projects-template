@@ -4,8 +4,8 @@
 | --- | --- |
 | Goal ID | GOAL-2026-012 |
 | Owner | Chủ repo; phiên chính nghiệm thu theo ủy quyền §3d |
-| State | ACTIVE |
-| Default-branch SHA đã reconcile | e524b49 |
+| State | COMPLETE |
+| Default-branch SHA đã reconcile | 28c57a3 |
 | Bắt đầu / review | 2026-10-12 |
 | Quyền AI | research, branch, PR, auto-merge khi CI xanh theo luật repo; không production |
 | Budget | Không dependency mới, không model/API trả phí, ≤ 3 PR |
@@ -30,8 +30,8 @@ Spec `docs/specs/2026-10-12-auto-complete-loop-v2.md` §5. Ngoài: runner ngoài
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | U1 | Thiết kế: báo cáo, ADR-0012, spec Approved, goal, workflow doc, sổ | — | spec §17 | — | PR-A | DONE | #295 → `e524b49`; CI framework-lint/windows/docs-consistency/progress-freshness SUCCESS |
 | U2 | Engine `loop-state` + test đỏ-trước + `/auto-complete` nạp `!` + sửa regex DONE/WIP 5 (AC-1..9, AC-13a-b) | U1 | spec §7 | — | PR-A | DONE | #295 → `e524b49`; `test-loop-state.sh` 32 ✅, coverage 97 %, review độc lập 2 lỗi sửa đỏ-trước |
-| U3 | Hook guard vân tay artifact + session-resume + telemetry work-id + manifest (AC-10..12, AC-14) | U2 | spec §7 FR-10..12 | — | PR-B | BUILD | |
-| U4 | Đóng hồ sơ `done.md` + PROGRESS + CHANGELOG | U3 | — | — | PR-C | BACKLOG | |
+| U3 | Hook guard vân tay artifact + session-resume + telemetry work-id + manifest (AC-10..12, AC-14) | U2 | spec §7 FR-10..12 | — | PR-B | DONE | #296 → `28c57a3`; `test-hooks-loop.sh` 20 ✅, `test-hooks-session.sh` +1, `test-loop-state.sh` 33 ✅, coverage 96 %, `--trace` 14/14 MAPPED; review độc lập 3 lỗi sửa đỏ-trước |
+| U4 | Đóng hồ sơ `done.md` + PROGRESS + CHANGELOG | U3 | — | — | PR-C | DONE | `docs/work/2026-10-12-redesign-auto-complete-loop/done.md` (13b: Trạng thái Done, PR/SHA, DoD, giới hạn), PROGRESS + CHANGELOG cùng PR-C |
 
 ## Risk register
 
@@ -44,9 +44,9 @@ Spec `docs/specs/2026-10-12-auto-complete-loop-v2.md` §5. Ngoài: runner ngoài
 
 ## Current truth
 
-- Goal gap: U1, U2 DONE (#295); U3 đang BUILD (PR-B); U4 BACKLOG.
+- Goal gap: 0 — U1..U4 DONE (#295 `e524b49`, #296 `28c57a3`, PR-C đóng hồ sơ).
 - Blocker/open decision: không.
-- Next best slice + reason: U3 (hook) — slice ready duy nhất.
+- Next best slice + reason: không còn; việc kế là lượt hoàn thiện repo khung (hồ sơ mới).
 - Permission needed: không.
 
 ## Iteration log
@@ -69,16 +69,27 @@ Spec `docs/specs/2026-10-12-auto-complete-loop-v2.md` §5. Ngoài: runner ngoài
 - Risk/decision: `gh` GraphQL 403 trong cloud → DEBT + risk register; worktree harness trong cây repo → tạo tay ngoài cây.
 - Blocker/next slice/permission: U3 (PR-B).
 
+### Iteration 3 — 2026-10-12
+
+- State/default-branch SHA: COMPLETE / 28c57a3.
+- Slice and gap before/after: U3 BUILD → DONE (#296 merge 21:14Z); U4 BACKLOG → DONE (PR-C).
+- Research/spec/issue/PR: PR-B #296 squash; review độc lập 6 phát hiện → 3 sửa (3 ca đỏ-trước), 3 ghi lý do; spec `--trace` 14/14.
+- Checks/test counts/metric: hook 20 ✅, engine 33 ✅, coverage 96 %; CI xanh ở head `d9decd6` (gate đỏ một lần trên head cũ do run
+  bị huỷ khi push mới).
+- Risk/decision: F5 hai lần gọi engine mỗi Stop giữ (fail-open, xem lại khi > 5 s/lượt); `loop-state.py` ở trần 400 dòng.
+- Blocker/next slice/permission: không; đóng goal.
+
 ## Final audit
 
-- [ ] AC có evidence trên default branch/release.
-- [ ] Metrics đạt; guardrails không suy giảm.
-- [ ] Không còn mandatory milestone/P0/P1/migration/reconciliation.
-- [ ] Quality/security/privacy/a11y/performance/ops gates xanh.
-- [ ] UAT/production/restore verification hoàn tất nếu thuộc scope. (n-a)
-- [ ] Docs/ownership/telemetry/runbook/rollback hoàn chỉnh.
-- [ ] Residual risk/out-of-scope ghi rõ.
-- [ ] Owner xác nhận khi cần.
+- [x] AC có evidence trên default branch/release — bảng bằng chứng spec AC-1..14 → test thật, `--trace` TRACE COMPLETE; cả hai PR trên `main`.
+- [x] Metrics đạt; guardrails không suy giảm — 0 script tính bước → `loop-state.sh`; hook đo lời → vân tay; không hạ cổng, 11 ca hook cũ xanh, coverage 96 % ≥ 95 %, 0 file mới > 400 dòng.
+- [x] Không còn mandatory milestone/P0/P1/migration/reconciliation — U1..U4 DONE; không migration.
+- [x] Quality/security/privacy/a11y/performance/ops gates xanh — CI `framework-lint`/`-windows`/`docs-consistency`/`copy-framework-smoke`/`progress-freshness`/`protection-guard`/CodeQL/gitleaks xanh ở #295 và #296.
+- [x] UAT/production/restore verification hoàn tất nếu thuộc scope. (n-a — dogfood trên chính repo: verdict `continue`/`stop` đúng theo artifact.)
+- [x] Docs/ownership/telemetry/runbook/rollback hoàn chỉnh — `auto-complete-workflow.md`, ADR-0012, CHANGELOG, CODEMAP/FEATURE-MAP FT-74..76; telemetry `work_id`; rollback = revert PR squash.
+- [x] Residual risk/out-of-scope ghi rõ — risk register (GraphQL 403 cloud: open, DEBT `_gh_list`), F3/F5, trần 400 dòng, DoC `COMPLETION-PLAN.md` chưa checklist — ở `done.md`.
+- [x] Owner xác nhận khi cần — phiên chính theo ủy quyền §3d (chủ repo giao "tự quyết" 2026-10-12).
 
-**Kết luận:** NOT COMPLETE  
-**Người/ngày xác nhận:**
+**Kết luận:** COMPLETE 2026-10-12 — hai PR MERGED (#295 `e524b49`, #296 `28c57a3`), CI default branch xanh, hồ sơ
+`docs/work/2026-10-12-redesign-auto-complete-loop/done.md`.
+**Người/ngày xác nhận:** phiên chính theo ủy quyền §3d, 2026-10-12.

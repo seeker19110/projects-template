@@ -2,7 +2,7 @@
 
 ## Bối cảnh & mục tiêu
 Spec Approved `docs/specs/2026-10-12-auto-complete-loop-v2.md` (FR-1..FR-12, AC-1..AC-13), ADR-0012, hồ sơ
-`docs/work/2026-10-12-redesign-auto-complete-loop/working.md`. Mục tiêu: engine tính trạng thái vòng lặp + verdict có kiểu từ artifact thật; lệnh và hook tiêu thụ nó.
+`docs/work/2026-10-12-redesign-auto-complete-loop/done.md`. Mục tiêu: engine tính trạng thái vòng lặp + verdict có kiểu từ artifact thật; lệnh và hook tiêu thụ nó.
 
 ## Đặc tả dùng chung
 - Schema/DDL: không đổi

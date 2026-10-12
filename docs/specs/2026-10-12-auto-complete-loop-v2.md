@@ -2,7 +2,7 @@
 
 | Thuộc tính | Giá trị |
 | --- | --- |
-| Issue / Goal | Yêu cầu chủ repo 2026-10-12 "thiết kế lại vòng lặp để tự động code hoàn thiện dự án, thiết kế cả workflow, tham khảo stored và các nguồn khác". Goal `docs/goals/2026-10-12-auto-complete-loop-v2.md`; hồ sơ `docs/work/2026-10-12-redesign-auto-complete-loop/working.md` |
+| Issue / Goal | Yêu cầu chủ repo 2026-10-12 "thiết kế lại vòng lặp để tự động code hoàn thiện dự án, thiết kế cả workflow, tham khảo stored và các nguồn khác". Goal `docs/goals/2026-10-12-auto-complete-loop-v2.md`; hồ sơ `docs/work/2026-10-12-redesign-auto-complete-loop/done.md` |
 | Spec owner | Phiên chính |
 | State | **Approved for implementation** |
 | Approver / date | Phiên chính duyệt theo ủy quyền toàn cục (`standard-delivery.md` §3d) sau research 4 nguồn; 2026-10-12 |

@@ -1,7 +1,7 @@
 # Thiết kế lại vòng lặp `/auto-complete` — đối chiếu KIẾN TRÚC vòng lặp (2026-10-12)
 
 Yêu cầu chủ repo 2026-10-12: *"thiết kế lại vòng lặp để tự động code hoàn thiện dự án, thiết kế cả workflow, tham khảo stored và
-các nguồn khác, bằng tất cả năng lực"*. Hồ sơ: `docs/work/2026-10-12-redesign-auto-complete-loop/working.md`.
+các nguồn khác, bằng tất cả năng lực"*. Hồ sơ: `docs/work/2026-10-12-redesign-auto-complete-loop/done.md`.
 Phương pháp: `docs/framework/adopt-from-outside.md` (ba cột · cổng §2 "tốt hơn bản hiện có, tính ròng" · §3 grep cổng đang chạy ·
 §4 mâu thuẫn luật). Đích: `projects-template` @ `3954c65` (`origin/main` sau #293).
 

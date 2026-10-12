@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-12-redesign-auto-complete-loop
 - Yêu cầu / outcome: chủ repo 2026-10-12 "thiết kế lại vòng lặp để tự động code hoàn thiện dự án, thiết kế cả workflow, tham khảo stored và các nguồn khác, bằng tất cả năng lực" → vòng lặp `/auto-complete` v2 có **trạng thái máy đọc được + bước kế tiếp do máy tính từ trạng thái thật**, và một tài liệu workflow tham chiếu đầu-cuối (idea → bàn giao).
-- Trạng thái: Active
+- Trạng thái: Done 2026-10-12 (PR #295 squash merge `e524b49`, PR #296 squash merge `28c57a3`, đóng hồ sơ PR-C)
 - Chủ trì / writer: phiên chính (Fable 5.1 cho quyết định kiến trúc mức L)
 - Mức rủi ro / số PR: **L** (đổi lệnh tự động cốt lõi + hook Stop + engine mới + nhiều PR); số PR chốt sau research (dự kiến 3–4, tuần tự vì harness chỉ push một nhánh)
 - Scope / non-goal: trong — kiến trúc vòng lặp (trạng thái, chọn bước, cổng chuyển pha, dừng/bàn giao), workflow tham chiếu, cổng máy mới có test đỏ-trước; ngoài — runner không giám sát (X1, quyết 2026-10-10), đổi luật §3d/§8/§9, vendor plugin ngoài
@@ -69,15 +69,27 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 
 ## Bàn giao / bước tiếp theo
 
-- PR-B #296 (`ca2dab2`, U3) mở 2026-10-12, auto-merge SQUASH, check-in 5 phút. PR-A #295 → `e524b49` đã merge.
-- Khi #296 merge: ghi SHA vào PROGRESS/goal (U3 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
-- PR-C (U4) đóng hồ sơ: `working.md` → `done.md` theo 13b (PR/SHA, DoD, giới hạn: gh GraphQL 403 cloud, loop-state.py 400 dòng,
-  F3/F5 không sửa), goal State COMPLETE + Final audit, PROGRESS (COMPLETE + hồ sơ đóng), CHANGELOG [Unreleased] bổ sung PR-B.
-- Sau PR-C: việc #4 hoàn thiện repo khung Giai đoạn B (Pha 0–4) — đầu vào đã ghi: stored 23 §8 `scripts/model-rates.json` lệch;
-  DoC `COMPLETION-PLAN.md` chưa phải checklist máy đọc; cổng lint quét `.claude/worktrees/`; cổng tổng chập chờn khi chia checkout.
+Xong. Việc kế tiếp (chủ repo giao 2026-10-12 "xong rồi hoàn thiện khung này luôn, tham khảo cả repo stored"): lượt `/auto-complete`
+Giai đoạn B (Pha 0–4 `project-completion.md`) trên chính repo khung, hồ sơ mới. Đầu vào đã ghi cho lượt đó: stored 23 §8
+`scripts/model-rates.json` lệch; DoC `docs/ops/COMPLETION-PLAN.md` dạng bold không phải checklist → engine đếm `0/0`; cổng lint
+`find . -name '*.sh'` quét vào `.claude/worktrees/` (worktree của harness); cổng tổng chập chờn khi subagent chạy test cùng checkout
+(TRAPS 63); `loop-state.py` chạm trần 400 dòng — tách tiếp khi thêm tính năng; DEBT `_gh_list` (GraphQL 403 cloud → REST fallback).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD (Goal DoD GOAL-2026-012): `scripts/loop-state.sh` tính verdict có kiểu + `next` từ artifact (AC-1..9, 13); `/auto-complete`
+  nạp bằng `!` (AC-9); hook Stop đo vân tay artifact, 2 lượt không đổi → cho dừng, Planned/Blocked/Waiting/done.md đúng (AC-10..12);
+  telemetry có `work_id` (AC-14); spec `--trace` TRACE COMPLETE 14/14; workflow tham chiếu `docs/framework/auto-complete-workflow.md`;
+  ADR-0012 (5 phương án); guardrail: không hạ cổng, 11 ca hook cũ xanh, coverage 96–97 %, 0 file mã mới > 400 dòng (`loop-state.py`
+  đúng 400).
+- PR MERGED: #295 → `e524b49` (U1 + U2, 2026-10-12T20:29Z) và #296 → `28c57a3` (U3, 2026-10-12T21:14Z), đều auto-merge squash,
+  CI run xanh ở head cuối (`framework-lint`, `framework-lint-windows`, `docs-consistency`, `copy-framework-smoke`,
+  `progress-freshness`, `protection-guard`, CodeQL, gitleaks); `gate` đỏ một lần ở mỗi PR trên head CŨ do `framework-lint-windows`
+  bị huỷ khi push mới — không phải lỗi mã. `origin/main` đã đối chiếu `28c57a3` trước khi đóng.
+- Test: `test-loop-state.sh` 33 ✅, `test-hooks-loop.sh` 20 ✅, `test-hooks-session.sh` +1, `tests/test_adaptive_process.py` 14 OK;
+  review độc lập 2 lượt (PR-A 7 phát hiện → 5 sửa đỏ-trước; PR-B 6 → 3 sửa đỏ-trước), lý do không sửa ghi ở "Quyết định".
+- Giới hạn/rủi ro còn lại: `gh pr list --json` (GraphQL) 403 trong phiên Claude Code cloud → `pr.available=false`, verdict
+  `waiting` không tự động trong cloud (DEBT `_gh_list`, REST fallback khi cần); mỗi Stop gọi engine 2 lần (F5, xem lại khi > 5 s/lượt);
+  F3 vân tay đổi khi `gh` chập chờn (fail-open); `loop-state.py` ở trần 400 dòng; `COMPLETION-PLAN.md` của repo khung DoC chưa
+  phải checklist → engine đếm `0/0` (việc của lượt hoàn thiện kế).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12.
