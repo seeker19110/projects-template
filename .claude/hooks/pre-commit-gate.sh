@@ -118,11 +118,31 @@ if [ ! -x "$GOC_CONG/scripts/dev-task.sh" ]; then
 fi
 
 # dev-task.sh lấy ROOT từ CLAUDE_PROJECT_DIR → ép về cây đang commit, kẻo nó cd sang checkout chính.
-if ! CLAUDE_PROJECT_DIR="$GOC_CONG" "$GOC_CONG/scripts/dev-task.sh" gate; then
+# Output cổng đi qua tee để lấy CHỮ KÝ lần đỏ (dòng FAIL:/BLOCKED: đầu tiên) — cả stdout lẫn stderr đều ra stderr của hook
+# (Claude đọc stderr khi exit 2). Chuỗi đỏ CÙNG chữ ký đếm ở $CAY/.claude/.gate-red-streak (gitignored): luật "trước lần sửa
+# thứ 2 ghi lỗi ở tầng; 3 lần cùng failure → BLOCKED" (standard-delivery §3b/§8) trước 2026-10-12 chỉ là văn xuôi, 0 bộ đếm
+# (TRAPS 65, gate.md mục 5). Chữ ký KHÁC → về 1 (ba lần BLOCKED vì thiếu ba công cụ khác nhau không phải một chuỗi).
+# Hook Stop auto-complete-guard.sh đọc file này để cho phép dừng lượt khi chuỗi ≥ 3. Cổng xanh → xoá. Test: test-hooks-gate-guard.sh mục 20.
+STREAK="$CAY/.claude/.gate-red-streak"; gate_log="$(mktemp)"
+CLAUDE_PROJECT_DIR="$GOC_CONG" "$GOC_CONG/scripts/dev-task.sh" gate 2>&1 | tee "$gate_log" >&2; gate_rc="${PIPESTATUS[0]}"
+if [ "$gate_rc" -ne 0 ]; then
+  sig="$(grep -m1 -E 'FAIL:|BLOCKED:' "$gate_log" | cut -c1-200)"; [ -n "$sig" ] || sig="gate-exit-$gate_rc"
+  prev=0
+  if [ -f "$STREAK" ] && [ "$(sed -n 's/^sig=//p' "$STREAK" | head -1)" = "$sig" ]; then
+    prev="$(sed -n 's/^n=//p' "$STREAK" | head -1)"; case "$prev" in ''|*[!0-9]*) prev=0 ;; esac
+  fi
+  n=$((prev + 1)); rm -f "$gate_log"
+  mkdir -p "$CAY/.claude" 2>/dev/null && printf 'n=%s\nsig=%s\n' "$n" "$sig" > "$STREAK" 2>/dev/null
   echo "❌ Cổng trước commit ĐỎ (build/typecheck/lint/test). Sửa hết rồi commit lại (CLAUDE.md §5)." >&2
   echo "   Bỏ qua có chủ đích: thêm --no-verify vào lệnh git commit." >&2
+  if [ "$n" -eq 2 ]; then
+    echo "⚠️  Lần 2 cùng một failure ($sig): trước khi sửa tiếp, ghi một dòng \"lỗi ở tầng ①/②/③/④ vì …\" (standard-delivery.md §3b) và quay về đúng tầng — không sửa mù." >&2
+  elif [ "$n" -ge 3 ]; then
+    echo "🛑 Đã $n lần cùng một failure ($sig) — §8 BLOCKED: KHÔNG sửa mù thêm; ghi \"- Trạng thái: Blocked — <lý do>\" vào docs/work/<id>/working.md và xin quyết định (/auto-complete sẽ cho phép dừng lượt). Chuỗi này là 3 lần cùng chữ ký; failure khác tự về 1." >&2
+  fi
   exit 2
 fi
+rm -f "$STREAK" "$gate_log"
 
 # Cổng máy móc (build/lint/test) chỉ bắt lỗi CÚ PHÁP, không bắt lỗi LOGIC/trùng lặp/hiệu năng —
 # đúng việc Sonnet làm tốt qua skill /code-review, /simplify. Nudge (không chặn) khi diff staged đủ lớn.

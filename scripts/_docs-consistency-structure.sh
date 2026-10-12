@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _docs-consistency-structure.sh — mục 12–14 của scripts/check-docs-consistency.sh (`source`, KHÔNG chạy trực tiếp):
+# _docs-consistency-structure.sh — mục 12–15 của scripts/check-docs-consistency.sh (`source`, KHÔNG chạy trực tiếp):
 # mẫu mồ côi, khuôn hồ sơ docs/work/<id>/, bảng Hook ↔ settings.json. Tách 2026-10-10 vì file gốc vượt 400 dòng
 # (radar). Chạy ở gốc repo, dùng `fail` của script gọi; negative test ở scripts/test-check-scripts.sh.
 # shellcheck disable=SC2034  # fail: đọc bởi check-docs-consistency.sh sau khi source
@@ -72,3 +72,34 @@ check_hook_table() {    # in lỗi, trả 1 khi lệch
 if [ -f .claude/settings.json ] && [ -f docs/framework/models-and-automation.md ]; then
   check_hook_table || fail=1
 fi
+
+# VÌ SAO (2026-10-12, đối chiếu vòng lặp coding — N3): failure mode #1 của vòng lặp dài là "tuyên bố xong sớm"; goal file có cột
+# State/Evidence nhưng trước đây không script nào đọc (đính chính B báo cáo ralph). Slice DONE phải có ô bằng chứng; file đã
+# COMPLETE không được còn slice mở. Cột bằng chứng = `Evidence`/`Nghiệm thu`/`Bằng chứng`, không có thì lấy cột cuối.
+echo "== 15. docs/goals: slice DONE có bằng chứng; goal COMPLETE không còn slice mở =="
+check_goal_file() {   # $1 = docs/goals/<id>.md; in lỗi, trả 1 khi sai
+  local f="$1" complete=0
+  grep -Eq '^\|[[:space:]]*State[[:space:]]*\|[[:space:]]*COMPLETE|^State:[[:space:]]*COMPLETE' "$f" && complete=1
+  awk -v file="$f" -v complete="$complete" '
+    function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+    /^\|/ {
+      n = split($0, c, "|"); for (i = 1; i <= n; i++) c[i] = trim(c[i])
+      if (!intable) {                       # dòng tiêu đề: cần ô "State" và ≥ 3 cột
+        si = 0; ei = 0
+        for (i = 2; i < n; i++) { if (c[i] == "State") si = i; if (c[i] ~ /^(Evidence|Nghiệm thu|Bằng chứng)$/) ei = i }
+        if (si && n - 2 >= 3) { intable = 1; if (!ei) ei = n - 1 }
+        next
+      }
+      if ($0 ~ /^\|[[:space:]]*-+/) next     # dòng gạch
+      st = c[si]; ev = c[ei]
+      if (st ~ /^DONE/ && ev == "") { printf "::error file=%s::Slice `%s` ghi DONE nhưng ô bằng chứng rỗng — DONE phải kèm PR/merge SHA/test (mục 15).\n", file, c[2]; bad = 1 }
+      if (complete == 1 && st ~ /^(BACKLOG|RESEARCH|SPEC|READY|BUILD|VERIFY|WAITING|BLOCKED|ACTIVE)/) { printf "::error file=%s::Goal ghi State COMPLETE nhưng slice `%s` còn %s — đóng slice (DONE có bằng chứng/DROPPED) hoặc bỏ COMPLETE (mục 15).\n", file, c[2], st; bad = 1 }
+      next
+    }
+    { intable = 0 }
+    END { exit bad ? 1 : 0 }' "$f"
+}
+for f in docs/goals/*.md; do
+  [ -f "$f" ] && [ "$(basename "$f")" != "README.md" ] || continue
+  check_goal_file "$f" || fail=1
+done

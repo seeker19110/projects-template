@@ -272,6 +272,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
      • git commit→ PreToolUse   → pre-commit-gate.sh→ dev-task.sh gate (đỏ = CHẶN)
      • hết lượt  → Stop         → usage-guard.sh    → usage-estimate.sh (≥70% → nhắc wind-down)
                                 └ telemetry-record.sh → telemetry-log.sh --record (ghi thời gian/model mỗi lượt; cả SubagentStop)
+                                └ auto-complete-guard.sh → /auto-complete bật + hồ sơ còn Active → KHÔNG cho kết lượt (dừng theo file trạng thái/trần/wind-down)
      • sắp nén   → PreCompact   → precompact-checkpoint.sh → chụp git + PROGRESS trước khi nén ngữ cảnh
      • mở phiên  → SessionStart → session-resume.sh → nạp PROGRESS.md + git ("tiếp tục")
                                 └ session-guide.sh  → HIỆN gợi ý "làm gì tiếp theo"
@@ -290,7 +291,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `permissions.allow` | Edit/Write/Read, git an toàn, dev-task.sh, test/format/build | Auto-mode chạy không hỏi |
 | `permissions.deny` | rm -rf, force-push **vào `main`/`master`**, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
 | `permissions.ask` | force-push nhánh khác (`--force`/`-f`/`--force-with-lease`) | Hỏi từng lần, không chặn cứng |
-| `hooks` | SessionStart, PreToolUse, PostToolUse, Stop, SubagentStop, PreCompact | 9 hook (bảng dưới) |
+| `hooks` | SessionStart, PreToolUse, PostToolUse, Stop, SubagentStop, PreCompact | 10 hook (bảng dưới) |
 
 > **Ba lớp cho force-push.** `deny` không chặn mọi force-push (kể cả trên nhánh do chính phiên tạo) —
 > luật thật (`AGENTS.md`) chỉ cấm force-push **vào `main`/`master`**. Chia ba lớp:
@@ -333,10 +334,11 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `session-resume.sh` | SessionStart | Nạp PROGRESS.md + git → "tiếp tục" nối lại; xóa marker wind-down |
 | `session-guide.sh` | SessionStart | Hiện gợi ý "làm gì tiếp theo"; hiện model phiên hiện tại + nhắc chính sách hai pha (không so khớp đúng/sai với một alias cố định — ADR-0007) |
 | `block-dangerous-git.sh` | PreToolUse(Bash) | Chặn git nguy hiểm theo ngữ cảnh (force-push/xoá `main`, `reset --hard`, `clean -f`…); đã bỏ dữ liệu trong nháy/heredoc, soi cả `bash -c`/`eval` (TRAPS 62) |
-| `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
+| `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp); chuỗi đỏ **cùng chữ ký** đếm ở `.claude/.gate-red-streak`: lần 2 nhắc ghi lỗi ở tầng (§3b), ≥ 3 nhắc §8 BLOCKED; chữ ký khác về 1, xanh xoá |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `ui-intelligence.sh` | PostToolUse(Edit\|Write) | Gợi ý UI/UX khi sửa file giao diện — opt-in, không chặn |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
+| `auto-complete-guard.sh` | Stop | Khi `/auto-complete` bật (marker `.claude/.auto-complete-loop`) và `docs/work/<id>/working.md` còn Active → `decision: block` (không kết lượt), nhắc mục "Bàn giao"; cho dừng khi Blocked/Waiting/done.md, wind-down, trần `AUTO_COMPLETE_MAX_CONTINUES` (20), lời cuối lặp, chuỗi đỏ ≥ 3 đã nhắc §8 — tín hiệu từ file trạng thái, không từ câu model |
 | `telemetry-record.sh` | Stop + SubagentStop | Tự gọi `telemetry-log.sh --record` (harness/model/thời lượng ước từ transcript) — đảm bảo §5 (kỷ luật vận hành) luôn có dữ liệu thật để đối chiếu, không chỉ mô tả trên giấy. Transcript không có `usage` → token `null` (unknown), không ghi 0. Mỗi bản ghi là một **lần thử**; công việc chỉ tính là **được nghiệm thu** khi có bản ghi `--outcome accepted --evidence <gate-evidence PASS>` (gom bằng `--work-id`). `--summary` báo chi phí gồm cả lần thất bại, usage unknown đếm riêng và tổng thành cận dưới `≥` (LD-07) |
 | `precompact-checkpoint.sh` | PreCompact | Chụp nhánh/diff/PROGRESS vào checkpoint trước khi Claude Code nén ngữ cảnh (resume không mất việc dở) |
 

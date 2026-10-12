@@ -194,5 +194,40 @@ if command -v jq >/dev/null 2>&1; then
   fi
 fi
 
+echo "== 20. pre-commit-gate: chuỗi đỏ CÙNG chữ ký → lần 2 nhắc tầng, lần 3 nhắc §8; chữ ký khác về 1; xanh xoá =="
+# VÌ SAO (2026-10-12, đối chiếu vòng lặp coding N1): luật "3 lần cùng failure → BLOCKED" ở 4 chỗ văn xuôi, 0 bộ đếm máy
+# (TRAPS 65: ba commit liên tiếp đỏ; gate.md mục 5: CI đỏ 3 lần). Hook đã thấy từng lần đỏ → đếm chuỗi theo chữ ký
+# (dòng FAIL/BLOCKED đầu của cổng). Ba lần BLOCKED vì thiếu ba công cụ KHÁC nhau không được tính là một chuỗi (đính chính C).
+if [ "$HAS_JQ" = "1" ]; then
+  red_sig() {   # $1 = exit, $2 = dòng chữ ký cổng in ra stderr → dự án giả
+    local p; p="$(setup_project "$1")"
+    printf '#!/usr/bin/env bash\n[ "${1:-}" = gate ] || exit 0\necho "[dev-task] %s" >&2\nexit %s\n' "$2" "$1" > "$p/scripts/dev-task.sh"
+    printf '%s\n' "$p"
+  }
+  s1="$(red_sig 1 "FAIL: kiểm tra 'lint' thất bại (exit 1)")"
+  streak="$s1/.claude/.gate-red-streak"
+  run_hook "$s1" "git commit -m x" >/dev/null
+  grep -q '^n=1$' "$streak" 2>/dev/null && ok "lần 1 đỏ: n=1" || bad "lần 1 đỏ: không có n=1 ($(cat "$streak" 2>/dev/null))"
+  run_hook "$s1" "git commit -m x" >/dev/null
+  grep -q '^n=2$' "$streak" 2>/dev/null && grep -q 'tầng' "$WORK/stderr.txt" && ok "lần 2 cùng chữ ký: n=2 + nhắc ghi lỗi ở tầng" || bad "lần 2: n/nhắc sai ($(cat "$streak" 2>/dev/null))"
+  rc="$(run_hook "$s1" "git commit -m x")"
+  [ "$rc" = "2" ] && grep -q '^n=3$' "$streak" 2>/dev/null && grep -q '3 lần' "$WORK/stderr.txt" && grep -q 'BLOCKED' "$WORK/stderr.txt" \
+    && ok "lần 3 cùng chữ ký: vẫn chặn (exit 2), n=3, nhắc §8 BLOCKED" || bad "lần 3: rc=$rc, $(cat "$streak" 2>/dev/null)"
+  # Chữ ký KHÁC (failure khác) → chuỗi về 1, không nhắc §8 oan.
+  printf '#!/usr/bin/env bash\n[ "${1:-}" = gate ] || exit 0\necho "[dev-task] BLOCKED: thiếu công cụ pwsh" >&2\nexit 2\n' > "$s1/scripts/dev-task.sh"
+  run_hook "$s1" "git commit -m x" >/dev/null
+  grep -q '^n=1$' "$streak" 2>/dev/null && ! grep -q '3 lần' "$WORK/stderr.txt" && ok "chữ ký khác → n=1, không nhắc §8" || bad "chữ ký khác: $(cat "$streak" 2>/dev/null)"
+  # Cổng xanh → xoá chuỗi.
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$s1/scripts/dev-task.sh"
+  run_hook "$s1" "git commit -m x" >/dev/null
+  [ ! -f "$streak" ] && ok "cổng xanh → xoá chuỗi đỏ" || bad "cổng xanh vẫn còn $(cat "$streak")"
+  # Không có dòng FAIL/BLOCKED (cổng đỏ câm) → chữ ký = mã thoát, vẫn đếm.
+  s2="$(red_sig 1 "")"; printf '#!/usr/bin/env bash\n[ "${1:-}" = gate ] || exit 0\nexit 1\n' > "$s2/scripts/dev-task.sh"
+  run_hook "$s2" "git commit -m x" >/dev/null; run_hook "$s2" "git commit -m x" >/dev/null
+  grep -q '^n=2$' "$s2/.claude/.gate-red-streak" 2>/dev/null && ok "cổng đỏ không in chữ ký: vẫn đếm theo mã thoát" || bad "đỏ câm không đếm ($(cat "$s2/.claude/.gate-red-streak" 2>/dev/null))"
+else
+  skip "mục 20 — chuỗi đỏ cùng chữ ký"
+fi
+
 hooks_gate_finish "một nguồn mẫu bí mật + bộ lọc hook không lọt biến thể + settings đồng bộ." \
   "hàng rào commit/git KHÔNG hoạt động như tài liệu mô tả."
