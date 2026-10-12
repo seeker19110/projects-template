@@ -97,10 +97,16 @@ tokens=()
 [ "$in_tok" = - ] || tokens=(--input-tokens "$in_tok" --output-tokens "$out_tok")
 # Engine lỗi → in lỗi của nó ra stderr (có tiền tố), KHÔNG dời mốc (lượt sau ghi lại được), vẫn exit 0 (hook Stop
 # không được làm chết phiên). Engine thành công thì stderr của nó (vd cảnh báo token unknown) vẫn bỏ như cũ.
+# Vòng /auto-complete đang bật (marker dòng 1 = Work ID) → gắn work_id để chi phí tính theo hồ sơ (FR-12).
+wid=()
+if [ -f "$ROOT/.claude/.auto-complete-loop" ]; then
+  mid="$(sed -n 1p "$ROOT/.claude/.auto-complete-loop" | tr -d '[:space:]')"
+  [ -z "$mid" ] || wid=(--work-id "$mid")
+fi
 err="$(bash "$ROOT/scripts/telemetry-log.sh" --record \
   --harness claude-code --provider anthropic --model "$model" \
   --agent "$agent" --task "Stop hook tu dong" \
-  --duration "$seconds" --test-status N/A "${tokens[@]}" 2>&1 >/dev/null)"; rc=$?
+  --duration "$seconds" --test-status N/A "${wid[@]}" "${tokens[@]}" 2>&1 >/dev/null)"; rc=$?
 if [ "$rc" -ne 0 ]; then
   echo "[telemetry-record] telemetry-log.sh lỗi (exit $rc) → không ghi được số đo lượt này:" >&2
   printf '%s\n' "$err" | sed 's/^/[telemetry-record]   /' >&2

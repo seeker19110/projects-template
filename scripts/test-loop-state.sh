@@ -229,6 +229,12 @@ printf '\nghi chú\n' >> "$p/docs/work/$ID/working.md"; f4="$(run_ls "$p" --root
 commit_all "$p"; f5="$(run_ls "$p" --root "$p" --work-id "$ID" --fingerprint)"
 printf '%s' "$f1" | grep -Eq '^[0-9a-f]{16}$' && [ "$f1" = "$f2" ] && [ "$f3" != "$f2" ] && [ "$f4" != "$f3" ] && [ "$f5" != "$f4" ] \
   && ok "--fingerprint đổi/giữ" || bad "--fingerprint đổi/giữ ($f1 $f2 $f3 $f4 $f5)"
+# Review PR-B F1: `git status --porcelain` chỉ thấy ĐƯỜNG DẪN — sửa tiếp một file đã dirty (tracked hay untracked) phải đổi vân tay,
+# nếu không hook cho dừng giữa lúc có tiến triển thật.
+printf 'a\n' > "$p/moi.txt"; printf 'b\n' > "$p/README.md"; g1="$(run_ls "$p" --root "$p" --work-id "$ID" --fingerprint)"
+printf 'a2\n' >> "$p/moi.txt"; g2="$(run_ls "$p" --root "$p" --work-id "$ID" --fingerprint)"
+printf 'b2\n' >> "$p/README.md"; g3="$(run_ls "$p" --root "$p" --work-id "$ID" --fingerprint)"
+[ "$g1" != "$g2" ] && [ "$g2" != "$g3" ] && ok "sửa file đã dirty → vân tay đổi" || bad "sửa file đã dirty → vân tay đổi ($g1 $g2 $g3)"
 out="$(run_ls "$p" --root "$p" --json)"
 keys="$(js "$out" "sorted(d)")"
 [ "$keys" = "['completion', 'git', 'goal', 'handoff', 'loop', 'next', 'pr', 'reason', 'streak', 'verdict', 'work']" ] \

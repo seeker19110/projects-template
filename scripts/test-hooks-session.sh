@@ -150,6 +150,14 @@ run_hook
 n1="$(tele_count)"
 [ "$n0" = "$n1" ] && ok "mốc phiên chính độc lập với mốc subagent" || bad "mốc bị lẫn: phiên chính ghi thêm entry ($n0 → $n1)"
 
+echo "== 7b. telemetry-record: marker /auto-complete → record có work_id =="
+printf '2026-10-12-wid-test\nn=1\n' > "$PROJ/.claude/.auto-complete-loop"
+echo '{"type":"assistant","timestamp":"2026-09-23T12:00:00.000Z","message":{"model":"claude-sonnet-5","usage":{"input_tokens":1,"output_tokens":1}}}' >> "$TR"
+run_hook
+e="$(tele_py "$TELE" "print(l[-1]['work_id'])")"
+[ "$e" = "2026-10-12-wid-test" ] && ok "telemetry ghi work_id từ marker" || bad "work_id không lấy từ marker: '$e'"
+rm -f "$PROJ/.claude/.auto-complete-loop"
+
 echo "== 8. PreCompact: chụp checkpoint có nhánh + mục Đang làm, ghi compact.log =="
 PC="$ROOT/.claude/hooks/precompact-checkpoint.sh"
 P3="$WORK/proj3"; mkdir -p "$P3/.claude"; git -C "$P3" init -q 2>/dev/null; git -C "$P3" switch -q -c feat/x 2>/dev/null || git -C "$P3" checkout -q -b feat/x

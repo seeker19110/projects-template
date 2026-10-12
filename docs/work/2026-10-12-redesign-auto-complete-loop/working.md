@@ -50,6 +50,17 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 - Phát hiện khung: `Agent(isolation=worktree)` tạo worktree ở `.claude/worktrees/` (trong cây repo, base origin/main chứ không
   HEAD) → cổng lint `find . -name '*.sh'` quét vào đó và đỏ khi worktree bị dọn giữa chừng. Việc cho lượt hoàn thiện (#4): lint/
   docs-consistency loại trừ `.claude/worktrees/`; worktree cho worker tạo tay ngoài cây (scratchpad) từ HEAD.
+- PR-A #295 merge → `e524b49` (20:29Z). Nhánh restart từ `origin/main`; patch T4 (worktree tay) áp sạch; session-resume đổi
+  từ stderr sang `additionalContext` (model phải đọc được trạng thái máy tính) — ca test sửa theo.
+- Cổng tổng đỏ chập chờn 2 lần ở docs-consistency mục 13b trên `done.md` không đổi (2026-10-08-…, 2026-10-10-…), cả hai lần
+  đều khi subagent đang chạy suite test trong CÙNG checkout; chạy riêng 30 lần: 0 lần 13b (4 lần đỏ khác do file probe
+  `scripts/zz-probe-*` của subagent). Kết luận: nhiễu do chia sẻ checkout khi tải cao (TRAPS 63), không phải lỗi code PR;
+  luật phiên: không chạy `/gate` khi subagent đang chạy test trong checkout; xem lại khi tái hiện không có subagent.
+- Review độc lập T4 (`reviewer`): F1 vân tay mù nội dung file đã dirty (`git status` chỉ thấy đường dẫn) → engine thêm hash
+  `git diff HEAD` + size/mtime file untracked, bỏ `.claude/.*`; F2 Planned đứng trước wind-down/trần và không đếm n → dời xuống
+  sau trần, `save n+1`; F4 Blocked giữ fpn → đặt fpn=0. 3 ca đỏ-trước (FAIL 3 → OK; hook 20 ca, engine 33 ca). Không sửa: F3 echo
+  `stop_hook_active` (FR-10 yêu cầu), F5 hai lần gọi engine mỗi Stop (fail-open, timeout mặc định hook; xem lại khi đo > 5 s/lượt),
+  F6 `|| true` vô hại. `loop-state.py` chạm đúng 400 dòng (trần radar) — tách tiếp khi thêm tính năng.
 
 ## Lần thử / blocker
 

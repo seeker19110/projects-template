@@ -125,14 +125,14 @@ FEATURE-MAP, README khung, CLAUDE.md §1 + AGENTS.md, `copy-framework.manifest`,
 | AC-4 | `scripts/test-loop-state.sh::goal ready/blocked theo Dependency`, `scripts/test-loop-state.sh::goal DONE thiếu Evidence` |
 | AC-5 | `scripts/test-loop-state.sh::completion đếm ô + DoC`, `scripts/test-loop-state.sh::handoff GO/NO-GO/unknown` |
 | AC-6 | `scripts/test-loop-state.sh::không gh → pr.available=false`, `scripts/test-loop-state.sh::gh giả CI FAILURE → sửa CI`, `scripts/test-loop-state.sh::gh giả SUCCESS → waiting`, `scripts/test-loop-state.sh::gh JSON phần tử sai kiểu → ci unknown, không chết` |
-| AC-7 | `scripts/test-loop-state.sh::--enter ghi marker giữ n`, `scripts/test-loop-state.sh::--fingerprint đổi/giữ`, `scripts/test-loop-state.sh::--json parse`, `scripts/test-loop-state.sh::--enter trên done.md → stop, không ghi marker`, `scripts/test-loop-state.sh::đường dẫn Unicode + locale C không --root → vẫn chạy` |
+| AC-7 | `scripts/test-loop-state.sh::--enter ghi marker giữ n`, `scripts/test-loop-state.sh::--fingerprint đổi/giữ`, `scripts/test-loop-state.sh::--json parse`, `scripts/test-loop-state.sh::--enter trên done.md → stop, không ghi marker`, `scripts/test-loop-state.sh::đường dẫn Unicode + locale C không --root → vẫn chạy`, `scripts/test-loop-state.sh::sửa file đã dirty → vân tay đổi` |
 | AC-8 | `scripts/test-py-coverage.sh`, `scripts/arch-health-radar.sh`, `scripts/check-python-complexity.sh` |
 | AC-9 | `tests/test_adaptive_process.py::test_auto_complete_chains_existing_playbooks_under_3d`, `tests/test_adaptive_process.py::test_auto_complete_loads_loop_state` |
-| AC-10 | pending — PR-B (U3): scripts/test-hooks-loop.sh ca "vân tay không đổi 2 lượt → cho dừng", "vân tay đổi → block" |
-| AC-11 | pending — PR-B (U3): scripts/test-hooks-loop.sh ca "Planned → block chưa bắt đầu", "Blocked → n=0" |
-| AC-12 | pending — PR-B (U3): scripts/test-hooks-loop.sh ca "reason có verdict" |
+| AC-10 | `scripts/test-hooks-loop.sh::vân tay không đổi 2 lượt → cho dừng`, `scripts/test-hooks-loop.sh::vân tay đổi → block`, `scripts/test-hooks-loop.sh::thiếu python3 → cksum cũ` |
+| AC-11 | `scripts/test-hooks-loop.sh::Planned → block chưa bắt đầu`, `scripts/test-hooks-loop.sh::Planned + wind-down → allow`, `scripts/test-hooks-loop.sh::Planned → đếm n, chạm trần → allow`, `scripts/test-hooks-loop.sh::Blocked → n=0` |
+| AC-12 | `scripts/test-hooks-loop.sh::reason có verdict`, `scripts/test-hooks-loop.sh::session-resume in loop-state khi marker còn` |
 | AC-13 | `scripts/test-check-scripts.sh::goal State DONE được mục 15 kiểm`, `tests/test_adaptive_process.py::test_wip_cap_is_five_everywhere` |
-| AC-14 | pending — PR-B (U3): scripts/test-hooks-session.sh ca "telemetry ghi work_id từ marker" |
+| AC-14 | `scripts/test-hooks-session.sh::telemetry ghi work_id từ marker` |
 
 ## 10. UX/content/accessibility
 
