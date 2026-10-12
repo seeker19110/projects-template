@@ -128,7 +128,11 @@ class DecisionOrder(TestCase):
 
     def test_auto_complete_chains_existing_playbooks_under_3d(self):
         cmd = read(".claude/commands/auto-complete.md")
-        for ref in ("`/auto`", "`/completion`", "§3d", "§8", "--check-plan", "working.md", "Definition of Complete"):
+        for ref in ("`/auto`", "`/completion`", "§3d", "§8", "--check-plan", "working.md", "Definition of Complete",
+                    # 2026-10-12 (đối chiếu stored K4): chuỗi trọn vòng — dựng nền greenfield, ADR cho kiến trúc, bàn giao có bằng chứng
+                    "`/bootstrap`", "Sẵn sàng phát triển", "docs/adr/", "release-readiness.md", "done.md",
+                    # review tách người viết trước mỗi PR; smoke thật + chạy được từ clone sạch trước khi bàn giao
+                    "`/review`", "security-review", "smoke", "clone sạch", ".env.example"):
             self.assertIn(ref, cmd, f"auto-complete.md phải trỏ {ref}")
         for never in ("deploy/production", "thanh toán", "dữ liệu thật", "quá 3 lần"):
             self.assertIn(never, cmd, f"auto-complete.md phải giữ mốc không tự quyết: {never}")

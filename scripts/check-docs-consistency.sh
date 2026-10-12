@@ -374,7 +374,7 @@ else
   fi
 fi
 
-# Mục 12–15 (mẫu mồ côi, hồ sơ docs/work, bảng Hook, goal file) nằm ở helper cùng thư mục — tách vì trần 400 dòng.
+# Mục 12–16 (mẫu mồ côi, hồ sơ docs/work + done.md, bảng Hook, goal file, ADR phương án) nằm ở helper cùng thư mục — tách vì trần 400 dòng.
 # shellcheck source=scripts/_docs-consistency-structure.sh
 source scripts/_docs-consistency-structure.sh
 

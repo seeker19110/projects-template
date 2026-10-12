@@ -353,4 +353,58 @@ git -C "$d" add -A
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "KHÔNG chặn oan goal COMPLETE đủ bằng chứng (DONE/DROPPED, cột Nghiệm thu) (mục 15)" || bad "chặn OAN goal đủ bằng chứng (rc=$rc)"
 
+# Mục 13b (2026-10-12, đối chiếu stored K1): done.md là tín hiệu DỪNG của auto-complete-guard → nội dung phải có nghiệm thu thật.
+# Sự cố thật: b7bd718 đưa done.md còn "Trạng thái: Active" + placeholder lên nhánh (git mv sau khi sửa giữ blob cũ, TRAPS 70).
+mk_done() {  # $1 = repo giả, $2 = dòng trạng thái, $3 = nội dung "Nghiệm thu cuối"
+  mkdir -p "$1/docs/work/2026-10-12-gia-done"
+  printf '# Công việc: x\n\n- Work ID: 2026-10-12-gia-done\n- Trạng thái: %s\n\n## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)\n\n%s\n' "$2" "$3" > "$1/docs/work/2026-10-12-gia-done/done.md"
+}
+d="$(setup_repo)" || exit 1
+mk_done "$d" "Active (chờ PR)" "- PR MERGED: #12 → abc1234"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'mục 13b' "$WORK/check-output" && ok "bắt được done.md chưa Done (mục 13b)" || bad "KHÔNG bắt được done.md còn Active (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_done "$d" "Done 2026-10-12" "<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
+ngày và người nghiệm thu theo ủy quyền.>"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'placeholder' "$WORK/check-output" && ok "bắt được done.md còn placeholder (mục 13b)" || bad "KHÔNG bắt được done.md còn placeholder mẫu (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_done "$d" "Done 2026-10-12" "- DoD đạt, đã merge."
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'PR/SHA' "$WORK/check-output" && ok "bắt được done.md không có PR/SHA (mục 13b)" || bad "KHÔNG bắt được done.md thiếu PR/SHA (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_done "$d" "Done 2026-10-12 (PR #12)" "- PR MERGED: #12 → \`abc1234\` trên main; DoD đạt."
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan done.md đủ nghiệm thu (mục 13b)" || bad "chặn OAN done.md đủ nghiệm thu (rc=$rc)"
+
+# Mục 16 (2026-10-12, đối chiếu stored K2): ADR phải ghi ≥ 2 phương án đã cân nhắc/loại — chọn kiến trúc tự động mà không có
+# phương án loại là hội tụ sớm (ADR 0003/0004 dùng tiêu đề "Phương án đã loại": chấp nhận cả hai tiêu đề).
+mk_adr() { printf '# ADR-0099: giả\n\n## Bối cảnh\n\nx\n\n## Quyết định\n\ny\n%s\n## Hệ quả\n\nz\n' "$1" > "$d/docs/adr/0099-gia.md"; }
+d="$(setup_repo)" || exit 1
+mk_adr ""
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'mục 16' "$WORK/check-output" && ok "bắt được ADR không có mục phương án (mục 16)" || bad "KHÔNG bắt được ADR thiếu mục phương án (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_adr $'\n## Các phương án đã cân nhắc\n\n- Phương án A: chỉ một.\n'
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q '0099-gia' "$WORK/check-output" && ok "bắt được ADR chỉ 1 phương án (mục 16)" || bad "KHÔNG bắt được ADR 1 phương án (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_adr $'\n## Phương án đã loại\n\n| Phương án | Vì sao loại |\n| --- | --- |\n| A | đắt |\n| B | chậm |\n'
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan ADR 2 phương án (mục 16)" || bad "chặn OAN ADR 2 phương án dạng bảng (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+mk_adr $'\n## Các phương án đã cân nhắc\n\n**A. Giữ nguyên.** rẻ nhưng không kiểm được.\n\n**B. Cổng máy.** chọn.\n'
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan ADR phương án dạng đoạn in đậm (mục 16)" || bad "chặn OAN ADR phương án '**A. …**' (rc=$rc)"
+
+
 finish "check-docs-consistency.sh + check-ci-policy.sh bắt đúng lỗi + không chặn oan."
