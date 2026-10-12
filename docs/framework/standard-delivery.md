@@ -306,7 +306,7 @@ migration/data tests cho DB, eval/cost/safety cho AI, platform/device tests cho 
 - Model, effort, chế độ tự động: `models-and-automation.md`.
 - Cổng chất lượng đo được theo hồ sơ C1–C10 và ma trận bằng chứng (hành vi/UX/dữ liệu/bảo mật/release): `quality-gates-by-profile.md`.
 - Mức nghiêm ngặt ngành (ASVS, SOLID, 12-Factor, GDPR/SOC2): `industry-standards.md`.
-- Học từ nguồn ngoài (ba cột, cổng sự cố thật): `adopt-from-outside.md`.
+- Học từ nguồn ngoài (ba cột, cổng "tốt hơn bản hiện có"): `adopt-from-outside.md`.
 - Quy trình PR → merge + giải xung đột (luật đầy đủ của CLAUDE.md §8): `pr-flow.md`.
 - Hoàn thiện dự án (bản đồ tính năng, vòng hội tụ): `project-completion.md`.
 - Checklist chất lượng: `quality-supplements.md`.

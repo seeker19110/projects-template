@@ -10,7 +10,8 @@ Chép một thực hành hay vào một repo **đã có thực hành đó** khô
 không ai biết chỗ nào đúng. Với repo khung, rủi ro còn cao hơn: khung là thứ được **chép sang nhiều dự án**,
 nên một luật thừa nhân bản theo.
 
-Rủi ro ngược lại cũng thật: bỏ qua một thứ hay chỉ vì "trông quen quen". Ba cột dưới đây tách hai ca đó ra.
+Rủi ro ngược lại cũng thật: bỏ qua một thứ hay chỉ vì "trông quen quen", hoặc vì "chưa gặp sự cố nào". Ba cột
+dưới đây tách hai ca đó ra.
 
 ## 1. Ba cột — bắt buộc điền đủ
 
@@ -20,27 +21,42 @@ Với **mỗi** hạng mục của nguồn ngoài, xếp vào đúng một cột
 |---|---|---|
 | **Đã có và SÂU HƠN** | ở đây đã có, và bản ở đây mạnh hơn | không lấy gì; ghi một câu *mạnh hơn ở chỗ nào* |
 | **Đã có nhưng NÔNG HƠN** | cùng ý, bản ở đây yếu hơn ở một điểm **cụ thể** | chỉ lấy **đúng điểm đó**, không lấy cả hạng mục |
-| **CHƯA CÓ** | không có gì tương đương | phải qua được cổng §2 mới được lấy |
+| **CHƯA CÓ** | không có gì tương đương | lấy khi chứng minh được **tốt hơn bản hiện có** theo §2 |
 
 Không có cột "hay quá, lấy luôn". Một hạng mục không xếp được vào cột nào nghĩa là bạn chưa hiểu nó hoặc
 chưa hiểu repo mình — đọc tiếp, đừng chép.
 
-## 2. Cổng cho cột "CHƯA CÓ": phải ứng với một SỰ CỐ THẬT
+## 2. Cổng cho cột "CHƯA CÓ" và "NÔNG HƠN": phải **tốt hơn bản hiện có**, chứng minh được
 
-Trả lời được câu này thì mới lấy:
+> Luật từ 2026-10-12 (chủ repo quyết): **không cần có sự cố mới được lấy** — một hạng mục chỉ cần **tốt hơn
+> bản hiện có** là cập nhật. Bản trước (2026-09-14 → 2026-10-11) đòi "phải ứng với một sự cố thật"; lý do đổi:
+> cổng đó chặn luôn cả cải tiến thật — thứ bắt được lớp lỗi *trước khi* nó xảy ra, hoặc làm cùng việc rẻ hơn.
 
-> Hạng mục này giải quyết **sự cố nào đã thực sự xảy ra**?
+Trả lời được câu này thì lấy:
 
-Bằng chứng nhận được: một mục trong `TRAPS.md`; một bug/incident đã ghi; một PR phải làm lại; một lần audit
-phát hiện; một lần người dùng phải sửa tay thứ đáng lẽ tự động. **Không** nhận: "thực hành tốt mà", "sớm muộn
-cũng cần", "repo kia có mà mình không có".
+> So với **bản đang chạy ở đây** (cổng/script/luật hiện có, hoặc "không có gì" nếu cột CHƯA CÓ), hạng mục này
+> **tốt hơn ở điểm nào, đo/kiểm được bằng cách nào**?
 
-Không có sự cố tương ứng → xếp **"chưa cần"**, ghi rõ lý do, và ghi luôn **điều kiện xem lại** (vd *"xem lại
-khi số lệnh > 5"*). "Chưa cần" không phải "không bao giờ" — nó là một quyết định có hạn dùng.
+"Tốt hơn" phải **cụ thể và bác lại được** — ít nhất một trong các dạng sau, ghi rõ dạng nào:
 
-**Riêng repo KHUNG (`projects-template`):** sự cố được tính cả ở **dự án đích** mà khung phục vụ, không chỉ ở
-repo khung. Khung tồn tại để đóng gói bài học **trước khi** dự án đích mắc lại. Nhưng vẫn phải chỉ ra sự cố
-thật ở đâu đó — "về lý thuyết thì tốt" vẫn không đủ.
+- **Bắt thêm một lớp lỗi** bản hiện có bỏ lọt (nêu được ca cụ thể bản hiện có cho qua; sự cố thật trong
+  `TRAPS.md`/bug đã ghi/PR làm lại/phát hiện audit là bằng chứng **mạnh nhất**, nhưng không bắt buộc).
+- **Cùng kết quả, ít hơn**: ít code/bước/cấu hình/dependency/việc bảo trì hơn (thang `CLAUDE.md` §3.4, bậc 2 §3d).
+- **Kiểm được hơn**: biến một luật chỉ có văn xuôi thành cổng máy, hoặc bằng chứng rẻ/rõ hơn.
+- **Nhanh/rẻ hơn** đo được (thời gian, token, chi phí) khi ba điểm trên hoà.
+
+**"Tốt hơn" là tốt hơn RÒNG:** trừ đi những gì nó mang thêm vào — một luật nữa phải nhớ, một file nữa phải đồng bộ,
+một dependency, một bước vận hành. Thứ chỉ *trông* hay nhưng cộng thêm nặng mà không bắt thêm lỗi, không bớt việc,
+không kiểm được hơn → **không tốt hơn**. "Thực hành tốt mà", "repo kia có", "sớm muộn cũng cần" vẫn **không** là
+lý do — đó là cảm tính, không phải phép so sánh với bản hiện có.
+
+Không chứng minh được tốt hơn (hoặc chưa đo được) → xếp **"chưa cần"**, ghi rõ lý do, và ghi luôn **điều kiện
+xem lại** (vd *"xem lại khi số lệnh > 5"*, *"khi có ca đo được"*). "Chưa cần" không phải "không bao giờ" — nó là
+một quyết định có hạn dùng.
+
+**Riêng repo KHUNG (`projects-template`):** "tốt hơn" được tính cả cho **dự án đích** mà khung phục vụ, không chỉ
+cho repo khung — khung tồn tại để đóng gói cải tiến **trước khi** dự án đích cần tới. Nhưng vẫn phải chỉ ra tốt
+hơn ở đâu, bằng gì — "về lý thuyết thì tốt" vẫn không đủ.
 
 ## 3. Luật quan trọng nhất: **grep CỔNG ĐANG CHẠY, đừng đọc văn xuôi**
 
@@ -88,8 +104,9 @@ Một **bản đối chiếu** lưu lại (`docs/reports/<ngày>-doi-chieu-<ngu�
 - mọi **đính chính giữa chừng** giữ nguyên trong văn bản, không xoá dấu vết. Một ứng viên bị chính phép đo
   của mình loại bỏ là **kết quả**, không phải thất bại cần giấu.
 
-Con số 1–2 trên 25 hạng mục là bình thường và là dấu hiệu phương pháp đang chạy đúng. Con số 20/25 gần như
-luôn nghĩa là bước §3 bị bỏ.
+Không có con số "đúng" phải đạt: lấy 0 hay lấy 10 đều hợp lệ nếu mỗi dòng có phép so sánh với bản hiện có.
+Dấu hiệu phương pháp bị bỏ là ở **lý do**, không ở số lượng: một dòng "chưa có" mà `grep` ra cổng đang chạy (§3
+bị bỏ), hoặc một dòng "lấy" chỉ ghi "hay" mà không nói tốt hơn ở điểm nào (§2 bị bỏ).
 
 ## 6. Cạm bẫy đã mắc
 

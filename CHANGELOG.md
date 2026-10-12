@@ -11,6 +11,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Docs (2026-10-12): `adopt-from-outside.md` §2 đổi cổng cột "chưa có"/"nông hơn" từ "phải ứng với sự cố thật" sang
+  "tốt hơn bản hiện có, chứng minh được" (4 dạng, tính ròng; sự cố thật là bằng chứng mạnh nhất, không bắt buộc); CLAUDE.md §1,
+  AGENTS.md, README khung, standard-delivery §11 cập nhật khớp (Work ID `2026-10-12-adopt-better-than-current`).
 - Fix (2026-10-11, #286): `check-docs-consistency.sh` bắt tham chiếu `.py`/`.css` gãy (F-201); test âm cho docs-consistency mục 2,
   3A, 3B, 4b và `check-ci-policy.sh` mục 7 (F-403); `setup_repo` không còn lẫn output git vào đường dẫn trả về.
 - Fix (2026-10-11, #281): job `maintenance.yml` dừng `::error` khi `maintenance-sweep.sh` chết hoặc báo cáo thiếu dòng tổng,
