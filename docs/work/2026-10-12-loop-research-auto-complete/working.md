@@ -6,7 +6,7 @@
 - Chủ trì / writer: phiên chính (Fable 5.1); 4 agent read-only nghiên cứu web song song (Anthropic / mã mở / thương mại / học thuật).
 - Mức rủi ro / số PR: M; **1 PR** gộp 3 đơn vị (mỗi đơn vị một commit riêng: `4740901` C, `e03887a` B, A + closeout) — harness phiên này chỉ cho push một nhánh (`claude/trusting-cori-2i53gj`), nên không tách PR; phiên chính tự làm (§3c: một PR).
 - Scope / non-goal: Scope = cơ chế vòng lặp (lặp tới goal, verify, phát hiện kẹt/giậm chân, ngân sách, dừng, trạng thái qua phiên, cổng người). Non-goal = runner sửa source không giám sát (quyết 2026-10-10 "chưa", cần threat model riêng — chỉ nêu lại nếu nguồn ngoài cho bằng chứng mới); đổi luật merge/ủy quyền (C1/C2 báo cáo loop-engineering).
-- Spec / goal / issue: báo cáo đối chiếu sẽ tạo ở `docs/reports/` (tên `2026-10-12-doi-chieu-vong-lap-coding`); bốn báo cáo đối chiếu trước là nền: ralph (2026-10-10), loop-engineering (2026-10-11), compound-engineering (2026-10-09), SDD ba vai (2026-10-10).
+- Spec / goal / issue: spec gọn `docs/specs/2026-10-12-loop-guard-auto-complete.md` (Approved 2026-10-12, viết sau code — lệch ghi ở PR); báo cáo đối chiếu ở `docs/reports/` (tên `2026-10-12-doi-chieu-vong-lap-coding`); bốn báo cáo đối chiếu trước là nền: ralph (2026-10-10), loop-engineering (2026-10-11), compound-engineering (2026-10-09), SDD ba vai (2026-10-10).
 - Nhánh / base SHA / thời điểm reconcile: `claude/trusting-cori-2i53gj` @ `770af27` · 2026-10-12T03:40:35Z
 
 ## Kế hoạch và phân công
