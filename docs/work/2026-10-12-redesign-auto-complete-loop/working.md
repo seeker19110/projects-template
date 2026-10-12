@@ -47,6 +47,9 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
   ghi marker cả khi `done.md`; F6/F7 dọn. Sửa cả 5 với 3 ca đỏ-trước (FAIL 3 → OK, 32 ca). **Không sửa** F3 (vân tay đổi khi gh
   chập chờn → hook thấy "tiến triển" thêm một lượt, hướng fail-open, đã nằm trong DEBT `_gh_list`) và F5 (`layer_hint` ưu tiên
   ①② trước ③④ trên cùng dòng — heuristic cho streak=2, giá trị thấp; xem lại khi ca thật định tuyến sai).
+- Phát hiện khung: `Agent(isolation=worktree)` tạo worktree ở `.claude/worktrees/` (trong cây repo, base origin/main chứ không
+  HEAD) → cổng lint `find . -name '*.sh'` quét vào đó và đỏ khi worktree bị dọn giữa chừng. Việc cho lượt hoàn thiện (#4): lint/
+  docs-consistency loại trừ `.claude/worktrees/`; worktree cho worker tạo tay ngoài cây (scratchpad) từ HEAD.
 
 ## Lần thử / blocker
 
@@ -55,9 +58,13 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 
 ## Bàn giao / bước tiếp theo
 
-Worker T1→T2 đang chạy (engine + test). Khi về: đọc diff, chạy `test-loop-state.sh`/`test-py-coverage.sh`/`check-docs-consistency.sh`,
-giao T3 (`standard-worker`), gọi `reviewer` trên diff, `/gate`, commit `feat(loop)`, PR-A (template, Work ID), subscribe + auto-merge.
-Thay đổi chưa commit: báo cáo, ADR-0012, spec, goal, workflow doc, PLAN.md, CLAUDE/AGENTS/README/FEATURE-MAP/CHANGELOG (cây làm việc).
+- PR-A #295 (`334878e`, U1+U2) mở 2026-10-12 20:04Z, auto-merge SQUASH, check-in 5 phút (`trig_01MvpsGuZizsRGRMkuqN4oPs`).
+- Khi #295 merge: ghi SHA vào PROGRESS/goal (U1, U2 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
+- T4 (PR-B, U3) đang giao `standard-worker` trong worktree riêng (base `334878e`): hook guard vân tay + session-resume + telemetry
+  work-id + manifest; về thì áp patch lên nhánh mới, điền spec AC-10..12/14 (`scripts/test-hooks-loop.sh::<ca>`), reviewer, /gate,
+  commit `feat(loop)`, PR-B.
+- Sau PR-B: PR-C đóng hồ sơ (`done.md` 13b, goal COMPLETE, PROGRESS, CHANGELOG) → rồi việc #4: hoàn thiện repo khung Giai đoạn B
+  (Pha 0–4) tham khảo stored 23 §8 (`scripts/model-rates.json` lệch), sửa DoC `COMPLETION-PLAN.md` thành checklist máy đọc.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
