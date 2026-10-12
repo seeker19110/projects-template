@@ -141,8 +141,8 @@ Thứ tự tăng dần để không bị "ngộp lỗi":
 ### Bước 4 — (tùy chọn nhưng khuyến nghị) HOÀN THIỆN toàn dự án
 Áp khung xong (Bước 0–3) mới là "có hàng rào + vận hành đúng". Muốn đưa dự án lên trạng thái
 **không còn lỗi logic/cấu trúc/lỗ hổng ĐÃ BIẾT, các tính năng thống nhất, có bằng chứng** →
-chạy **`/completion`** theo `project-completion.md`: audit 12 nhóm → **kế hoạch hoàn thiện chi
-tiết** (duyệt rồi mới sửa) → thực thi từng đợt qua `/gate` → **re-audit hội tụ** → nghiệm thu
+chạy **`/auto-complete`** (Giai đoạn B) theo `project-completion.md`: audit 12 nhóm → **kế hoạch hoàn thiện chi
+tiết** (chốt rồi mới sửa) → thực thi từng đợt qua `/gate` → **re-audit hội tụ** → nghiệm thu
 theo **Definition of Complete**.
 
 ---

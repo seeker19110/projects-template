@@ -2,8 +2,8 @@
 # session-guide.sh — SessionStart hook.
 # HIỆN cho NGƯỜI DÙNG (systemMessage) gợi ý "nên làm gì tiếp theo" khi mở phiên,
 # CHỈ trong dự án dùng khung/template này. Tự nhận biết trạng thái để gợi ý đúng:
-#   • Chưa có tiến độ  → hướng bắt đầu (mô tả ý tưởng / /consult / /bootstrap / /auto)
-#   • Đang làm dở      → hướng tiếp tục ('tiếp tục' / /auto / /gate)
+#   • Chưa có tiến độ  → hướng bắt đầu (mô tả ý tưởng / /consult / /bootstrap / /auto-complete)
+#   • Đang làm dở      → hướng tiếp tục ('tiếp tục' / /auto-complete / /gate)
 # Đồng thời NHẮC chính sách hai pha (ADR-0007, thay `opusplan` đã ngừng hỗ trợ):
 # PHA LẬP KẾ HOẠCH việc lớn dùng model cao cấp nhất đang sẵn có, PHA THỰC THI quay lại model
 # tiêu chuẩn (mặc định repo: Sonnet 5) + phân việc/PR cho model khác theo độ phức tạp
@@ -16,7 +16,7 @@ ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 command -v jq >/dev/null 2>&1 || { echo "[session-guide] không có jq → không đọc được payload, bỏ qua gợi ý đầu phiên." >&2; exit 0; }
 
 # Marker: chỉ chạy trong dự án áp dụng khung này.
-[ -d "$ROOT/docs/framework" ] || [ -f "$ROOT/.claude/commands/auto.md" ] || exit 0
+[ -d "$ROOT/docs/framework" ] || [ -f "$ROOT/.claude/commands/auto-complete.md" ] || exit 0
 
 # Trích "Giai đoạn hiện tại" thật (bỏ dòng rỗng và placeholder "(vd").
 phase=""
@@ -47,7 +47,7 @@ if [ -z "$phase" ] && [ -z "$dirty" ]; then
 ${mnote}
 Bắt đầu thế nào:
 • Mô tả ý tưởng/yêu cầu dự án — hoặc gõ /consult (chọn công nghệ, research-first)
-• /bootstrap (dựng nền dự án mới)  •  /auto (lập kế hoạch bằng model cao cấp → chạy tự động)
+• /bootstrap (dựng nền dự án mới)  •  /auto-complete (kế hoạch → chạy tự động → hoàn thiện → bàn giao)
 • Model & chế độ tự động: docs/framework/models-and-automation.md"
 else
   extra=""
@@ -57,8 +57,8 @@ else
 ${mnote}
 Tiếp theo nên:
 • Gõ 'tiếp tục' để nối việc dở (PROGRESS.md đã được nạp) — xem mục 'Đang làm'/'Tiếp theo'/'Bàn giao phiên'
-• /auto để tự động điều phối  •  /gate trước khi commit  •  /incident nếu có sự cố
-• /completion để hoàn thiện dự án (audit 12 nhóm → kế hoạch → sửa từng đợt → quét lại đến khi sạch)"
+• /auto-complete để chạy tự động tới xong — kể cả hoàn thiện dự án (audit 12 nhóm → kế hoạch → sửa từng đợt → quét lại đến khi sạch)
+• /gate trước khi commit  •  /incident nếu có sự cố"
 fi
 
 jq -n --arg m "$msg" '{systemMessage:$m}'

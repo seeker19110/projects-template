@@ -141,7 +141,7 @@ Dùng để chọn model **đúng đầu việc**, không phải một model cho
 | **`/audit-optimize`** — audit & tối ưu | Đo baseline, refactor không đổi hành vi | 🟡 | ✅ | ✅✅ | ✅✅ |
 | **`/incident`** — xử lý sự cố production | Giảm thiệt hại, chẩn đoán, post-mortem | ❌ | 🟡 | ✅✅ | ✅✅ |
 | **`/audit-full`** — audit toàn diện 12 nhóm | Quét có bằng chứng, xếp ưu tiên toàn cục | ❌ | ✅ | ✅✅ | ✅✅ |
-| **`/completion`** — hoàn thiện dự án | Kế hoạch hoàn thiện, vòng hội tụ, Definition of Complete | ❌ | 🟡 | ✅✅ | ✅✅ |
+| **`/auto-complete`** — kế hoạch → thực thi → hoàn thiện | Kế hoạch toàn bộ, vòng hội tụ, Definition of Complete | ❌ | 🟡 | ✅✅ | ✅✅ |
 | **quality-supplements** — chống lỗi logic, race/idempotency | Ca biên, tiền tệ, async | 🟡 | 🟡 | ✅✅ | ✅✅ |
 | **existing-project-adoption (brownfield)** | Đọc repo, suy ra stack thật, nâng tăng dần | 🟡 | ✅ | ✅✅ | ✅✅ |
 
@@ -180,7 +180,7 @@ Model là cần thứ nhất; **effort + thinking** là cần thứ hai. Nguyên
 
 Tắt hẳn thinking cho việc siêu nhẹ (tùy chọn) — thêm `{ "env": { "MAX_THINKING_TOKENS": "0" } }` vào `settings.json`, bỏ khi quay lại việc cần nghĩ (Fable 5.1 không tắt được thinking).
 
-Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto` plan mode) đã có **dòng nhắc 💡** ở đầu: gợi ý chuyển tay sang `/model claude-fable-5-1` (hoặc model cao cấp nhất sẵn có) + `/effort xhigh` đúng pha, rồi hạ lại. Đây là **nhắc**, không tự đổi — Claude Code không tự nâng model/effort theo độ khó.
+Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto-complete` plan mode) đã có **dòng nhắc 💡** ở đầu: gợi ý chuyển tay sang `/model claude-fable-5-1` (hoặc model cao cấp nhất sẵn có) + `/effort xhigh` đúng pha, rồi hạ lại. Đây là **nhắc**, không tự đổi — Claude Code không tự nâng model/effort theo độ khó.
 
 > **Độ ưu tiên:** CLI `--effort` / env `CLAUDE_CODE_EFFORT_LEVEL` **>** `settings.json`. Môi trường chạy (vd Claude Code trên web) có thể set sẵn env → **ghi đè** `settings.json` cho phiên đó. `/effort` lúc chạy luôn thắng.
 
@@ -191,14 +191,14 @@ Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto` plan mode)
 Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách vận hành phiên** là cần thứ ba — và tiết kiệm nhiều nhất, vì nó quyết định *bao nhiêu token phải nạp*, không chỉ *giá mỗi token*.
 
 ### 5.1 Plan MỘT LẦN cho cả khối việc — đừng re-plan lắt nhắt
-- **Gom việc lớn vào một phiên plan mode duy nhất** (đúng luồng `/auto`: chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → duyệt 1 cổng → quay lại Sonnet 5 chạy dài). Vào/ra plan mode nhiều lần cho từng việc nhỏ là cách đốt token model cao cấp nhanh nhất — mỗi lần vào, model đó đọc lại toàn bộ ngữ cảnh với giá cao.
+- **Gom việc lớn vào một phiên plan mode duy nhất** (đúng luồng `/auto-complete`: chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → duyệt 1 cổng → quay lại Sonnet 5 chạy dài). Vào/ra plan mode nhiều lần cho từng việc nhỏ là cách đốt token model cao cấp nhanh nhất — mỗi lần vào, model đó đọc lại toàn bộ ngữ cảnh với giá cao.
 - **Ghi kết quả suy nghĩ ra file** (PROGRESS.md, ADR, kế hoạch trong `docs/ops/`): phiên sau đọc lại bằng Sonnet, **không trả tiền model cao cấp suy lại từ đầu**. Đây là "cache chất lượng" rẻ nhất của khung.
 - Hai lỗi ngược nhau, cùng phải tránh:
 
 | Lỗi | Hệ quả | Cách đúng |
 |---|---|---|
 | Vào plan mode cho việc vặt (sửa 1 dòng, đổi tên, format) | Trả giá model cao cấp cho việc không cần suy nghĩ | Làm thẳng ở execution (Sonnet) hoặc giao subagent |
-| Né plan mode khi đụng kiến trúc / nhiều đánh đổi | Phần cần lý luận sâu nhất chạy model yếu hơn → chất lượng tụt, sửa lại còn đắt hơn tiền "tiết kiệm" | Vào plan mode (Shift+Tab hoặc `/auto`) sau khi đã `/model` sang model cao cấp nhất sẵn có |
+| Né plan mode khi đụng kiến trúc / nhiều đánh đổi | Phần cần lý luận sâu nhất chạy model yếu hơn → chất lượng tụt, sửa lại còn đắt hơn tiền "tiết kiệm" | Vào plan mode (Shift+Tab hoặc `/auto-complete`) sau khi đã `/model` sang model cao cấp nhất sẵn có |
 
 ### 5.2 Ngữ cảnh gọn — token rẻ nhất là token KHÔNG nạp
 - **Chỉ nạp phần cần:** CLAUDE.md giữ < 200 dòng; tài liệu dài nằm ở `docs/framework/`, đọc đúng mục đang cần (ghi chú cuối mục 1 CLAUDE.md).
@@ -248,10 +248,10 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 
 ## 6. Chế độ chạy tự động (sơ đồ + thành phần đã bake)
 
-**Một câu:** Tư vấn + chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → bạn duyệt 1 lần → tự động điều phối tới hoàn thành (Sonnet code, Haiku việc phụ, `standard-worker` việc rõ phạm vi), với auto-format + cổng chặn commit đỏ, quyền an toàn, tự nhắc dừng khi gần hết quota 5h, phiên sau "tiếp tục". Kích hoạt: gõ **`/auto`** (nhắc bạn `/model` sang model cao cấp nhất sẵn có trước khi vào plan mode).
+**Một câu:** Tư vấn + chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → phiên chính tự duyệt theo §3d → tự động điều phối tới hoàn thành (rồi hoàn thiện `project-completion.md` + bàn giao) (Sonnet code, Haiku việc phụ, `standard-worker` việc rõ phạm vi), với auto-format + cổng chặn commit đỏ, quyền an toàn, tự nhắc dừng khi gần hết quota 5h, phiên sau "tiếp tục". Kích hoạt: gõ **`/auto-complete`** (nhắc bạn `/model` sang model cao cấp nhất sẵn có trước khi vào plan mode).
 
 ```
-                       /auto  (dự án mới hoặc có sẵn)
+                /auto-complete  (dự án mới · có sẵn · hoàn thiện)
                                   │
                  ┌────────────────▼──────────────────┐
    PLAN MODE  →  │  Model cao cấp nhất sẵn có lên      │  research-first; giao Haiku:
@@ -260,7 +260,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
                  └────────────────┬──────────────────┘
                                   │
                         ┌─────────▼─────────┐
-                        │  1 CỔNG PHÊ DUYỆT  │  ← người dùng xác nhận (ExitPlanMode)
+                        │  1 CỔNG PHÊ DUYỆT  │  ← phiên chính tự duyệt §3d (ExitPlanMode nếu runner bắt)
                         └─────────┬─────────┘
                                   │  (đã duyệt, tự /model quay lại Sonnet 5)
               EXECUTION  →  SONNET 5 viết code, chạy tự động theo kế hoạch
@@ -276,6 +276,8 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
      • sắp nén   → PreCompact   → precompact-checkpoint.sh → chụp git + PROGRESS trước khi nén ngữ cảnh
      • mở phiên  → SessionStart → session-resume.sh → nạp PROGRESS.md + git ("tiếp tục")
                                 └ session-guide.sh  → HIỆN gợi ý "làm gì tiếp theo"
+                                  │
+              Mọi PR merge → hoàn thiện (project-completion.md Pha 0–4) → bàn giao (clone sạch + smoke, GO/NO-GO)
                                   │
               Chỉ DỪNG ở: cổng giai đoạn · các mốc §9 · wind-down gần hết quota
 ```

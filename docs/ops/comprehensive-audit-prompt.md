@@ -6,7 +6,7 @@
 > CI/CD & vận hành, tài liệu có đồng bộ với code thật không, dữ liệu/migration, cấu hình & bí mật,
 > **thống nhất chéo tính năng**. Áp dụng cho cả **dự án mới** (rà lại sau vài mốc) lẫn **dự án
 > có sẵn/brownfield**. Muốn đi xa hơn audit — hoàn thiện dự án đến "không còn lỗi đã biết" theo
-> kế hoạch chi tiết + vòng hội tụ → dùng `/completion` (`docs/framework/project-completion.md`),
+> kế hoạch chi tiết + vòng hội tụ → dùng `/auto-complete` (Giai đoạn B, `docs/framework/project-completion.md`),
 > trong đó Pha 1 chính là audit này.
 > Bám nguyên tắc bất biến `CLAUDE.md` §3–§4, hồ sơ/cổng theo loại dự án ở `KHUNG-3` PHẦN C,
 > checklist chi tiết ở `quality-supplements.md` (Nhóm 1 + Nhóm 2) và `KHUNG-1` (tiêu chuẩn từng giai đoạn).
@@ -160,7 +160,7 @@ Rà các tính năng **cùng loại** xem có làm **cùng một kiểu** không
 **GIAI ĐOẠN 1 — QUÉT (đọc & đo, KHÔNG sửa gì):**
 Thực hiện đúng "Cơ chế quét lại/tiếp tục" ở trên. Sau khi các nhóm áp dụng đều `✅`, tổng hợp
 **BÁO CÁO AUDIT TOÀN DIỆN**: bảng theo 12 nhóm, mỗi phát hiện có **ID cố định (`F-001`, `F-002`…
-— dùng truy vết về sau, nhất là khi vào `/completion`)** · vị trí (file:dòng) · mức độ ·
+— dùng truy vết về sau, nhất là khi vào Giai đoạn B của `/auto-complete`)** · vị trí (file:dòng) · mức độ ·
 đề xuất · rủi ro nếu để nguyên · công sức ước tính. Xếp ưu tiên toàn cục (Cao trước). **RỒI DỪNG,
 chờ duyệt** (theo ủy quyền contract §3d (phiên chính tự duyệt và ghi căn cứ khi quyết định đã được ủy quyền)) — chưa sửa gì.
 

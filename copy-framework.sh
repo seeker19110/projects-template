@@ -196,7 +196,7 @@ echo ""
 echo "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 copy_into "docs/framework"
 # docs/ops: chỉ copy TÀI LIỆU hướng dẫn. Bốn file *-PLAN/*-LOG/*-STATUS là TRẠNG THÁI nội bộ của repo
-# khung (nhật ký /maintain, /completion, /audit-full của chính khung) — copy sang là nhiễu, và chạy lại
+# khung (nhật ký /maintain, /auto-complete, /audit-full của chính khung) — copy sang là nhiễu, và chạy lại
 # để nâng bản sẽ ĐÈ MẤT nhật ký thật của dự án đích (sự cố ghi ở docs/reports/2026-09-23-de-xuat-nang-cap-khung-toan-dien.md C1).
 for f in "$SRC"/docs/ops/*.md; do
   case "$(basename "$f")" in
@@ -204,7 +204,7 @@ for f in "$SRC"/docs/ops/*.md; do
     *) copy_into "docs/ops/$(basename "$f")" ;;
   esac
 done
-copy_into ".claude/commands"                   # slash commands của khung (/consult /bootstrap /auto /gate /adr /ui-ux /audit-* /auto-complete /completion /incident /grill /debug /maintain /contract /deps-upgrade /review)
+copy_into ".claude/commands"                   # slash commands của khung (/consult /bootstrap /gate /adr /ui-ux /audit-* /auto-complete /incident /grill /debug /maintain /contract /deps-upgrade /review)
 while read -r rel; do copy_if_absent "$rel"; done < <(manifest_section docs)
 
 # Không ghi stamp thành công khi còn merge lỗi/xung đột; giữ baseline cũ cho đối chiếu.
@@ -291,7 +291,7 @@ cat <<'NEXT'
      (Prettier → ESLint → TS strict → hook → CI → lấp lỗ hổng test/a11y/hiệu năng).
 
   5) Muốn hoàn thiện toàn dự án (hết lỗi đã biết, tính năng thống nhất, có bằng chứng):
-     gõ /completion — audit 12 nhóm → kế hoạch chi tiết (duyệt) → sửa từng đợt → quét lại đến khi sạch.
+     gõ /auto-complete — audit 12 nhóm → kế hoạch chi tiết (tự duyệt §3d) → sửa từng đợt → quét lại đến khi sạch.
 
   (Tùy chọn) Muốn luật áp cho MỌI dự án trên máy: chép CLAUDE.md vào ~/.claude/CLAUDE.md.
 NEXT

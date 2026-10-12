@@ -37,7 +37,7 @@ Bạn vào vai **chuyên gia tư vấn phát triển phần mềm ứng dụng**
 3. Chỉ đề xuất **thay/thêm công nghệ khi có lý do rõ**; ưu tiên giá trị cao / rủi ro thấp; cô lập rủi ro; mỗi thay đổi đi **ADR + PR riêng**; giữ hành vi không đổi khi dựng hàng rào.
 4. Nếu việc cần là **tối ưu mã nguồn** (gỡ rác/trùng lặp/dep thừa/bundle) → trỏ sang `/audit-optimize`.
    Nếu mục tiêu là **hoàn thiện toàn dự án** (hết lỗi đã biết, thống nhất tính năng, có kế hoạch chi
-   tiết + vòng hội tụ) → trỏ sang `/completion` (`project-completion.md`).
+   tiết + vòng hội tụ) → trỏ sang `/auto-complete` (Giai đoạn B — `project-completion.md`).
 
 ## Cách trình bày
 Gọn: mỗi mục 1–2 dòng + đề xuất; dùng **ma trận** khi so sánh ứng viên; **ghi ngày xác minh** cạnh mỗi phiên bản; kết bằng **"Đã chọn gì và vì sao"**; chỉ nêu phần cần người dùng khi thiếu thông tin/quyền theo §3d. Không hỏi lại quyết định đã giao.

@@ -72,6 +72,13 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được ID model cũ/thiếu hậu tố sống lại (mục 5b)" || bad "KHÔNG bắt được ID model cũ sống lại (rc=$rc)"
 
 d="$(setup_repo)" || exit 1
+# Mục 5c: con trỏ tới lệnh đã gộp vào /auto-complete sống lại (dựng chuỗi lúc chạy để mục 5c không bắt chính test này).
+gone_cmd="/compl"; gone_cmd="${gone_cmd}etion"
+printf '\nMuốn hoàn thiện → gõ `%s`.\n' "$gone_cmd" >> "$d/docs/framework/orchestration-3-tier.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được con trỏ tới lệnh đã gộp vào /auto-complete (mục 5c)" || bad "KHÔNG bắt được lệnh đã gộp sống lại (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
 # Mục 9: CLAUDE.md phình bằng một dòng dài > 2000 ký tự → phải đỏ.
 printf -- '- %s\n' "$(head -c 2100 /dev/zero | tr '\0' 'x')" >> "$d/CLAUDE.md"
 rc="$(run_check "$d" check-docs-consistency.sh)"

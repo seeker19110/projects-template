@@ -74,7 +74,7 @@ class RiskTiers(TestCase):
         self.assertIn("standard-delivery.md` §3c", orch)
 
     def test_entry_docs_route_to_tiers(self):
-        for rel in ("CLAUDE.md", "AGENTS.md", ".claude/commands/auto.md"):
+        for rel in ("CLAUDE.md", "AGENTS.md", ".claude/commands/auto-complete.md"):
             self.assertIn("§3c", read(rel), f"{rel} phải trỏ tới mức quy trình §3c")
 
     def test_feature_gate_still_enforced_by_pr_policy(self):
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
 
 class DecisionOrder(TestCase):
-    """`/auto-complete`: người quyết định là phiên chính theo thứ tự ưu tiên §3d; lệnh chỉ nối /auto → /completion."""
+    """`/auto-complete`: lệnh tự động duy nhất; người quyết định là phiên chính theo thứ tự ưu tiên §3d."""
 
     ORDER = ("Đúng + bảo mật + không mất dữ liệu", "Ít hơn", "Kiểm được", "Nhanh và rẻ")
 
@@ -128,7 +128,7 @@ class DecisionOrder(TestCase):
 
     def test_auto_complete_chains_existing_playbooks_under_3d(self):
         cmd = read(".claude/commands/auto-complete.md")
-        for ref in ("`/auto`", "`/completion`", "§3d", "§8", "--check-plan", "working.md", "Definition of Complete",
+        for ref in ("project-completion.md", "Pha 0–4", "COMPLETION-PLAN.md", "usage-guard", "§3c", "§3d", "§8", "--check-plan", "working.md", "Definition of Complete",
                     # 2026-10-12 (đối chiếu stored K4): chuỗi trọn vòng — dựng nền greenfield, ADR cho kiến trúc, bàn giao có bằng chứng
                     "`/bootstrap`", "Sẵn sàng phát triển", "docs/adr/", "release-readiness.md", "done.md",
                     # review tách người viết trước mỗi PR; smoke thật + chạy được từ clone sạch trước khi bàn giao
@@ -136,6 +136,11 @@ class DecisionOrder(TestCase):
             self.assertIn(ref, cmd, f"auto-complete.md phải trỏ {ref}")
         for never in ("deploy/production", "thanh toán", "dữ liệu thật", "quá 3 lần"):
             self.assertIn(never, cmd, f"auto-complete.md phải giữ mốc không tự quyết: {never}")
+
+    def test_merged_commands_stay_merged(self):
+        # 2026-10-12: hai lệnh kế hoạch-tự-chạy và hoàn-thiện gộp vào /auto-complete; không được tách lại.
+        for gone in ("auto", "completion"):
+            self.assertFalse((ROOT / ".claude" / "commands" / f"{gone}.md").exists(), f"lệnh {gone}.md đã gộp vào auto-complete.md")
 
     def test_entry_docs_mention_auto_complete(self):
         for rel in ("CLAUDE.md", "AGENTS.md"):

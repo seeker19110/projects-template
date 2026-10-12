@@ -266,7 +266,7 @@ cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** 
 >
 > 1. **Sửa bug (`fix:`) phải có test tái hiện chạy đỏ TRƯỚC khi sửa** (`CLAUDE.md` §3.6). Đây không
 >    phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng — không có nó, không biết
->    sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng. `/gate`, `/debug`, `/completion`
+>    sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng. `/gate`, `/debug`, `/auto-complete`
 >    đều áp luật này.
 > 2. **Code MỚI có nhánh điều kiện, tính toán, hoặc xử lý lỗi/quyền cũng phải đỏ trước** (ADR-0005).
 >

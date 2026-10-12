@@ -54,6 +54,9 @@ ALLOW_MISSING_PATH=(
   # Ví dụ minh hoạ quy ước đặt tên changelog (quality-supplements-group1.md mục 9) — file thật
   # sinh ở dự án đích khi cần, không đóng gói sẵn trong repo khung.
   "docs/changelog/0012-2026-09-19-them-xac-thuc-2fa.md"
+  # Lệnh đã gộp vào /auto-complete (2026-10-12); ADR-0011 ghi nguyên văn và ADR không được sửa.
+  # Mục 5c vẫn chặn đường dẫn này ở mọi tài liệu đang dùng (ngoài lịch sử/ADR).
+  ".claude/commands/auto.md"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
@@ -141,7 +144,7 @@ done
 
 # ── 4. Subagent (.claude/agents) ↔ bảng nhãn `route:` trong orchestration-3-tier.md ──
 # VÌ SAO (audit 2026-09-12, F-006): 8 subagent + kiến trúc điều phối 3 tầng trước đây KHÔNG có
-# cổng máy nào — thêm/xoá/đổi tên agent mà quên tài liệu thì `/auto` dispatch tới một nhãn
+# cổng máy nào — thêm/xoá/đổi tên agent mà quên tài liệu thì `/auto-complete` dispatch tới một nhãn
 # `route:` trỏ vào agent không tồn tại, và hỏng đó chỉ lộ ra giữa lúc đang chạy tự động.
 echo "== 4. Subagent ↔ bảng route trong orchestration-3-tier.md =="
 ORCH="docs/framework/orchestration-3-tier.md"
@@ -175,7 +178,7 @@ done < <(grep -oE 'route:[a-z]+[[:space:]]+→[[:space:]]+[a-z-]+' "$ORCH" | sed
 # --- 5. Nhãn effort đã bị RÚT LẠI không được sống lại (audit 2026-09-12, G-003/G-004). ---
 # VÌ SAO: chốt 2026-09-12 hạ effort trần của route:complex từ "Opus · high" xuống "Opus · medium"
 # (PR #69). Quy ước đó được chép tay ở NHIỀU file (orchestration-3-tier.md có 2 chỗ trong CÙNG
-# file, .claude/agents/, models-and-automation.md, auto.md) — không có nguồn duy nhất, nên PR #69
+# file, .claude/agents/, models-and-automation.md, lệnh tự động) — không có nguồn duy nhất, nên PR #69
 # sửa xong vẫn sót một chỗ ngay trong chính file nó vừa sửa (bắt được ở audit toàn diện kế tiếp,
 # không phải bởi cổng nào). Đây là chốt hẹp: cấm CHUỖI CỤ THỂ đã biết là sai sống lại, không cố
 # tổng quát hoá thành trình phân tích ngữ nghĩa (prose mỗi nơi viết một kiểu, dễ báo oan).
@@ -210,6 +213,15 @@ STALE_MODEL_RE='claude-opus-4-[0-9]|claude-fable-5([^-0-9]|$)|Opus 4\.8'
 FORBID_GLOBS=('*.md' '*.sh' '*.ps1' '*.json')
 forbid "$STALE_MODEL_RE" "ID model đã ngừng/sai (claude-opus-4-x, claude-fable-5 thiếu '-1', 'Opus 4.8') còn sót — dùng ID hiện hành trong scripts/model-capability-tiers.json (claude-opus-5-5 / claude-fable-5-1)." 'docs/specs/*' 'docs/reports/*' 'docs/research/*' 'docs/adr/*'
 
+
+# --- 5c. Lệnh đã gộp vào `/auto-complete` không được sống lại (2026-10-12, gộp `/auto` + `/completion`). ---
+# VÌ SAO: hai lệnh được nhắc ở ~20 tài liệu/hook/script đang dùng; mục 3 chỉ soát CLAUDE.md nên một con trỏ
+# sót ở playbook/hook sẽ dạy người dùng gõ lệnh không còn tồn tại. Cùng khuôn mục 5/5b: cấm CHUỖI đã biết là
+# sai; lịch sử (spec/báo cáo/ADR/hồ sơ/changelog) giữ nguyên văn nên được bỏ qua.
+echo "== 5c. Lệnh đã gộp (/auto, /completion) không còn được trỏ tới =="
+FORBID_GLOBS=('*.md' '*.sh' '*.ps1' '*.py')
+forbid '/(auto|completion)([^-a-zA-Z0-9_]|$)' "Lệnh /auto và /completion đã gộp vào /auto-complete (2026-10-12) — trỏ tới \`/auto-complete\` (playbook hoàn thiện: docs/framework/project-completion.md)." \
+  'docs/specs/*' 'docs/reports/*' 'docs/research/*' 'docs/adr/*' 'docs/work/*' 'docs/changelog/*' 'docs/goals/*'
 
 # ── 6. Mọi script trong scripts/ phải được CODEMAP.md khai (audit 2026-09-13, CAO-2). ──
 # VÌ SAO: PR #89/#91 thêm 4 engine (~650 dòng Python) mà KHÔNG thêm dòng nào vào CODEMAP.md và
