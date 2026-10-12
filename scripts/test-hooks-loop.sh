@@ -33,8 +33,10 @@ new_proj() {   # dự án giả: repo git + hồ sơ Active + marker /auto-compl
   printf '%s\n' "$p"
 }
 run_guard() {   # $1 = dự án, $2 = last_assistant_message, [$3 = stop_hook_active] → stdout JSON; stderr vào $WORK/err
-  ( cd "$1" && jq -cn --arg m "$2" --argjson a "${3:-false}" '{last_assistant_message:$m, stop_hook_active:$a}' \
-      | CLAUDE_PROJECT_DIR="$1" bash "$HOOK" 2>"$WORK/err" )
+  # Here-string, KHÔNG `jq | hook`: hook `exit 0` trước khi đọc stdin (không marker) → jq ghi vào pipe đã đóng → SIGPIPE,
+  # pipefail biến thành rc=141 (tái hiện 13/400 lượt, chặn oan cổng commit 2026-10-12).
+  local pl; pl="$(jq -cn --arg m "$2" --argjson a "${3:-false}" '{last_assistant_message:$m, stop_hook_active:$a}')"
+  ( cd "$1" && CLAUDE_PROJECT_DIR="$1" bash "$HOOK" 2>"$WORK/err" <<<"$pl" )
 }
 decision() {   # exit 0 không JSON = allow (jq với input rỗng không in gì → phải xử lý riêng)
   [ -n "$1" ] || { echo allow; return; }
