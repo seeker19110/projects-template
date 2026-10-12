@@ -9,7 +9,7 @@
 > cùng PR**. Repo lớn/nhiều package → tách `<package>/CODEMAP.md` riêng, dòng ở đây chỉ tóm tắt +
 > trỏ tới file con.
 
-_Chưa có mục nào. Lập lần đầu ở Pha 0 của `/completion` (đọc code + package.json/Makefile thật, không
+_Chưa có mục nào. Lập lần đầu ở Pha 0 của `project-completion.md` (`/auto-complete` Giai đoạn B) (đọc code + package.json/Makefile thật, không
 đoán); cập nhật mỗi khi cấu trúc đổi._
 
 ## Mẫu bảng

@@ -343,7 +343,7 @@ Write-Host @'
      (Prettier → ESLint → TS strict → hook → CI → lấp lỗ hổng test/a11y/hiệu năng).
 
   5) Muốn hoàn thiện toàn dự án (hết lỗi đã biết, tính năng thống nhất, có bằng chứng):
-     gõ /completion — audit 12 nhóm → kế hoạch chi tiết (duyệt) → sửa từng đợt → quét lại đến khi sạch.
+     gõ /auto-complete — audit 12 nhóm → kế hoạch chi tiết (tự duyệt §3d) → sửa từng đợt → quét lại đến khi sạch.
 
   (Tùy chọn) Muốn luật áp cho MỌI dự án trên máy: chép CLAUDE.md vào ~/.claude/CLAUDE.md.
 '@

@@ -126,7 +126,7 @@ hoặc chạy **Bước 0** của `docs/framework/existing-project-adoption.md` 
 `package.json`/config — không cần bạn khai) nếu là dự án có sẵn. Từ đó dựng nền theo đúng hồ sơ đã
 chọn: lint/format → type-check nghiêm → hook → CI → lấp lỗ hổng test/a11y/hiệu năng theo hồ sơ.
 Muốn **hoàn thiện toàn dự án** (hết lỗi đã biết, tính năng thống nhất, có bằng chứng) → gõ
-`/completion` (`docs/framework/project-completion.md`).
+`/auto-complete` (Giai đoạn B: `docs/framework/project-completion.md`).
 
 > *Vì sao phải copy chứ không "đưa link": một phiên Claude Code chỉ tự nạp luật từ chính repo của nó
 > (và `~/.claude/CLAUDE.md`), không đọc được repo khác qua link.* Chi tiết brownfield: `docs/framework/existing-project-adoption.md`.

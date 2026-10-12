@@ -11,7 +11,7 @@
 - Có một dự án cần rà & tối ưu: gỡ dead code, giảm trùng lặp/độ phức tạp, tỉa dependency thừa, thu nhỏ bundle.
 - Đặc biệt hợp với dự án đã chạy lâu, tích nhiều "nợ kỹ thuật".
 - Nếu người dùng chỉ nói ngắn gọn **"tối ưu"** (không rõ phạm vi) — đây có thể là tối ưu mã nguồn
-  (đúng file này), tối ưu hiệu năng runtime, hoặc muốn hoàn thiện toàn dự án (`/completion`).
+  (đúng file này), tối ưu hiệu năng runtime, hoặc muốn hoàn thiện toàn dự án (`/auto-complete`).
   Xem `CLAUDE.md` mục 1b để hỏi rõ trước khi chạy, trừ khi ngữ cảnh đã đủ rõ (vd người dùng nói
   thẳng "gỡ dead code"/"code thừa"/"bundle to quá").
 

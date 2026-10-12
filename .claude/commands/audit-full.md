@@ -6,7 +6,7 @@ description: Audit toàn diện mọi khía cạnh dự án — quét lại từ
 
 > 💡 Model/effort: theo `docs/framework/models-and-automation.md` §3–§4 và ADR-0010 §4.
 
-- Khác `/audit-optimize` (chỉ tối ưu mã nguồn); muốn đi đến "không còn lỗi đã biết" → `/completion`.
+- Khác `/audit-optimize` (chỉ tối ưu mã nguồn); muốn đi đến "không còn lỗi đã biết" → `/auto-complete` (Giai đoạn B, `project-completion.md`).
 - Chạy **Bước -1 trước cả Bước 0**: nếu là khung trống → DỪNG, gợi ý `/consult` hoặc `/bootstrap`, không bịa phát hiện.
 - Ở Bước 0, khi đã có `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`: tóm tắt trạng thái rồi hỏi (quét lại / tiếp tục) bằng `AskUserQuestion` theo ủy quyền contract §3d.
 - Giai đoạn 1 chỉ đọc & đo; xong báo cáo thì **DỪNG chờ duyệt** (§3d). Giai đoạn 2 chỉ sau khi duyệt, từng PR nhỏ qua `/gate`.

@@ -16,7 +16,7 @@
 | `adopt-from-outside.md` | HOC-NGOAI | Học từ repo/khung/skill BÊN NGOÀI: ba cột (sâu hơn / nông hơn / chưa có), cổng "tốt hơn bản hiện có, chứng minh được", luật **grep cổng đang chạy đừng đọc văn xuôi**, kiểm mâu thuẫn luật | Được đưa một nguồn ngoài và bảo "lấy cái hay về" |
 | `ui-ux-intelligence-provider.md` | UI-INTELLIGENCE | Contract provider-neutral cho design intelligence bên ngoài: precedence, query nhỏ nhất, verify/fallback, adapter `ui-ux-pro-max`/Impeccable; provider chỉ là recommendation | Khi `/ui-ux` cần nguồn gợi ý bên ngoài hoặc dự án đã có provider UI/UX |
 | `existing-project-adoption.md` | AP-DUNG | Áp khung lên dự án CÓ SẴN: tự dò stack, hàng rào tăng dần, không big-bang (Bước 0→4) | Brownfield (`/consult`) |
-| `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/completion`) |
+| `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/auto-complete` Giai đoạn B) |
 | `quality-supplements.md` | BO-SUNG | **Trang mục lục** trỏ tới 4 phần dưới đây | Tra checklist chi tiết |
 | `quality-supplements-group1.md` | BO-SUNG · Nhóm 1 | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ `CONTEXT.md` | Tra Nhóm 1 mục N |
 | `quality-supplements-group2.md` | BO-SUNG · Nhóm 2 | mobile-first, hiệu năng/Lighthouse, E2E + a11y + coverage, UI/UX, chống lỗi logic, observability, tối ưu mã nguồn | Tra Nhóm 2 mục N |
@@ -29,7 +29,7 @@
 | `strict-gate-contract.md` | GATE | Contract gate thực thi: 4 kết quả BLOCKED/READY/FAIL/PASS (+ N/A) và exit code của `scripts/dev-task.sh` | Cấu hình/chẩn đoán cổng máy (`doctor`, `gate`) |
 | `pr-flow.md` | PR-FLOW | Luật đầy đủ quy trình PR → merge tự động + giải xung đột (CLAUDE.md §8 chỉ tóm tắt) | Mở/merge PR hoặc gặp xung đột |
 | `case-study-greenfield-dry-run.md` | — | Chạy thật runbook trên `create-next-app` thật: 3 lỗi tìm được + đã vá, bằng chứng chạy đầu-cuối | Kiểm chứng khung / trước khi tin runbook |
-| `templates/` | — | Bản mẫu sạch trong thư mục: `GOAL`, `FEATURE-SPEC`, `WORK`, `THREAT-MODEL`, `DATA-GOVERNANCE`, `GOVERNANCE`, `SUPPORT`, `FEATURE-MAP`, `CONVENTIONS`, `COMPLETION-PLAN`, `AI-EVAL`, `GOLDEN-TEST`, `TRAPS`, `CODEMAP` (đều `*.template.md`) + `ci-target.yml`. `PROGRESS.template.md` nằm ở GỐC repo, không trong `templates/` | Pha 1/3 của `/completion`; tạo artifact mới |
+| `templates/` | — | Bản mẫu sạch trong thư mục: `GOAL`, `FEATURE-SPEC`, `WORK`, `THREAT-MODEL`, `DATA-GOVERNANCE`, `GOVERNANCE`, `SUPPORT`, `FEATURE-MAP`, `CONVENTIONS`, `COMPLETION-PLAN`, `AI-EVAL`, `GOLDEN-TEST`, `TRAPS`, `CODEMAP` (đều `*.template.md`) + `ci-target.yml`. `PROGRESS.template.md` nằm ở GỐC repo, không trong `templates/` | Pha 1/3 của `project-completion.md` (`/auto-complete`); tạo artifact mới |
 | `FRAMEWORK-VERSION` | — | (Chỉ có ở DỰ ÁN ĐÍCH — sinh tự động bởi `copy-framework.sh`/`.ps1`) `version:` (file `VERSION` của khung, SemVer) + commit + ngày + **manifest hash từng file Lớp 1**; nâng bản: `bash copy-framework.sh <đích> --upgrade` (giữ chỉnh sửa cục bộ: hash khớp manifest → cập nhật, đã sửa → merge 3 chiều hoặc để `.framework-new`); `maintenance-sweep.sh` 🟡 khi quá 90 ngày | Muốn biết dự án đích dùng khung bản nào / nâng bản |
 
 ## Tên cũ (tiếng Việt) → tên mới — cho dự án đã copy khung bản trước
@@ -55,7 +55,7 @@
 | `/tu-van` | `/consult` | | `/audit-toan-dien` | `/audit-full` |
 | `/cong` | `/gate` | | `/audit-toi-uu` | `/audit-optimize` |
 | `/khoi-tao` | `/bootstrap` | | `/su-co` | `/incident` |
-| `/tu-dong` | `/auto` | | *(mới)* | `/completion` |
+| `/tu-dong` | `/auto-complete` (gộp 2026-10-12) | | *(mới)* | `/auto-complete` (gộp 2026-10-12) |
 | `/lam-toi-xong` | `/auto-complete` | | | |
 
 Subagent: `tra-cuu` → `lookup` · `kiem-tra-phien-ban` → `version-check` · `thuc-thi` → `standard-worker`.

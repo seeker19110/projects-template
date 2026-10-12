@@ -11,6 +11,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Refactor! (2026-10-12): bỏ `/auto` và `/completion`, gộp hết vào `/auto-complete` — lệnh tự động duy nhất, tự chứa
+  (điểm vào A kế hoạch → thực thi, B hoàn thiện theo `project-completion.md`, C bàn giao; wind-down/resume). Người dùng cũ:
+  thay `/auto` và `/completion` bằng `/auto-complete`; muốn duyệt kế hoạch hoàn thiện bằng tay thì nói khi giao việc.
+  Cổng docs-consistency mục 5c chặn con trỏ tới hai lệnh cũ ngoài lịch sử. Spec `docs/specs/2026-10-12-gop-auto-completion.md`.
 - Feat (2026-10-12): đối chiếu kho `seeker19110/stored` (23 chuyên mục) để `/auto-complete` chạy trọn nghiên cứu → kiến trúc →
   kế hoạch → code → loop → fix → bàn giao. Lấy 4 điểm "tốt hơn bản hiện có": docs-consistency mục 13b (`done.md` phải có
   `Trạng thái: Done`, không placeholder, có PR/SHA — TRAPS 70) và mục 16 (ADR ≥ 2 phương án); `permissions.ask` cho script cổng,

@@ -8,20 +8,20 @@
 > đó. "Dữ liệu đụng tới" = file/thư mục nó đọc-ghi. Lập từ việc đọc file thật (`ls`, `copy-framework.sh`,
 > `scripts/*.sh`, `.github/workflows/*`) — không đoán.
 
-## A. Slash command (17; `/maintain` được ghi cùng agent ở mục B) — `.claude/commands/`
+## A. Slash command (15 — lệnh lập-kế-hoạch-tự-chạy và lệnh hoàn-thiện cũ gộp vào `/auto-complete` 2026-10-12; `/maintain` được ghi cùng agent ở mục B) — `.claude/commands/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-01 | Tư vấn chọn công nghệ (research-first) | `/consult` | `docs/framework/03-*`, `docs/research/` | ✅ | ✅ có giới hạn: brownfield research-first chạy thật 2026-10-09 với `version-check` nguồn sống (4 gói, `docs/reports/2026-10-09-target-completion.md`); tồn tại + khớp CLAUDE.md qua `check-docs-consistency.sh` §3; chưa có lượt greenfield chọn stack mới |
 | FT-02 | Khởi tạo dự án mới (greenfield) | `/bootstrap` | `new-project-runbook.md`, dropins | ✅ | như trên; case-study chạy thật Bước 1–5 |
-| FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
-| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (`/auto` → `/completion` một lượt) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định); greenfield `/bootstrap` → "Sẵn sàng phát triển", ADR, bàn giao `release-readiness.md` GO/NO-GO | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3; vòng giữ lượt: FT-74; nới cấu hình cổng qua `permissions.ask` (`test-hooks-gate-guard.sh` mục 19) |
+| FT-03 | Chạy tự động (plan → điều phối) | `/auto-complete` Giai đoạn A | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
+| FT-71 | Chạy tới xong, tự quyết theo thứ tự ưu tiên §3d (kế hoạch → thực thi → hoàn thiện → bàn giao một lượt; lệnh tự động duy nhất) | `/auto-complete` | `standard-delivery.md` §3d, `docs/work/<id>/working.md` (dòng quyết định); greenfield `/bootstrap` → "Sẵn sàng phát triển", ADR, bàn giao `release-readiness.md` GO/NO-GO | ✅ | `tests/test_adaptive_process.py::DecisionOrder` + `check-docs-consistency.sh` §3; vòng giữ lượt: FT-74; nới cấu hình cổng qua `permissions.ask` (`test-hooks-gate-guard.sh` mục 19) |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
 | FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |
 | FT-07 | Audit tối ưu mã nguồn | `/audit-optimize` | `docs/ops/code-optimization-audit-prompt.md` | ✅ | như trên |
 | FT-08 | Audit toàn diện 12 nhóm | `/audit-full` | `comprehensive-audit-prompt.md`, `COMPREHENSIVE-AUDIT-STATUS.md` | ✅ | như trên |
-| FT-09 | Hoàn thiện dự án (5 pha) | `/completion` | `project-completion.md`, `COMPLETION-PLAN.md`, 4 file trạng thái | ✅ | như trên |
+| FT-09 | Hoàn thiện dự án (5 pha) | `/auto-complete` Giai đoạn B | `project-completion.md`, `COMPLETION-PLAN.md`, 4 file trạng thái | ✅ | như trên |
 | FT-10 | Xử lý sự cố production | `/incident` | `docs/ops/incident-response.md` | ✅ | như trên |
 | FT-11 | Phỏng vấn dồn dập làm rõ yêu cầu | `/grill` | `CONTEXT.md` (dự án đích) | ✅ | như trên |
 | FT-12 | Chẩn đoán bug khó | `/debug` | `TRAPS.md` | ✅ | như trên |

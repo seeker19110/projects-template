@@ -12,7 +12,11 @@
 - `/gate` — cổng commit/merge từng thay đổi (Pha 3 đi qua cổng này).
 - `/audit-optimize` — playbook refactor không đổi hành vi (dùng cho các việc tối ưu trong kế hoạch).
 
-## Khi nào dùng (`/completion`)
+## Khi nào dùng (`/auto-complete`, Giai đoạn B)
+
+> Điểm vào duy nhất là `/auto-complete` (gộp lệnh hoàn thiện riêng cũ, 2026-10-12). Mọi cổng "người dùng duyệt/xác nhận"
+> trong playbook này do **phiên chính tự duyệt theo `standard-delivery.md` §3d** và ghi một dòng vào
+> `docs/work/<id>/working.md`; người dùng muốn tự duyệt tay thì nói rõ khi giao việc.
 
 - Dự án **có sẵn** muốn "hoàn thiện tốt nhất có thể": hết lỗi đã biết, thống nhất, có bằng chứng.
 - Dự án **mới** trước mốc lớn (ra mắt, bàn giao, gọi vốn) — rà tổng + đóng mọi lỗ hổng còn mở.
@@ -59,7 +63,7 @@
 - [ ] **Lập/cập nhật `CODEMAP.md`** (mẫu: `docs/framework/templates/CODEMAP.template.md`, ở gốc dự án):
       với mỗi khu vực/package chính, một dòng dạng bảng gồm 3 cột — thay đổi thường gặp, file/thư mục
       cần sửa, lệnh/cổng cần chạy lại. Đọc code + `package.json`/Makefile thật để biết lệnh nào chạy
-      đúng — không đoán. File đã tồn tại (từ lần `/completion` trước) → rà lại cho khớp cấu trúc hiện
+      đúng — không đoán. File đã tồn tại (từ lần hoàn thiện trước) → rà lại cho khớp cấu trúc hiện
       tại, đừng viết lại từ đầu.
 - [ ] **Cổng Pha 0:** người dùng xác nhận Hồ sơ dự án + Bản đồ tính năng (đúng/đủ chưa) trước khi quét.
 

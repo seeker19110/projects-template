@@ -70,3 +70,4 @@ sửa prompt 11 agent (điều kiện xem lại: khi nghiệm thu phiên thật 
 ## Approval
 
 Approved for implementation — phiên chính duyệt theo ủy quyền chủ repo ngày 2026-10-09; một PR, không hạ cổng.
+<!-- contract-exempt: .claude/commands/auto.md — gộp vào `.claude/commands/auto-complete.md` 2026-10-12 (docs/specs/2026-10-12-gop-auto-completion.md); spec này viết TRƯỚC quyết định đó nên giữ nguyên làm hồ sơ lịch sử -->

@@ -274,3 +274,4 @@ Không còn blocking decision.
 
 <!-- contract-exempt: scripts/verify-dropins.sh — gỡ khỏi repo khung theo ADR-0004 (bỏ scaffold Web mặc định, commit 98546db); spec này viết TRƯỚC quyết định đó nên giữ nguyên làm hồ sơ lịch sử -->
 <!-- contract-exempt: package.json — file của DỰ ÁN ĐÍCH, repo khung cố ý không có (CLAUDE.md §10) -->
+<!-- contract-exempt: .claude/commands/completion.md — gộp vào `.claude/commands/auto-complete.md` 2026-10-12 (docs/specs/2026-10-12-gop-auto-completion.md); spec này viết TRƯỚC quyết định đó nên giữ nguyên làm hồ sơ lịch sử -->
