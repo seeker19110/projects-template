@@ -1409,3 +1409,19 @@ làm script chết), 0 mục CP-* được đối chiếu và script vẫn in `O
 
 *Cổng chốt chặn:* `test-check-scripts.sh` — chạy `check-ci-policy.sh` từ `scripts/` (rc 0, không `No such file`); xoá dòng `needs:` của
 `gate` (rc 1 + `::error` nhắc needs); SHA mất backtick trong PROGRESS.md (rc ≠ 0 + `::error` + PF-2/3/4 vẫn chạy); mỗi ca đo ĐỎ trước khi sửa (2026-10-11).
+
+## 70. `git mv` SAU khi sửa nội dung — commit chỉ mang phép đổi tên, nội dung sửa nằm lại ngoài index
+
+*Ngày:* 2026-10-12 (`b7bd718`, đóng hai hồ sơ sau #287). Sửa nội dung `working.md` (trạng thái Done, nghiệm thu) bằng script rồi mới
+`git mv working.md done.md`: `git mv` đưa vào index **blob đang có trong index** (bản cũ), không phải bản đã sửa trên đĩa. Commit ra
+`done.md` vẫn ghi `Trạng thái: Active` + placeholder mẫu; cổng xanh vì docs-consistency mục 13 chỉ đếm tên file. Chỉ lộ ra khi Stop hook
+`stop-hook-git-check.sh` báo "uncommitted changes" sau push — sửa bằng amend (`bd62325`). Nguy hiểm thật với `/auto-complete`:
+`done.md` là tín hiệu DỪNG của `auto-complete-guard.sh`, nên một `done.md` rỗng nội dung cho vòng dừng mà không có nghiệm thu.
+
+*Cách rà:* sau mọi `git mv`, chạy `git status --short` — dòng `RM` (renamed + modified) nghĩa là còn thay đổi chưa stage; `git add` lại
+file đích trước khi commit. Tổng quát: tín hiệu dừng/hoàn thành phải được kiểm ở **nội dung**, không chỉ ở tên file.
+
+*Cổng chốt chặn:* docs-consistency mục 13b (`check_done_record` ở `scripts/_docs-consistency-structure.sh`): `done.md` phải có
+`- Trạng thái: Done`, không còn placeholder WORK.template, có PR/SHA ở "Nghiệm thu cuối"; negative test ở `scripts/test-check-scripts.sh`,
+đo ĐỎ trước khi thêm cổng (2026-10-12). Giới hạn đã biết: `permissions.ask` cho file cấu hình cổng chỉ che Edit/Write, không che
+lệnh Bash ghi file (`sed -i`, `>`); chưa có hook PreToolUse soi Bash cho việc này — xem lại khi có ca nới cấu hình qua Bash.

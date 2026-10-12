@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _docs-consistency-structure.sh — mục 12–15 của scripts/check-docs-consistency.sh (`source`, KHÔNG chạy trực tiếp):
+# _docs-consistency-structure.sh — mục 12–16 của scripts/check-docs-consistency.sh (`source`, KHÔNG chạy trực tiếp):
 # mẫu mồ côi, khuôn hồ sơ docs/work/<id>/, bảng Hook ↔ settings.json. Tách 2026-10-10 vì file gốc vượt 400 dòng
 # (radar). Chạy ở gốc repo, dùng `fail` của script gọi; negative test ở scripts/test-check-scripts.sh.
 # shellcheck disable=SC2034  # fail: đọc bởi check-docs-consistency.sh sau khi source
@@ -41,6 +41,20 @@ check_work_record() {  # $1 = thư mục docs/work/<id>/; in lỗi và trả 1 k
     echo "::error file=$dir::Hồ sơ '$id' phải có đúng MỘT trong working.md/done.md (đang có $n)."
     rc=1
   fi
+  [ -f "$dir/done.md" ] && { check_done_record "$dir/done.md" || rc=1; }
+  return "$rc"
+}
+# Mục 13b (2026-10-12, đối chiếu stored K1): done.md là tín hiệu DỪNG của auto-complete-guard.sh → tên file thôi chưa đủ,
+# nội dung phải là nghiệm thu thật. Sự cố thật: b7bd718 đưa lên nhánh done.md còn "Trạng thái: Active" + placeholder mẫu
+# (git mv SAU khi sửa nội dung → index giữ blob cũ, TRAPS 70). PR/SHA tìm trong "Nghiệm thu cuối"; hồ sơ cũ không có mục đó
+# thì tìm trong cả file.
+check_done_record() {  # $1 = docs/work/<id>/done.md; in lỗi, trả 1 khi sai
+  local f="$1" rc=0 sec
+  grep -Eq '^- Trạng thái:[[:space:]]*Done' "$f" || { echo "::error file=$f::done.md không ghi '- Trạng thái: Done …' — tên file nói xong mà nội dung chưa (mục 13b)."; rc=1; }
+  grep -q '<DoD, mọi PR MERGED' "$f" && { echo "::error file=$f::done.md còn placeholder mẫu WORK.template ở 'Nghiệm thu cuối' — điền DoD, PR + merge SHA, giới hạn (mục 13b)."; rc=1; }
+  sec="$(awk '/^## Nghiệm thu cuối/{f=1;next} f&&/^## /{exit} f' "$f")"
+  [ -n "$sec" ] || sec="$(cat "$f")"
+  printf '%s' "$sec" | grep -Eq '#[0-9]+|\b[0-9a-f]{7,40}\b' || { echo "::error file=$f::done.md không có PR/SHA làm bằng chứng nghiệm thu (vd '#123 → abc1234') (mục 13b)."; rc=1; }
   return "$rc"
 }
 for dir in docs/work/*/; do
@@ -102,4 +116,29 @@ check_goal_file() {   # $1 = docs/goals/<id>.md; in lỗi, trả 1 khi sai
 for f in docs/goals/*.md; do
   [ -f "$f" ] && [ "$(basename "$f")" != "README.md" ] || continue
   check_goal_file "$f" || fail=1
+done
+
+# VÌ SAO (2026-10-12, đối chiếu stored K2): /auto-complete tự chọn kiến trúc; ADR không ghi phương án đã loại thì không ai
+# kiểm được là đã cân nhắc hay hội tụ sớm vào ý đầu tiên. Mỗi ADR (trừ template) phải có mục "Các phương án…" hoặc
+# "Phương án đã loại" với ≥ 2 phương án (dòng bullet/đánh số, đoạn "**A. …**", hoặc hàng dữ liệu của bảng). Không chấm nội dung.
+echo "== 16. docs/adr: mỗi ADR ghi ≥ 2 phương án đã cân nhắc/loại =="
+check_adr_alternatives() {  # $1 = docs/adr/NNNN-*.md; in lỗi, trả 1 khi sai
+  local f="$1" n
+  n="$(awk '
+    /^## (Các phương án|Phương án)/ { f = 1; seen = 1; tbl = 0; next }
+    f && /^## / { exit }
+    f && /^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]/ { c++ }
+    f && /^\*\*[A-Z0-9]+[.)]/ { c++ }        # đoạn in đậm "**A. …**" (ADR-0005)
+    f && /^\|/ { if (/^\|[[:space:]]*:?-+/) next; tbl++; if (tbl > 1) c++ }
+    f && !/^\|/ { tbl = 0 }
+    END { print (seen ? c + 0 : -1) }' "$f")"
+  if [ "$n" = "-1" ]; then
+    echo "::error file=$f::ADR không có mục '## Các phương án đã cân nhắc' / '## Phương án đã loại' (mục 16)."; return 1
+  elif [ "$n" -lt 2 ]; then
+    echo "::error file=$f::ADR chỉ ghi $n phương án — cần ≥ 2 (phương án chọn so với ít nhất một phương án loại, kèm vì sao) (mục 16)."; return 1
+  fi
+}
+for f in docs/adr/[0-9]*.md; do
+  [ -f "$f" ] && [ "$(basename "$f")" != "0000-template.md" ] || continue
+  check_adr_alternatives "$f" || fail=1
 done

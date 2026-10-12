@@ -175,8 +175,15 @@ if command -v jq >/dev/null 2>&1; then
   fi
   # Rà lại audit 2026-10-10: githook là hàng rào cho harness ngoài Claude Code → sửa phải hỏi (F-S02); deny publish/chạy mã
   # từ xa bắt cả dạng có tham số đứng trước (`mvn clean deploy`, `./gradlew clean publish`, `deno run --allow-all https://…`) (F-S07).
+  # 2026-10-12 (đối chiếu stored K3, xboss protect-config): sửa script cổng / rulesets / config lint-test-coverage phải HỎI —
+  # chống "làm cổng xanh bằng nới cấu hình" khi chạy tự trị (/auto-complete); `ask` chỉ che Edit/Write (TRAPS 70).
   rules=('ask|Edit(scripts/githooks/**)' 'deny|Bash(mvn * deploy*)' 'deny|Bash(./gradlew * publish*)'
-         'deny|Bash(deno run *https://*)' 'deny|Bash(deno run *http://*)')
+         'deny|Bash(deno run *https://*)' 'deny|Bash(deno run *http://*)'
+         'ask|Edit(scripts/check-*.sh)' 'ask|Edit(scripts/_docs-consistency*.sh)' 'ask|Edit(scripts/test-py-coverage*.sh)'
+         'ask|Edit(.github/rulesets/**)' 'ask|Edit(.github/dependabot.yml)'
+         'ask|Edit(**/tsconfig*.json)' 'ask|Edit(**/eslint.config.*)' 'ask|Edit(**/.eslintrc*)' 'ask|Edit(**/vitest.config.*)'
+         'ask|Edit(**/jest.config.*)' 'ask|Edit(**/playwright.config.*)' 'ask|Edit(**/lighthouserc*)' 'ask|Edit(**/.coveragerc)'
+         'ask|Edit(**/.nycrc*)' 'ask|Edit(**/ruff.toml)' 'ask|Edit(**/.pre-commit-config.yaml)' 'ask|Edit(**/.markdownlint*)')
   for rule in "${rules[@]}"; do
     if jq -e --arg k "${rule%%|*}" --arg r "${rule#*|}" '.permissions[$k] | index($r)' "$ROOT/.claude/settings.json" >/dev/null 2>&1; then
       ok "${rule%%|*} có ${rule#*|}"

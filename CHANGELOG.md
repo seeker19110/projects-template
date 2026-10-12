@@ -11,6 +11,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Feat (2026-10-12): đối chiếu kho `seeker19110/stored` (23 chuyên mục) để `/auto-complete` chạy trọn nghiên cứu → kiến trúc →
+  kế hoạch → code → loop → fix → bàn giao. Lấy 4 điểm "tốt hơn bản hiện có": docs-consistency mục 13b (`done.md` phải có
+  `Trạng thái: Done`, không placeholder, có PR/SHA — TRAPS 70) và mục 16 (ADR ≥ 2 phương án); `permissions.ask` cho script cổng,
+  rulesets, dependabot và config lint/test/coverage (chống nới cấu hình để xanh); `/auto-complete` nối `/bootstrap` (greenfield),
+  ADR khi chọn kiến trúc, `/review` tách người viết trước mỗi PR, và bàn giao: chạy được từ clone sạch + smoke thật,
+  `release-readiness.md` GO/NO-GO. Báo cáo `docs/reports/2026-10-12-doi-chieu-stored.md`;
+  spec `docs/specs/2026-10-12-auto-complete-tron-vong.md`.
 - Feat (2026-10-12): đối chiếu vòng lặp coding tự động (Anthropic harness/`/goal`/plugin ralph, OpenHands/SWE-agent/Aider/
   Gas Town/autoresearch/superpowers, Codex Goals/Copilot/Jules/Devin/Cursor, 23 bài nghiên cứu) → 41 cơ chế, lấy 3 cổng máy
   (báo cáo `docs/reports/2026-10-12-doi-chieu-vong-lap-coding.md`, phụ lục `ConardLi/garden-skills` lấy 0): (A) hook Stop

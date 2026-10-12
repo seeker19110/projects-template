@@ -168,7 +168,25 @@
       "Edit(scripts/_dev-task-verify.sh)",
       "Edit(scripts/_stack-detect.sh)",
       "Edit(scripts/githooks/**)",
-      "Write(scripts/githooks/**)"
+      "Write(scripts/githooks/**)",
+      "Edit(scripts/check-*.sh)",
+      "Edit(scripts/_docs-consistency*.sh)",
+      "Edit(scripts/test-py-coverage*.sh)",
+      "Edit(.github/rulesets/**)",
+      "Write(.github/rulesets/**)",
+      "Edit(.github/dependabot.yml)",
+      "Edit(**/tsconfig*.json)",
+      "Edit(**/eslint.config.*)",
+      "Edit(**/.eslintrc*)",
+      "Edit(**/vitest.config.*)",
+      "Edit(**/jest.config.*)",
+      "Edit(**/playwright.config.*)",
+      "Edit(**/lighthouserc*)",
+      "Edit(**/.coveragerc)",
+      "Edit(**/.nycrc*)",
+      "Edit(**/ruff.toml)",
+      "Edit(**/.pre-commit-config.yaml)",
+      "Edit(**/.markdownlint*)"
     ]
   },
   "hooks": {
