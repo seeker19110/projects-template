@@ -333,7 +333,7 @@ runner ở dự án đích phải được cấu hình và kiểm chứng riêng
 | `session-resume.sh` | SessionStart | Nạp PROGRESS.md + git → "tiếp tục" nối lại; xóa marker wind-down |
 | `session-guide.sh` | SessionStart | Hiện gợi ý "làm gì tiếp theo"; hiện model phiên hiện tại + nhắc chính sách hai pha (không so khớp đúng/sai với một alias cố định — ADR-0007) |
 | `block-dangerous-git.sh` | PreToolUse(Bash) | Chặn git nguy hiểm theo ngữ cảnh (force-push/xoá `main`, `reset --hard`, `clean -f`…); đã bỏ dữ liệu trong nháy/heredoc, soi cả `bash -c`/`eval` (TRAPS 62) |
-| `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
+| `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp); chuỗi đỏ **cùng chữ ký** đếm ở `.claude/.gate-red-streak`: lần 2 nhắc ghi lỗi ở tầng (§3b), ≥ 3 nhắc §8 BLOCKED; chữ ký khác về 1, xanh xoá |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `ui-intelligence.sh` | PostToolUse(Edit\|Write) | Gợi ý UI/UX khi sửa file giao diện — opt-in, không chặn |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
