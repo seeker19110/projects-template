@@ -1299,6 +1299,14 @@ chính chỉ để đứng ở `main`; `coordinator.md` 2a/2b đã bắt worker 
 Cổng máy: chưa có (`DEBT: hook SessionStart/PreToolUse chưa cảnh báo khi checkout có staged change mà nhánh vừa đổi | trần: chỉ
 quy ước | xem lại khi: khuôn này tái phát lần 2`).
 
+**Tái phát 2026-10-12 (biến thể ĐO, không phải commit):** phiên chính chạy `/gate` trên checkout chính trong lúc 2 subagent chạy
+suite test (`test-check-scripts.sh` chép fixture theo `git ls-files`, `test-*` tạo file probe `scripts/zz-probe-*`) trong CÙNG
+checkout → docs-consistency mục 13b đỏ trên `done.md` KHÔNG đổi (2 lần, 2 file khác nhau) + 4 lần đỏ vì file probe lạ; chạy riêng
+30 lần: 0 lần 13b. Không phải lỗi code PR — là nhiễu do chia sẻ working tree khi tải cao. *Luật phiên:* không chạy `/gate`/cổng tổng
+khi còn subagent chạy test trong checkout; worker test ở worktree riêng (scratchpad, tạo từ HEAD — `Agent(isolation=worktree)` tạo
+`.claude/worktrees/` trong cây repo dựa trên `origin/main`, không dùng được cho việc xếp chồng). Hồ sơ:
+`docs/work/2026-10-12-redesign-auto-complete-loop/done.md`, lượt hoàn thiện `docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/`.
+
 ## 64. Biên dịch lại test sinh máy trong cùng giây, cùng kích thước → Python chạy `.pyc` CŨ, kết quả sai chiều
 
 *Ngày:* 2026-10-10 (PR #261, đối chiếu SDD ba vai). Viết test cho bước CI "Spec contracts" ở dự án đích: ca 2 (spec Approved trỏ

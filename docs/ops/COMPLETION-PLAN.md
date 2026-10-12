@@ -1,4 +1,48 @@
-# COMPLETION-PLAN — trạng thái hiện hành 2026-10-09
+# COMPLETION-PLAN — trạng thái hiện hành 2026-10-12
+
+## Chu kỳ 2026-10-12 — hoàn thiện repo khung sau vòng lặp `/auto-complete` v2 (trạng thái: 🔄)
+
+Yêu cầu: chủ repo 2026-10-12 "xong rồi hoàn thiện khung này luôn, tham khảo cả repo stored" → `/auto-complete` Giai đoạn B (Pha 0–4)
+trên chính repo khung (brownfield). Hồ sơ: `docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/` (mọi quyết định tự duyệt §3d ghi ở đó).
+Cổng Pha 0 và cổng "DỪNG trình kế hoạch + DoC" (Pha 2): phiên chính tự duyệt theo §3d, 2026-10-12.
+
+## Definition of Complete (chu kỳ 2026-10-12 — checklist máy đọc, `loop-state.sh` đếm ô)
+
+- [ ] 0 phát hiện **Cao** còn mở; mọi Trung/Thấp (F-001..F-010) có kết cục trong bảng W hoặc mục "chấp nhận rủi ro".
+- [ ] `bash scripts/loop-state.sh --brief` trên hồ sơ lượt này: `completion` đếm được (open 0 · doing 0), không còn hồ sơ `working.md` Active nào khác.
+- [ ] Cổng khung xanh trên `main` sau PR cuối: `dev-task.sh gate` PASS, docs-consistency/ci-policy/progress-freshness OK, radar 100/100 **và** "Việc cần làm" rỗng, `maintenance-sweep.sh --strict --no-deps` 🔴 0 🟡 0.
+- [ ] Bảng giá `scripts/model-rates.json` khớp nguồn sống (ngày xác minh trong file), mọi model khung gợi ý có khoá riêng, có test đỏ-trước.
+- [ ] `PROGRESS.md`, `CODEMAP.md`, `copy-framework.manifest`, `docs/FEATURE-MAP.md`, CHANGELOG khớp `main` sau lượt; hồ sơ → `done.md` theo 13b.
+
+Pha 1 (đo, không sửa — base `eb6430a`): radar 100/100 nhưng "Việc cần làm" 1 (`maintenance-sweep.sh` 403 dòng); sweep `--strict --no-deps`
+🔴 0 · 🟡 1 (DEBT thiếu "xem lại khi" — dương tính giả: DEBT `_gh_list` ở `loop-state.py` trải nhiều dòng docstring); docs-consistency ✅,
+ci-policy ✅, progress-freshness ✅, gate PASS; `loop-state.sh --brief`: `completion: open 1 doing 1 … DoC chưa tick 0/0` (chu kỳ 2026-09-12
+còn W-306/W-308 mở, DoC đầu file không phải checklist), `handoff: NO-GO (18/18 ô trống)`; 3 hồ sơ `working.md` Active dù PR đã merge
+(#267, #280, #277–#286) → `--enter` không gắn được hồ sơ; stored 23 §8: "bảng giá model lệch giữa khung và xgold" → đối chiếu nguồn sống
+(platform.claude.com/docs/en/about-claude/pricing, 2026-10-12): 6 khoá hiện có đúng, **thiếu** `haiku-5-5` (0.10/0.50 — rơi về `haiku` 1/5),
+`sonnet-4` (3/15 — rơi về `sonnet` 2/10), `sonnet-5-5` chỉ đúng nhờ khớp chuỗi con; lint khung `find . -name "*.sh"` quét `.claude/worktrees/`
+(gate đỏ transient khi harness dọn worktree); cổng tổng chập chờn khi subagent chạy test cùng checkout (TRAPS 63 tái phát).
+**Cao: 0 · Trung: 3 (F-001, F-002, F-005) · Thấp: 4 (F-003, F-004, F-006, F-007) · Thông tin: 3 (F-008, F-009, F-010).**
+
+| ID | Từ phát hiện | Việc | Tiêu chí nghiệm thu | Phụ thuộc | Ước lượng | Trạng thái | PR / bằng chứng |
+|----|--------------|------|---------------------|-----------|-----------|-----------|-----------------|
+| W-401 | F-001 | Đóng 3 hồ sơ stale → `done.md` theo 13b (PR/SHA thật), PROGRESS hết "ĐANG CHẠY"/"đang mở" sai | docs-consistency 13/13b OK; chỉ còn 1 `working.md` Active (lượt này) | — | S | 🔄 | PR-1 |
+| W-402 | F-002 | DoC checklist máy đọc ở đầu `COMPLETION-PLAN.md`; đóng chu kỳ 2026-09-12 (W-306, W-308 có bằng chứng) | `loop-state.sh --brief` → `completion: open 0 doing 0 … DoC chưa tick n/n` với n > 0 | — | S | 🔄 | PR-1 |
+| W-407 | F-007 | TRAPS 63 ghi tái phát biến thể đo (test cùng checkout → 13b đỏ giả) + luật phiên | mục 63 có "Tái phát 2026-10-12" | — | S | 🔄 | PR-1 |
+| W-403 | F-004 | DEBT `_gh_list` (`loop-state.py`) về một dòng đúng khuôn `DEBT: … \| trần: … \| xem lại khi: …` | sweep 🟡 0 (ngoại lệ 3 §3.6: docstring) | — | S | ⬜ | PR-2 |
+| W-404 | F-003 | Tách mảng 2 (dependency: `_deps_*`, `dep_manifest_dirs`, `detect_deps_cmd`, `sweep_deps`) của `maintenance-sweep.sh` sang helper mới scripts/_sweep-deps.sh (khuôn `_stack-detect.sh`), manifest + CODEMAP | radar "Việc cần làm" rỗng, 0 file mã > 400; `test-maintenance-sweep.sh` 11 mục xanh không đổi; `test-copy-framework.sh` OK (ngoại lệ 2 §3.6: di chuyển cơ học) | W-403 (cùng PR) | S | ⬜ | PR-2 |
+| W-406 | F-006 | Lint khung (`.claude/project-commands.sh`) bỏ `./.claude/worktrees/*` như `check-shell-complexity.sh` | probe `.claude/worktrees/zz/x.sh` có lỗi shellcheck: lint đỏ trước → xanh sau (ngoại lệ 3: config) | — | S | ⬜ | PR-2 |
+| W-405 | F-005 | `model-rates.json`: thêm `haiku-5-5` 0.10/0.50, `sonnet-5-5` 2/10, `sonnet-4` 3/15; `_verified_on` 2026-10-12 + `_source`; test mục 3 thêm `claude-haiku-5-5` + mốc giá (đỏ-trước) | `test-telemetry-and-dispatch.sh` mục 3 đỏ với bản cũ → xanh; `test_wip`/radar không đổi | — | S | ⬜ | PR-3 |
+| W-408 | F-002 (sau PR cuối) | Re-audit Pha 4: radar, sweep, gate, `loop-state.sh --brief`; tick DoC; hồ sơ → `done.md`, PROGRESS, CHANGELOG | DoC 5/5 có bằng chứng | W-401..W-406 | S | ⬜ | PR-4 (đóng) |
+
+Phát hiện chấp nhận rủi ro / không sửa (lý do, phiên chính §3d, 2026-10-12): **F-008** `release-readiness.md` NO-GO 18/18 ô trống →
+repo khung không có bản phát hành để GO/NO-GO (file là mẫu cho dự án đích); engine báo `handoff: NO-GO` là tín hiệu đúng dữ liệu, không
+phải lỗi — xem lại khi khung có quy trình release riêng. **F-009** FT-13 ⚠️ (subagent không tạo agent lồng) và FT-41 🚧 (cần tài khoản thật)
+giữ nguyên quyết định 2026-10-09. **F-010** `loop-state.py` đúng 400 dòng (trần radar) — tách tiếp khi thêm tính năng, không tách rỗng.
+Giới hạn trung thực: "lệch với xgold" (stored 23 §8) không kiểm được từ phiên này (repo xgold ngoài phạm vi) — chỉ xác minh khung với nguồn sống.
+
+---
+
 
 ## Lượt `/auto-complete` 2026-10-09 trên chính repo khung — ĐÃ ĐÓNG (nghiệm thu: `docs/reports/2026-10-09-auto-complete-run.md`)
 
@@ -183,6 +227,8 @@ nằm trong PR bàn giao này; không suy ra hosted CI hoặc UAT của sản ph
 
 ## Definition of Complete (lượt này)
 
+> Chu kỳ 2026-09-12 đóng 2026-10-12 bởi chu kỳ sau (W-306/W-308 ✅ ở trên); các ô dưới KHÔNG tick hồi tố — nghiệm thu tương đương nằm ở DoC chu kỳ 2026-10-12 đầu file.
+
 - [ ] 0 phát hiện **Cao** còn mở (F-001, F-002).
 - [ ] Mọi phát hiện Trung/Thấp có kết cục: sửa xong, hoặc chấp nhận rủi ro ghi vào `PROGRESS.md`.
 - [ ] Mọi cổng tự kiểm của khung xanh: `check-docs-consistency.sh`, `check-ci-policy.sh`,
@@ -220,9 +266,9 @@ nằm trong PR bàn giao này; không suy ra hosted CI hoặc UAT của sản ph
 | W-303 | F-009 | Test RLS "thử vượt quyền" trong dropins | Test đọc/ghi hàng của user khác → bị từ chối | — | M | ➖ hết hiệu lực (2026-09-12, ADR-0004) — dropins Supabase đã gỡ khỏi repo khung, không còn RLS mẫu để test |
 | W-304 | F-010 | ADR + job tổng hợp `gate: needs: [...]` trong `ci.yml`; cập nhật `repository-settings.md` | ADR-0003 tồn tại; `check-ci-policy.sh` xanh; branch protection chỉ cần 1 tên | W-103 | M | ✅ `check-ci-policy.sh` §4 + NT: gỡ pin → rc=1 |
 | W-305 | F-011 | Ràng `.nvmrc` ↔ mọi `node-version:` trong workflow | Lệch → đỏ; có negative test | — | S | ✅ `check-ci-policy.sh` §5 + NT: đổi node-version → rc=1 |
-| W-306 | F-012 | Cập nhật `PROGRESS.md` (SHA, goal, nợ kỹ thuật) | Khớp `main` thật cuối lượt | mọi W | S | ⬜ |
+| W-306 | F-012 | Cập nhật `PROGRESS.md` (SHA, goal, nợ kỹ thuật) | Khớp `main` thật cuối lượt | mọi W | S | ✅ đóng 2026-10-12 (muộn): PROGRESS được cập nhật mỗi chu kỳ từ 2026-09-25, cổng `progress-freshness` (PF-1..4) chạy ở PR + main từ #250 |
 | W-307 | F-013 | Comment `# cố ý KHÔNG -e` tại 8 file dùng `set -uo pipefail` | 8/8 file có comment; `CONVENTIONS.md` đã ghi (xong ở Pha 0) | — | S | ✅ 9/9 file `set -uo pipefail` có comment giải thích |
-| W-308 | F-014 | Xoá nhánh đã merge; bật auto-delete branch | Còn `main` + nhánh đang mở; ô trong `repository-settings.md` được tick | W-101 | S | 🔄 đã tra cứu qua GitHub API: 31/32 nhánh có PR `merged_at` thật (danh sách dưới) — 1 nhánh (`claude/opusplan-model-config-2ojq58`, PR #28) **closed KHÔNG merge**, giữ lại. **Bị chặn xoá:** `git push --delete` bị auto-mode classifier từ chối (destructive git) — cần người dùng tự xoá qua GitHub UI/Settings→Branches, hoặc cấp quyền Bash cho lệnh này. Bật auto-delete branch vẫn `⬜` (thuộc `repository-settings.md`, cần chủ repo bật trên GitHub Settings). |
+| W-308 | F-014 | Xoá nhánh đã merge; bật auto-delete branch | Còn `main` + nhánh đang mở; ô trong `repository-settings.md` được tick | W-101 | S | ✅ đóng 2026-10-12 (muộn): `gh api repos/seeker19110/projects-template` → `delete_branch_on_merge: true`, `branches` chỉ còn `main` (2026-10-12T22:50Z). Lịch sử: 🔄 đã tra cứu qua GitHub API: 31/32 nhánh có PR `merged_at` thật (danh sách dưới) — 1 nhánh (`claude/opusplan-model-config-2ojq58`, PR #28) **closed KHÔNG merge**, giữ lại. **Bị chặn xoá:** `git push --delete` bị auto-mode classifier từ chối (destructive git) — cần người dùng tự xoá qua GitHub UI/Settings→Branches, hoặc cấp quyền Bash cho lệnh này. Bật auto-delete branch vẫn `⬜` (thuộc `repository-settings.md`, cần chủ repo bật trên GitHub Settings). |
 | W-309 | F-015 | `test-copy-framework.sh` báo RÕ khi bỏ qua `.ps1` (không im lặng) + CI khẳng định đã chạy | Máy không có pwsh → in cảnh báo nổi bật; CI có bước xác nhận đã test `.ps1` | — | S | ✅ cảnh báo nổi bật + `REQUIRE_PWSH=1` trên CI + NT: rc=1 khi thiếu pwsh |
 | W-311 | F-016 | Gỡ 4 file giờ đã tồn tại thật (`docs/CONVENTIONS.md`, `docs/FEATURE-MAP.md`, `docs/ops/COMPLETION-PLAN.md`, `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`) khỏi `ALLOW_MISSING_PATH` | Xoá một trong 4 file → cổng đỏ | — | S | ✅ gỡ 4 file khỏi allowlist + NT: xoá `docs/FEATURE-MAP.md` → cổng đỏ |
 | W-312 | F-017 | `check-docs-consistency.sh` dùng `git grep` nên **không quét file chưa `git add`** → lượt chạy local báo PASS oan (đã xảy ra thật trong phiên này) | Sửa tham chiếu gãy ở file chưa track → cổng vẫn bắt được | — | S | ✅ `git grep --untracked` + NT: file chưa track có link gãy → cổng đỏ |

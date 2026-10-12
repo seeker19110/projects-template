@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-10-traps-48-update-branch
 - Yêu cầu / outcome: ghi tái phát TRAPS 48 (vector `gh pr update-branch`, PR #263) + luật ở `pr-flow.md`; checkpoint PROGRESS sau #263.
-- Trạng thái: Active
+- Trạng thái: Done 2026-10-12 (PR #267 squash merge `c755c90`; hồ sơ đóng muộn ở lượt hoàn thiện 2026-10-12)
 - Chủ trì / writer: phiên chính (Fable 5.1)
 - Mức rủi ro / số PR: S; 1 PR chỉ tài liệu (ngoại lệ 3 §3.6)
 - Scope / non-goal: TRAPS 48, `pr-flow.md` §2, CHANGELOG, PROGRESS; non-goal: cổng máy mới (job `metadata` đã bắt đúng ca)
@@ -24,10 +24,12 @@ Không.
 
 ## Bàn giao / bước tiếp theo
 
-Sau merge: checkpoint PROGRESS + rename → done.md ở PR kế (hoặc gộp vào PR tiếp theo của repo).
+Xong. PROGRESS đã ghi #267 từ 2026-10-10; hồ sơ chỉ chưa rename — đóng ở lượt hoàn thiện 2026-10-12 (F-001 của
+`docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/`).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD: TRAPS 48 ghi tái phát (vector `gh pr update-branch`), luật ở `pr-flow.md` §2, CHANGELOG, PROGRESS checkpoint sau #263 — chỉ tài liệu (ngoại lệ 3 §3.6).
+- PR MERGED: #267 → `c755c90` trên `main` (squash, 2026-10-10T05:54Z); `origin/main` đối chiếu `eb6430a` khi đóng.
+- Giới hạn/rủi ro còn lại: không thêm cổng máy (job `metadata` đã chặn đúng ca).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12 (đóng muộn — hồ sơ để Active 2 ngày sau merge, phát hiện bởi lượt hoàn thiện).

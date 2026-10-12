@@ -2,7 +2,7 @@
 
 - Work ID: 2026-10-11-doi-chieu-loop-engineering
 - Yêu cầu / outcome: người dùng 2026-10-11: "repo này: github.com/cobusgreyling/loop-engineering giúp ích gì không? có thì tích hợp sâu" → đối chiếu theo `docs/framework/adopt-from-outside.md`, lấy đúng phần qua cổng sự cố thật.
-- Trạng thái: Active (báo cáo xong, chờ PR merge)
+- Trạng thái: Done 2026-10-12 (PR #280 squash merge `e24b050`; hồ sơ đóng muộn ở lượt hoàn thiện 2026-10-12)
 - Chủ trì / writer: phiên chính (Opus 5.5) duyệt và kiểm lại; agent read-only kiểm kê + grep cổng.
 - Mức rủi ro / số PR: S; 1 PR docs (báo cáo + một dòng threat model).
 - Scope / non-goal: Scope = 56 hạng mục của repo ngoài @ `f914d15`. Non-goal = chạy bất kỳ script/CLI/`npx` nào của repo ngoài; quyết định mới thay chủ repo.
@@ -25,8 +25,12 @@ Không.
 
 ## Bàn giao / bước tiếp theo
 
-- Sau khi PR merge: đổi file này thành `done.md` kèm merge SHA và cập nhật `PROGRESS.md` (gộp vào PR kế tiếp theo pr-flow §5).
+Xong. PROGRESS đã ghi báo cáo từ 2026-10-11; hồ sơ chỉ chưa rename — đóng ở lượt hoàn thiện 2026-10-12 (F-001 của
+`docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/`).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-Chưa — chờ PR merge.
+- DoD: báo cáo ba cột `docs/reports/2026-10-11-doi-chieu-loop-engineering.md` (56 hạng mục → lấy 0) + sửa dòng T6 lỗi thời ở `docs/ops/threat-model-maintain-cron.md`.
+- PR MERGED: #280 → `e24b050` trên `main` (squash, 2026-10-11T06:25Z); `origin/main` đối chiếu `eb6430a` khi đóng.
+- Giới hạn/rủi ro còn lại: không tích hợp mã (không hạng mục nào qua cổng §2 `adopt-from-outside.md`).
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-12 (đóng muộn — phát hiện bởi lượt hoàn thiện).
