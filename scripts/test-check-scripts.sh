@@ -335,4 +335,22 @@ else
   bad "không tìm thấy $vitest — ca mục 7 không chạy được"
 fi
 
+# Mục 15 (2026-10-12, đối chiếu vòng lặp coding N3): goal file "tuyên bố xong" phải có bằng chứng — failure mode #1 của
+# loop dài là "declares victory". Slice DONE không có ô Evidence → đỏ; file COMPLETE còn slice mở → đỏ; đủ bằng chứng → xanh.
+d="$(setup_repo)" || exit 1
+printf '# Goal: x\n\n| ID | Outcome | State | Evidence |\n| --- | --- | --- | --- |\n| S1 | a | DONE | |\n' > "$d/docs/goals/2026-10-12-giả.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'docs/goals/2026-10-12-giả.md' "$WORK/check-output" && ok "bắt được slice DONE không có Evidence (mục 15)" || bad "KHÔNG bắt được DONE thiếu Evidence (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+printf '# Goal: x\n\n| Thuộc tính | Giá trị |\n| --- | --- |\n| State | COMPLETE |\n\n| ID | Outcome | State | Evidence |\n| --- | --- | --- | --- |\n| S1 | a | DONE | PR #1 |\n| S2 | b | BUILD | |\n' > "$d/docs/goals/2026-10-12-giả.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && grep -q 'S2' "$WORK/check-output" && ok "bắt được goal COMPLETE còn slice BUILD (mục 15)" || bad "KHÔNG bắt được COMPLETE còn slice mở (rc=$rc)"
+
+d="$(setup_repo)" || exit 1
+printf '# Goal: x\n\n| Thuộc tính | Giá trị |\n| --- | --- |\n| State | COMPLETE |\n\n| ID | Outcome | State | Nghiệm thu |\n| --- | --- | --- | --- |\n| S1 | a | DONE, merged | PR #1 → abc |\n| S2 | b | DROPPED | ngoài scope |\n' > "$d/docs/goals/2026-10-12-giả.md"
+git -C "$d" add -A
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan goal COMPLETE đủ bằng chứng (DONE/DROPPED, cột Nghiệm thu) (mục 15)" || bad "chặn OAN goal đủ bằng chứng (rc=$rc)"
+
 finish "check-docs-consistency.sh + check-ci-policy.sh bắt đúng lỗi + không chặn oan."
