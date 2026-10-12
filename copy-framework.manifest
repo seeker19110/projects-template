@@ -74,6 +74,9 @@ scripts/spec-compiler.py
 scripts/spec-compiler.sh
 scripts/arch-health-radar.py
 scripts/arch-health-radar.sh
+scripts/loop-state.sh
+scripts/loop-state.py
+scripts/_loop_state_parse.py
 scripts/test-telemetry-and-dispatch.sh
 # Tạo hồ sơ docs/work/<id>/ — đích cũng chịu cổng Work ID của pr-policy.yml (spec 2026-10-09-new-work-script).
 scripts/new-work.sh

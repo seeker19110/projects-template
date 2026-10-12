@@ -318,45 +318,51 @@ def write_marker(root, wid):
     path.write_text("\n".join([wid, *keep]) + "\n", encoding="utf-8")
 
 
+def _stat_line(root, rel):
+    try:
+        st = (root / rel).stat()
+        return f"{rel}:{st.st_size}:{st.st_mtime_ns}"
+    except OSError:
+        return rel
+
+
+def _dirty_digest(root):
+    """Nội dung chưa commit: diff tracked + (đường dẫn, size, mtime) file untracked — `git status`
+    chỉ thấy ĐƯỜNG DẪN, sửa tiếp file đã dirty phải đổi vân tay (review PR-B F1). Bỏ `.claude/.*`
+    (marker/streak/wind-down là trạng thái vòng, không phải tiến triển)."""
+    others = git(root, "ls-files", "--others", "--exclude-standard", "-z") or ""
+    rels = [r for r in others.split("\0") if r and not r.startswith(".claude/.")]
+    stats = "\n".join(_stat_line(root, r) for r in rels)
+    return sha(git(root, "diff", "HEAD") or "") + sha(stats)
+
+
 def fingerprint(root, wfile):
     head = git(root, "rev-parse", "HEAD") or ""
-    prs = ",".join(
-        sorted(
-            str(p["number"])
-            for p in pr_info(root, git(root, "rev-parse", "--abbrev-ref", "HEAD"))[
-                "open"
-            ]
-        )
-    )
-    status = sha(git(root, "status", "--porcelain") or "")
+    branch = git(root, "rev-parse", "--abbrev-ref", "HEAD")
+    prs = ",".join(sorted(str(p["number"]) for p in pr_info(root, branch)["open"]))
+    status = sha(git(root, "status", "--porcelain") or "") + _dirty_digest(root)
     return sha(f"{head}|{sha(wfile.read_bytes())}|{prs}|{status}")[:16]
+
+
+HELP = {
+    "--work-id": "ID hồ sơ docs/work/<ID>/ (mặc định: marker → hồ sơ Active duy nhất)",
+    "--enter": "ghi marker .claude/.auto-complete-loop rồi in --brief",
+    "--brief": "khối trạng thái ≤ 20 dòng (mặc định)",
+    "--json": "khối trạng thái JSON (key cố định FR-2)",
+    "--fingerprint": "16 hex vân tay artifact (HEAD, hồ sơ, PR mở, file dở)",
+    "--root": "gốc repo (mặc định: cây git hiện tại)",
+}
+FLAGS = {"--enter", "--brief", "--json", "--fingerprint"}
 
 
 def parse_args(argv):
     ap = argparse.ArgumentParser(
-        description="Trạng thái vòng lặp /auto-complete tính từ artifact (ADR-0012)."
+        description="Trạng thái vòng lặp /auto-complete (ADR-0012)"
     )
-    ap.add_argument(
-        "--work-id",
-        help="ID hồ sơ docs/work/<ID>/ (mặc định: marker, rồi hồ sơ Active/Planned duy nhất)",
-    )
-    ap.add_argument(
-        "--enter",
-        action="store_true",
-        help="ghi marker .claude/.auto-complete-loop rồi in --brief",
-    )
-    ap.add_argument(
-        "--brief", action="store_true", help="khối trạng thái ≤ 20 dòng (mặc định)"
-    )
-    ap.add_argument(
-        "--json", action="store_true", help="khối trạng thái JSON (key cố định FR-2)"
-    )
-    ap.add_argument(
-        "--fingerprint",
-        action="store_true",
-        help="16 hex vân tay artifact (HEAD, hồ sơ, PR mở, git status)",
-    )
-    ap.add_argument("--root", help="gốc repo (mặc định: cây git hiện tại)")
+    for flag, text in HELP.items():
+        ap.add_argument(
+            flag, help=text, **({"action": "store_true"} if flag in FLAGS else {})
+        )
     return ap.parse_args(argv)
 
 

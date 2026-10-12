@@ -50,6 +50,17 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 - Phát hiện khung: `Agent(isolation=worktree)` tạo worktree ở `.claude/worktrees/` (trong cây repo, base origin/main chứ không
   HEAD) → cổng lint `find . -name '*.sh'` quét vào đó và đỏ khi worktree bị dọn giữa chừng. Việc cho lượt hoàn thiện (#4): lint/
   docs-consistency loại trừ `.claude/worktrees/`; worktree cho worker tạo tay ngoài cây (scratchpad) từ HEAD.
+- PR-A #295 merge → `e524b49` (20:29Z). Nhánh restart từ `origin/main`; patch T4 (worktree tay) áp sạch; session-resume đổi
+  từ stderr sang `additionalContext` (model phải đọc được trạng thái máy tính) — ca test sửa theo.
+- Cổng tổng đỏ chập chờn 2 lần ở docs-consistency mục 13b trên `done.md` không đổi (2026-10-08-…, 2026-10-10-…), cả hai lần
+  đều khi subagent đang chạy suite test trong CÙNG checkout; chạy riêng 30 lần: 0 lần 13b (4 lần đỏ khác do file probe
+  `scripts/zz-probe-*` của subagent). Kết luận: nhiễu do chia sẻ checkout khi tải cao (TRAPS 63), không phải lỗi code PR;
+  luật phiên: không chạy `/gate` khi subagent đang chạy test trong checkout; xem lại khi tái hiện không có subagent.
+- Review độc lập T4 (`reviewer`): F1 vân tay mù nội dung file đã dirty (`git status` chỉ thấy đường dẫn) → engine thêm hash
+  `git diff HEAD` + size/mtime file untracked, bỏ `.claude/.*`; F2 Planned đứng trước wind-down/trần và không đếm n → dời xuống
+  sau trần, `save n+1`; F4 Blocked giữ fpn → đặt fpn=0. 3 ca đỏ-trước (FAIL 3 → OK; hook 20 ca, engine 33 ca). Không sửa: F3 echo
+  `stop_hook_active` (FR-10 yêu cầu), F5 hai lần gọi engine mỗi Stop (fail-open, timeout mặc định hook; xem lại khi đo > 5 s/lượt),
+  F6 `|| true` vô hại. `loop-state.py` chạm đúng 400 dòng (trần radar) — tách tiếp khi thêm tính năng.
 
 ## Lần thử / blocker
 
@@ -58,13 +69,12 @@ Bước 3 — Thực thi theo số PR trong spec, mỗi PR qua `/gate`, test đ�
 
 ## Bàn giao / bước tiếp theo
 
-- PR-A #295 (`334878e`, U1+U2) mở 2026-10-12 20:04Z, auto-merge SQUASH, check-in 5 phút (`trig_01MvpsGuZizsRGRMkuqN4oPs`).
-- Khi #295 merge: ghi SHA vào PROGRESS/goal (U1, U2 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
-- T4 (PR-B, U3) đang giao `standard-worker` trong worktree riêng (base `334878e`): hook guard vân tay + session-resume + telemetry
-  work-id + manifest; về thì áp patch lên nhánh mới, điền spec AC-10..12/14 (`scripts/test-hooks-loop.sh::<ca>`), reviewer, /gate,
-  commit `feat(loop)`, PR-B.
-- Sau PR-B: PR-C đóng hồ sơ (`done.md` 13b, goal COMPLETE, PROGRESS, CHANGELOG) → rồi việc #4: hoàn thiện repo khung Giai đoạn B
-  (Pha 0–4) tham khảo stored 23 §8 (`scripts/model-rates.json` lệch), sửa DoC `COMPLETION-PLAN.md` thành checklist máy đọc.
+- PR-B #296 (`ca2dab2`, U3) mở 2026-10-12, auto-merge SQUASH, check-in 5 phút. PR-A #295 → `e524b49` đã merge.
+- Khi #296 merge: ghi SHA vào PROGRESS/goal (U3 → DONE), `git checkout -B claude/sharp-goldberg-4owppu origin/main`.
+- PR-C (U4) đóng hồ sơ: `working.md` → `done.md` theo 13b (PR/SHA, DoD, giới hạn: gh GraphQL 403 cloud, loop-state.py 400 dòng,
+  F3/F5 không sửa), goal State COMPLETE + Final audit, PROGRESS (COMPLETE + hồ sơ đóng), CHANGELOG [Unreleased] bổ sung PR-B.
+- Sau PR-C: việc #4 hoàn thiện repo khung Giai đoạn B (Pha 0–4) — đầu vào đã ghi: stored 23 §8 `scripts/model-rates.json` lệch;
+  DoC `COMPLETION-PLAN.md` chưa phải checklist máy đọc; cổng lint quét `.claude/worktrees/`; cổng tổng chập chờn khi chia checkout.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 

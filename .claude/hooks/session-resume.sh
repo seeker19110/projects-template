@@ -19,10 +19,16 @@ rm -f "$ROOT/.claude/.winddown-nudged" 2>/dev/null || true
 # Marker vòng /auto-complete (auto-complete-guard.sh) chỉ sống trong MỘT phiên: phiên mới (startup/clear) xoá và nói ra, để
 # một phiên hỏi việc khác không bị hook giữ lượt; nén ngữ cảnh (compact) hay nối phiên (resume) GIỮ — vòng đang chạy.
 # `source` đọc từ payload stdin; thiếu jq/payload → coi như startup (chiều an toàn: không giữ vòng mồ côi).
+loop_ctx=""   # vòng /auto-complete còn sống qua compact/resume → 3 dòng trạng thái máy tính (ADR-0012) vào ngữ cảnh model
 if [ -f "$ROOT/.claude/.auto-complete-loop" ]; then
   src="$( { cat; } 2>/dev/null | { command -v jq >/dev/null 2>&1 && jq -r '.source // "startup"' 2>/dev/null || echo startup; } )"
   case "$src" in
-    compact|resume) ;;
+    compact|resume)
+       # Vòng giữ nguyên → nạp trạng thái do engine tính (verdict + bước kế tiếp), fail-open: engine lỗi → không có khối này.
+       if [ -f "$ROOT/scripts/loop-state.py" ]; then
+         loop_ctx="$(bash "$ROOT/scripts/loop-state.sh" --root "$ROOT" --work-id "$(sed -n 1p "$ROOT/.claude/.auto-complete-loop" | tr -d '[:space:]')" --brief 2>/dev/null | head -3 || true)"
+         echo "[session-resume] loop-state: ${loop_ctx:-(engine lỗi — chạy tay bash scripts/loop-state.sh --brief)}" >&2
+       fi ;;
     *) rm -f "$ROOT/.claude/.auto-complete-loop" 2>/dev/null || true
        echo "[session-resume] lượt /auto-complete trước chưa kết (marker đã xoá) — gõ /auto-complete để nối lại vòng." >&2 ;;
   esac
@@ -43,6 +49,10 @@ progress_excerpt() {
 }
 
 ctx="$(
+  if [ -n "$loop_ctx" ]; then
+    echo "===== Vòng /auto-complete đang bật (scripts/loop-state.sh --brief; mỗi vòng chạy lại --enter --brief và làm đúng next) ====="
+    printf '%s\n' "$loop_ctx"
+  fi
   work_list_started=0
   for work_file in "$ROOT"/docs/work/*/working.md; do
     [ -f "$work_file" ] || continue

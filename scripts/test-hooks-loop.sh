@@ -32,6 +32,10 @@ new_proj() {   # dự án giả: repo git + hồ sơ Active + marker /auto-compl
   printf '%s\n' "$ID" > "$p/.claude/.auto-complete-loop"
   printf '%s\n' "$p"
 }
+with_engine() {   # $1 = dự án: chép engine loop-state vào để hook có vân tay/brief (hook tính ROOT = git toplevel của cwd)
+  mkdir -p "$1/scripts"
+  cp "$ROOT/scripts/loop-state.sh" "$ROOT/scripts/loop-state.py" "$ROOT/scripts/_loop_state_parse.py" "$ROOT/scripts/_python-exec.sh" "$1/scripts/"
+}
 run_guard() {   # $1 = dự án, $2 = last_assistant_message, [$3 = stop_hook_active] → stdout JSON; stderr vào $WORK/err
   # Here-string, KHÔNG `jq | hook`: hook `exit 0` trước khi đọc stdin (không marker) → jq ghi vào pipe đã đóng → SIGPIPE,
   # pipefail biến thành rc=141 (tái hiện 13/400 lượt, chặn oan cổng commit 2026-10-12).
@@ -124,5 +128,56 @@ printf '#!/usr/bin/env bash\nexit 0\n' > "$WORK/fake-hook.sh"
 p="$(new_proj)"
 out="$( cd "$p" && printf '{"last_assistant_message":"x"}' | CLAUDE_PROJECT_DIR="$p" bash "$WORK/fake-hook.sh" 2>/dev/null )"
 [ "$(decision "$out")" = "allow" ] && ok "negative: hook rỗng cho 'allow' → mục 2 sẽ đỏ với hook như vậy" || bad "negative: phép đo không phân biệt được hook rỗng"
+
+echo "== 12. Vân tay artifact (engine loop-state): đo tiến triển bằng artifact, không bằng lời (ADR-0012) =="
+if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
+  p="$(new_proj)"; with_engine "$p"
+  o1="$(run_guard "$p" "lượt 1")"; o2="$(run_guard "$p" "lượt 2 khác lời")"; o3="$(run_guard "$p" "lượt 3 khác lời nữa")"; rc=$?
+  [ "$(decision "$o1")" = "block" ] && [ "$(decision "$o2")" = "block" ] && [ "$(decision "$o3")" = "allow" ] && [ "$rc" -eq 0 ] && [ -z "$o3" ] \
+    && grep -q "vân tay" "$WORK/err" && grep -q '^fp=.' "$p/.claude/.auto-complete-loop" && grep -q '^fpn=2$' "$p/.claude/.auto-complete-loop" \
+    && ok "vân tay không đổi 2 lượt → cho dừng" || bad "vân tay không đổi: $(decision "$o1")/$(decision "$o2")/$(decision "$o3") marker=$(tr '\n' ' ' < "$p/.claude/.auto-complete-loop")"
+  p="$(new_proj)"; with_engine "$p"
+  run_guard "$p" "a" >/dev/null; printf 'sửa thêm\n' >> "$p/docs/work/$ID/working.md"
+  o2="$(run_guard "$p" "b")"
+  [ "$(decision "$o2")" = "block" ] && grep -q '^fpn=0$' "$p/.claude/.auto-complete-loop" && ok "vân tay đổi → block" || bad "vân tay đổi: $(decision "$o2") marker=$(tr '\n' ' ' < "$p/.claude/.auto-complete-loop")"
+  p="$(new_proj)"; with_engine "$p"
+  out="$(run_guard "$p" "x")"
+  printf '%s' "$out" | jq -r '.reason' | grep -q 'verdict:' && ok "reason có verdict" || bad "reason thiếu verdict: $out"
+else
+  bad "không có python3/python → không đo được ca vân tay (test này không được xanh giả)"
+fi
+
+echo "== 13. Hồ sơ Planned → block 'chưa bắt đầu'; Blocked → n=0 =="
+p="$(new_proj)"; sed -i "s/^- Trạng thái: .*/- Trạng thái: Planned/" "$p/docs/work/$ID/working.md"
+out="$(run_guard "$p" "x")"
+[ "$(decision "$out")" = "block" ] && printf '%s' "$out" | jq -r '.reason' | grep -q "chưa bắt đầu" && ok "Planned → block chưa bắt đầu" || bad "Planned: $out"
+p="$(new_proj)"; printf '%s\nn=5\nlast=\nnudged=\nfp=abc\nfpn=1\n' "$ID" > "$p/.claude/.auto-complete-loop"
+sed -i "s/^- Trạng thái: .*/- Trạng thái: Blocked — chờ quyết/" "$p/docs/work/$ID/working.md"
+out="$(run_guard "$p" "x")"
+[ "$(decision "$out")" = "allow" ] && grep -q '^n=0$' "$p/.claude/.auto-complete-loop" && grep -q '^fpn=0$' "$p/.claude/.auto-complete-loop" && ok "Blocked → n=0" || bad "Blocked không reset n/fpn: $(tr '\n' ' ' < "$p/.claude/.auto-complete-loop")"
+# Review PR-B F2: Planned vẫn phải nhường wind-down và trần lượt (không kẹt block vô hạn), và mỗi lần block phải đếm n.
+p="$(new_proj)"; sed -i "s/^- Trạng thái: .*/- Trạng thái: Planned/" "$p/docs/work/$ID/working.md"; touch "$p/.claude/.winddown-nudged"
+out="$(run_guard "$p" "x")"
+[ "$(decision "$out")" = "allow" ] && ok "Planned + wind-down → allow" || bad "Planned + wind-down vẫn block: $out"
+p="$(new_proj)"; sed -i "s/^- Trạng thái: .*/- Trạng thái: Planned/" "$p/docs/work/$ID/working.md"
+out="$(run_guard "$p" "x")"; out2="$(AUTO_COMPLETE_MAX_CONTINUES=1 run_guard "$p" "y")"
+grep -q '^n=1$' "$p/.claude/.auto-complete-loop" && [ "$(decision "$out")" = "block" ] && [ "$(decision "$out2")" = "allow" ] \
+  && ok "Planned → đếm n, chạm trần → allow" || bad "Planned không đếm n/không chạm trần: $(tr '\n' ' ' < "$p/.claude/.auto-complete-loop") $out2"
+
+echo "== 14. Thiếu python3 → hành vi cũ (cksum lời cuối), marker không có fp= =="
+NOPYD="$WORK/nopy"; mkdir -p "$NOPYD"
+for b in bash git jq sed awk grep cksum cut head tr cat dirname mktemp rm; do
+  src="$(command -v "$b" 2>/dev/null)" && [ -n "$src" ] && ln -sf "$src" "$NOPYD/$b"; done
+p="$(new_proj)"; with_engine "$p"
+pl="$(jq -cn '{last_assistant_message:"x", stop_hook_active:false}')"
+out="$( cd "$p" && env -i PATH="$NOPYD" CLAUDE_PROJECT_DIR="$p" bash "$HOOK" 2>"$WORK/err" <<<"$pl" )"
+[ "$(decision "$out")" = "block" ] && ! grep -q '^fp=.' "$p/.claude/.auto-complete-loop" && ok "thiếu python3 → cksum cũ" || bad "thiếu python3: $out marker=$(tr '\n' ' ' < "$p/.claude/.auto-complete-loop")"
+
+echo "== 15. session-resume in loop-state khi marker còn (compact/resume) =="
+p="$(new_proj)"; with_engine "$p"; printf '## Đang làm / chờ\n- x\n' > "$p/PROGRESS.md"
+out="$( cd "$p" && CLAUDE_PROJECT_DIR="$p" bash "$SR" 2>"$WORK/err" <<<'{"source":"compact"}' )"
+# Khối trạng thái phải vào additionalContext (model đọc), không chỉ stderr (người đọc).
+printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' 2>/dev/null | grep -q '^verdict: ' \
+  && grep -q "\[session-resume\] loop-state:" "$WORK/err" && ok "session-resume in loop-state khi marker còn" || bad "session-resume thiếu loop-state: $(printf '%s' "$out" | head -c 300) / $(cat "$WORK/err")"
 
 finish "hook giữ vòng /auto-complete: giữ khi Active, dừng theo file trạng thái/trần/wind-down/chuỗi đỏ/không tiến triển."
