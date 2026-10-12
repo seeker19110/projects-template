@@ -1,7 +1,7 @@
 # PLAN.md — Port các bản sửa audit 2026-09-15 còn thiếu (nhánh `codex/open-branch-integration`)
 
 ## Bối cảnh & mục tiêu
-Nhánh local `codex/open-branch-integration` (29 commit, 2026-09-15, chưa từng có PR) sửa các phát hiện audit 2026-09-15. Kiểm theo hành vi trên `main` `ac75f09` (2026-10-11): 5 mục đã có bằng đường khác, 8 mục vẫn thiếu, 6 trong đó tái hiện được. Mục tiêu: port theo Ý ĐỊNH (không cherry-pick — `main` đã viết lại nhiều) từng mục thiếu thành một PR `fix:` nhỏ có test đỏ-trước, rồi xoá nhánh. Hồ sơ `docs/work/2026-10-11-port-open-branch/working.md`.
+Nhánh local `codex/open-branch-integration` (29 commit, 2026-09-15, chưa từng có PR) sửa các phát hiện audit 2026-09-15. Kiểm theo hành vi trên `main` `ac75f09` (2026-10-11): 5 mục đã có bằng đường khác, 8 mục vẫn thiếu, 6 trong đó tái hiện được. Mục tiêu: port theo Ý ĐỊNH (không cherry-pick — `main` đã viết lại nhiều) từng mục thiếu thành một PR `fix:` nhỏ có test đỏ-trước, rồi xoá nhánh. Hồ sơ `docs/work/2026-10-11-port-open-branch/done.md`.
 
 ## Đặc tả dùng chung
 - Schema/DDL: không đổi
