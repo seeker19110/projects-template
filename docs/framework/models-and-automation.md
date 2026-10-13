@@ -48,12 +48,13 @@ Khung **không còn dựa vào một chế độ CLI tự-chuyển-model** (`opu
 - **Opus 5.5 thuần** ($4/1M): tốt hơn Fable thuần, nhưng vẫn trả giá Opus cho cả việc cơ học Haiku làm được.
 - **Hai pha thủ công**: chỉ trả giá cao ở pha lập kế hoạch → **rẻ hơn Opus thuần, rẻ hơn nhiều so với Fable thuần**, mà vẫn giữ chất lượng đúng chỗ cần — đánh đổi duy nhất so với `opusplan` cũ là phải tự gõ `/model` để chuyển pha, không tự động trong một phiên.
 
-**Bảng giá tham khảo (nguồn platform.claude.com/docs/en/about-claude/pricing, 2026-09-23 — xác minh lại trước khi chốt ngân sách; máy đọc: `scripts/model-rates.json`):**
+**Bảng giá tham khảo (nguồn platform.claude.com/docs/en/about-claude/pricing, xác minh lại 2026-10-12 — xác minh lại trước khi chốt ngân sách; máy đọc: `scripts/model-rates.json`):**
 
 | Model | Ngữ cảnh | Giá /1M (in/out) | So Sonnet 5 |
 |---|---|---|---|
+| Haiku 5.5 | 1M | $0.10 / $0.50 (prompt ≤ 100K; > 100K: $0.50 / $2.50) | 0.05× |
 | Haiku 4.5 | 200K | $1 / $5 | 0.5× (rẻ) |
-| Sonnet 5 | 1M | $2 / $10 | 1× (baseline) |
+| Sonnet 5 · Sonnet 5.5 | 1M | $2 / $10 | 1× (baseline) |
 | Opus 5.5 | 1M | $4 / $20 | 2× |
 | Fable 5.1 | 1M (out 128K) | $10 / $50 | 5× |
 

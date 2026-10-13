@@ -213,11 +213,25 @@ for m in $hinted claude-fable-5-1 claude-opus-5-5 claude-sonnet-5 claude-haiku-4
     ok "model '$m' có khoá giá"
   fi
 done
-# Giá phải khớp nguồn sống 2026-09-23 (platform.claude.com/docs/en/about-claude/pricing), không phải đời cũ.
+# Giá phải khớp nguồn sống (platform.claude.com/docs/en/about-claude/pricing; xác minh lại 2026-10-12), không phải đời cũ.
 py_rate() { python3 -c "import json,sys; r=json.load(open('$ROOT/scripts/model-rates.json', encoding='utf-8'))['rates']; print(r['$1']['input'], r['$1']['output'])" 2>/dev/null; }
 [ "$(py_rate opus-5-5)" = "4.0 20.0" ] && ok "opus-5-5 = 4/20" || bad "opus-5-5 phải là 4/20 (đang: $(py_rate opus-5-5))"
 [ "$(py_rate fable-5-1)" = "10.0 50.0" ] && ok "fable-5-1 = 10/50" || bad "fable-5-1 phải là 10/50 (đang: $(py_rate fable-5-1))"
 [ "$(py_rate sonnet)" = "2.0 10.0" ] && ok "sonnet = 2/10" || bad "sonnet phải là 2/10 (đang: $(py_rate sonnet))"
+# Model đời mới/cũ phải ra ĐÚNG giá khi tính chi phí thật, không chỉ "có khoá" (2026-10-12, chu kỳ hoàn thiện W-405,
+# stored 23 §8 "bảng giá lệch"): 'claude-haiku-5-5' từng khớp chuỗi con 'haiku' (1/5, giá Haiku 4.5 — sai ×10) và
+# 'claude-sonnet-4-6' khớp 'sonnet' (2/10, giá Sonnet 5) mà không cảnh báo nào. Nguồn sống: platform.claude.com pricing 2026-10-12.
+cost_of() {  # $1=model → est_cost_usd cho 1M token vào + 1M token ra
+  bash "$TL/scripts/telemetry-log.sh" --record --model "$1" --agent rate-cost --task "cost $1" \
+    --input-tokens 1000000 --output-tokens 1000000 >/dev/null 2>&1
+  python3 -c "import json; print(json.load(open('$TL/.ai-telemetry/telemetry.json', encoding='utf-8'))[-1]['est_cost_usd'])"
+}
+for pair in "claude-haiku-5-5 0.6" "claude-sonnet-5-5 12.0" "claude-sonnet-4-6 18.0" "claude-haiku-4-5 6.0"; do
+  set -- $pair
+  got="$(cost_of "$1")"
+  python3 -c "import sys; sys.exit(0 if abs(float('$got' or 'nan') - $2) < 1e-9 else 1)" 2>/dev/null \
+    && ok "chi phí 1M+1M '$1' = \$$2" || bad "chi phí 1M+1M '$1' phải là \$$2 (đang: $got)"
+done
 
 # --- Không có token thật → unknown (null) + cảnh báo, KHÔNG bịa 1000/500 (C4) và KHÔNG ghi 0 (LD-07/AC-7) ---
 echo "== 4. Không bịa token khi không được cấp =="
