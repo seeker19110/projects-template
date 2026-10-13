@@ -105,7 +105,7 @@ HOOK_WRAPPER_RE="(^|[[:space:]])(bash|sh|zsh|eval)[[:space:]]+(-[A-Za-z]+[[:spac
 hook_scan_text() {   # $1 = lệnh gốc
   local body
   body="$(printf '%s' "$1" | strip_heredoc_bodies)"
-  if printf '%s' "$body" | grep -Eq "$HOOK_WRAPPER_RE"; then
+  if grep -Eq "$HOOK_WRAPPER_RE" <<<"$body"; then   # here-string: printf nối pipe vào grep -q ăn SIGPIPE dưới pipefail (TRAPS 71)
     printf '%s' "$body" | strip_quote_marks
   else
     printf '%s' "$body" | strip_quoted

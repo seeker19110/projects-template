@@ -39,7 +39,9 @@ case "$cmd" in *git*) ;; *) exit 0 ;; esac
 cmd_scan="$(hook_scan_text "$cmd")"
 # `git … push` dùng ở khuôn 1, 5, 4 → so một lần.
 is_push=0
-printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?push([[:space:]]|$)' && is_push=1
+# Mọi `grep -q` ở hook này đọc here-string, KHÔNG nối pipe từ printf: dưới pipefail grep thoát ở khớp đầu → printf
+# ăn SIGPIPE 141 → khớp thành "không khớp" → lệnh nguy hiểm KHÔNG bị chặn (fail-open, TRAPS 71).
+grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?push([[:space:]]|$)' <<<"$cmd_scan" && is_push=1
 
 # Đoạn `git … push …` (tới `|`/`&`/`;`/xuống dòng) với ký tự nháy đã bỏ — tên nhánh trong nháy (`"main"`) vẫn thấy.
 # Chỉ soi ĐOẠN push nên cờ gộp `-rf` của lệnh khác không bị coi là force (TRAPS.md mục 62).
@@ -58,10 +60,10 @@ targets="$(printf '%s\n' "$push_segs" | tr -s '[:space:]' '\n' | awk '
 # is_force_hard (không tính --force-with-lease) dùng cho cảnh báo khuôn 4 — giữ đúng hành vi cũ của cảnh báo.
 COMBINED_F='-[A-Za-z]*f[A-Za-z]*'
 is_force=0; is_force_hard=0
-{ printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])(--force|-f)([[:space:]]|$)' \
-  || printf '%s\n' "$push_segs" | grep -Eq "(^|[[:space:]])(--force|$COMBINED_F)([[:space:]]|\$)"; } && is_force_hard=1
+{ grep -Eq '(^|[[:space:]])(--force|-f)([[:space:]]|$)' <<<"$cmd_scan" \
+  || grep -Eq "(^|[[:space:]])(--force|$COMBINED_F)([[:space:]]|\$)" <<<"$push_segs"; } && is_force_hard=1
 { [ "$is_force_hard" = 1 ] \
-  || printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--force-with-lease(=[^[:space:]]*)?([[:space:]]|$)'; } && is_force=1
+  || grep -Eq '(^|[[:space:]])--force-with-lease(=[^[:space:]]*)?([[:space:]]|$)' <<<"$cmd_scan"; } && is_force=1
 
 block() {
   echo "🚫 Lệnh bị chặn bởi block-dangerous-git.sh: $1" >&2
@@ -72,20 +74,20 @@ block() {
 
 # --- 1. force-push vào nhánh chính ---
 if [ "$is_push" = 1 ] && [ "$is_force" = 1 ] \
-   && { printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]:])(main|master)([[:space:]]|$)' \
-        || printf '%s\n' "$targets" | grep -Eq '^[01]{2} (main|master)$'; }; then
+   && { grep -Eq '(^|[[:space:]:])(main|master)([[:space:]]|$)' <<<"$cmd_scan" \
+        || grep -Eq '^[01]{2} (main|master)$' <<<"$targets"; }; then
   block "force-push vào nhánh chính" "CLAUDE.md §8: không push thẳng nhánh chính; force-push xoá lịch sử của người khác."
 fi
 
 # --- 2. reset --hard ---
-if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?reset([[:space:]]|$)' \
-   && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--hard([[:space:]]|$)'; then
+if grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?reset([[:space:]]|$)' <<<"$cmd_scan" \
+   && grep -Eq '(^|[[:space:]])--hard([[:space:]]|$)' <<<"$cmd_scan"; then
   block "git reset --hard" "Mất vĩnh viễn thay đổi chưa commit. Dùng 'git stash' hoặc 'git restore <file>' cho phạm vi hẹp."
 fi
 
 # --- 3. --abort để né giải xung đột ---
-if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?(merge|rebase|cherry-pick)([[:space:]]|$)' \
-   && printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--abort([[:space:]]|$)'; then
+if grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?(merge|rebase|cherry-pick)([[:space:]]|$)' <<<"$cmd_scan" \
+   && grep -Eq '(^|[[:space:]])--abort([[:space:]]|$)' <<<"$cmd_scan"; then
   block "git ...--abort" "CLAUDE.md §8: KHÔNG BAO GIỜ --abort để né việc giải xung đột — đọc cả hai phía rồi giải."
 fi
 
@@ -94,11 +96,11 @@ fi
 # So theo TỪNG TOKEN (tách bằng khoảng trắng) để refspec `+feat/x` hay `--delete feat/x` không bị oan.
 if [ "$is_push" = 1 ]; then
   tokens="$(printf '%s' "$cmd_scan" | tr -s '[:space:]' '\n')"
-  if printf '%s\n' "$tokens" | grep -Eq '^\+([^:]*:)?(main|master)$|^:(main|master)$' \
-     || { printf '%s\n' "$tokens" | grep -Eq '^(--delete|-d)$' && printf '%s\n' "$tokens" | grep -Eq '^(main|master)$'; } \
-     || printf '%s\n' "$targets" | grep -Eq '^(1[01]|01) (main|master)$' \
-     || { printf '%s\n' "$push_segs" | grep -Eq '(^|[[:space:]])(--delete|-d)([[:space:]]|$)' \
-          && printf '%s\n' "$targets" | grep -Eq '^[01]{2} (main|master)$'; }; then
+  if grep -Eq '^\+([^:]*:)?(main|master)$|^:(main|master)$' <<<"$tokens" \
+     || { grep -Eq '^(--delete|-d)$' <<<"$tokens" && grep -Eq '^(main|master)$' <<<"$tokens"; } \
+     || grep -Eq '^(1[01]|01) (main|master)$' <<<"$targets" \
+     || { grep -Eq '(^|[[:space:]])(--delete|-d)([[:space:]]|$)' <<<"$push_segs" \
+          && grep -Eq '^[01]{2} (main|master)$' <<<"$targets"; }; then
     block "push xoá / ép ghi đè nhánh chính" "CLAUDE.md §8: nhánh chính chỉ nhận thay đổi qua PR; refspec '+main', ':main' hay --delete main xoá lịch sử/nhánh của mọi người."
   fi
 fi

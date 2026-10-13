@@ -1301,8 +1301,9 @@ quy ước | xem lại khi: khuôn này tái phát lần 2`).
 
 **Tái phát 2026-10-12 (biến thể ĐO, không phải commit):** phiên chính chạy `/gate` trên checkout chính trong lúc 2 subagent chạy
 suite test (`test-check-scripts.sh` chép fixture theo `git ls-files`, `test-*` tạo file probe `scripts/zz-probe-*`) trong CÙNG
-checkout → docs-consistency mục 13b đỏ trên `done.md` KHÔNG đổi (2 lần, 2 file khác nhau) + 4 lần đỏ vì file probe lạ; chạy riêng
-30 lần: 0 lần 13b. Không phải lỗi code PR — là nhiễu do chia sẻ working tree khi tải cao. *Luật phiên:* không chạy `/gate`/cổng tổng
+checkout → 4 lần đỏ vì file probe lạ (đúng khuôn mục này). *Đính chính 2026-10-13:* 2 lần docs-consistency mục 13b đỏ trên
+`done.md` KHÔNG đổi từng được quy cho chia sẻ checkout — sai: gốc là SIGPIPE `printf | grep -q` dưới pipefail (mục 71, tái phát
+2026-10-13), tái hiện trên checkout riêng không subagent nào chạy. *Luật phiên:* không chạy `/gate`/cổng tổng
 khi còn subagent chạy test trong checkout; worker test ở worktree riêng (scratchpad, tạo từ HEAD — `Agent(isolation=worktree)` tạo
 `.claude/worktrees/` trong cây repo dựa trên `origin/main`, không dùng được cho việc xếp chồng). Hồ sơ:
 `docs/work/2026-10-12-redesign-auto-complete-loop/done.md`, lượt hoàn thiện `docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/`.
@@ -1451,3 +1452,14 @@ stdin thì đưa payload bằng here-string (`bash "$HOOK" <<<"$payload"`), khô
 
 *Cổng chốt chặn:* `scripts/test-hooks-loop.sh` `run_guard` dùng here-string; đo 0/60 lượt đỏ cả suite sau sửa (trước: 13/400 lượt
 pipeline đỏ 141).
+
+**Tái phát 2026-10-13 (chiều ngược: người TIÊU THỤ thoát sớm — `… | grep -q` trong chính hook/cổng):** `grep -q` thoát ở khớp
+đầu, producer (`printf`, `git diff | commit_guard_added_lines`) còn ghi → SIGPIPE 141 → pipefail biến "khớp" thành "không khớp".
+(1) docs-consistency 13b đỏ oan trên `done.md` không đổi: đo `printf=141 grep=0`, 3/8640 lượt khi máy tải cao (here-string 0/8640)
+— từng bị quy nhầm cho mục 63. (2) **Bí mật lọt** (fail-open, tất định): khoá ở đầu một diff staged > bộ đệm pipe (~64 KB, mỗi
+file < 1 MB) → `scripts/githooks/pre-commit` và `.claude/hooks/pre-commit-gate.sh` cho commit qua 100% lượt. (3) Cùng khuôn ở
+`block-dangerous-git.sh`/`_lib.sh` (lệnh nguy hiểm không bị chặn khi bỏ lỡ khớp), `pre-commit-gate.sh` (bỏ cổng), `auto-complete-guard.sh`,
+`check-ci-policy.sh`, `maintenance-sweep.sh`. Sửa: `grep -q RE <<<"$x"` / `grep -q RE < <(lệnh)`.
+*Cách rà:* `grep -nE '(^|[^|])\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q'` trên hook/cổng (ngoài `test-*`).
+*Cổng chốt chặn:* `scripts/test-hooks-gate-guard.sh` mục 17 (bí mật đầu diff lớn: đỏ cả 2 hook trước sửa → xanh) + mục 21 (quét
+tĩnh, 28 chỗ trước sửa → 0; ngoại lệ ghi `sigpipe-ok:` cùng dòng). Hồ sơ `docs/work/2026-10-12-hoan-thien-khung-sau-loop-v2/`.
