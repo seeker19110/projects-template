@@ -43,6 +43,10 @@ khi worker còn test trong checkout — TRAPS 63).
 - PR-3 (W-405): test cũ chỉ kiểm "có khoá giá" (không rơi về `default`) nên chuỗi con `haiku` che lỗi Haiku 5.5 → thêm ca kiểm CHI PHÍ
   thật 1M+1M cho 4 model (đỏ-trước 2 ca) · loại chỉ thêm khoá không test · bậc 3 (kiểm được). Không đổi model gợi ý cho subagent
   (Haiku 4.5 → 5.5 rẻ hơn 10×) — đổi agent/model là quyết định chính sách, đưa vào báo cáo cuối làm góp ý.
+- Chủ repo 2026-10-13 "xem thêm đề xuất nâng cấp" → đối chiếu #299 + stored @ `f98ccdb` (23 §7b, 12 §3, 16 §2c–§2d) theo
+  `adopt-from-outside.md`: báo cáo `docs/reports/2026-10-13-doi-chieu-goi-y-nang-cap.md`. Lấy 1 (W-411 khoá hash requirements-ci, bắt
+  thêm lớp lỗi: phụ thuộc bắc cầu trôi) · loại cổng `author_association` (0 workflow có trigger đó) · bậc 1–2. Đổi model mặc định và
+  job lan chuẩn sang repo con vượt ủy quyền (settings `permissions.ask`, token + hành động ra repo khác) → câu hỏi cho chủ repo.
 
 ## Lần thử / blocker
 
