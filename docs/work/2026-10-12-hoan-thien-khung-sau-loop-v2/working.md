@@ -40,6 +40,9 @@ khi worker còn test trong checkout — TRAPS 63).
 - F-011 (gốc thật của 13b chập chờn): `printf | grep -q` dưới pipefail → SIGPIPE 141, đo 3/8640 lượt đỏ; here-string 0/8640.
   Bác bỏ giả thuyết "chung checkout" của TRAPS 63 tái phát. Sửa ở PR riêng W-409 KHÔNG auto-merge (file cổng/hook ở `permissions.ask`)
   · bậc 1 (đúng + bảo mật: hook chặn git nguy hiểm fail-open khi bỏ lỡ khớp).
+- PR-3 (W-405): test cũ chỉ kiểm "có khoá giá" (không rơi về `default`) nên chuỗi con `haiku` che lỗi Haiku 5.5 → thêm ca kiểm CHI PHÍ
+  thật 1M+1M cho 4 model (đỏ-trước 2 ca) · loại chỉ thêm khoá không test · bậc 3 (kiểm được). Không đổi model gợi ý cho subagent
+  (Haiku 4.5 → 5.5 rẻ hơn 10×) — đổi agent/model là quyết định chính sách, đưa vào báo cáo cuối làm góp ý.
 
 ## Lần thử / blocker
 
@@ -48,8 +51,8 @@ khi worker còn test trong checkout — TRAPS 63).
 
 ## Bàn giao / bước tiếp theo
 
-PR-2 (W-403/W-404 + đánh dấu PR-1 ✅) từ `d898fef` → PR, auto-merge. Kế: PR-3 W-405 (bảng giá, đã code + đỏ-trước trong
-worktree `wt-pr3`) → PR W-409 (here-string, chờ chủ repo) → PR-4 W-408/W-410 re-audit + đóng.
+PR-2 #301 merge → `d671436`. Đang: PR-3 W-405 (bảng giá) từ `d671436`, auto-merge. Kế: PR W-409 (here-string + F-013 bí mật lọt,
+đã code + đỏ-trước ở worktree `wt-gatefix`, KHÔNG auto-merge — chờ chủ repo) → PR-4 W-408/W-410 re-audit + đóng.
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
