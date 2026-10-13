@@ -2,12 +2,12 @@
 
 - Work ID: 2026-10-12-hoan-thien-khung-sau-loop-v2
 - Yêu cầu / outcome: chủ repo 2026-10-12 "xong rồi hoàn thiện khung này luôn nha, tham khảo cả repo stored" → `/auto-complete` Giai đoạn B (Pha 0–4 `project-completion.md`) trên chính repo khung: hết lỗi đã biết, sổ sách khớp Git, DoC có bằng chứng.
-- Trạng thái: Active
+- Trạng thái: Done 2026-10-13 (PR #298 `9f6b6f9`, #301 `d671436`, #302 `5aabe93`, #303 `5eda743`, #304 `39093d6` — squash merge; đóng hồ sơ ở PR đóng)
 - Chủ trì / writer: phiên chính (tự duyệt mọi cổng theo §3d); worker `standard` cho PR-2/PR-3 nếu tách được, worktree riêng ngoài cây.
 - Mức rủi ro / số PR: M (nhiều PR nhỏ, không đổi hành vi người dùng); 4 PR tuần tự (harness chỉ push một nhánh): PR-1 sổ sách, PR-2 DEBT + tách sweep + lint worktree, PR-3 bảng giá, PR-4 re-audit + đóng.
 - Scope / non-goal: trong — F-001..F-007 ở `docs/ops/COMPLETION-PLAN.md` chu kỳ 2026-10-12; ngoài — repo xgold/case-study-ft41 (stored 23 §8 chỉ đối chiếu khung với nguồn sống), FT-13/FT-41, quy trình release của khung (F-008).
 - Spec / goal / issue: không spec (mức M chore/fix/refactor, không tính năng mới — §3c); kế hoạch + DoC: `docs/ops/COMPLETION-PLAN.md` mục "Chu kỳ 2026-10-12".
-- Nhánh / base SHA / thời điểm reconcile: `claude/sharp-goldberg-4owppu` @ `d898fef` · 2026-10-13T01:45Z (lần đầu `eb6430a` 2026-10-12T22:59:22Z)
+- Nhánh / base SHA / thời điểm reconcile: `claude/sharp-goldberg-4owppu` @ `39093d6` · 2026-10-13T06:10Z (lần đầu `eb6430a` 2026-10-12T22:59:22Z)
 
 ## Kế hoạch và phân công
 
@@ -55,11 +55,21 @@ khi worker còn test trong checkout — TRAPS 63).
 
 ## Bàn giao / bước tiếp theo
 
-PR-2 #301 merge → `d671436`. Đang: PR-3 W-405 (bảng giá) từ `d671436`, auto-merge. Kế: PR W-409 (here-string + F-013 bí mật lọt,
-đã code + đỏ-trước ở worktree `wt-gatefix`, KHÔNG auto-merge — chờ chủ repo) → PR-4 W-408/W-410 re-audit + đóng.
+Lượt đã đóng. Việc còn lại thuộc chủ repo (vượt ủy quyền §3d, ghi ở `docs/reports/2026-10-13-doi-chieu-goi-y-nang-cap.md` §4):
+W-406 patch lint `.claude/project-commands.sh` (bỏ `./.claude/worktrees/*`); Q1 job lan chuẩn sang repo con (cần PAT + danh sách repo);
+Q2 đổi model mặc định Sonnet 5 → 5.5 và subagent `model: haiku` → Haiku 5.5 (ADR mới, PR không auto-merge).
 
 ## Nghiệm thu cuối (chỉ điền khi đủ bằng chứng)
 
-<DoD, mọi PR MERGED + merge SHA và main đã đối chiếu, giới hạn/rủi ro còn lại,
-ngày và người nghiệm thu theo ủy quyền. Khi đủ điều kiện rename working.md → done.md
-trong cùng thư mục; không overwrite lịch sử. Chưa có PR/merge thì giữ working.md.>
+- DoD (DoC 5 ô ở `docs/ops/COMPLETION-PLAN.md` chu kỳ 2026-10-12): đủ 5/5, mỗi ô kèm bằng chứng. 0 Cao mở (F-013 sửa đỏ-trước:
+  `test-hooks-gate-guard.sh` mục 17 ❌ cả 2 hook → ✅; mục 21 quét tĩnh `… | grep -q` 28 chỗ → 0); F-001..F-012 có kết cục.
+- PR MERGED (squash): #298 → `9f6b6f9` (PR-1 sổ sách), #301 → `d671436` (PR-2 tách `sweep_deps` + DEBT một dòng),
+  #302 → `5aabe93` (PR-3 bảng giá), #303 → `5eda743` (W-409 F-011/F-013, chủ repo duyệt + merge), #304 → `39093d6` (PR-4 đối chiếu
+  đề xuất nâng cấp + khoá hash `requirements-ci.txt`). `origin/main` đã đối chiếu `39093d6` trước PR đóng.
+- Re-audit Pha 4 trên `39093d6` (2026-10-13): `dev-task.sh gate` `PASS: 4 kiểm tra`; radar `100/100`, "Không còn tín hiệu nợ kỹ thuật";
+  `maintenance-sweep.sh --strict --no-deps` 🔴 0 · 🟡 0; docs-consistency / ci-policy / progress-freshness OK;
+  `loop-state.sh --brief`: `open 1 doing 0 done 43 dropped 2` (ô ⬜ duy nhất W-408 = PR đóng).
+- Giới hạn/rủi ro còn lại: W-406 BLOCKED (gate đỏ thoáng qua chỉ khi dùng `Agent(isolation=worktree)` và harness dọn worktree giữa
+  lượt lint); `release-readiness.md` NO-GO 18/18 là mẫu cho dự án đích (F-008 chấp nhận); alias `haiku` của Claude Code trỏ bản nào
+  chưa xác minh (chi phí ước tính của 4 agent `model: haiku` có thể lệch); sweep 🟡 0 cần `core.hooksPath` đã bật ở checkout.
+- Nghiệm thu: phiên chính theo ủy quyền §3d, 2026-10-13.

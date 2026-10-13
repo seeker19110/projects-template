@@ -11,6 +11,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Fix (2026-10-13): lượt hoàn thiện repo khung sau vòng lặp `/auto-complete` v2 (Definition of Complete 5/5). Bí mật ở đầu một diff
+  staged lớn (> ~64 KB) lọt qua cả hai hook pre-commit — SIGPIPE của `… | grep -q` dưới `pipefail` (TRAPS 71); mọi chỗ trong hook/cổng
+  đổi sang here-string hoặc `< <(…)`, `test-hooks-gate-guard.sh` mục 21 chặn tái nhiễm. Bảng giá `model-rates.json` thêm Haiku 5.5,
+  Sonnet 5.5, Sonnet 4.x (Haiku 5.5 trước bị ước tính đắt gấp 10). `scripts/requirements-ci.txt` khoá hash cả phụ thuộc bắc cầu.
+  Tách mảng dependency của `maintenance-sweep.sh` sang `scripts/_sweep-deps.sh`. Báo cáo đối chiếu đề xuất nâng cấp
+  `docs/reports/2026-10-13-doi-chieu-goi-y-nang-cap.md`.
 - Refactor! (2026-10-12): bỏ `/auto` và `/completion`, gộp hết vào `/auto-complete` — lệnh tự động duy nhất, tự chứa
   (điểm vào A kế hoạch → thực thi, B hoàn thiện theo `project-completion.md`, C bàn giao; wind-down/resume). Người dùng cũ:
   thay `/auto` và `/completion` bằng `/auto-complete`; muốn duyệt kế hoạch hoàn thiện bằng tay thì nói khi giao việc.
