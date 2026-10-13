@@ -251,7 +251,7 @@ gate_missing_tool() { # $1=nhãn, $2=output → in tên công cụ cần cài n�
                        tool='radon (python3 -m pip install radon)' ;;
     *) return 1 ;;
   esac
-  printf '%s\n' "$2" | grep -qE "$re" || return 1
+  grep -qE "$re" <<<"$2" || return 1   # here-string: printf nối pipe vào grep -q ăn SIGPIPE dưới pipefail (TRAPS 71)
   printf '%s' "$tool"
 }
 run_gate_script() { # $1=script, $2=nhãn, $3..=tham số

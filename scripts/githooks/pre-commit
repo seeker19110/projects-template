@@ -25,7 +25,9 @@ if [ -z "${COMMIT_GUARD_SECRET_RE:-}" ] || ! declare -F commit_guard_added_lines
   echo "pre-commit: thiếu hoặc cũ scripts/_commit-guard.sh (mẫu bí mật + bộ lọc dùng chung) — copy từ khung (copy-framework.sh), hoặc git commit --no-verify có chủ đích." >&2
   exit 1
 fi
-if git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | commit_guard_added_lines | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then
+# `grep -q < <(…)`, KHÔNG nối pipe vào grep -q: dưới pipefail grep thoát ở khớp đầu → producer ăn SIGPIPE 141 → bí mật đầu
+# một diff lớn thành "không khớp" và LỌT (TRAPS 71; test-hooks-gate-guard mục 17 "đầu diff lớn").
+if grep -Eq "$COMMIT_GUARD_SECRET_RE" < <(git -C "$ROOT" diff --cached -U0 -- 2>/dev/null | commit_guard_added_lines); then
   echo "pre-commit: diff staged chứa chuỗi giống khoá/token (AWS/PEM/GitHub/GitLab/Google/OpenAI/Anthropic/Slack/Stripe/JWT/npm/SendGrid/Hugging Face/DigitalOcean/Azure) — gỡ khỏi staged, dùng biến môi trường, xoay khoá nếu đã lộ." >&2
   exit 1
 fi

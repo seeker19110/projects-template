@@ -30,7 +30,7 @@ case "$cmd" in *git*) ;; *) exit 0 ;; esac   # không có chữ `git` thì khôn
 cmd_scan="$(hook_scan_text "$cmd")"
 
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
-if ! printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then
+if ! grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)' <<<"$cmd_scan"; then
   exit 0
 fi
 
@@ -38,7 +38,7 @@ fi
 # Chỉ nhận đúng cờ git hợp lệ `--no-verify` (`-n` của git commit là --no-verify nhưng cũng là
 # cờ của nhiều lệnh khác trong chuỗi → không nhận, tránh bỏ cổng nhầm). Cờ phải nằm CÙNG segment với `commit`
 # (không qua `|`/`&`/`;`): `git commit -m x && rm --no-verify` từng bỏ cổng vì cờ của lệnh khác (TRAPS.md mục 62).
-if printf '%s' "$cmd_scan" | grep -Eq 'commit[^|&;]*[[:space:]]--no-verify([[:space:]]|$)'; then
+if grep -Eq 'commit[^|&;]*[[:space:]]--no-verify([[:space:]]|$)' <<<"$cmd_scan"; then
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
 fi
@@ -74,8 +74,8 @@ fi
 # (đối chiếu X-Agents #368; đo lại ở repo này: bí mật/file lớn đi lọt). Lệnh tự stage → xét cả thay đổi chưa
 # stage; `git add` còn kéo cả file chưa theo dõi. Commit thường vẫn chỉ xét index (không chặn oan).
 self_stage=0; add_untracked=0
-if printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?add([[:space:]]|$)'; then self_stage=1; add_untracked=1; fi
-if printf '%s' "$cmd_scan" | grep -Eq 'commit[^|&;]*[[:space:]](-[A-Za-z]*a[A-Za-z]*|--all)([[:space:]]|$)'; then self_stage=1; fi
+if grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?add([[:space:]]|$)' <<<"$cmd_scan"; then self_stage=1; add_untracked=1; fi
+if grep -Eq 'commit[^|&;]*[[:space:]](-[A-Za-z]*a[A-Za-z]*|--all)([[:space:]]|$)' <<<"$cmd_scan"; then self_stage=1; fi
 candidates() {   # NUL-separated, đường dẫn tương đối gốc repo
   git -C "$CAY" diff --cached --name-only --diff-filter=AM -z -- 2>/dev/null
   [ "$self_stage" = 1 ] && git -C "$CAY" diff --name-only --diff-filter=AM -z -- 2>/dev/null
@@ -88,7 +88,9 @@ diff_text() {   # luôn return 0: pipefail sẽ biến trạng thái 1 của `[ 
   [ "$self_stage" = 1 ] && git -C "$CAY" diff -U0 -- 2>/dev/null
   return 0
 }
-if diff_text | commit_guard_added_lines | grep -Eq "$COMMIT_GUARD_SECRET_RE"; then secret_hit=1; fi
+# `grep -q < <(…)`, KHÔNG nối pipe vào grep -q: dưới pipefail producer ăn SIGPIPE khi grep thoát ở khớp đầu → bí mật
+# đầu một diff lớn LỌT (TRAPS 71). Mọi `grep -q` của hook đọc here-string/process substitution vì cùng lý do.
+if grep -Eq "$COMMIT_GUARD_SECRET_RE" < <(diff_text | commit_guard_added_lines); then secret_hit=1; fi
 if [ "$secret_hit" = 0 ] && [ "$add_untracked" = 1 ]; then
   while IFS= read -r -d '' f; do
     grep -IEq "$COMMIT_GUARD_SECRET_RE" "$CAY/$f" 2>/dev/null && { secret_hit=1; break; }

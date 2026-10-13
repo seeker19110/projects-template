@@ -3,6 +3,7 @@
 #   17: mẫu bí mật + ngưỡng file lớn MỘT nguồn (scripts/_commit-guard.sh), tiền tố nhà cung cấp, thiếu guard → chặn
 #   18: biến thể lọt bộ lọc dữ liệu/nháy của block-dangerous-git + pre-commit-gate (TRAPS.md mục 62)
 #   19: settings.json ↔ settings-shared-default.json giống hệt; MCP context7 + deny force-push
+#   20: chuỗi đỏ cùng chữ ký; 21: hook/cổng không nối pipe vào grep -q (SIGPIPE, TRAPS 71)
 # Fixture dùng chung ở scripts/_hooks-gate-test-lib.sh. Phát sang dự án đích và chạy ở đó (test-copy-framework.sh).
 #
 # Chạy: bash scripts/test-hooks-gate-guard.sh
@@ -67,6 +68,15 @@ rc="$( cd "$pp" && bash "$GH" >/dev/null 2>&1; echo $? )"
 if [ "$HAS_JQ" = "0" ]; then skip "mục 17 — pre-commit-gate dòng bắt đầu bằng '+'"; else
 rc="$(run_hook "$pp" 'git commit -m "x"')"
 [ "$rc" = "2" ] && ok "pre-commit-gate: chặn bí mật trên dòng bắt đầu bằng '+'" || bad "pre-commit-gate: LỌT bí mật trên dòng bắt đầu bằng '+' (exit $rc, kỳ vọng 2)"
+fi
+# Bí mật ĐẦU một diff lớn (< 1 MB/file): `diff | lọc | grep -q` dưới pipefail — grep thoát ở khớp đầu, producer còn
+# ghi tiếp ăn SIGPIPE 141 → cả pipeline "không khớp" → bí mật LỌT, tất định khi phần còn lại > bộ đệm pipe (TRAPS 71, 2026-10-13).
+bg="$(setup_project 0)"; printf 'key=%s\n' "$fakekey" > "$bg/a-conf.txt"; seq 1 40000 > "$bg/z-bulk.txt"; git -C "$bg" add a-conf.txt z-bulk.txt
+rc="$( cd "$bg" && bash "$GH" >/dev/null 2>&1; echo $? )"
+[ "$rc" = "1" ] && ok "githooks: chặn bí mật ở đầu diff lớn (không SIGPIPE)" || bad "githooks: LỌT bí mật ở đầu diff lớn (exit $rc, kỳ vọng 1)"
+if [ "$HAS_JQ" = "0" ]; then skip "mục 17 — pre-commit-gate bí mật đầu diff lớn"; else
+rc="$(run_hook "$bg" 'git commit -m "x"')"
+[ "$rc" = "2" ] && ok "pre-commit-gate: chặn bí mật ở đầu diff lớn (không SIGPIPE)" || bad "pre-commit-gate: LỌT bí mật ở đầu diff lớn (exit $rc, kỳ vọng 2)"
 fi
 g6="$(setup_project 0)"; head -c 1100000 /dev/zero > "$g6/blob.bin"; git -C "$g6" add blob.bin
 rc="$( cd "$g6" && bash "$GH" >/dev/null 2>&1; echo $? )"
@@ -235,6 +245,16 @@ if [ "$HAS_JQ" = "1" ]; then
 else
   skip "mục 20 — chuỗi đỏ cùng chữ ký"
 fi
+
+echo "== 21. Hook/cổng không dùng '… | grep -q' (SIGPIPE dưới pipefail → khớp thành không khớp, TRAPS 71) =="
+# grep -q thoát ở khớp đầu, producer còn ghi ăn SIGPIPE 141, pipefail lấy 141 làm mã pipeline: hook chặn git/bí mật
+# fail-open, cổng tài liệu đỏ oan. Viết `grep -q RE <<<"$x"` hoặc `grep -q RE < <(lệnh)`. Dòng chạy trong `bash -c`
+# không pipefail (chuỗi lệnh) ghi `sigpipe-ok: <lý do>` trong comment CÙNG dòng.
+sp_re='(^|[^|])\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q'   # `||` không phải pipe
+sp_hits="$(grep -nE "$sp_re" "$ROOT"/.claude/hooks/*.sh "$ROOT"/scripts/githooks/* "$ROOT"/scripts/*.sh 2>/dev/null \
+  | grep -v -e '/scripts/test-[^/]*:' -e '/scripts/_[^/]*test-lib[^/]*:' -e 'sigpipe-ok:' || true)"
+[ -z "$sp_hits" ] && ok "không còn '… | grep -q' ở hook/cổng/engine" \
+  || bad "còn '… | grep -q' dưới pipefail: $(printf '%s\n' "${sp_hits//$ROOT\//}" | cut -d: -f1,2 | tr '\n' ' ')"
 
 hooks_gate_finish "một nguồn mẫu bí mật + bộ lọc hook không lọt biến thể + settings đồng bộ." \
   "hàng rào commit/git KHÔNG hoạt động như tài liệu mô tả."

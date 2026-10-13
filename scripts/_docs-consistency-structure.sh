@@ -54,7 +54,9 @@ check_done_record() {  # $1 = docs/work/<id>/done.md; in lỗi, trả 1 khi sai
   grep -q '<DoD, mọi PR MERGED' "$f" && { echo "::error file=$f::done.md còn placeholder mẫu WORK.template ở 'Nghiệm thu cuối' — điền DoD, PR + merge SHA, giới hạn (mục 13b)."; rc=1; }
   sec="$(awk '/^## Nghiệm thu cuối/{f=1;next} f&&/^## /{exit} f' "$f")"
   [ -n "$sec" ] || sec="$(cat "$f")"
-  printf '%s' "$sec" | grep -Eq '#[0-9]+|\b[0-9a-f]{7,40}\b' || { echo "::error file=$f::done.md không có PR/SHA làm bằng chứng nghiệm thu (vd '#123 → abc1234') (mục 13b)."; rc=1; }
+  # here-string, KHÔNG nối pipe từ printf: dưới pipefail grep -q thoát ngay khi khớp → printf ăn SIGPIPE (141) → khớp
+  # thành "không khớp" (TRAPS 71; đo 2026-10-12: 3/8640 lượt đỏ oan khi máy tải cao, here-string 0/8640).
+  grep -Eq '#[0-9]+|\b[0-9a-f]{7,40}\b' <<<"$sec" || { echo "::error file=$f::done.md không có PR/SHA làm bằng chứng nghiệm thu (vd '#123 → abc1234') (mục 13b)."; rc=1; }
   return "$rc"
 }
 for dir in docs/work/*/; do

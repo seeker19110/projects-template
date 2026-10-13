@@ -134,7 +134,7 @@ while IFS= read -r line; do
   ref="$(printf '%s' "$line" | sed -E 's/.*uses:[[:space:]]*//; s/[[:space:]]*#.*$//; s/[[:space:]]*$//')"
   # Bỏ qua action local (./.github/...) và docker://
   case "$ref" in ./*|docker://*) continue ;; esac
-  if ! printf '%s' "$ref" | grep -Eq '@[0-9a-f]{40}$'; then
+  if ! grep -Eq '@[0-9a-f]{40}$' <<<"$ref"; then   # here-string: printf nối pipe vào grep -q ăn SIGPIPE dưới pipefail (TRAPS 71)
     echo "::error file=$file,line=$lineno::Action '$ref' chưa ghim full commit SHA — vi phạm docs/ops/supply-chain.md. Sửa: uses: <action>@<sha40> # <tag>"
     fail=1
   fi

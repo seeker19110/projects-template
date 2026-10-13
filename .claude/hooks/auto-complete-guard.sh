@@ -47,7 +47,7 @@ block() { jq -n --arg r "$1" '{decision:"block", reason:$r}'; exit 0; }
 [ -n "$id" ] || allow "marker không có Work ID → bỏ qua."
 [ -f "$WF" ] || { rm -f "$MARK"; allow "hồ sơ $id không còn working.md (đã đổi thành done.md?) → tắt vòng, cho dừng."; }
 status="$(grep -m1 -E '^- Trạng thái:' "$WF" 2>/dev/null || true)"
-if printf '%s' "$status" | grep -Eq '^- Trạng thái:[[:space:]]*(Blocked|Waiting|Done|Ready)'; then
+if grep -Eq '^- Trạng thái:[[:space:]]*(Blocked|Waiting|Done|Ready)' <<<"$status"; then   # here-string: TRAPS 71
   fp="$prev_fp" fpn=0 save "0" "$last" "$nudged"   # n=0, fpn=0 để nối lại sau quyết định đếm từ đầu; giữ vân tay
   allow "hồ sơ $id ở trạng thái dừng hợp lệ ('$status') → cho dừng; marker giữ để nối lại sau khi có quyết định."
 fi
@@ -55,7 +55,7 @@ echo "[auto-complete-guard] stop_hook_active=$(printf '%s' "$payload" | jq -r '.
 [ -f "$ROOT/.claude/.winddown-nudged" ] && allow "usage-guard đã nhắc wind-down (quota) → cho dừng; phiên sau nhắn 'tiếp tục'."
 [ "$n" -ge "$MAX" ] && allow "đã $n/$MAX lượt tiếp tục trong lần bật này → cho dừng (trần AUTO_COMPLETE_MAX_CONTINUES); gõ /auto-complete để nối."
 # Planned đứng SAU wind-down/trần (không kẹt block vô hạn) và vẫn đếm n (review PR-B F2).
-if printf '%s' "$status" | grep -Eq '^- Trạng thái:[[:space:]]*Planned'; then
+if grep -Eq '^- Trạng thái:[[:space:]]*Planned' <<<"$status"; then
   fp="$prev_fp" save $((n + 1)) "$last" "$nudged"
   block "/auto-complete: hồ sơ $id chưa bắt đầu (Planned) — đổi '- Trạng thái: Active' và làm bước đầu tiên theo 'Kế hoạch và phân công'."
 fi

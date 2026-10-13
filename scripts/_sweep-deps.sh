@@ -20,7 +20,7 @@ _deps_node() {
 _deps_python() {
   py_present || return 1
   case "$1" in
-    outdated) has pip && echo "! pip list --outdated --format=freeze 2>/dev/null | grep -q ." ;;   # có dòng = có gói cũ → exit 1 (pip luôn exit 0)
+    outdated) has pip && echo "! pip list --outdated --format=freeze 2>/dev/null | grep -q ." ;;   # có dòng = có gói cũ → exit 1 (pip luôn exit 0); sigpipe-ok: chạy trong bash -c mới, không pipefail
     audit)    has pip-audit && echo "pip-audit" ;;
   esac
   return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
