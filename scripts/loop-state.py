@@ -161,10 +161,8 @@ def git_info(root):
 def _gh_list(root, branch):
     """(danh sách PR thô, note); note khác rỗng = không dùng được.
 
-    DEBT: `gh pr list --json` đi GraphQL — phiên Claude Code cloud chặn (HTTP 403)
-    nên ở đó pr.available=false dù gh có | trần: PR/CI unknown trong cloud, verdict
-    không dựa PR | xem lại khi: vòng lặp chạy chủ yếu trong cloud và cần verdict
-    `waiting` tự động → thay bằng REST `gh api repos/{owner}/{repo}/pulls` + check-runs.
+    DEBT: `gh pr list --json` đi GraphQL, phiên Claude Code cloud chặn (HTTP 403) | trần: PR/CI unknown trong cloud, verdict không dựa PR | xem lại khi: vòng lặp chạy chủ yếu trong cloud và cần verdict `waiting` tự động
+    Hướng sửa: REST `gh api repos/{owner}/{repo}/pulls` + check-runs.
     """
     if not shutil.which("gh"):
         return None, "không có gh → PR/CI unknown"
