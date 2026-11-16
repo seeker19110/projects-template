@@ -1,0 +1,25 @@
+projects-template
+Copyright (c) 2026 seeker19110
+
+Toàn bộ repo (tài liệu khung, script, hook, mẫu) phát hành theo giấy phép MIT — xem LICENSE —
+trừ các thành phần bên thứ ba liệt kê dưới đây, giữ nguyên giấy phép gốc của chúng.
+
+Thành phần bên thứ ba
+---------------------
+
+shellmetrics 0.5.0 (shellspec/shellmetrics), commit b3bfff2af6880443112cdbf2ea449440b30ab9b0
+  — vendor/shellmetrics/shellmetrics
+  Copyright (c) 2020 shellspec. Giấy phép: MIT (vendor/shellmetrics/LICENSE).
+  Nguồn, phiên bản, checksum: vendor/shellmetrics/README.md và vendor/shellmetrics/SHA256SUMS.
+  Tệp chép nguyên bản, không sửa.
+
+Dự án đích chép khung bằng copy-framework.sh / copy-framework.ps1 không nhận LICENSE, NOTICE, README,
+.github/FUNDING.yml hay ảnh mã ủng hộ (docs/assets/) của repo này; dự án đích tự chọn giấy phép.
+
+Nhãn hiệu
+---------
+
+Tên sản phẩm và tổ chức nhắc trong repo (ví dụ Claude, Claude Code, Anthropic, OpenAI, Codex, Gemini,
+Cursor, Windsurf, Cline, GitHub, Copilot; Techcombank, VietQR, NAPAS 247 trên ảnh mã ủng hộ
+docs/assets/) là nhãn hiệu của chủ sở hữu tương ứng, chỉ dùng để gọi đúng tên. projects-template
+không liên kết với, không được tài trợ hay xác nhận bởi các chủ sở hữu đó.

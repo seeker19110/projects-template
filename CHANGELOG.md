@@ -11,6 +11,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## Chưa phát hành — cầu nối X-Agents
 
+- Docs (2026-11-16): README thêm mục "Ủng hộ và liên hệ" (mã VietQR `docs/assets/donate-vietqr-techcombank.png`, liên hệ, hỗ trợ
+  triển khai tại TP. Hồ Chí Minh hoặc online); `.github/FUNDING.yml` trỏ về mục đó; `NOTICE` ghi phạm vi MIT, thành phần bên
+  thứ ba (`vendor/shellmetrics`, MIT) và câu nhãn hiệu. Giấy phép giữ nguyên MIT; `copy-framework` không chép các tệp này sang
+  dự án đích.
 - Fix (2026-10-13): lượt hoàn thiện repo khung sau vòng lặp `/auto-complete` v2 (Definition of Complete 5/5). Bí mật ở đầu một diff
   staged lớn (> ~64 KB) lọt qua cả hai hook pre-commit — SIGPIPE của `… | grep -q` dưới `pipefail` (TRAPS 71); mọi chỗ trong hook/cổng
   đổi sang here-string hoặc `< <(…)`, `test-hooks-gate-guard.sh` mục 21 chặn tái nhiễm. Bảng giá `model-rates.json` thêm Haiku 5.5,
